@@ -14,7 +14,7 @@
 \usepackage{multicol}              
 \usepackage{multirow}
 \usepackage{booktabs}
-%\usepackage{natbib} 
+\usepackage{natbib}
 
 \usepackage[innerrightmargin = 0.7cm, innerleftmargin = 0.3cm]{mdframed}
 \usepackage{mdwlist}
@@ -24,6 +24,8 @@
 \hypersetup{colorlinks=true, breaklinks=true, linkcolor=darkblue, menucolor=darkblue, urlcolor=blue, citecolor=darkblue}
 
 \usepackage[toc,page]{appendix}
+
+
 
 
 \setcounter{secnumdepth}{1}
@@ -70,7 +72,7 @@ set.seed(123)
 
 
 \title{Machine Learning}
-\author{MP Florian Hartig}
+\author{Maximilian Pichler, Florian Hartig}
 
 
 \begin{document}
@@ -114,16 +116,166 @@ Grundlagen der Statistik Version 0.1.2, compiled \today. Translated into German 
 
 \chapter{Introduction} % Use chapters instead of sections
 
-\section{Goals of statistical inference}
+%\section{Goals of statistical inference}
+\section{Explainatory modelling}
+
+
+\section{Predictive modelling}
 
 
 \section{Machine learning models}
 
+
 \section{Introduction to Keras / Tensorflow}
+
+\href{https://www.tensorflow.org/}{TensorFlow} is a open source linear algebra library with a focus on neural networks. 
+%
+Google published opfficialy TensorFlow (TF) in 2015. 
+%
+TF supports several interesting features:
+%
+\begin{itemize}
+\item Automatic differentation (analytic)
+\item Several gradient optimiziers
+\item CPU and GPU parallelization
+\end{itemize}
+%
+All operations in TF are written in C++ and are highly optimized. 
+%
+But dont worry, we don't have to use C++ to use TF because there are several bindings for other languages.
+%
+TensorFlow officialy supports a Python API, but meanwhile there are several community carried APIs for other languages:
+%
+\begin{itemize}
+\item R
+\item Go
+\item Rust
+\item Swift
+\item JavaScript
+\end{itemize}
+%
+In this course we will use TF with the \href{R}{https://tensorflow.rstudio.com/} binding, that was developed and published 2017 by the RStudio Team.
+%
+They developed first a R package (\href{https://rstudio.github.io/reticulate/}{reticulate}) to call python in R. 
+%
+Actually, we are using in R the python TF module (more about this later). \\
+%
+TF offers different levels of API.
+%
+We could implement a neural network completly by ourselves, or we could use Keras which is provided by TF as a submodule.
+%
+Keras is a powerful module for building and training neural networks.
+%
+It allows us to build and train neural networks in a few lines of codes.
+%
+Since the end of 2018, Keras and TF are completly interoperable, allowing us to utilize the best of both.
+%
+In this course, we will show how we can use Keras for neural networks but also how we can use the TF's automatic differenation for using complex objective functions. 
+%
+
+\subsection{TensorFlow installation}
+For the TF-R binding there are several ways to install TensorFlow. 
+%
+The easiest way is to the follow the instructions on the RStudio-TF homepage \href{https://tensorflow.rstudio.com/tensorflow/articles/installation.html}{RStudio-TF homepage}.
+%
+\textbf{However}, in this course we will use TensorFlow 2.0 API, which is the new, reworked API, and yet not stable or supported by the TF-R installer.   
+%
+To install TF-2.0, follow the OS specific instructions below:
+%
+\begin{itemize}
+\item \hyperref[Mac]{MacOS and Linux}
+\item \hyperref[Windows]{Windows}
+\end{itemize}
+
+\paragraph{MacOS and Linux}\label{Mac} 
+On Linux and and MacOS, python 2 or python 3 is already pre-installed.
+%
+First, we have to check whether pip (python2 package installer) or pip3 (python3 package installer) is installed. 
+%
+Open the terminal and hit:
+<<label=install_1, eval=FALSE>>=
+which pip 
+which pip3
+@
+If one is successfull, skip the next step, otherwise we have to install first pip now:
+%
+\textbf{MacOS: }
+<<label=install_2,eval=FALSE>>=
+sudo easy_install pip
+@
+%
+
+\textbf{Linux (Debian, Ubuntu here): }
+<<label=install_3,eval=FALSE>>=
+sudo apt-get install python-pip
+@
+%
+Now open R or execute the command in the shell for installing TF:
+<<label=install_4,eval=FALSE>>=
+system("pip install --user tensorflow==2.0.0-beta0")
+@
+
+
+
+\paragraph{Windows}\label{Windows} 
+On Windows, python is not pre-installed. 
+%
+First, download and install python2 or python3 from the python website: \href{https://www.python.org/downloads/windows/}{https://www.python.org/downloads/windows/}. 
+%
+\textbf{Warning:} The installer will ask you if it should set the paths for python, set the checkmark there!
+%
+Download the \href{https://bootstrap.pypa.io/get-pip.py}{get-pip.py} script and run in the powershell (as admin):
+%
+<<label=install_5,eval=FALSE>>=
+python get-pip.py
+@
+%
+Afterwards install TF in the powershell with:
+<<label=install_6,eval=FALSE>>=
+pip install --user tensorflow==2.0.0-beta0
+@
+%
+or in R with:
+<<label=install_7,eval=FALSE>>=
+system("pip install --user tensorflow==2.0.0-beta0")
+@
+
+
+After we have installed the TF-python package, we have to setup R for TF:
+<<label=install_8,eval=FALSE>>=
+install.packages(c("reticulate", "keras"))
+@
+Try it out:
+<<label=install_9,eval=TRUE>>=
+library(tensorflow)
+# or: tf <- reticulate::import('tensorflow')
+print(tf$version)
+@
+
+
+
+% I changed the order, we should first introduce the models and then data analysis workflow, otherwise we dont have something to work with....
+\chapter{Important ML models}
+
+\section{BRTs and RF}
+%
+Random Forest \citep[RF,][]{Breiman2001a} and Boosted Regression Trees \citep[BRT,][]{Friedman2001} are both based on the Classification And Regression Tree (CART) algorithm.
+%
+\subsection{CART}
+Given $Y \thicksim X_1 + X_2$, the CART tries to partition the feature space into rectangulars.
+
+
+
+
+\section{SVMs}
+
+\section{ANNs and DNNs}
+
+\section{CNNs}
+
 
 
 \chapter{The data analysis workflow}
-
 
 \section{Data prepartion}
 
@@ -134,19 +286,13 @@ Grundlagen der Statistik Version 0.1.2, compiled \today. Translated into German 
 \section{Inference}
 
 
-\chapter{Important ML models}
-
-\section{BRTs and RF}
-
-\section{SVMs}
-
-\section{ANNs and DNNs}
-
-\section{CNNs}
 
 \chapter{Advanced topics}
 
 
+\chapter{Resources}
 
- 
+
+\bibliographystyle{chicago}
+\bibliography{ML_bib}
 \end{document}
