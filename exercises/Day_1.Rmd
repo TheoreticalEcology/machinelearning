@@ -1,0 +1,146 @@
+---
+title: "Day_1"
+author: "Maximilian Pichler, Florian Hartig"
+date: "6/21/2019"
+output: 
+  html_document:
+     toc: true
+     theme: lumen
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+set.seed(42)
+```
+
+# Day 1 - ML course 
+
+## TensorFlow ecosystem
+
+At the moment the [TensorFlow](https://www.tensorflow.org/) is rapdily changing. With TF1.x, [Keras](https://keras.io/) is a fully integrated sub-module of TF. Keras is high level neural-network API on Top of TF. Keras simplifies building, training, evaluation and predicting of all kinds of neural networks. 
+
+The RStudio team developed R bindings for the TF ecosystem with the TensorFlow and Keras package. For documentation and help see:
++ [R-TensorFlow](https://tensorflow.rstudio.com/)
++ [R-Keras](https://keras.rstudio.com/)
++ [TensorFlow (Python API)](https://www.tensorflow.org/versions/r2.0/api_docs/python/tf). The python API documentation has a more detailed documentation with examples
+
+TensorFlow works by setting up a operation graph and only when executed the graph is constructed. With TF 2.0, eager execution, meaning that aber each addition of an operation the graph is built, is the default and simplifies the useage. In this course, we will use solely the TF 2.0 API and eager execution.
+
+### TensorFlow Core
+
+Loading the R-tensorflow package will link the python tensorflow API to the 'tf' object. The syntax will seem, at first, weird but is derived from python (OOP Style).
+
+```{r}
+library(tensorflow) # will load and link the python api to the "tf" in the enviornment. The API can be called by tf$...
+tf$print("TensorFlow: Hello World!")
+print(tf$version) # Base R methods fully support TF objects and Operations. 
+```
+
+Before we can exploit TF operations, we have to export or create explicitly tf tensors:
+```{r}
+# We create two scalar values
+a = tf$constant(10.0) # R style: a = 10.0
+b = tf$constant(20.0) # R style: b = 20.0
+
+c1 = tf$add(a, b) 
+print(c1)
+c2 = a + b # Default methods are available for TF operations ->  a+b returns a tf tensor
+print(c2)
+c3 = tf$add(10.0, 20.0) # tf tensor as return type
+print(c3)
+c4 = 10.0 + 20.0
+print(c4) # Base R operation, return type is a R numeric
+```
+
+Before we continue, we have to talk about data types. The above printed tf tensors have the dtype "float32". TF is a highly optimized library written in C++. For speed up and safety, we have to set the dtypes of our operations. For more detailed information on dtypes read [Wikipedia](https://en.wikipedia.org/wiki/Data_type). Basically, there are four important dtypes:
+
++ Integers: e.g. 10 (in R we can write 10L to get a explicit integer) -> count data
++ Floating point: e.g. 10 -> real values
++ Characters: e.g. "Hallo"
++ Boolean: e.g. TRUE/FALSE or binary 0/1
+
+In addition to the base dtypes, we can set how many memory the type should take up. For instance, TF supports 16, 32, and 64 Bits for floats. (This results in different precisions. But why should we use 16 or 32 bits for floats when today's systems support 64 bits and we have more than enough RAM? -> GPU computation! Many GPU support only 32 bit floats and RAM is also limiting GPU computation).
+
+**WARNING** In my experience, most of the errors occur because the R-Python interpreter (reticulate package) which transform our R numerics to the corresponding Python numerics changes the type if not explicitly set:
+
+```{r, eval=FALSE}
+a = tf$constant(1:10) # float or integer?
+try(a/2) 
+
+# Better:
+a = tf$constant(1:10, dtype = "float64") # set type directly in TF
+try(a/2) # error again, our R-64bit numeric is cast to 32-float!  
+
+# We could solve that by using float32
+a = tf$constant(1:10, dtype = "float32") 
+try(a/2)
+
+# Best practise - Cast everything first to a TF tensor and set the type explicitly!
+dtype = "float64"
+a = tf$constant(1:10, dtype = dtype)
+b = tf$constant(2, dtype = dtype)
+a/b
+
+# Also set the arguments explicitly to Integer:
+try(
+  tf$reshape(a, shape = list(2, 5)) # reshape vector into 2x5 Matrix
+)
+# ERROR because the argument types were cast wrongly!! Use always the explicit R integer type:
+
+try(
+  tf$reshape(a, shape = list(2L, 5L)) # reshape vector into 2x5 Matrix
+)
+```
+
+Side note: I learned this lesssion the hard way after hours/days of debugging errors caused by wrong R-Py-TF casts.
+
+You may have noticed that TF always return a Tensor of TF operations. If we want to work the the TF result in R we have to cast it back to a R type:
+```{r}
+a = tf$constant(1:10)
+try(sum(a)) # no sum method implemented for tf tensors
+# Cast back to R by:
+a_R = a$numpy()
+print(sum(a_R))
+
+```
+
+### Exercise - 1: Simple RSSE optimization
+```{r}
+set.seed(42)
+n_predictors = 1L
+n_observations = 500L
+X = matrix(runif(n_predictors * n_observations, -1, 1), n_observations, n_predictors)
+W = 4
+Y = X %*% W + rnorm(n_observations, 0, 0.5)
+
+plot(Y~X[,1], xlab = "Predictor 1", ylab = "Y")
+
+# R - Style:
+
+RSSE = function(par){
+  y_hat = X %*% par
+  return(sum(y_hat-Y)^2)
+}
+
+(opt = optim(par = -1, lower = -15, upper = 15, fn = RSSE, method = "Brent")$par)
+
+```
+Export the operations in the RSSE to TF operations (Remember to return the tensor as tensor$numpy())
+
+```{r,eval=FALSE}
+# help:
+# the tf$math module provides all required operations
+
+RSSE_tf = function(par){
+  # cast par vector to tensor:
+  
+  # calculate y_hat
+  
+  # calculate rsse
+  
+  return(rsse$numpy())
+}
+
+(opt = optim(par = -1, lower = -15, upper = 15, fn = RSSE_tf, method = "Brent")$par)
+```
+
