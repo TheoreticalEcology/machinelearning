@@ -31,6 +31,7 @@ Loading the R-tensorflow package will link the python tensorflow API to the 'tf'
 
 ```{r}
 library(tensorflow) # will load and link the python api to the "tf" in the enviornment. The API can be called by tf$...
+tf$enable_eager_execution()
 tf$print("TensorFlow: Hello World!")
 print(tf$version) # Base R methods fully support TF objects and Operations. 
 ```
@@ -147,8 +148,10 @@ RSSE_tf = function(par){
 ### Exercise - 1: Solution with Keras
 Keras is a high level neural network API in the TF ecosyste and simplifies not only the model building but in particular the training. The Keras API is available by:
 ```{r}
-keras = tf$keras
-print(keras$backend)
+library(keras)
+library(tensorflow)
+try(tf$enable_eager_execution())
+print(keras::backend())
 ```
 Or by the RStudio keras package which is basically just a wrapper around the submodule. Fitting a model with keras involves three steps:
 
@@ -165,17 +168,22 @@ Or by the RStudio keras package which is basically just a wrapper around the sub
 We will explain on Day 3 what or how neural networks work. For now, we will fit without a hidden layer, thus our model is just a linear model:
 ```{r, eval=FALSE}
 # 1. Build the model:
-model = keras$Sequential() # units = number of nodes in the layer, defines also the output
-model$add(keras$layers$InputLayer(shape = list(1L))) # define Input
-model$add(keras$layers$Dense(units = 1L))
+model = keras_model_sequential()
+model %>% 
+  layer_dense(units = 1L, input_shape = c(1L))
+summary(model)
+
 
 # 2. Compile model:
-model$compile(loss = keras$losses$mean_squared_error, optimizer = keras$optimizers$Adam(0.01))
+model %>% 
+  compile(loss = "mean_squared_error", optimizer = optimizer_adamax(0.01))
 
 # 3. Training:
-model$fit(x = X, y = matrix(Y, ncol = 1L), epochs = 200L)
-model$weights
-plot(unlist(model$history$history$loss))
+fit_history =
+  model %>% 
+    fit(x = X, y = matrix(Y, ncol = 1L), epochs = 200L, verbose = 0L)
+print(sapply(model$weights, function(w) w$numpy()))
+plot(fit_history)
 
 ```
 
@@ -217,12 +225,77 @@ for(i in 1:ncol(housing)){
 
 ```
 
-### Step 2: Cleaning and prepocssing
+### Step 2: Cleaning, prepocssing and splitting
+```{r}
+correlations = cor(housing)
+correlations[upper.tri(correlations)] = NA
+image(t(abs(correlations)),xaxt = "n", yaxt = "n",useRaster = TRUE)
+axis(1, at=seq(0,1,length.out=ncol(housing)), labels=colnames(housing), las= 1)
+axis(2, at=seq(0,1,length.out=ncol(housing)), labels=colnames(housing), las= 2)
+
+# scale predictors
+X = housing[,-which(colnames(housing) == "medv", arr.ind = TRUE)]
+Y = housing[,which(colnames(housing) == "medv", arr.ind = TRUE)]
+
+X = scale(X)
+
+# split into training and testing datasets
+indices = sample.int(nrow(X), 0.8*nrow(X),replace = FALSE)
+train = list(X = X[indices, ], Y = Y[indices])
+test = list(X = X[-indices, ], Y = Y[-indices])
+
+```
 
 
 
 ### Step 3: Model fitting
 
+```{r}
+library(keras)
+library(tensorflow)
+tf$enable_eager_execution()
+
+# 1. Build model
+model = keras_model_sequential()
+model %>% 
+  layer_dense(units = 1L, input_shape = c(ncol(X)))
+summary(model)
+
+# 2. specify loss and optimizer
+model %>% 
+  compile(loss = loss_mean_squared_error, optimizer = optimizer_adamax(0.1))
+
+# 3. fit model on training data
+fit_history = 
+  model %>% 
+    fit(x = train$X, y = matrix(train$Y, ncol = 1L), epochs = 100L, validation_split = 0.2, verbose = 0L)
+
+# lm:
+data = data.frame(train$X, medv = train$Y)
+lm = lm(medv~., data)
+
+```
+
 
 ### Step 4: Evaluation
+```{r}
+plot(fit_history)
+
+model %>% 
+  evaluate(x = test$X, y = matrix(test$Y, ncol = 1L))
+
+pred_keras = predict(model, x = test$X)
+pred_lm = predict(lm, newdata = data.frame(test$X))
+
+Metrics::rmse(test$Y, pred_keras)
+Metrics::rmse(test$Y, matrix(pred_lm, ncol = 1L))
+
+print(sapply(model$weights, function(w) w$numpy()))
+print(coef(lm))
+
+```
+
+
+
+### Exercise - 2: Titanc Dataset
 
