@@ -149,8 +149,6 @@ RSSE_tf = function(par){
 Keras is a high level neural network API in the TF ecosyste and simplifies not only the model building but in particular the training. The Keras API is available by:
 ```{r}
 library(keras)
-library(tensorflow)
-try(tf$enable_eager_execution())
 print(keras::backend())
 ```
 Or by the RStudio keras package which is basically just a wrapper around the submodule. Fitting a model with keras involves three steps:
@@ -251,24 +249,22 @@ test = list(X = X[-indices, ], Y = Y[-indices])
 ### Step 3: Model fitting
 
 ```{r}
-library(keras)
-library(tensorflow)
-tf$enable_eager_execution()
-
 # 1. Build model
 model = keras_model_sequential()
 model %>% 
-  layer_dense(units = 1L, input_shape = c(ncol(X)))
+  layer_dense(units = 20L,input_shape = c(ncol(X)), activation = "relu") %>% 
+  layer_dense(units = 20L, activation = "relu") %>% 
+  layer_dense(units = 1L)
 summary(model)
 
 # 2. specify loss and optimizer
 model %>% 
-  compile(loss = loss_mean_squared_error, optimizer = optimizer_adamax(0.1))
+  compile(loss = loss_mean_squared_error, optimizer = optimizer_adamax(0.01))
 
 # 3. fit model on training data
 fit_history = 
   model %>% 
-    fit(x = train$X, y = matrix(train$Y, ncol = 1L), epochs = 100L, validation_split = 0.2, verbose = 0L)
+    fit(x = train$X, y = matrix(train$Y, ncol = 1L), epochs = 100L, validation_data = list(test$X,matrix(test$Y, ncol = 1L)), verbose = 0L)
 
 # lm:
 data = data.frame(train$X, medv = train$Y)
@@ -290,7 +286,7 @@ pred_lm = predict(lm, newdata = data.frame(test$X))
 Metrics::rmse(test$Y, pred_keras)
 Metrics::rmse(test$Y, matrix(pred_lm, ncol = 1L))
 
-print(sapply(model$weights, function(w) w$numpy()))
+#print(sapply(model$weights, function(w) w$numpy()))
 print(coef(lm))
 
 ```
@@ -298,4 +294,43 @@ print(coef(lm))
 
 
 ### Exercise - 2: Titanc Dataset
+
++ Load the data set
++ Explore the data
++ Preprocess (which columns to include/exclude, transform categorical into dummy variables)
++ Fit keras model (is given)
++ Fit glm (why glm here?)
++ Evaluate on Titanic_test
+
+```{r, include=FALSE,eval=TRUE}
+set.seed(42)
+data = read.csv2("data/Titanic.csv")
+data = data[,-c(1,2)]
+train_indices = sample.int(nrow(data), 0.5*nrow(data))
+write.csv2(data[train_indices, ],"data/Titanic_train.csv")
+write.csv2(data[-train_indices, ],"data/Titanic_test.csv")
+
+```
+
+```{r,eval=FALSE}
+train = read.csv("data/Titanic_train.csv")
+test = read.csv("data/Titanic_test.csv")
+```
+
+
+```{r, eval=FALSE}
+model = keras_model_sequential()
+model %>% 
+  layer_dense(units = 20L, activation = "relu", input_shape = ncol(train_x)) %>% 
+  layer_dense(units = 20L, activation = "relu") %>% 
+  layer_dense(units = 1L, activation = "sigmoid")
+
+model %>% 
+  compile(loss = loss_binary_crossentropy, optimizer = optimizer_adamax())
+
+fit_history =
+  model %>% 
+    fit(x = train_x, y = train_y, epochs = 100L)
+
+```
 
