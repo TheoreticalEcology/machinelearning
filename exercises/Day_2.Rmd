@@ -15,6 +15,72 @@ set.seed(42)
 
 
 ## LM and regularization
+### LM
+
+$$ y_i \sim b_0 + X_i * b_1 + \epsilon _i,   e_i \sim N(0, \sigma) $$
+```{r}
+data = EcoData::boston
+lm = lm(medv~., data = data)
+summary(lm)
+```
+
+```{r}
+library(keras)
+library(tensorflow)
+try(tf$enable_eager_execution())
+
+model = keras_model_sequential()
+model %>% 
+  layer_dense(units = 1L, activation = "linear", input_shape = 13L)
+model %>% 
+  compile(loss = loss_mean_squared_error, optimizer = optimizer_adam(lr = 0.01))
+model_history = 
+  model %>% 
+    fit(x = as.matrix(data[,-which(colnames(data) == "medv", arr.ind = TRUE)]),
+        y = matrix(data[,which(colnames(data) == "medv", arr.ind = TRUE)], ncol = 1L), 
+        verbose = 0L,
+        epochs = 400L)
+
+cbind(coef(lm),c(model$weights[[2]]$numpy(), model$weights[[1]]$numpy()))
+
+```
+
+
+### GLM
+
+Poisson: $$ log(y_i) \sim b_0 + X_i * b_1 $$
+Binomial: $$ logit(y_i) \sim b_0 + X_i * b_1 $$
+
+```{r}
+X = scale(as.matrix(data[,-which(colnames(data) == "ABUND", arr.ind = TRUE)]))
+data = EcoData::birdabundance
+glm = glm(data$ABUND~X)
+summary(glm)
+```
+
+```{r}
+
+model = keras_model_sequential()
+model %>% 
+  layer_dense(units = 1L, activation = "linear", input_shape = 6L) %>% 
+  layer_lambda(function(t) tf$exp(t))
+
+model %>% 
+  compile(loss = loss_poisson, optimizer = optimizer_adam(lr = 0.004))
+model_history = 
+  model %>% 
+    fit(x = X,
+        y = matrix( as.integer(data$ABUND), ncol = 1L), 
+        verbose = 0L,
+        epochs = 400L)
+
+cbind(coef(glm),c(model$get_weights()[[2]], model$get_weights()[[1]]))
+
+```
+
+
+
+### Regularization
 L1 = Lasso (Least Absolute Shrinkage and Selection Operator)
 $$\lambda * \sum_{i = 1}^{p} |W_i| $$
 ```{r}
@@ -30,6 +96,88 @@ plot(density(rnorm(rnorm(1e5,0,1))), main = "l2")
 ```
 
 
+### Exercise 1:
+```{r}
+library(EcoData)
+data = EcoData::boston
+```
+```{r}
+library(tensorflow)
+tf$enable_eager_execution()
+```
+
+
+
+
+```{r}
+W = tf$Variable(
+  tf$constant(
+    matrix(rnorm(13,0.0, sd = 0.5), nrow = 13L, ncol = 1L),
+    dtype = "float32"
+    )
+  )
+
+X = tf$constant(
+  as.matrix(scale(data[,-which(colnames(data) == "medv", arr.ind = TRUE)])),
+  dtype = "float32"
+  )
+Y = tf$constant(
+  matrix(scale(data[,which(colnames(data) == "medv", arr.ind = TRUE)]), ncol = 1L),
+  dtype = "float32"
+)
+
+optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.05)
+
+loss = tf$losses$mean_squared_error(Y, tf$matmul(X, W))
+
+for(i in 1:200){
+  with(tf$GradientTape() %as% tape, {
+    loss = tf$losses$mean_squared_error(Y, tf$matmul(X, W))
+  })
+  
+  if(i %% 20 == 0) cat("Loss: ", loss$numpy(), "\n")
+  
+  gradients = tape$gradient(loss, W)
+  optimizer$apply_gradients(list(c(gradients, W)))
+}
+cbind(W$numpy(), coef(summary(lm(Y$numpy()~X$numpy())))[-1,1])
+```
+
+Implement l1 and l2 regularization on the weights:
+(Hint: use tf$reduce_sum/mean to reduce tensors)
+```{r}
+W = tf$Variable(
+  tf$constant(
+    matrix(rnorm(13,0.0, sd = 0.5), nrow = 13L, ncol = 1L),
+    dtype = "float32"
+    )
+  )
+
+X = tf$constant(
+  as.matrix(scale(data[,-which(colnames(data) == "medv", arr.ind = TRUE)])),
+  dtype = "float32"
+  )
+Y = tf$constant(
+  matrix(scale(data[,which(colnames(data) == "medv", arr.ind = TRUE)]), ncol = 1L),
+  dtype = "float32"
+)
+
+optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.05)
+
+loss = tf$losses$mean_squared_error(Y, tf$matmul(X, W))
+
+for(i in 1:200){
+  with(tf$GradientTape() %as% tape, {
+    loss = tf$losses$mean_squared_error(Y, tf$matmul(X, W)) # Add L1 / L2
+  })
+  
+  if(i %% 20 == 0) cat("Loss: ", loss$numpy(), "\n")
+  
+  gradients = tape$gradient(loss, W)
+  optimizer$apply_gradients(list(c(gradients, W)))
+}
+cbind(W$numpy(), coef(summary(lm(Y$numpy()~X$numpy())))[-1,1])
+```
 
 ## Tree based methods
 ### CART
