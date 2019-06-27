@@ -67,6 +67,7 @@ model %>%
 
 model %>% 
   compile(loss = loss_poisson, optimizer = optimizer_adam(lr = 0.004))
+
 model_history = 
   model %>% 
     fit(x = X,
@@ -180,7 +181,97 @@ cbind(W$numpy(), coef(summary(lm(Y$numpy()~X$numpy())))[-1,1])
 ```
 
 ## Tree based methods
+
+Before we continue, we will introduce an additional TensorFlow API. Besides Keras, which is a high level neural network API, there is the [Estimator](https://www.tensorflow.org/guide/estimators) API. The Estimator API is a more general Machine Learning API which supports not only neural networks but also other community driven algorithms such as trees. Keras models can also transformed into Estimators.
+In this chapter we will introduce Trees which are included in the Estimator API. 
+
 ### CART
+
+<!--  https://www.tensorflow.org/guide/premade_estimators -->
+
+#### Regression
+The Estimator API is useful because we can handle discrete features easier than with the Core API or keras (where we have to introduce dummy variables for our discrete features by ourselves)
+
+```{r}
+library(tfestimators)
+data = carData::Salaries
+
+plot(data)
+
+input = input_fn(data, 
+                 features = c("rank", "discipline", "yrs.since.phd", "yrs.service", "sex"),
+                 response = c("salary"),
+                 batch_size = nrow(data),
+                 num_epochs = 1L
+                )
+
+cat_wrapper = function(key, vocabulary_list){
+  tf$feature_column$indicator_column(
+    tf$feature_column$categorical_column_with_vocabulary_list(key = key, vocabulary_list = vocabulary_list, dtype = tf$string)
+  )
+}
+
+cols = c(
+  cat_wrapper(
+    "rank", vocabulary_list = as.character(unique(data$rank))
+    ),
+  cat_wrapper(
+    "discipline", 
+    vocabulary_list = as.character(unique(data$discipline))
+    ),
+  tf$feature_column$numeric_column("yrs.since.phd"),
+  tf$feature_column$numeric_column("yrs.service"),
+  cat_wrapper(
+    "sex", vocabulary_list = as.character(unique(data$sex))
+    )
+)
+
+i <- sapply(data, is.factor)
+data[i] <- lapply(data[i], as.character)
+
+i <- sapply(data, is.integer)
+data[i] <- lapply(data[i], as.double)
+
+input = tf$estimator$inputs$pandas_input_fn(data[,-6], shuffle = FALSE,target_column = "salary" )
+
+RT = tf$estimator$BoostedTreesRegressor(cols, n_batches_per_layer = 1L, n_trees = 1L)
+
+RT$train(input, steps = 1L)
+
+```
+
+
+
+#### Classification
+```{r}
+data = EcoData::regrowth
+
+predictors = c(
+  tf$feature_column$numeric_column("Root"),
+  tf$feature_column$numeric_column("Fruit")
+  )
+
+input_function = function(){
+  X = data[,1:2]
+  Y = as.integer(as.numeric(data[,3])) -1L
+  return(reticulate::tuple(reticulate::dict(X), Y))
+}
+
+CART = 
+  tf$estimator$BoostedTreesClassifier(feature_columns = predictors, n_batches_per_layer = 1L,
+                                     n_trees = 1L, n_classes = 2L,pruning_mode = "none")
+
+
+CART$train(input_fn = input_function,steps = 1L)
+
+results = CART$evaluate(input_fn = input_function, steps = 1L)
+
+print(results$accuracy)
+
+
+```
+
+
 
 ### Random Forest (RF)
 
