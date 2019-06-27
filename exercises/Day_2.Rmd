@@ -18,13 +18,13 @@ set.seed(42)
 ### LM
 
 $$ y_i \sim b_0 + X_i * b_1 + \epsilon _i,   e_i \sim N(0, \sigma) $$
-```{r}
+```{r, eval=FALSE}
 data = EcoData::boston
 lm = lm(medv~., data = data)
 summary(lm)
 ```
 
-```{r}
+```{r, eval=FALSE}
 library(keras)
 library(tensorflow)
 try(tf$enable_eager_execution())
@@ -51,14 +51,14 @@ cbind(coef(lm),c(model$weights[[2]]$numpy(), model$weights[[1]]$numpy()))
 Poisson: $$ log(y_i) \sim b_0 + X_i * b_1 $$
 Binomial: $$ logit(y_i) \sim b_0 + X_i * b_1 $$
 
-```{r}
+```{r, eval=FALSE}
 X = scale(as.matrix(data[,-which(colnames(data) == "ABUND", arr.ind = TRUE)]))
 data = EcoData::birdabundance
 glm = glm(data$ABUND~X)
 summary(glm)
 ```
 
-```{r}
+```{r, eval=FALSE}
 
 model = keras_model_sequential()
 model %>% 
@@ -98,11 +98,11 @@ plot(density(rnorm(rnorm(1e5,0,1))), main = "l2")
 
 
 ### Exercise 1:
-```{r}
+```{r, eval=FALSE}
 library(EcoData)
 data = EcoData::boston
 ```
-```{r}
+```{r, eval=FALSE}
 library(tensorflow)
 tf$enable_eager_execution()
 ```
@@ -110,7 +110,7 @@ tf$enable_eager_execution()
 
 
 
-```{r}
+```{r, eval=FALSE}
 W = tf$Variable(
   tf$constant(
     matrix(rnorm(13,0.0, sd = 0.5), nrow = 13L, ncol = 1L),
@@ -146,7 +146,7 @@ cbind(W$numpy(), coef(summary(lm(Y$numpy()~X$numpy())))[-1,1])
 
 Implement l1 and l2 regularization on the weights:
 (Hint: use tf$reduce_sum/mean to reduce tensors)
-```{r}
+```{r, eval=FALSE}
 W = tf$Variable(
   tf$constant(
     matrix(rnorm(13,0.0, sd = 0.5), nrow = 13L, ncol = 1L),
@@ -192,7 +192,7 @@ cbind(W$numpy(), coef(summary(lm(Y$numpy()~X$numpy())))[-1,1])
 #### Regression
 <!-- The Estimator API is useful because we can handle discrete features easier than with the Core API or keras (where we have to introduce dummy variables for our discrete features by ourselves) -->
 
-```{r}
+```{r, eval=FALSE}
 library(tree)
 data = datasets::airquality
 plot(data)
@@ -210,7 +210,7 @@ lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 
 #### Exercise 2:
 Play around with the rpart.control parameters. What happens when we change the minbucket or prune the tree?
-```{r}
+```{r, eval=FALSE}
 library(rpart)
 data = datasets::airquality
 plot(data)
@@ -225,7 +225,7 @@ lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 ```
 
 #### Exercise 3:
-```{r}
+```{r, eval=FALSE}
 library(rpart)
 library(tidyverse)
 data = EcoData::titanic
@@ -246,7 +246,7 @@ pred = predict(ct, data[-indices,])
 
 ### Random Forest (RF)
 
-```{r}
+```{r, eval=FALSE}
 library(randomForest)
 
 data = EcoData::titanic
@@ -283,7 +283,7 @@ Meta-Code:
 Here we "boost" on/with our residuals, that is called gradient boosting.
 
 We will implement our own Boosted Regression Tree now:
-```{r}
+```{r, eval=FALSE}
 library(tree)
 x = runif(1000,-5,5)
 y = x*sin(x)*2 + rnorm(1000,0, cos(x)+1.8)
@@ -334,10 +334,36 @@ lines(x = data$x[order(data$x)],get_boosting_model(100L)[order(data$x)], col = '
 ```
 
 
+```{r}
+library(xgboost)
+library(animation)
+
+x1 = seq(-3, 3, length.out = 100)
+x2 = seq(-3, 3, length.out = 100)
+X = expand.grid(x1, x2)
+y = apply(X, 1, function(x) exp(-x[1]^2 - x[2]^2))
+#y = apply(X, 1, function(x) x[1] * exp(-x[1]^2 - x[2]^2))
+
+
+model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(X), label = y), nrounds = 500L,verbose = 0L)
+pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(X)), ntreelimit = 10L)
+
+saveGIF({
+  for (i in c(1,2,4,8,12,20,40,80,200)) {
+    pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(X)), ntreelimit = i)
+    image(matrix(pred, 100,100),main = paste0("Trees: ", i),axes = FALSE, las = 2)
+    axis(1, at = seq(0,1, length.out = 10), labels = round(seq(-3,3, length.out = 10), 1))
+    axis(2, at = seq(0,1, length.out = 10), labels = round(seq(-3,3, length.out = 10), 1), las = 2)
+  }
+},movie.name = "boosting.gif", autobrowse = FALSE)
+
+
+```
+![boosting](boosting.gif)
 
 #### Exercise 4: Use BRT on titanic 
 
-```{r}
+```{r,eval=FALSE}
 library(gbm)
 data = EcoData::titanic
 data = data %>% 
