@@ -182,91 +182,62 @@ cbind(W$numpy(), coef(summary(lm(Y$numpy()~X$numpy())))[-1,1])
 
 ## Tree based methods
 
-Before we continue, we will introduce an additional TensorFlow API. Besides Keras, which is a high level neural network API, there is the [Estimator](https://www.tensorflow.org/guide/estimators) API. The Estimator API is a more general Machine Learning API which supports not only neural networks but also other community driven algorithms such as trees. Keras models can also transformed into Estimators.
-In this chapter we will introduce Trees which are included in the Estimator API. 
+<!-- Before we continue, we will introduce an additional TensorFlow API. Besides Keras, which is a high level neural network API, there is the [Estimator](https://www.tensorflow.org/guide/estimators) API. The Estimator API is a more general Machine Learning API which supports not only neural networks but also other community driven algorithms such as trees. Keras models can also transformed into Estimators. -->
+<!-- In this chapter we will introduce Trees which are included in the Estimator API.  -->
 
 ### CART
 
 <!--  https://www.tensorflow.org/guide/premade_estimators -->
 
 #### Regression
-The Estimator API is useful because we can handle discrete features easier than with the Core API or keras (where we have to introduce dummy variables for our discrete features by ourselves)
+<!-- The Estimator API is useful because we can handle discrete features easier than with the Core API or keras (where we have to introduce dummy variables for our discrete features by ourselves) -->
 
 ```{r}
-library(tfestimators)
-data = carData::Salaries
-
+library(tree)
+data = datasets::airquality
 plot(data)
 
-input = input_fn(data, 
-                 features = c("rank", "discipline", "yrs.since.phd", "yrs.service", "sex"),
-                 response = c("salary"),
-                 batch_size = nrow(data),
-                 num_epochs = 1L
-                )
+rt = tree(sqrt(Ozone)~., data = data,)
+plot(rt)
+text(rt)
 
-cat_wrapper = function(key, vocabulary_list){
-  tf$feature_column$indicator_column(
-    tf$feature_column$categorical_column_with_vocabulary_list(key = key, vocabulary_list = vocabulary_list, dtype = tf$string)
-  )
-}
+pred = predict(rt, data)
+plot(data$Temp, sqrt(data$Ozone))
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 
-cols = c(
-  cat_wrapper(
-    "rank", vocabulary_list = as.character(unique(data$rank))
-    ),
-  cat_wrapper(
-    "discipline", 
-    vocabulary_list = as.character(unique(data$discipline))
-    ),
-  tf$feature_column$numeric_column("yrs.since.phd"),
-  tf$feature_column$numeric_column("yrs.service"),
-  cat_wrapper(
-    "sex", vocabulary_list = as.character(unique(data$sex))
-    )
-)
-
-i <- sapply(data, is.factor)
-data[i] <- lapply(data[i], as.character)
-
-i <- sapply(data, is.integer)
-data[i] <- lapply(data[i], as.double)
-
-input = tf$estimator$inputs$pandas_input_fn(data[,-6], shuffle = FALSE,target_column = "salary" )
-
-RT = tf$estimator$BoostedTreesRegressor(cols, n_batches_per_layer = 1L, n_trees = 1L)
-
-RT$train(input, steps = 1L)
 
 ```
 
-
-
-#### Classification
+#### Exercise 2:
+Play around with the rpart.control parameters. What happens when we change the minbucket or prune the tree?
 ```{r}
-data = EcoData::regrowth
+library(rpart)
+data = datasets::airquality
+plot(data)
 
-predictors = c(
-  tf$feature_column$numeric_column("Root"),
-  tf$feature_column$numeric_column("Fruit")
-  )
+rt = tree(sqrt(Ozone)~., data = data,control = tree.control())
+plot(rt)
+text(rt)
 
-input_function = function(){
-  X = data[,1:2]
-  Y = as.integer(as.numeric(data[,3])) -1L
-  return(reticulate::tuple(reticulate::dict(X), Y))
-}
+pred = predict(rt, data)
+plot(data$Temp, sqrt(data$Ozone))
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+```
 
-CART = 
-  tf$estimator$BoostedTreesClassifier(feature_columns = predictors, n_batches_per_layer = 1L,
-                                     n_trees = 1L, n_classes = 2L,pruning_mode = "none")
+#### Exercise 3:
+```{r}
+library(rpart)
+library(tidyverse)
+data = EcoData::titanic
+data = data %>% 
+  select(-name, -home.dest, -cabin, -ticket)
+set.seed(42)
+indices = sample.int(nrow(data), 0.5*nrow(data))
 
+ct = tree(factor(survived)~., data = data[indices,])
 
-CART$train(input_fn = input_function,steps = 1L)
+pred = predict(ct, data[-indices,])
 
-results = CART$evaluate(input_fn = input_function, steps = 1L)
-
-print(results$accuracy)
 
 
 ```
@@ -275,9 +246,114 @@ print(results$accuracy)
 
 ### Random Forest (RF)
 
+```{r}
+library(randomForest)
+
+data = EcoData::titanic
+data = data %>% 
+  select(-name, -home.dest, -cabin, -ticket, -body) %>% 
+  mutate(survived = factor(survived)) %>% 
+  replace_na(list(age = mean(data$age, na.rm = TRUE), fare = mean(data$fare, na.rm = TRUE)))
+  
+  
+set.seed(42)
+indices = sample.int(nrow(data), 0.5*nrow(data))
+
+rf = ranger(survived~., data = data[indices,])
+pred = predict(rf, data[-indices,])
+
+sum(apply(cbind(data[-indices,]$survived, pred$predictions), 1,function(pp) pp[1] == pp[2]))/nrow(data[-indices,])
+
+```
+
+
+
 
 ### Boosted Regression Trees (BRT)
 <!-- Nice blog: https://medium.com/tensorflow/how-to-train-boosted-trees-models-in-tensorflow-ca8466a53127 -->
+
+#### Boosting?
+Concept of boosting: Fit a bunch of weak learner that adjust the prior learner's errors.
+Meta-Code:
+1. Fit tree
+  2. Calculate residuals
+  3. Fit Tree on the residuals from Step Two
+4. Repeat steps 2 - 3 until satisfied
+
+Here we "boost" on/with our residuals, that is called gradient boosting.
+
+We will implement our own Boosted Regression Tree now:
+```{r}
+library(tree)
+x = runif(1000,-5,5)
+y = x*sin(x)*2 + rnorm(1000,0, cos(x)+1.8)
+data = data.frame(x = x, y = y)
+plot(y~x)
+
+## Gradient Boosting:
+
+get_model = function(x,y){
+  control = tree.control(nobs = length(x), mincut = 20L)
+  model = tree(y~x, data.frame(x = x,y = y), control = control)
+  pred = predict(model, data.frame(x = x,y = y))
+  return(list(model = model, pred = pred))
+}
+
+depth = 1L
+pred = NULL
+model_list = list()
+
+get_boosting_model = function(depth){
+  m_list = list()
+  
+  for(i in 1:depth){
+    if(i == 1) {
+      m = get_model(x,y)
+      pred = m$pred
+    } else {
+      y_res = y-pred
+      m = get_model(x, y_res)
+      pred = pred + m$pred
+    }
+    m_list[[i]] = m$model
+  }
+  model_list <<- m_list
+  
+  return(pred)
+}
+
+pred = get_boosting_model(10L)[order(data$x)]
+length(model_list)
+plot(model_list[[1]])
+
+
+plot(y~x)
+lines(x = data$x[order(data$x)],get_boosting_model(1L)[order(data$x)], col = 'red', lwd = 2)
+lines(x = data$x[order(data$x)],get_boosting_model(100L)[order(data$x)], col = 'green', lwd = 2)
+
+```
+
+
+
+#### Exercise 4: Use BRT on titanic 
+
+```{r}
+library(gbm)
+data = EcoData::titanic
+data = data %>% 
+  select(-name, -home.dest, -cabin, -ticket)
+set.seed(42)
+indices = sample.int(nrow(data), 0.5*nrow(data))
+
+
+model = gbm(survived~., data = data[indices,], distribution = "bernoulli", n.trees = 100L)
+pred = predict(model, newdata = data[-indices,],n.trees = 100L, type = "response")
+
+```
+
+
+
+
 
 
 ## SVM
