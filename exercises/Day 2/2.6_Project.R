@@ -26,7 +26,6 @@ test = data[data$subset== "test",-c(11,12)]
 
 
 write.csv(data.frame(pred = ifelse(pred$data[,2] < 0.4, 0, 1)), file = "sub_max.csv")
-# http://rhsbio6:8500 
 
 
 ## Project 2 - Exoplanet, 
