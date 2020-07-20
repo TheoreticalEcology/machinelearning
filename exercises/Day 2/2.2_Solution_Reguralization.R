@@ -1,6 +1,5 @@
 library(keras)
 library(tensorflow)
-tf$enable_eager_execution()
 
 
 data = airquality[complete.cases(airquality),]

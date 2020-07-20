@@ -1,7 +1,5 @@
-# https://www.tensorflow.org/beta/tutorials/generative/dcgan migrate from 2.0 to 1.14
 library(keras)
 library(tensorflow)
-tf$enable_eager_execution()
 rotate = function(x) t(apply(x, 2, rev))
 imgPlot = function(img, title = ""){
   col=grey.colors(255)
@@ -26,7 +24,7 @@ get_generator = function(){
     layer_dense(units = 200L) %>% 
     layer_activation_leaky_relu() %>% 
     layer_dense(units = 784L, activation = "tanh")
-    return(generator)
+  return(generator)
 }
 generator = get_generator()
 sample = tf$random$normal(c(1L, 100L))
@@ -47,23 +45,17 @@ discriminator = get_discriminator()
 discriminator(generator(tf$random$normal(c(1L, 100L))))
 
 ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE)
-
 loss_discriminator = function(real, fake){
   real_loss = ce(tf$ones_like(real), real)
   fake_loss = ce(tf$zeros_like(fake), fake)
   return(real_loss+fake_loss)
 }
-
 loss_generator = function(fake){
   return(ce(tf$ones_like(fake), fake))
 }
 
-gen_opt = tf$keras$optimizers$Adamax(1e-3)
-disc_opt = tf$keras$optimizers$Adamax(1e-3)
-
-# 1.13
-test = tf$train$AdamOptimizer()
-
+gen_opt = tf$keras$optimizers$RMSprop(1e-4)
+disc_opt = tf$keras$optimizers$RMSprop(1e-4)
 batch_size = 32L
 get_batch = function(){
   indices = sample.int(nrow(train_x), batch_size)
@@ -86,23 +78,29 @@ train_step = function(images){
   disc_opt$apply_gradients(purrr::transpose(list(disc_grads, discriminator$weights)))
   return(c(gen_loss, disc_loss))
 }
+train_step = tf$`function`(reticulate::py_func(train_step))
 
 
-epochs = 3L
 steps = as.integer(nrow(train_x)/batch_size)
 generator = get_generator()
 discriminator = get_discriminator()
+epochs = 30L
+steps = as.integer(nrow(train_x)/batch_size)
+counter = 1
+gen_loss = NULL
+disc_loss = NULL
 for(i in 1:(epochs*steps)){
-  
   images = get_batch()
   losses = train_step(images)
   gen_loss = tf$reduce_sum(losses[[1]])$numpy()
   disc_loss = tf$reduce_sum(losses[[2]])$numpy()
-  
   if(i %% 50*steps == 0) {
     noise = tf$random$normal(c(1L, 100L))
-    cat("Gen: ", gen_loss, " Disc: ", disc_loss, " \n")
     imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
+  }
+  if(i %% steps == 0){
+    counter = 1
+    cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
   }
 }
 
@@ -124,12 +122,7 @@ for(i in 1:(epochs*steps)){
 data = dataset_mnist()
 train = data$train
 test = data$test
-
 train_x = array((train$x-127.5)/127.5, c(dim(train$x), 1L))
-test_x = array((test$x-127.5)/127.5, c(dim(test$x), 1L))
-train_y = train$y
-test_y = test$y
-
 get_generator = function(){
   generator = keras_model_sequential()
   generator %>% 
@@ -145,10 +138,9 @@ get_generator = function(){
     layer_dropout(0.3) %>% 
     layer_conv_2d_transpose(filters = 1L, kernel_size = c(5L, 5L), padding = "same", strides = c(2L, 2L), activation = "tanh", use_bias = FALSE)
   return(generator)
-  }
+}
 generator = get_generator()
 imgPlot(generator(tf$random$normal(c(1L, 100L)))$numpy()[1,,,1])
-
 get_discriminator = function(){
   discriminator = keras_model_sequential()
   discriminator %>% 
@@ -165,28 +157,22 @@ get_discriminator = function(){
 
 discriminator = get_discriminator()
 discriminator(generator(tf$random$normal(c(1L, 100L))))
-
 ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE,label_smoothing = 0.1)
-
 loss_discriminator = function(real, fake){
   real_loss = ce(tf$ones_like(real), real)
   fake_loss = ce(tf$zeros_like(fake), fake)
   return(real_loss+fake_loss)
 }
-
 loss_generator = function(fake){
   return(ce(tf$ones_like(fake), fake))
 }
-
-gen_opt = tf$keras$optimizers$Adamax(1e-4)
-disc_opt = tf$keras$optimizers$Adamax(1e-4)
-
+gen_opt = tf$keras$optimizers$RMSprop(1e-4)
+disc_opt = tf$keras$optimizers$RMSprop(1e-4)
 batch_size = 32L
 get_batch = function(){
   indices = sample.int(nrow(train_x), batch_size)
   return(tf$constant(train_x[indices,,,,drop=FALSE], "float32"))
 }
-
 train_step = function(images){
   noise = tf$random$normal(c(32L, 100L))
   
@@ -211,11 +197,15 @@ train_step = function(images){
   return(c(gen_loss, disc_loss))
   
 }
-
-
-epochs = 1L
+train_step = tf$`function`(reticulate::py_func(train_step))
 steps = as.integer(nrow(train_x)/batch_size)
-
+generator = get_generator()
+discriminator = get_discriminator()
+epochs = 30L
+steps = as.integer(nrow(train_x)/batch_size)
+counter = 1
+gen_loss = NULL
+disc_loss = NULL
 for(i in 1:(epochs*steps)){
   
   images = get_batch()
@@ -225,10 +215,15 @@ for(i in 1:(epochs*steps)){
   
   if(i %% 10*steps == 0) {
     noise = tf$random$normal(c(1L, 100L))
-    cat("Gen: ", gen_loss, " Disc: ", disc_loss, " \n")
     imgPlot(generator(noise)$numpy(), "Gen")
   }
+  if(i %% steps == 0){
+    counter = 1
+    cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
+  }
 }
+
+
 
 
 
@@ -252,8 +247,8 @@ loss_generator = function(fake){
   return(ce(zeros, fake))
 }
 
-gen_opt = tf$keras$optimizers$Adamax(1e-4)
-disc_opt = tf$keras$optimizers$Adamax(1e-4)
+gen_opt = tf$keras$optimizers$RMSprop(1e-5)
+disc_opt = tf$keras$optimizers$RMSprop(1e-5)
 
 train_step = function(images){
   noise = tf$random$normal(c(32L, 100L))
@@ -279,7 +274,7 @@ train_step = function(images){
   return(c(gen_loss, disc_loss))
   
 }
-
+train_step = tf$`function`(reticulate::py_func(train_step))
 
 epochs = 1L
 steps = as.integer(nrow(train_x)/batch_size)

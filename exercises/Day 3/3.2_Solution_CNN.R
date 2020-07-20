@@ -1,6 +1,4 @@
 library(keras)
-
-
 rotate = function(x) t(apply(x, 2, rev))
 imgPlot = function(img, title = ""){
   col=grey.colors(255)
@@ -24,38 +22,38 @@ test_y = to_categorical(test$y, 10)
 
 
 print(dim(train_x))
-print(dim(test_y))
+print(dim(train_y))
 
 ## CNN model
 model = keras_model_sequential()
 
 model %>% 
-  layer_conv_2d(input_shape = c(28, 28,1),filters = 16, kernel_size = c(2,2), activation = "relu", use_bias = F) %>% 
+  layer_conv_2d(input_shape = c(28L, 28L,1L),filters = 16L, kernel_size = c(2L,2L), activation = "relu") %>% 
   layer_max_pooling_2d() %>% 
-  layer_conv_2d(filters = 16, kernel_size = c(3,3), activation = "relu", use_bias = F) %>% 
+  layer_conv_2d(filters = 16L, kernel_size = c(3L,3L), activation = "relu") %>% 
   layer_max_pooling_2d() %>% 
   layer_flatten() %>% 
-  layer_dense(100, activation = "relu") %>% 
-  layer_dense(10, activation = "softmax")
+  layer_dense(100L, activation = "relu") %>% 
+  layer_dense(10L, activation = "softmax")
 summary(model)
 
 model %>% 
   compile(
-    optimizer = keras::optimizer_adam(),
-    loss = keras::loss_categorical_crossentropy,
-    metrics = "accuracy"
+    optimizer = keras::optimizer_adamax(0.01),
+    loss = loss_categorical_crossentropy
   )
 
 
 epochs = 10L
 batch_size = 32L
-model %>% fit(
-  x = train_x, 
-  y = train_y,
-  epochs = epochs,
-  batch_size = batch_size,
-  shuffle = T,
-  validation_split = 0.2
+model %>% 
+  fit(
+    x = train_x, 
+    y = train_y,
+    epochs = epochs,
+    batch_size = batch_size,
+    shuffle = TRUE,
+    validation_split = 0.2
 )
 
 model %>% 
@@ -114,7 +112,7 @@ data = keras::dataset_cifar10()
 train = data$train
 test = data$test
 
-image = train$x[9000,,,]
+image = train$x[1,,,]
 image %>% 
   image_to_array() %>%
   `/`(., 255) %>%
@@ -129,10 +127,10 @@ test_y = to_categorical(test$y, 10)
 model = keras_model_sequential()
 
 model %>% 
-  layer_conv_2d(input_shape = c(32, 32,3),filters = 16, kernel_size = c(2,2), activation = "relu", use_bias = F) %>% 
+  layer_conv_2d(input_shape = c(32L, 32L,3L),filters = 16L, kernel_size = c(2L,2L), activation = "relu") %>% 
   layer_max_pooling_2d() %>% 
   layer_dropout(0.3) %>% 
-  layer_conv_2d(filters = 16, kernel_size = c(3,3), activation = "relu", use_bias = F) %>% 
+  layer_conv_2d(filters = 16L, kernel_size = c(3L,3L), activation = "relu") %>% 
   layer_max_pooling_2d() %>% 
   layer_flatten() %>% 
   layer_dense(10, activation = "softmax")
@@ -140,10 +138,23 @@ summary(model)
 
 model %>% 
   compile(
-    optimizer = keras::optimizer_adam(),
-    loss = keras::loss_categorical_crossentropy,
-    metrics = "accuracy"
+    optimizer = optimizer_adamax(),
+    loss = loss_categorical_crossentropy
   )
+
+early = callback_early_stopping(patience = 5L)
+
+epochs = 10L
+batch_size =2L
+model %>% fit(
+  x = train_x, 
+  y = train_y,
+  epochs = epochs,
+  batch_size = batch_size,
+  shuffle = T,
+  validation_split = 0.2,
+  callbacks = c(early)
+)
 
 # settings for data augmentation
 aug = image_data_generator(rotation_range = 180)
@@ -246,21 +257,12 @@ imgPlot(out(list(train_x[1,,,,drop = FALSE], 0))[[1]][1,,,1],
 data = dataset_mnist()
 train = data$train
 test = data$test
-oldpar = par()
-par(mfrow = c(3,3))
-.n = sapply(1:9, function(x) imgPlot(train$x[x,,], train$y[x]))
-
-## normalize pixel to 0-1
 train_x = array(train$x/255, c(dim(train$x), 1))
 test_x = array(test$x/255, c(dim(test$x), 1))
 train_y = to_categorical(train$y, 10)
 test_y = to_categorical(test$y, 10)
-
-
 print(dim(train_x))
 print(dim(test_y))
-
-## CNN model
 model = keras_model_sequential()
 
 model %>% 
@@ -275,9 +277,8 @@ summary(model)
 
 model %>% 
   compile(
-    optimizer = keras::optimizer_adam(),
-    loss = keras::loss_categorical_crossentropy,
-    metrics = "accuracy"
+    optimizer = optimizer_adamax(),
+    loss = loss_categorical_crossentropy
   )
 
 
@@ -297,9 +298,9 @@ model %>%
 
 
 ### Exercise 5 - Flower data 
-data_files = list.files("Day3/flower/", full.names = TRUE)
+data_files = list.files("flower/", full.names = TRUE)
 train = data_files[str_detect(data_files, "train")]
-test = readRDS(file = "Day3/flower/test.RDS")
+test = readRDS(file = "flower/test.RDS")
 
 train = lapply(train, readRDS)
 train_classes = lapply(train, function(d) dim(d)[1])
@@ -340,18 +341,14 @@ mean(pred_classes-1L == true)
 ### Transfer learning
 
 data = keras::dataset_cifar10()
-
 train = data$train
 test = data$test
-
 image = train$x[5,,,]
 image %>% 
   image_to_array() %>%
   `/`(., 255) %>%
   as.raster() %>%
   plot()
-
-## normalize pixel to 0-1
 train_x = array(train$x/255, c(dim(train$x)))
 test_x = array(test$x/255, c(dim(test$x)))
 train_y = to_categorical(train$y, 10)
@@ -359,11 +356,14 @@ test_y = to_categorical(test$y, 10)
 
 densenet = application_densenet201(include_top = FALSE, input_shape  = c(32L, 32L, 3L))
 
-model = keras::keras_model(inputs = densenet$input, outputs = 
-                             layer_dense(densenet$output, units = 10L, activation = "softmax")
+model = keras::keras_model(inputs = densenet$input, outputs = densenet$output %>%
+                              layer_flatten() %>%
+                             layer_dense(units = 10L, activation = "softmax")
                              )
+model %>% freeze_weights(to = length(model$layers)-1)
+
 model %>% 
-  compile(loss = loss_categorical_crossentropy, optimizer = optimizer_adam())
+  compile(loss = loss_categorical_crossentropy, optimizer = optimizer_adamax())
 
 model %>% 
   fit(
@@ -374,7 +374,4 @@ model %>%
   shuffle = T,
   validation_split = 0.2,
 )
-
-### Bonus
-
 

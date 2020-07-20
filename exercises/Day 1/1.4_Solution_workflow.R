@@ -1,14 +1,17 @@
+# Typical ML workflow
+## **** Objective of this lesson: learn the typical ML workflow, from data cleaning and exploration to model fitting  ****
+
 library(keras)
 library(tensorflow)
 library(tidyverse)
-tf$enable_eager_execution()
-use_session_with_seed(42,disable_parallel_cpu = FALSE)
 
 
 # 1. Data input and cleaning - EDA (exploratory data analysis)
 
 ## Example - categorical variable
-load("Day1/titanic.RData")
+## The Titanic dataset is already split into a training (with information about the response) and a test dataset (w/o information about the response)
+## But for data cleaning we have to combine the two datasetrs
+load("titanic.RData")
 test$survived = NA
 train$subset = "train"
 test$subset = "test"
@@ -145,7 +148,7 @@ write.csv(data.frame(y=pred), file = "test_submit.csv")
 
 
 # Exercise
-# - Play around with the feature engineering, see https://www.kaggle.com/c/titanic/kernels for ideas
+# - Play around with the feature engineering, see https://www.kaggle.com/c/titanic/notebooks?sortBy=hotness&group=everyone&pageSize=20&competitionId=3136&language=R  for ideas
 # - Play around with model parameters, optimizer(lr = ...), epochs = ..., number of hidden nodes in layers: units = ...
 # - Try to maximize the model's accuarcy for the test data
 # - Compare with randomForest
