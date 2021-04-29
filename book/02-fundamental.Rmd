@@ -97,7 +97,7 @@ plot(losses, type = "l")
 random_search[which.min(losses),]
 ```
 
-Bruteforce is not a good approach, it might work well with only a few parameters but it depends completely on your luck
+Bruteforce isn't a good approach, it might work well with only a few parameters.
 
 Let's try it with the optim function:
 ```{r}
@@ -111,3 +111,372 @@ Compare the weights the estimated weights of the lm() function:
 coef(lm(Y~X))
 ```
 
+
+### Regularization
+There are several ways to regularize models. In this section we will focus on lasso and ridge regularization for weights in neural networks.
+
+The idea of lasso and ridge regularization is to put some type of rubber band on the weights and pull them to zero, important weights are able to pull away from zero.
+
+Lasso and ridge have slightly different properties:
+
+- Lasso: abs( sum(Weights))
+- Ridge: (sum(Weights))^2
+Lasso tries to push the weights directly to zero, where as the Ridge allows small values around zero (caused by the difference of the absolute and squared function).
+
+Let's have a look at a keras model with and without regularization (we will use here a network without hidden layers == linear regression model):
+
+```{r, cache=TRUE}
+library(keras)
+data = airquality[complete.cases(airquality),]
+X = scale(data[,-1])
+Y = data$Ozone
+# l1/l2 on linear model
+model = keras_model_sequential()
+model %>%
+ layer_dense(units = 1L, activation = "linear", input_shape = list(dim(X)[2]))
+summary(model)
+model %>%
+ compile(loss = loss_mean_squared_error, optimizer_adamax(lr = 0.5))
+model_history =
+ model %>%
+ fit(x = X, y = Y, epochs = 50L, batch_size = 20L, shuffle = TRUE)
+unconstrained = model$get_weights()
+summary(lm(Y~X))
+coef(lm(Y~X))
+```
+
+Now we will put a l1 (lasso) regularization on the weights:
+```{r, cache=TRUE}
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(X)[2]), 
+              kernel_regularizer = regularizer_l1(10), bias_regularizer = regularizer_l1(10))
+summary(model)
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(lr = 0.5), metrics = c(metric_mean_squared_error))
+model_history =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+l1 = model$get_weights()
+summary(lm(Y~X))
+coef(lm(Y~X))
+cbind(unlist(l1), unlist(unconstrained))
+```
+
+
+## Tree-based ML algorithms
+Famous ML algorithms such as random Forest and gradient boosted trees are based on classification and regression trees.
+
+### Classification and Regression Trees
+In this lecture we will explore regression and classifaction trees at the example of the airquality data set:
+```{r}
+library(rpart)
+library(rpart.plot)
+data=airquality[complete.cases(airquality),]
+```
+
+Fit and visualize a regression tree:
+
+```{r}
+rt = rpart(Ozone~., data = data,control = rpart.control(minsplit = 10))
+rpart.plot(rt)
+```
+
+Visualize the predictions:
+
+```{r}
+pred = predict(rt, data)
+plot(data$Temp, data$Ozone)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+```
+
+The angular form of the prediction line is typical for regression trees.
+
+There is one important hyper-parameter for regression trees: minsplit
+
+- controls the depth of tree (see the help of tree for a description)
+- controls the complexity of the tree and can be seen also as a regularization parameter
+
+
+### Random Forest
+Random Forest creates an ensemble of regression/classification trees.
+
+However, there are two randomization steps with the RF that are responsible for the success of RF:
+
+- bootstrap sample for each tree (we will sample observations with replacement from the dataset)
+- at each split, we will sample a subset of predictors which are then considered as potential splitting criterion
+
+Fit a RF and visualize the predictions:
+
+```{r}
+library(randomForest)
+rf = randomForest(Ozone~., data = data)
+pred = predict(rf, data)
+plot(Ozone~Temp, data = data)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+```
+
+One advantage of RF is that we will get a variable importance:
+
+```{r}
+importance(rf)
+```
+
+Important hyperparameters:
+
+- Similar to regression and classification trees, the hyper parameter nodesize controls for complexity. -> Minimum size of terminal nodes. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
+- mtry - Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.
+
+
+### Boosted regression trees
+RF fits hundreds of trees independent of each other.
+
+In boosted regression trees, we will start with a weak learner (weak learner == regression tree) and then  fit sequentially additional weak learners.
+
+There are two different approaches to enhance the performance:
+
+- AdaBoost, wrong classified observations (by the previous tree) will get a higher weight, the chain of trees will focus on difficult/missclassified observations
+- Gradient boosting (state of the art), each sequential model will be fit on the residual errors of the previous model
+
+Fit a BRT using xgboost:
+```{r BRT1,cache=TRUE}
+library(xgboost)
+data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
+brt = xgboost(data_xg, nrounds = 16L, nthreads = 4L)
+```
+
+
+xgboost has a weird syntax, we have to transform our data into a xgb.DMatrix object to be able to fit the model. We will do 500 rounds which means we will fit 500 sequential models:
+
+Let us visualize the predictions for different number of trees:
+```{r BRT2,cache=TRUE}
+par(mfrow = c(2,2))
+for(i in 1:4){
+  pred = predict(brt, newdata = data_xg, ntreelimit = i)
+  plot(data$Temp, data$Ozone, main = i)
+  lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+}
+```
+
+xgboost also provides an variable importance:
+
+```{r BRT3,cache=TRUE}
+xgboost::xgb.importance(model = brt)
+sqrt(mean((data$Ozone - pred)^2)) # RMSE
+data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
+```
+
+xgboost has an argument to do cross-validation:
+```{r BRT4,cache=TRUE}
+brt = xgboost(data_xg, nrounds = 5L)
+brt_cv = xgboost::xgb.cv(data = data_xg, nfold = 3L, nrounds = 3L, nthreads = 4L)
+print(brt_cv)
+```
+
+There are different ways to control for complexity:
+
+- max_depth, depth of each tree
+- shrinkage (each tree will get a weight and the weight will decrease with the number of trees)
+
+
+## Distance-based algorithms
+In this chapter, we introduce support-vector machines (SVMs) and other distance-based methods.
+
+### k-nearest-neighbor
+k-nearest-neighbor classifies new observations by calculating the nearest n neighbors.
+
+The labels of the n nearest neighbors decide the class of the new point:
+
+```{r}
+X = scale(iris[,1:4])
+Y = iris[,5]
+plot(X[-100,1], X[-100,3], col = Y)
+points(X[100,1], X[100,3], col = "blue", pch = 18, cex = 1.3)
+```
+
+Which class would you decide for the blue point? What are the classes of the nearest points?... well this procedure is used by the kNN:
+
+Scaling is very important when dealing with distances (we also split the dataset into a training and a testing dataset):
+
+```{r}
+data = iris
+data[,1:4] = apply(data[,1:4],2, scale)
+indices = sample.int(nrow(data), 0.7*nrow(data))
+train = data[indices,]
+test = data[-indices,]
+```
+
+Fit model and create predictions:
+
+```{r}
+library(kknn)
+knn = kknn(Species~., train = train, test = test)
+summary(knn)
+table(test$Species, fitted(knn))
+```
+
+Actually, there is no "real" learning in a kNN. 
+
+### Support Vector Machines (SVM)
+Support vectors machine try to find a hyperplane in the predictor space which separates the classes in the best way.
+
+Fitting a SVM:
+
+```{r}
+library(e1071)
+data = iris
+data[,1:4] = apply(data[,1:4],2, scale)
+indices = sample.int(nrow(data), 0.7*nrow(data))
+train = data[indices,]
+test = data[-indices,]
+
+sm = svm(Species~., data = train, kernel = "linear")
+pred = predict(sm, newdata = test)
+```
+
+```{r}
+oldpar = par()
+par(mfrow = c(1,2))
+plot(test$Sepal.Length, test$Petal.Length, col =  pred, main = "predicted")
+plot(test$Sepal.Length, test$Petal.Length, col =  test$Species, main = "observed")
+par(oldpar)
+
+mean(pred==test$Species) # accuracy
+```
+
+
+SVM can only work on linear separable problems. ( A problem is called linearly separable if there exists at least one line in the plane with all of the points of one group on one side of the line and all the points of the others group on the other side).
+
+However, there is a trick, the so called kernel trick.
+
+The kernel trick maps the predictor space into a (higher dimensional) space in which the problem is linear separable:
+
+```{r, eval=FALSE}
+set.seed(42)
+x1 = seq(-3, 3, length.out = 100)
+x2 = seq(-3, 3, length.out = 100)
+X = expand.grid(x1, x2)
+y = apply(X, 1, function(x) exp(-x[1]^2 - x[2]^2))
+y = ifelse(1/(1+exp(-y)) < 0.62, 0, 1)
+image(matrix(y, 100, 100))
+animation::saveGIF({
+  for (i in c("truth","linear", "radial", "sigmoid")) {
+    if(i == "truth"){
+      image(matrix(y, 100,100),main = "Ground truth",axes = FALSE, las = 2)
+    }else{
+      sv = e1071::svm(x = X, y = factor(y), kernel = i)
+      image(matrix(as.numeric(as.character(predict(sv, X))), 100,100),main = paste0("Kernel: ", i),axes = FALSE, las = 2)
+      axis(1, at = seq(0,1, length.out = 10), labels = round(seq(-3,3, length.out = 10), 1))
+      axis(2, at = seq(0,1, length.out = 10), labels = round(seq(-3,3, length.out = 10), 1), las = 2)
+    }
+  }
+},movie.name = "svm.gif", autobrowse = FALSE)
+```
+
+
+```{r,echo=FALSE}
+knitr::include_graphics("images/svm.gif")
+```
+
+
+## Artificial neural networks
+Regularization in ANNs
+```{r}
+library(keras)
+data = airquality
+summary(data)
+data = data[complete.cases(data),] # remove NAs
+summary(data)
+X = scale(data[,2:6])
+Y = data[,1]
+model = keras_model_sequential()
+penalty = 0.01
+model %>%
+ layer_dense(units = 100L, activation = "relu", input_shape = list(5L), kernel_regularizer = regularizer_l1(penalty)) %>%
+ layer_dense(units = 100L, activation = "relu", kernel_regularizer = regularizer_l1(penalty) ) %>%
+ layer_dense(units = 100L, activation = "relu", kernel_regularizer = regularizer_l1(penalty)) %>%
+ layer_dense(units = 1L, activation = "linear", kernel_regularizer = regularizer_l1(penalty)) # one output dimension with a linear activation function
+summary(model)
+model %>%
+ compile(loss = loss_mean_squared_error, optimizer_adamax(0.1))
+model_history =
+ model %>%
+ fit(x = X, y = matrix(Y, ncol = 1L), epochs = 100L, batch_size = 20L, shuffle = TRUE, validation_split = 0.2)
+plot(model_history)
+weights = lapply(model$weights, function(w) w$numpy() )
+fields::image.plot(weights[[1]])
+```
+
+
+## The standard ML pipeline
+The typical ML workflow consist of:
+
+- Data cleaning and exploration (EDA=explorative data analysis) with tidyverse
+- Pre-processing and feature selection
+- Splitting dataset into train and test set for evaluation
+- Model fitting
+- Model evaluation
+- New predictions
+Here is an (optional) video that explains the entire pipeline from a slightly different perspective
+
+
+```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+'<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/nKW8Ndu7Mjw"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+In the following example, we use tidyverse, a collection of R packages for data science / data manipulation mainly developed by Hadley Wickham. A video that explains the basics here 
+
+```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+'<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/nRtp7wSEtJA"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+A good reference is R for data science by Hadley [](https://r4ds.had.co.nz/)
+
+### Example of the ML workflow with the titanic dataset
+For this lecture you need the titanic dataset provided by us. You can find it in GRIPS (datasets.RData in the dataset and submission section) or at [](http://rhsbio6.uni-regensburg.de:8500).
+
+We have split the dataset already into training and testing datasets (the test split has one column less than the train split, why?)
+
+#### Data cleaning
+Load necessary libraries:
+```{r}
+library(keras)
+library(tensorflow)
+library(tidyverse)
+```
+
+Load dataset:
+```{r,eval=FALSE}
+load("datasets.RData")
+train = titanic$train
+test = titanic$test
+```
+
+For cleaning and exploration we will combine the datasets together (if we change a predictor in the train set, we have also to change it in the test set...).
+
+But we will create a new variable "subset" that tells us whether an observation belongs to the train or test split:
+```{r,eval=FALSE}
+test$survived = NA
+train$subset = "train"
+test$subset = "test"
+data = rbind(train,test)
+```
+
+Standard summaries:
+```{r}
+str(data)
+summary(data)
+head(data)
+```
