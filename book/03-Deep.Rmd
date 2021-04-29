@@ -1,0 +1,225 @@
+# Deep learning {#Deep}
+## Deep Neural Networks
+### Dropout and Early stopping
+- Early stopping: you might have noticed yesterday that even with regularization the validation loss will start to increase at some point during the training. Early stopping allows us to stop the training when for instance the test loss does not increase anymore
+- With l1/l2 regularization we have to carefully tune the regularization strength. Dropout is robuster, and tuning of the dropout rate can be beneficial but a rate between 0.2-0.5 works often quite well
+
+## Convolutional Neural Networks - MNIST
+The MNIST dataset is maybe one of the most famous image datasets. It is a dataset of 60,000 handwritten digits from 0-9.
+
+Let's define a few helper functions:
+
+```{r}
+library(keras)
+rotate = function(x) t(apply(x, 2, rev))
+imgPlot = function(img, title = ""){
+ col=grey.colors(255)
+ image(rotate(img), col = col, xlab = "", ylab = "", axes=FALSE, main = paste0("Label: ", as.character(title)))
+}
+```
+
+The dataset is so famous that there is an automatic download function in keras:
+
+```{r}
+data = dataset_mnist()
+train = data$train
+test = data$test
+```
+
+Let's visualize a few digits:
+
+```{r}
+par(mfrow = c(3,3))
+.n = sapply(1:9, function(x) imgPlot(train$x[x,,], train$y[x]))
+```
+
+Similar to the normal ML workflow, we have to scale the pixels (from 0-255) to the range of [0,1] and one hot encode the response:
+
+```{r}
+train_x = array(train$x/255, c(dim(train$x), 1))
+test_x = array(test$x/255, c(dim(test$x), 1))
+train_y = to_categorical(train$y, 10)
+test_y = to_categorical(test$y, 10)
+```
+
+We also use here now arrays instead of matrices. Arrays are higher dimensional matrices (tensor of rank 3). Finally, we have a "real" tensor. 
+
+The last dimension stands for the number of channels in the image. In our case we have only one channel because the images are white-black.
+
+Normally we would have three channels - colors are encoded by the combination of three channels (e.g. rgb).
+
+```{r}
+model = keras_model_sequential()
+model %>% 
+ layer_conv_2d(input_shape = c(28L, 28L,1L),filters = 16L, kernel_size = c(2L,2L), activation = "relu") %>% 
+ layer_max_pooling_2d() %>% 
+ layer_conv_2d(filters = 16L, kernel_size = c(3L,3L), activation = "relu") %>% 
+ layer_max_pooling_2d() %>% 
+ layer_flatten() %>% 
+ layer_dense(100L, activation = "relu") %>% 
+ layer_dense(10L, activation = "softmax")
+summary(model)
+```
+
+We will start now with a 2D convolutional layer, (3D would be e.g. for movies, so the third dimension would correspond to time and not to the color channels!).
+
+We use 16 convolutional kernels (filters) with a size of 2x2.
+
+The pooling layer downsizes the resulting feature maps.
+
+After another conv and pooling layer we flatten the output, i.e. the following dense layer treats the previous layer as normal dense layer (so the dense layer is connected to all weights from the last feature maps).
+
+We end the model with our typical output layer.
+
+The rest is as usual:
+
+```{r}
+model %>% 
+ compile(
+ optimizer = keras::optimizer_adamax(0.01),
+ loss = loss_categorical_crossentropy
+ )
+summary(model)
+```
+
+
+```{r}
+epochs = 5L
+batch_size = 32L
+model %>% 
+ fit(
+ x = train_x, 
+ y = train_y,
+ epochs = epochs,
+ batch_size = batch_size,
+ shuffle = TRUE,
+ validation_split = 0.2
+)
+```
+
+### Data Augmentation
+Having to train a CNN using very little data is a common problem. Data augmentation helps to artificially increase the number of images.
+
+The idea is that the CNN has to learn specific structures such as edges from images. Rotating, adding noise, and zooming in and out will preserve the overall key structure we are interested in, but the model will see new images and has to search once again for the key structures.
+
+Luckily, it is very easy to use data augmentation in keras.
+
+We will use again the MNIST dataset:
+```{r}
+library(keras)
+data = dataset_mnist()
+train = data$train
+test = data$test
+train_x = array(train$x/255, c(dim(train$x), 1))
+test_x = array(test$x/255, c(dim(test$x), 1))
+train_y = to_categorical(train$y, 10)
+test_y = to_categorical(test$y, 10)
+print(dim(train_x))
+print(dim(test_y))
+model = keras_model_sequential()
+model %>% 
+ layer_conv_2d(input_shape = c(NULL, 28, 28,1),filters = 16, kernel_size = c(2,2), activation = "relu", use_bias = F) %>% 
+ layer_max_pooling_2d() %>% 
+ layer_conv_2d(filters = 16, kernel_size = c(3,3), activation = "relu", use_bias = F) %>% 
+ layer_max_pooling_2d() %>% 
+ layer_flatten() %>% 
+ layer_dense(100, activation = "relu") %>% 
+ layer_dense(10, activation = "softmax")
+summary(model)
+model %>% 
+ compile(
+ optimizer = optimizer_adamax(),
+ loss = loss_categorical_crossentropy
+ )
+```
+
+We have now to define a generator object (it is a specific object which infinitly draws samples from our dataset). In the generator we can turn on the data augementation:
+
+```{r}
+aug = image_data_generator()
+generator = flow_images_from_data(train_x, train_y,generator = aug)
+model %>% 
+ fit_generator(generator, steps_per_epoch = dim(train_x)[1],epochs = 5L)
+```
+
+However, now we have to set the step size because the model does not know the first dimension of the image.
+
+### Transfer learning
+Another approach to reduce the necessary number of images or to speed up convergence of the models is the use of transfer learning.
+
+The idea is that all the convolutional layer have mainly one task - learning to identify highly correlated neighbored features and therefore to learn structures such as edges in the image.
+
+Also, the second idea is that only the top layer, the dense layer is the actual classifier of the CNN. The top classifier will be confronted by sets of different edges/structures and has to decide the label.
+
+Again, this sounds very complicating but is again quite easy with keras:
+
+CIFAR10 preparation:
+```{r}
+data = keras::dataset_cifar10()
+train = data$train
+test = data$test
+image = train$x[5,,,]
+image %>% 
+ image_to_array() %>%
+ `/`(., 255) %>%
+ as.raster() %>%
+ plot()
+train_x = array(train$x/255, c(dim(train$x)))
+test_x = array(test$x/255, c(dim(test$x)))
+train_y = to_categorical(train$y, 10)
+test_y = to_categorical(test$y, 10)
+```
+
+Keras provides download functions for all famous architectures/CNN models which are already trained on the imagenet dataset (anoother famous dataset) and the CNNs come already without their top layer
+
+```{r,eval=FALSE}
+densenet = application_densenet201(include_top = FALSE, input_shape  = c(32L, 32L, 3L))
+```
+We have to specify directly here in the model our input dimension.
+
+Now, we will use not a sequential model but just a "keras_model" where we can specify the inputs and outputs:
+```{r,eval=FALSE}
+model = keras::keras_model(inputs = densenet$input, outputs = 
+ layer_flatten(layer_dense(densenet$output, units = 10L, activation = "softmax"))
+ )
+```
+
+The outputs are our own top layer.
+
+In the next step we want to freeze all layers except for our own last layer (with freezing I mean that we do not want to train the complete model, we only want to train the last layer):
+```{r,eval=FALSE}
+model %>% freeze_weights(to = length(model$layers)-1)
+```
+Btw, you can always check the number of trainable weights via summary(model)
+
+And then the usual training:
+```{r,eval=FALSE}
+model %>% 
+ compile(loss = loss_categorical_crossentropy, optimizer = optimizer_adamax())
+model %>% 
+ fit(
+ x = train_x, 
+ y = train_y,
+ epochs = 1L,
+ batch_size = 32L,
+ shuffle = T,
+ validation_split = 0.2,
+)
+```
+
+
+## Flower dataset
+create a CNN
+submit predictions
+see kaggle flower dataset for specific architectures!
+Data preparation:
+```{r,eval=FALSE}
+data_files = list.files("flower/", full.names = TRUE)
+train = data_files[str_detect(data_files, "train")]
+test = readRDS(file = "flower/test.RDS")
+train = lapply(train, readRDS)
+train_classes = lapply(train, function(d) dim(d)[1])
+train = abind::abind(train, along = 1L)
+labels_train = rep(0:4, unlist(train_classes))
+```
+
