@@ -1,3 +1,71 @@
-# Introduction to Machine Learning {#intro}
+# Introduction to Machine Learning {#introduction}
+In this lesson, we introduce the three basic ML tasks: supervised regression and classification, and unsupervised learning. 
 
-test....
+In ML, we distinguish 3 basic learning paradigms:
+
+- Supervised learning
+- Unsupervised learning
+- Reinforcement learning
+We will speak about reinforcement learning at the end of the course. Now, we want to look at examples of supervised and unsupervised learning. Before you start with the code, here a video to remind you of what we talked about in the class:
+
+
+```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+'<iframe width="560" height="315" 
+  src="https://www.youtube.com/watch?v=1AVrWvRvfxs"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+
+## Supervised learning: regression and classification
+Two two main subbranches of supervised learning are regression and classification. Here a video that explains again the difference 
+
+```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+'<iframe width="560" height="315" 
+  src="https://www.youtube.com/watch?v=i04Pfrb71vk"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+
+### Supervised learning using Random Forest
+
+The random forest (RF) algorithm is possibly the most widely used ML algorithm and can be used for regression and classification. We will talk more about the algorithm on Day 2. Here an example of a regression: 
+
+Visualization of the data:
+```{r}
+plot(iris, col = iris$Species)
+```
+
+Fitting the model
+```{r}
+library(randomForest)
+m1 <- randomForest(Sepal.Length ~ ., data = iris)
+m1
+str(m1)
+m1$type
+predict(m1)
+```
+
+Visualization of the results
+```{r}
+par(mfrow = c(1,2))
+plot(predict(m1), iris$Sepal.Length, xlab = "predicted", ylab = "observed")
+abline(0,1)
+varImpPlot(m1)
+```
+
+This is a nice visualization of the RF structure, but requires to load a package from GitHub
+
+```{r}
+devtools::install_github('araastat/reprtree')
+reprtree:::plot.getTree(m1, iris)
+```
+
+
