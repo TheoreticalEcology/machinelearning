@@ -35,7 +35,7 @@ cat(
 ```
 
 
-#### Supervised regression using Random Forest
+### Supervised regression using Random Forest
 
 The random forest (RF) algorithm is possibly the most widely used ML algorithm and can be used for regression and classification. We will talk more about the algorithm on Day 2. Here an example of a regression: 
 
@@ -69,7 +69,7 @@ This is a nice visualization of the RF structure, but requires to load a package
 reprtree:::plot.getTree(m1, iris)
 ```
 
-#### Supervised classification using Random Forest
+### Supervised classification using Random Forest
 Fitting the model:
 ```{r}
 set.seed(123)
@@ -104,7 +104,7 @@ table(predict(m1),iris$Species)
 ```
 
 
-### Unsupervised learning
+## Unsupervised learning
 
 In unsupervised learning, we basically want to identify patterns in data without having any guidance (supervision) about what the correct patterns / classes are.
 
@@ -114,7 +114,7 @@ It is all much easier with a practical example. Consider our iris dataset.
 - Together with their flower traits
 Imagine we didn't know what species are. This is basically the situation in which people in the antique would have been. There is no book to look up species. You just noted that there seem to be some kind of plants that have different flowers than another, so you decide to call them by a different name. This kind of process is what unsupervised learning does.
 
-#### k-means clustering
+### k-means clustering
 An example for an unsupervised learning algorithm is k-means clustering, one of the simplest and popular unsupervised machine learning algorithms.
 
 A cluster refers to a collection of data points aggregated together because of certain similarities. In the algorithm, you’ll define a target number k, which refers to the number of centroids you need in the dataset. A centroid is the imaginary or real location representing the center of the cluster.
@@ -142,7 +142,7 @@ table(model$cluster,iris$Species)
 
 
 
-## Introduction to Tensorflow {#tf}
+## Introduction to Tensorflow
 
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
@@ -226,7 +226,7 @@ c = m / b
 ```
 
 Instead of a string, you can also provide a tf$float64 object
-```{r}
+```{r, eval=FALSE}
 m = tf$constant(r_matrix, dtype = tf$float32)
 b = tf$constant(2.0, dtype = tf$float64)
 c = m / b # doesn't work! we try to divide float32/float64
@@ -235,7 +235,7 @@ c = m / b # doesn't work! we try to divide float32/float64
 Tensorflow arguments often require exact/explicit data types:
 TF expects for arguments integers, however, R needs a "L" after an integer to tell the R interpreter that it should be treated as an integer:
 
-```{r}
+```{r,eval=FALSE}
 is.integer(5)
 is.integer(5L)
 matrix(t(r_matrix), 5, 20, byrow = TRUE)
@@ -244,4 +244,104 @@ tf$reshape(r_matrix, shape = c(5L, 20L))$numpy()
 ```
 
 Note: skipping the "L" is one of the most common errors when using R-TF!
+
+
+## First steps with the keras framework
+Objective of this lesson: familiarize yourself with keras.
+keras is a higher level API within TF and developed to build easily neural networks.
+Keras can be found within TF: tf.keras...however, the RStudio team built a pkg on top of tf.keras:
+
+### Example workflow in keras
+We will now build a small classifier in keras to predict the three species of the iris dataset:
+
+Load the necessary packages and datasets:
+```{r}
+library(keras)
+library(tensorflow)
+data(iris)
+head(iris)
+```
+
+It is beneficial for neural networks to scale the predictors (scaling = centering and standardization, see ?scale):
+```{r, cache=TRUE}
+X = scale(iris[,1:4])
+Y = iris[,5]
+```
+
+We also split our data into the predictors (X) and the response (Y = the three species)
+
+keras/tf cannot handle factors and we have to create contrasts (one-hot encoding):
+```{r, cache=TRUE}
+Y = to_categorical(as.integer(Y)-1L, 3)
+head(Y) # 3 colums, one for each level in the response
+```
+Do you have an idea why we subtracted 1L from the labels after we transformed them? (Tip: google "Is r 0 or 1 indexed?")
+
+Model building:
+
+1. Initiliaze a sequential model in keras:
+```{r, cache=TRUE}
+model = keras_model_sequential()
+```
+A sequential keras model is a higher order type of model within keras and consists of one input and one output model. 
+
+2. Add hidden layers to the model (we will learn more about DNNs during the next days):
+```{r, cache=TRUE}
+model %>%
+  layer_dense(units = 20L, activation = "relu", input_shape = list(4L)) %>%
+  layer_dense(units = 20L) %>%
+  layer_dense(units = 20L) %>%
+  layer_dense(units = 3L, activation = "softmax") 
+```
+- softmax scales to 0 1 and overall to 0 - 1, 
+- 3 output nodes for 3 response classes/labels 
+
+3. compile the model with a cross entropy loss function and Adamax optimizer:
+```{r, cache=TRUE}
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(0.001))
+summary(model)
+```
+For now, do not worry about the "lr" argument, crossentropy or the optimizer
+
+4. Fit the model in 30 (epochs) iterations:
+```{r, cache=TRUE}
+model_history =
+  model %>%
+    fit(x = X, y = apply(Y,2,as.integer), epochs = 30L, batch_size = 20L, shuffle = TRUE)
+```
+
+5. Plot the training history:
+```{r, cache=TRUE}
+plot(model_history)
+```
+
+6. Create predictions:
+```{r, cache=TRUE}
+predictions = predict(model, X) # probabilities for each class
+```
+
+We will get probabilites:
+```{r, cache=TRUE}
+head(predictions) # quasi-probabilities for each species
+```
+
+For each site, we want to know for which species we got the highest probability:
+```{r, cache=TRUE}
+preds = apply(predictions, 1, which.max) 
+print(preds)
+```
+
+7. Calculate Accuracy:
+```{r, cache=TRUE}
+mean(preds == as.integer(iris$Species))
+```
+
+8. Plot predictions:
+```{r, cache=TRUE}
+oldpar = par()
+par(mfrow = c(1,2))
+plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species, main = "Observed")
+plot(iris$Sepal.Length, iris$Petal.Length, col = preds, main = "Predicted")
+```
 
