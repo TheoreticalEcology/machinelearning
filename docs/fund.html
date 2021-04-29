@@ -154,7 +154,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2.4.1" data-path="introduction.html"><a href="introduction.html#example-workflow-in-keras"><i class="fa fa-check"></i><b>2.4.1</b> Example workflow in keras</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="3" data-path="fund.html"><a href="fund.html"><i class="fa fa-check"></i><b>3</b> Fundamental principles and techniques</a></li>
+<li class="chapter" data-level="3" data-path="fund.html"><a href="fund.html"><i class="fa fa-check"></i><b>3</b> Fundamental principles and techniques</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="fund.html"><a href="fund.html#machine-learning-principles"><i class="fa fa-check"></i><b>3.1</b> Machine learning principles</a>
+<ul>
+<li class="chapter" data-level="3.1.1" data-path="fund.html"><a href="fund.html#optimization"><i class="fa fa-check"></i><b>3.1.1</b> Optimization</a></li>
+</ul></li>
+</ul></li>
 </ul>
 
       </nav>
@@ -174,7 +180,84 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="fund" class="section level1" number="3">
 <h1><span class="header-section-number">3</span> Fundamental principles and techniques</h1>
+<div id="machine-learning-principles" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Machine learning principles</h2>
+<div id="optimization" class="section level3" number="3.1.1">
+<h3><span class="header-section-number">3.1.1</span> Optimization</h3>
+<p>from wikipedia: " an optimization problem is the problem of finding the best solution from all feasible solutions"</p>
+<p>Why do we need this “optimization”?</p>
+<ul>
+<li><p>A loss function (e.g. we tell in each training step the algorithm how many observations were miss-classified) guides the training of ML algorithms</p></li>
+<li><p>Based on the loss, the optimizer tries to update the weights of the ML algorithms in a way that the loss function is minimized</p></li>
+</ul>
+<p>Calculating analytically the global optima of a function is a non-trivial problem and bunch of diverse optimization algorithms evolved</p>
+<p>Some optimization algorithms are inspired by biological systemse.g. Ants, Bee, or even slimve algorithms):</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/X-iSQQgOd1A" frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+</iframe>
+<div id="small-optimization-example" class="section level4" number="3.1.1.1">
+<h4><span class="header-section-number">3.1.1.1</span> Small optimization example</h4>
+<p>We have the following function:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="fund.html#cb1-1" aria-hidden="true" tabindex="-1"></a>func <span class="ot">=</span> <span class="cf">function</span>(x) <span class="fu">return</span>(x<span class="sc">^</span><span class="dv">2</span>)</span></code></pre></div>
+<p>which we want to minimize, we could do this by hand:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="fund.html#cb2-1" aria-hidden="true" tabindex="-1"></a>a <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="dv">100</span>)</span>
+<span id="cb2-2"><a href="fund.html#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(a, <span class="fu">func</span>(a))</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>The smallest value is at x = 0 (to be honest, we can calculate this for this simple case analytically)</p>
+<p>We can also use an optimizer with the optim(…) function</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="fund.html#cb3-1" aria-hidden="true" tabindex="-1"></a>opt <span class="ot">=</span> <span class="fu">optim</span>(<span class="fl">1.0</span>, func)</span></code></pre></div>
+<pre><code>## Warning in optim(1, func): one-dimensional optimization by Nelder-Mead is unreliable:
+## use &quot;Brent&quot; or optimize() directly</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="fund.html#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(opt<span class="sc">$</span>par)</span></code></pre></div>
+<pre><code>## [1] -8.881784e-16</code></pre>
+<p>opt$par will return the best values found by the optimizer</p>
+</div>
+<div id="advanced-optimization-example" class="section level4" number="3.1.1.2">
+<h4><span class="header-section-number">3.1.1.2</span> Advanced optimization example</h4>
+<p>We will now optimze the weights (slopes) for linear regression model.</p>
+<p>Basically, we will implement lm(y~x) on our own:</p>
+<p>Load the airquality dataset, remove NAs, split it into predictors and response, and scale the predictors:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="fund.html#cb7-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> airquality[<span class="fu">complete.cases</span>(airquality<span class="sc">$</span>Ozone) <span class="sc">&amp;</span> <span class="fu">complete.cases</span>(airquality<span class="sc">$</span>Solar.R),]</span>
+<span id="cb7-2"><a href="fund.html#cb7-2" aria-hidden="true" tabindex="-1"></a>X <span class="ot">=</span> <span class="fu">scale</span>(data[,<span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb7-3"><a href="fund.html#cb7-3" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">=</span> data<span class="sc">$</span>Ozone</span></code></pre></div>
+<p>The model we want to optimize: <span class="math inline">\(ozone = Solar.R*X1 + Wind*X2 + Temp*X3 + Month*X4 + Day*X5 + X6\)</span></p>
+<p>Our loss function: mean(predicted ozone - true ozone)^2)</p>
+<p>We found to find the parameters X1-X6 for which the loss function is the smallest:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="fund.html#cb8-1" aria-hidden="true" tabindex="-1"></a>linear_regression <span class="ot">=</span> <span class="cf">function</span>(w) {</span>
+<span id="cb8-2"><a href="fund.html#cb8-2" aria-hidden="true" tabindex="-1"></a>  pred <span class="ot">=</span> w[<span class="dv">1</span>]<span class="sc">*</span>X[,<span class="dv">1</span>] <span class="sc">+</span> <span class="co"># Solar.R</span></span>
+<span id="cb8-3"><a href="fund.html#cb8-3" aria-hidden="true" tabindex="-1"></a>         w[<span class="dv">2</span>]<span class="sc">*</span>X[,<span class="dv">2</span>] <span class="sc">+</span> <span class="co"># Wind</span></span>
+<span id="cb8-4"><a href="fund.html#cb8-4" aria-hidden="true" tabindex="-1"></a>         w[<span class="dv">3</span>]<span class="sc">*</span>X[,<span class="dv">3</span>] <span class="sc">+</span> <span class="co"># Temp</span></span>
+<span id="cb8-5"><a href="fund.html#cb8-5" aria-hidden="true" tabindex="-1"></a>         w[<span class="dv">4</span>]<span class="sc">*</span>X[,<span class="dv">4</span>] <span class="sc">+</span> <span class="co"># Month</span></span>
+<span id="cb8-6"><a href="fund.html#cb8-6" aria-hidden="true" tabindex="-1"></a>         w[<span class="dv">5</span>]<span class="sc">*</span>X[,<span class="dv">5</span>] <span class="sc">+</span></span>
+<span id="cb8-7"><a href="fund.html#cb8-7" aria-hidden="true" tabindex="-1"></a>         w[<span class="dv">6</span>]         <span class="co"># or X %*% w[1:5] + w[6]</span></span>
+<span id="cb8-8"><a href="fund.html#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># loss  = MSE, we want to find the optimal weights </span></span>
+<span id="cb8-9"><a href="fund.html#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># to minimize the sum of squared residuals</span></span>
+<span id="cb8-10"><a href="fund.html#cb8-10" aria-hidden="true" tabindex="-1"></a>  loss <span class="ot">=</span> <span class="fu">mean</span>((pred <span class="sc">-</span> Y)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb8-11"><a href="fund.html#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(loss)</span>
+<span id="cb8-12"><a href="fund.html#cb8-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>The linear_regression function takes potential solutions for the weights (X1-X6) and will return the loss for these weights:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="fund.html#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">linear_regression</span>(<span class="fu">runif</span>(<span class="dv">6</span>))</span></code></pre></div>
+<pre><code>## [1] 2781.875</code></pre>
+<p>Let’s try it bruteforce (which means we will try to find the optimal solution with random a set of random weights):</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="fund.html#cb11-1" aria-hidden="true" tabindex="-1"></a>random_search <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">runif</span>(<span class="dv">6</span><span class="sc">*</span><span class="dv">5000</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="dv">10</span>), <span class="dv">5000</span>, <span class="dv">6</span>)</span>
+<span id="cb11-2"><a href="fund.html#cb11-2" aria-hidden="true" tabindex="-1"></a>losses <span class="ot">=</span> <span class="fu">apply</span>(random_search, <span class="dv">1</span>, linear_regression)</span>
+<span id="cb11-3"><a href="fund.html#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(losses, <span class="at">type =</span> <span class="st">&quot;l&quot;</span>)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="fund.html#cb12-1" aria-hidden="true" tabindex="-1"></a>random_search[<span class="fu">which.min</span>(losses),]</span></code></pre></div>
+<pre><code>## [1]  5.0567712 -7.8550341  7.4573370  0.8109562  2.0097918  9.3807506</code></pre>
+<p>Bruteforce is not a good approach, it might work well with only a few parameters but it depends completely on your luck</p>
+<p>Let’s try it with the optim function:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="fund.html#cb14-1" aria-hidden="true" tabindex="-1"></a>opt <span class="ot">=</span> <span class="fu">optim</span>(<span class="fu">runif</span>(<span class="dv">6</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), linear_regression)</span>
+<span id="cb14-2"><a href="fund.html#cb14-2" aria-hidden="true" tabindex="-1"></a>opt<span class="sc">$</span>par</span></code></pre></div>
+<pre><code>## [1]   8.850516 -25.099056   1.680747 -10.846307   1.782977  36.493839</code></pre>
+<p>Compare the weights the estimated weights of the lm() function:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="fund.html#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(<span class="fu">lm</span>(Y<span class="sc">~</span>X))</span></code></pre></div>
+<pre><code>## (Intercept)    XSolar.R       XWind       XTemp      XMonth        XDay 
+##   42.099099    4.582620  -11.806072   18.066786   -4.479175    2.384705</code></pre>
 
+</div>
+</div>
+</div>
 </div>
             </section>
 

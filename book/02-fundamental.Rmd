@@ -1,4 +1,113 @@
 # Fundamental principles and techniques {#fund}
+## Machine learning principles
+### Optimization
+from wikipedia: " an optimization problem is the problem of finding the best solution from all feasible solutions"
+
+Why do we need this "optimization"?
+
+- A loss function (e.g. we tell in each training step the algorithm how many observations were miss-classified) guides the training of ML algorithms
+
+- Based on the loss, the optimizer tries to update the weights of the ML algorithms in a way that the loss function is minimized
+
+Calculating analytically the global optima of a function is a non-trivial problem and bunch of diverse optimization algorithms evolved
+
+Some optimization algorithms are inspired by biological systemse.g. Ants, Bee, or even slimve algorithms):
+
+```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+'<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/X-iSQQgOd1A"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+#### Small optimization example
+We have the following function:
+```{r}
+func = function(x) return(x^2)
+```
+
+which we want to minimize, we could do this by hand:
+
+```{r}
+a = rnorm(100)
+plot(a, func(a))
+```
+
+The smallest value is at x = 0 (to be honest, we can calculate this for this simple case analytically)
+
+We can also use an optimizer with the optim(...) function
+
+```{r}
+opt = optim(1.0, func)
+print(opt$par)
+```
+
+opt$par will return the best values found by the optimizer
 
 
+#### Advanced optimization example
+We will now optimze the weights (slopes) for linear regression model.
+
+Basically, we will implement lm(y~x) on our own:
+
+Load the airquality dataset, remove NAs, split it into predictors and response, and scale the predictors:
+
+```{r}
+data = airquality[complete.cases(airquality$Ozone) & complete.cases(airquality$Solar.R),]
+X = scale(data[,-1])
+Y = data$Ozone
+```
+
+The model we want to optimize: $ozone = Solar.R*X1 + Wind*X2 + Temp*X3 + Month*X4 + Day*X5 + X6$
+
+Our loss function: mean(predicted ozone - true ozone)^2) 
+
+We found to find the parameters X1-X6 for which the loss function is the smallest:
+
+```{r}
+linear_regression = function(w) {
+  pred = w[1]*X[,1] + # Solar.R
+         w[2]*X[,2] + # Wind
+         w[3]*X[,3] + # Temp
+         w[4]*X[,4] + # Month
+         w[5]*X[,5] +
+         w[6]         # or X %*% w[1:5] + w[6]
+  # loss  = MSE, we want to find the optimal weights 
+  # to minimize the sum of squared residuals
+  loss = mean((pred - Y)^2)
+  return(loss)
+}
+```
+
+The linear_regression function takes potential solutions for the weights (X1-X6) and will return the loss for these weights:
+
+```{r}
+linear_regression(runif(6))
+```
+
+Let's try it bruteforce (which means we will try to find the optimal solution with random a set of random weights):
+
+```{r}
+random_search = matrix(runif(6*5000,-10,10), 5000, 6)
+losses = apply(random_search, 1, linear_regression)
+plot(losses, type = "l")
+random_search[which.min(losses),]
+```
+
+Bruteforce is not a good approach, it might work well with only a few parameters but it depends completely on your luck
+
+Let's try it with the optim function:
+```{r}
+opt = optim(runif(6, -1, 1), linear_regression)
+opt$par
+```
+
+Compare the weights the estimated weights of the lm() function:
+
+```{r}
+coef(lm(Y~X))
+```
 
