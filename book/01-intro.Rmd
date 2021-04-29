@@ -1,8 +1,9 @@
+
+
 # Introduction to Machine Learning {#introduction}
 In this lesson, we introduce the three basic ML tasks: supervised regression and classification, and unsupervised learning. 
 
 In ML, we distinguish 3 basic learning paradigms:
-
 - Supervised learning
 - Unsupervised learning
 - Reinforcement learning
@@ -12,7 +13,7 @@ We will speak about reinforcement learning at the end of the course. Now, we wan
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
 '<iframe width="560" height="315" 
-  src="https://www.youtube.com/watch?v=1AVrWvRvfxs"
+  src="https://www.youtube.com/embed/1AVrWvRvfxs"
   frameborder="0" allow="accelerometer; autoplay; encrypted-media;
   gyroscope; picture-in-picture" allowfullscreen>
   </iframe>'
@@ -26,7 +27,7 @@ Two two main subbranches of supervised learning are regression and classificatio
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
 '<iframe width="560" height="315" 
-  src="https://www.youtube.com/watch?v=i04Pfrb71vk"
+  src="https://www.youtube.com/embed/i04Pfrb71vk"
   frameborder="0" allow="accelerometer; autoplay; encrypted-media;
   gyroscope; picture-in-picture" allowfullscreen>
   </iframe>'
@@ -34,7 +35,7 @@ cat(
 ```
 
 
-### Supervised learning using Random Forest
+### Supervised regression using Random Forest
 
 The random forest (RF) algorithm is possibly the most widely used ML algorithm and can be used for regression and classification. We will talk more about the algorithm on Day 2. Here an example of a regression: 
 
@@ -47,10 +48,10 @@ Fitting the model
 ```{r}
 library(randomForest)
 m1 <- randomForest(Sepal.Length ~ ., data = iris)
-m1
-str(m1)
-m1$type
-predict(m1)
+# str(m1)
+# m1$type
+# predict(m1)
+print(m1)
 ```
 
 Visualization of the results
@@ -64,8 +65,78 @@ varImpPlot(m1)
 This is a nice visualization of the RF structure, but requires to load a package from GitHub
 
 ```{r}
-devtools::install_github('araastat/reprtree')
+# devtools::install_github('araastat/reprtree')
 reprtree:::plot.getTree(m1, iris)
 ```
 
+### Supervised classification using Random Forest
+Fitting the model:
+```{r}
+set.seed(123)
+m1 <- randomForest(Species ~ ., data = iris)
+# str(m1)
+# m1$type
+# predict(m1)
+print(m1)
+```
+Visualizing the fitted model:
+
+```{r}
+par(mfrow = c(1,2))
+reprtree:::plot.getTree(m1, iris)
+```
+
+Visualizing results ecologically:
+```{r}
+oldpar <- par(mfrow = c(1,2))
+plot(iris$Petal.Width, iris$Petal.Length, col = iris$Species, main = "observed")
+plot(iris$Petal.Width, iris$Petal.Length, col = predict(m1), main = "predicted")
+```
+
+```{r,echo=FALSE}
+par(oldpar)
+```
+
+
+Confusion matrix:
+```{r}
+table(predict(m1),iris$Species)
+```
+
+
+## Unsupervised learning
+
+In unsupervised learning, we basically want to identify patterns in data without having any guidance (supervision) about what the correct patterns / classes are.
+
+It is all much easier with a practical example. Consider our iris dataset.
+
+- Here, we have observations of different species
+- Together with their flower traits
+Imagine we didn't know what species are. This is basically the situation in which people in the antique would have been. There is no book to look up species. You just noted that there seem to be some kind of plants that have different flowers than another, so you decide to call them by a different name. This kind of process is what unsupervised learning does.
+
+### k-means clustering
+An example for an unsupervised learning algorithm is k-means clustering, one of the simplest and popular unsupervised machine learning algorithms.
+
+A cluster refers to a collection of data points aggregated together because of certain similarities. In the algorithm, you’ll define a target number k, which refers to the number of centroids you need in the dataset. A centroid is the imaginary or real location representing the center of the cluster.
+
+Every data point is allocated to each of the clusters through reducing the in-cluster sum of squares. In other words, the K-means algorithm identifies k number of centroids, and then allocates every data point to the nearest cluster, while keeping the centroids as small as possible. The ‘means’ in the K-means refers to averaging of the data; that is, finding the centroid.
+
+```{r}
+sIris = scale(iris[,1:4])
+model<- kmeans(sIris,3) # aplly k-means algorithm with no. of centroids(k)=3
+model
+```
+
+Visualizing the results:
+
+```{r}
+par(mfrow = c(1,2))
+plot(Petal.Length~Petal.Width, data = sIris, col = model$cluster, main = "Predicted clusters")
+plot(Petal.Length~Petal.Width, data = sIris, col = iris$Species, main = "True species")
+```
+
+Confusion matrix:
+```{r}
+table(model$cluster,iris$Species)
+```
 
