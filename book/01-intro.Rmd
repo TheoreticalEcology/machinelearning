@@ -1,13 +1,22 @@
 
 
 # Introduction to Machine Learning {#introduction}
-In this lesson, we introduce the three basic ML tasks: supervised regression and classification, and unsupervised learning. 
-
-In ML, we distinguish 3 basic learning paradigms:
+In this lesson, we introduce the three basic ML tasks
 - Supervised learning
 - Unsupervised learning
 - Reinforcement learning
-We will speak about reinforcement learning at the end of the course. Now, we want to look at examples of supervised and unsupervised learning. Before you start with the code, here a video to remind you of what we talked about in the class:
+
+In Supervised learning, you train an algorithm using labeled data, which means that you already know the correct answer for a part of the data (the so called tracings data). 
+
+Unsupervised learning is a technique, where one does not need to supervise the model.
+Instead, you allow the model to work on its own to discover information.
+
+Reinforcement learning is a technique that emulates a game-like situation.
+The algorithm comes up with a solution by try and error and gets for the actions ether rewards or penalties.
+As in games, the goal is to maximize the rewards. We will talk on the last day more about this technique.
+
+Now we will focus on the first two tasks, supervised and unsupervised learning. 
+To do so, we will first start with a small example, but before you start with the code, here a video to remind you of what we talked about in the class:
 
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
@@ -22,7 +31,7 @@ cat(
 
 
 ## Supervised learning: regression and classification
-Two two main subbranches of supervised learning are regression and classification. Here a video that explains again the difference 
+The two most prominent branches of supervised learning are regression and classification. Fundamentally, classification is about predicting a label and regression is about predicting a quantity. The following video explains that in more depth:
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -37,7 +46,8 @@ cat(
 
 ### Supervised regression using Random Forest
 
-The random forest (RF) algorithm is possibly the most widely used ML algorithm and can be used for regression and classification. We will talk more about the algorithm on Day 2. Here an example of a regression: 
+The random forest (RF) algorithm is possibly the most widely used ML algorithm and can be used for regression and classification. We will talk more about the algorithm on Day 2. 
+In the following we see a typical workflow for a regression: First, we visualize the data. Next, we fit the model and lastly we visualize the results. 
 
 Visualization of the data:
 ```{r}
@@ -61,8 +71,7 @@ plot(predict(m1), iris$Sepal.Length, xlab = "predicted", ylab = "observed")
 abline(0,1)
 varImpPlot(m1)
 ```
-
-This is a nice visualization of the RF structure, but requires to load a package from GitHub
+To understand, the structure of a RF in more detail, we can use a package from GitHub
 
 ```{r}
 # devtools::install_github('araastat/reprtree')
@@ -70,6 +79,8 @@ reprtree:::plot.getTree(m1, iris)
 ```
 
 ### Supervised classification using Random Forest
+With the RF, we can also do classification. The steps are the same as for regression tasks, but we can additionally, see how well it performed by looking at the so called confusion matrix. Each row of this matrix contains the instances in a predicted class and each column represent the instances in an actual class. Thus the diagonals are the correctly predicted classes and the off-diagnoal elements are the falsly classified elements.
+
 Fitting the model:
 ```{r}
 set.seed(123)
@@ -110,16 +121,21 @@ In unsupervised learning, we basically want to identify patterns in data without
 
 It is all much easier with a practical example. Consider our iris dataset.
 
-- Here, we have observations of different species
-- Together with their flower traits
-Imagine we didn't know what species are. This is basically the situation in which people in the antique would have been. There is no book to look up species. You just noted that there seem to be some kind of plants that have different flowers than another, so you decide to call them by a different name. This kind of process is what unsupervised learning does.
+- Here, we have observations of different species together with their flower traits.
+
+Imagine we didn't know what species are, which is basically the situation in which people in the antique have been.
+The people just noted that some plants have different flowers than others, and decided to give them different names. This kind of process is what unsupervised learning does.
 
 ### k-means clustering
-An example for an unsupervised learning algorithm is k-means clustering, one of the simplest and popular unsupervised machine learning algorithms.
+An example for an unsupervised learning algorithm is k-means clustering, one of the simplest and most popular unsupervised machine learning algorithms.
 
-A cluster refers to a collection of data points aggregated together because of certain similarities. In the algorithm, you’ll define a target number k, which refers to the number of centroids you need in the dataset. A centroid is the imaginary or real location representing the center of the cluster.
+A cluster refers to a collection of data points aggregated together because of certain similarities. In our example from above this similarities could be similar flowers aggregated together to a plant. 
 
-Every data point is allocated to each of the clusters through reducing the in-cluster sum of squares. In other words, the K-means algorithm identifies k number of centroids, and then allocates every data point to the nearest cluster, while keeping the centroids as small as possible. The ‘means’ in the K-means refers to averaging of the data; that is, finding the centroid.
+To start with the algorithm, you first have to specify the number of clusters (for our example the number of species). Each cluster has a centroid, which is the imaginary or real location representing the center of the cluster (for our example this would be how an average plant of a specific species would look like). The algorithm starts by randomly putting centroids somewhere and then adds each new data point to the cluster which minimizes the overall in-cluster sum of squares. After the algorithm has assigned a new data point to a cluster the centroid gets updated. By iterating this procedure for all data points and then starting again, the algorithm can find the optimum centroids and the data-points belonging to this cluster.
+
+The k in K-means refers to the number of clusters and the ‘means’ refers to averaging of the data-points to find the centroids.
+
+A typical pipeline for using kmeans clustering looks the same as for the other algortihms. After having visualized the data, we fit the model, visualize the results and have a look at the performance by use of the confusion matrix.
 
 ```{r}
 sIris = scale(iris[,1:4])
@@ -144,6 +160,7 @@ table(model$cluster,iris$Species)
 
 ## Introduction to Tensorflow
 
+The most commonly used package in ML is tensorflow, which is nicely explained in the following video: 
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -155,9 +172,10 @@ cat(
 )
 ```
 
+To sum the most important points of the video up: 
 
 - TF is a math library which is highly optimized for neural networks
-- If a GPU is available, computations can be easily run on the GPU but even on the CPU is TF still very fast
+- If a GPU is available, computations can be easily run on the GPU but even on a CPU is TF still very fast
 - The "backend" (i.e. all the functions and all computations) are written in C++ and CUDA (CUDA is a programming language for the GPU)
 - The interface (the part of TF that we use) is written in python and is also available in R, which means, we can write the code in R/Python but it will be executed by the (compiled) C++ backend. 
 
@@ -166,6 +184,7 @@ TF has two data containers (structures):
 - constant (tf$constant) :creates a constant (immutable) value in the computation graph
 - variable (tf$Variable): creates a mutable value in the computation graph (used as parameter/weight in models)
 
+To get started with tensorflow, we have to load the library and check if the installation worked. 
 ```{r}
 library(tensorflow)
 # Don't worry about weird messages. TF supports additional optimizations
@@ -173,6 +192,7 @@ exists("tf")
 ```
 Don't worry about weird messages (they will only appear once at the start of the session).
 
+We now can define the variables and do some math with them:
 
 ```{r}
 a = tf$constant(5)
@@ -194,12 +214,13 @@ tf$print(a+b)
 ```
 
 Their operators also transfrom automatically R numbers into constant tensors when attempting to add a tensor to a R number:
+
 ```{r}
 d = c + 5  # 5 is automatically converted to a tensor
 print(d)
 ```
 
-TF container are objects, which means that they are not just simple variables of type numeric (class(5)), and they have methods
+TF container are objects, which means that they are not just simple variables of type numeric (class(5)), but they instead have so called methods. Methods are changing the state of a class (which for most of our purposes here is the values of the object)
 For instance, there is a method to transform the tensor object back to a R object:
 
 ```{r}
@@ -208,32 +229,40 @@ class(d$numpy())
 ```
 
 ### Tensorflow data types - good practise with R-TF
-R uses dynamic typing, which means you can assign to a variable a number, character, function or whatever, and R infers the type automatically.
+R uses dynamic typing, which means you can assign to a variable a number, character, function or whatever, and the the type is automatically infered.
 In other languages you have to state explicitly the type, e.g. in C: int a = 5; float a = 5.0; char a = "a";
 While TF tries to infer dynamically the type, often you must state it explicitly.
 Common important types: 
 - float32 (floating point number with 32bits, "single precision")
-- float64 ("double precision")
+- float64 (floating point number with 64bits,"double precision")
 - int8 (integer with 8bits)
-Why does TF support float32 numbers when most cpus today can handle easily 64bit numbers? 
-Many GPUs (e.g. the NVIDIA geforces) can handle only up to 32bit numbers! (you do not need high precision in graphical modeling)
+The reason why TF is so explicit about the types is that many GPUs (e.g. the NVIDIA geforces) can handle only up to 32bit numbers! (you do not need high precision in graphical modeling)
 
+But let us see in practice, what we have to do with these types and how to specifcy them:
 ```{r}
 r_matrix = matrix(runif(10*10), 10,10)
-m = tf$constant(r_matrix, dtype = "float64") 
+m = tf$constant(r_matrix, dtype = "float32") 
 b = tf$constant(2.0, dtype = "float64")
-c = m / b
-```
-
-Instead of a string, you can also provide a tf$float64 object
-```{r, eval=FALSE}
-m = tf$constant(r_matrix, dtype = tf$float32)
-b = tf$constant(2.0, dtype = tf$float64)
 c = m / b # doesn't work! we try to divide float32/float64
 ```
 
+So what went wrong here: we tried to divide a float32 to a float64 number, but, we can only divide numbers of the same type! 
+```{r, eval=FALSE}
+m = tf$constant(r_matrix, dtype = "float64")
+b = tf$constant(2.0, dtype = "float64")
+c = m / b # now it works
+```
+
+We can also specify the type of the object by providing an object e.g. tf$float64.
+
+```{r}
+m = tf$constant(r_matrix, dtype = df$float64)
+```
+
+
 Tensorflow arguments often require exact/explicit data types:
-TF expects for arguments integers, however, R needs a "L" after an integer to tell the R interpreter that it should be treated as an integer:
+TF often expects for arguments integers. In R however an integer is normally saved as float. 
+Thus, we have to use a "L" after an integer to tell the R interpreter that it should be treated as an integer:
 
 ```{r,eval=FALSE}
 is.integer(5)
@@ -243,13 +272,18 @@ tf$reshape(r_matrix, shape = c(5, 20))$numpy()
 tf$reshape(r_matrix, shape = c(5L, 20L))$numpy()
 ```
 
-Note: skipping the "L" is one of the most common errors when using R-TF!
+Skipping the "L" is one of the most common errors when using R-TF!
 
 
 ## First steps with the keras framework
 Objective of this lesson: familiarize yourself with keras.
 keras is a higher level API within TF and developed to build easily neural networks.
-Keras can be found within TF: tf.keras...however, the RStudio team built a pkg on top of tf.keras:
+Keras can be found within TF: tf.keras...however, the RStudio team built a pkg on top of tf.keras
+
+```{r}
+library(keras)
+```
+
 
 ### Example workflow in keras
 We will now build a small classifier in keras to predict the three species of the iris dataset:
@@ -262,22 +296,20 @@ data(iris)
 head(iris)
 ```
 
-It is beneficial for neural networks to scale the predictors (scaling = centering and standardization, see ?scale):
+It is beneficial for neural networks to scale the predictors (scaling = centering and standardization, see ?scale)
+We also split our data into the predictors (X) and the response (Y = the three species).
 ```{r, cache=TRUE}
 X = scale(iris[,1:4])
 Y = iris[,5]
 ```
 
-We also split our data into the predictors (X) and the response (Y = the three species)
-
-keras/tf cannot handle factors and we have to create contrasts (one-hot encoding):
+Additionally, keras/tf cannot handle factors and we have to create contrasts (one-hot encoding):
+To do so, we have to specify the number of categories. This can be tricky for a beginner, because in other programming languages like python and C++ on which TF is built, arrays start at zero. Thus, when we would specify 3 as number of classes for our three species, we would have the classes 0,1,2,3. Therefore, we have to substract it. 
 ```{r, cache=TRUE}
 Y = to_categorical(as.integer(Y)-1L, 3)
 head(Y) # 3 colums, one for each level in the response
 ```
-Do you have an idea why we subtracted 1L from the labels after we transformed them? (Tip: google "Is r 0 or 1 indexed?")
-
-Model building:
+After having prepared the data, we will now see a typical workflow to specify a model in keras. 
 
 1. Initiliaze a sequential model in keras:
 ```{r, cache=TRUE}
@@ -285,7 +317,9 @@ model = keras_model_sequential()
 ```
 A sequential keras model is a higher order type of model within keras and consists of one input and one output model. 
 
-2. Add hidden layers to the model (we will learn more about DNNs during the next days):
+2. Add hidden layers to the model (we will learn more about hidden layers during the next days). 
+When specifiying the hidden layers, we also have to specify a so called activation function and their shape. 
+You can think of the activation function as decisive for what is forwarded to the next neuron (but we will learn more about it later). The shape of the input is the number of predictors (here 4) and the shape of the output is the number of classes (here 3).
 ```{r, cache=TRUE}
 model %>%
   layer_dense(units = 20L, activation = "relu", input_shape = list(4L)) %>%
@@ -293,18 +327,17 @@ model %>%
   layer_dense(units = 20L) %>%
   layer_dense(units = 3L, activation = "softmax") 
 ```
-- softmax scales to 0 1 and overall to 0 - 1, 
-- 3 output nodes for 3 response classes/labels 
+- softmax scales a potential multidimensional vector to the interval (0,1]
 
-3. compile the model with a cross entropy loss function and Adamax optimizer:
+3. compile the model with a loss function (here: cross entropy) and an optimizer (here: Adamax). We will leaern about other options later, so for now, do not worry about the "lr" argument, crossentropy or the optimizer.
 ```{r, cache=TRUE}
 model %>%
   compile(loss = loss_categorical_crossentropy, optimizer_adamax(0.001))
 summary(model)
 ```
-For now, do not worry about the "lr" argument, crossentropy or the optimizer
 
-4. Fit the model in 30 (epochs) iterations:
+
+4. Fit the model in 30 iterations(epochs) :
 ```{r, cache=TRUE}
 model_history =
   model %>%
@@ -326,18 +359,18 @@ We will get probabilites:
 head(predictions) # quasi-probabilities for each species
 ```
 
-For each site, we want to know for which species we got the highest probability:
+For each plant, we want to know for which species we got the highest probability:
 ```{r, cache=TRUE}
 preds = apply(predictions, 1, which.max) 
 print(preds)
 ```
 
-7. Calculate Accuracy:
+7. Calculate Accuracy (how often we have been correct):
 ```{r, cache=TRUE}
 mean(preds == as.integer(iris$Species))
 ```
 
-8. Plot predictions:
+8. Plot predictions, to see if we have been done a good job:
 ```{r, cache=TRUE}
 oldpar = par()
 par(mfrow = c(1,2))
@@ -345,3 +378,4 @@ plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species, main = "Observed"
 plot(iris$Sepal.Length, iris$Petal.Length, col = preds, main = "Predicted")
 ```
 
+So you see, building a neural network is with keras very easy and you can already do it on your own.
