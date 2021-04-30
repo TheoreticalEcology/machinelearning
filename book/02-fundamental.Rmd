@@ -5,13 +5,16 @@ from wikipedia: " an optimization problem is the problem of finding the best sol
 
 Why do we need this "optimization"?
 
+We need to somehow tell the algorithm what it should learn. To do so we have the so called loss-function, which expresses what our goal is. But we also need to somewhow find the configurations for which the loss function is 
+minimized. This is the job of the optimizer. Thus, an optimization consists of:
+
 - A loss function (e.g. we tell in each training step the algorithm how many observations were miss-classified) guides the training of ML algorithms
 
-- Based on the loss, the optimizer tries to update the weights of the ML algorithms in a way that the loss function is minimized
+- The optimizer, which tries to update the weights of the ML algorithms in a way that the loss function is minimized
 
-Calculating analytically the global optima of a function is a non-trivial problem and bunch of diverse optimization algorithms evolved
+Calculating analytically the global optima is a non-trivial problem and thus a bunch of diverse optimization algorithms evolved
 
-Some optimization algorithms are inspired by biological systemse.g. Ants, Bee, or even slimve algorithms):
+Some optimization algorithms are inspired by biological systems e.g. Ants, Bee, or even slime algorithms. These optimizers are explained int the following video, have a look:
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -24,12 +27,12 @@ cat(
 ```
 
 #### Small optimization example
-We have the following function:
+As an easy example for optimization we can think of a quadratic function:
 ```{r}
 func = function(x) return(x^2)
 ```
 
-which we want to minimize, we could do this by hand:
+This function is so easy, we can randomly prob it and identify the optimum by plotting
 
 ```{r}
 a = rnorm(100)
@@ -38,22 +41,21 @@ plot(a, func(a))
 
 The smallest value is at x = 0 (to be honest, we can calculate this for this simple case analytically)
 
-We can also use an optimizer with the optim(...) function
+We can also use an optimizer with the optim-function (the first argument is the starting value)
 
 ```{r}
 opt = optim(1.0, func)
 print(opt$par)
 ```
 
-opt$par will return the best values found by the optimizer
+opt$par will return the best values found by the optimizer, which is really close to zeor :)
 
 
 #### Advanced optimization example
-We will now optimze the weights (slopes) for linear regression model.
+Optimization is also done when fitting a linear regression model. Thereby, we optimize the weights (intercept and slope). But using lm (y~x) is too simple, we would like to do this by hand to also better understand what optimization is and how it works.
 
-Basically, we will implement lm(y~x) on our own:
+As an example we take the airquality data set. First, we have to be sure to have no NAs in there. Then we split into response (Ozone) and predictors (Month, Day, Solar.R, Wind, Temp).Additionally it is beneficial for the optimizer, when the different predictors have the same support, and thus we scale them. 
 
-Load the airquality dataset, remove NAs, split it into predictors and response, and scale the predictors:
 
 ```{r}
 data = airquality[complete.cases(airquality$Ozone) & complete.cases(airquality$Solar.R),]
@@ -63,9 +65,9 @@ Y = data$Ozone
 
 The model we want to optimize: $ozone = Solar.R*X1 + Wind*X2 + Temp*X3 + Month*X4 + Day*X5 + X6$
 
-Our loss function: mean(predicted ozone - true ozone)^2) 
+As the we assume that the residuals are normally distributed, our loss function is the mean squared errors: mean(predicted ozone - true ozone)^2) 
 
-We found to find the parameters X1-X6 for which the loss function is the smallest:
+Our task is now to find the parameters X1-X6 for which this loss function is the smallest. Therefore, we implement a function, that takes parameters and returns the loss.
 
 ```{r}
 linear_regression = function(w) {
@@ -82,13 +84,12 @@ linear_regression = function(w) {
 }
 ```
 
-The linear_regression function takes potential solutions for the weights (X1-X6) and will return the loss for these weights:
-
+For example we can sample some weights and see what the loss with this weights is.
 ```{r}
 linear_regression(runif(6))
 ```
 
-Let's try it bruteforce (which means we will try to find the optimal solution with random a set of random weights):
+We can try to find the optimum bruteforce (which means we will use a random set of weights and see for which the loss function is smallest):
 
 ```{r}
 random_search = matrix(runif(6*5000,-10,10), 5000, 6)
@@ -97,15 +98,15 @@ plot(losses, type = "l")
 random_search[which.min(losses),]
 ```
 
-Bruteforce isn't a good approach, it might work well with only a few parameters.
+Bruteforce isn't a good approach, it might work well with only a few parameters, but with increasing complexity and more parameters it will take a long time.
 
-Let's try it with the optim function:
+In R the optim function helps to get faster to the optimum.
 ```{r}
 opt = optim(runif(6, -1, 1), linear_regression)
 opt$par
 ```
 
-Compare the weights the estimated weights of the lm() function:
+By comparing the weights from the optimizer to the estimated weights of the lm() function, we see that our self-written code obtains the same weights as the lm.
 
 ```{r}
 coef(lm(Y~X))
@@ -115,15 +116,15 @@ coef(lm(Y~X))
 ### Regularization
 There are several ways to regularize models. In this section we will focus on lasso and ridge regularization for weights in neural networks.
 
-The idea of lasso and ridge regularization is to put some type of rubber band on the weights and pull them to zero, important weights are able to pull away from zero.
+The idea of lasso and ridge regularization is to put some type of rubber band on the weights and pull them to zero if the data does not strongly push them away from zero.Having this in mind it is claer that important weights, which are supported by the data, are able be different to zero.
 
 Lasso and ridge have slightly different properties:
 
-- Lasso: abs( sum(Weights))
+- Lasso: abs(sum(Weights))
 - Ridge: (sum(Weights))^2
 Lasso tries to push the weights directly to zero, where as the Ridge allows small values around zero (caused by the difference of the absolute and squared function).
 
-Let's have a look at a keras model with and without regularization (we will use here a network without hidden layers == linear regression model):
+We can implement the linear regression also in keras, when we do not specify any hidden layers
 
 ```{r, cache=TRUE}
 library(keras)
@@ -144,8 +145,8 @@ unconstrained = model$get_weights()
 summary(lm(Y~X))
 coef(lm(Y~X))
 ```
-
-Now we will put a l1 (lasso) regularization on the weights:
+But keras also allows use to use lasso and ridge on the weights. 
+Lets see what happens when we put a l1 (lasso) regularization on the weights:
 ```{r, cache=TRUE}
 model = keras_model_sequential()
 model %>%
@@ -163,12 +164,18 @@ coef(lm(Y~X))
 cbind(unlist(l1), unlist(unconstrained))
 ```
 
-
+One can clearly see that parameters are pulled towards zero because of the regularization.
 ## Tree-based ML algorithms
 Famous ML algorithms such as random Forest and gradient boosted trees are based on classification and regression trees.
 
 ### Classification and Regression Trees
-In this lecture we will explore regression and classifaction trees at the example of the airquality data set:
+Tree-based models in general use a series of if-then rules to generate predictions from one or more decision trees.
+In this lecture we will explore regression and classifaction trees at the example of the airquality data set. We first prepare and visualize the data and afterwards fit a decision tree. 
+
+There is one important hyper-parameter for regression trees: minsplit
+
+- controls the depth of tree (see the help of tree for a description)
+- controls the complexity of the tree and can be seen also as a regularization parameter
 ```{r}
 library(rpart)
 library(rpart.plot)
@@ -192,10 +199,6 @@ lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 
 The angular form of the prediction line is typical for regression trees.
 
-There is one important hyper-parameter for regression trees: minsplit
-
-- controls the depth of tree (see the help of tree for a description)
-- controls the complexity of the tree and can be seen also as a regularization parameter
 
 
 ### Random Forest
