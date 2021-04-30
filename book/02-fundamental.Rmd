@@ -112,17 +112,32 @@ By comparing the weights from the optimizer to the estimated weights of the lm()
 coef(lm(Y~X))
 ```
 
-
 ### Regularization
-There are several ways to regularize models. In this section we will focus on lasso and ridge regularization for weights in neural networks.
 
-The idea of lasso and ridge regularization is to put some type of rubber band on the weights and pull them to zero if the data does not strongly push them away from zero.Having this in mind it is claer that important weights, which are supported by the data, are able be different to zero.
+Regularization means adding information or structure to a system in order to solve an ill-posed optimization problem or to prevent overfitting. There are many ways of regularizing a ML model. The most important distinction is between shrinkage estimators and estimators based on model averaging. 
 
-Lasso and ridge have slightly different properties:
+**Shrikage estimators** are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are *"shrunk"* to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also Lasso or LASSO, where the penality is proportional to the absolute deviation (L1 penalty), and the Tikhonov regularization aka ridge regression, where the penalty is proportional to the squared distance from the reference (L2 penalty). Thus, the loss function that we optimize is thus given by
 
-- Lasso: abs(sum(Weights))
-- Ridge: (sum(Weights))^2
-Lasso tries to push the weights directly to zero, where as the Ridge allows small values around zero (caused by the difference of the absolute and squared function).
+$$
+loss = fit - \lambda \cdot d
+$$
+where fit refers to the standard loss function, $\lambda$ is the strength of the regularization, and $d$ is the chosen metrics, e.g. L1 or L2. $\lambda$ and possibly d are typically optimized under cross-validation
+
+**Model averaging** refers to an entire set of techniques, including boosting, bagging and other averaging techniques. The general principle is that predictions are made by combining (= averaging) several models. This is based on on the insight that it often more efficient to have many simpler models and average them, than to have one "super model". The reasons are complicated, and explained in more detail in Dormann et al., 2018. A particular important application of averaging is boosting, where the principle is that many weak learners are combined to a model average, resulting in a strong learner. Another related method is bootstrap aggregating, also called bagging. Idea here is to boostrap the data, and average the boot- strapped predictions.
+
+To see how these techniques work in practice, let's first focus on lasso and ridge regularization for weights in neural networks. We can imagine that the lasso and ridge act similar to a rubber band on the weights that pulls them to zero if the data does not strongly push them away from zero. This leads to important weights, which are supported by the data, being estimated as different from zero, whereas unimportant model structures are reduced (shrunk) to zero.
+
+Lasso (penalty ~ abs(sum(Weights))) and ridge (penalty ~ (sum(Weights))^2) have slightly different properties, which are best understood if we express those as the effective prior preference that they create on the parameters:
+
+```{r, echo = F}
+par(mfrow = c(1,2))
+curve(dexp(abs(x)), -5, 5, main = "Lasso prior")
+curve(dnorm(abs(x)), -5, 5, main = "Ridge prior")
+```
+
+As you can see, the Lasso creates a very strong preferencet towards exactly zero, but falls off less strongly towards the tails. This means that parameters tend to be estimated either to exactly zero, or, if not, they are more free than the ridge. For this reason, Lasso is often interpreted more as a model selection method. 
+
+The Ridge, on the other hand, has a certain area around zero where it is relatively indifferent about deviations from zero, thus rarely leading to exactly zero values. However, it will create a stronger shrinkage for values that deviate significantly from zero. 
 
 We can implement the linear regression also in keras, when we do not specify any hidden layers
 

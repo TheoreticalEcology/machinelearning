@@ -1,23 +1,20 @@
 
 
 # Introduction to Machine Learning {#introduction}
-In this lesson, we introduce the three basic ML tasks
-- Supervised learning
-- Unsupervised learning
-- Reinforcement learning
 
-In Supervised learning, you train an algorithm using labeled data, which means that you already know the correct answer for a part of the data (the so called tracings data). 
+In this introductory chapter, we introduce the three basic ML tasks
 
-Unsupervised learning is a technique, where one does not need to supervise the model.
-Instead, you allow the model to work on its own to discover information.
+* Supervised learning
+* Unsupervised learning
+* Reinforcement learning
 
-Reinforcement learning is a technique that emulates a game-like situation.
-The algorithm comes up with a solution by try and error and gets for the actions ether rewards or penalties.
-As in games, the goal is to maximize the rewards. We will talk on the last day more about this technique.
+In **supervised learning**, you train an algorithm using labeled data, which means that you already know the correct answer for a part of the data (the so called tracings data). 
 
-Now we will focus on the first two tasks, supervised and unsupervised learning. 
-To do so, we will first start with a small example, but before you start with the code, here a video to remind you of what we talked about in the class:
+**Unsupervised learning** is a technique, where one does not need to supervise the model. Instead, you allow the model to work on its own to discover information.
 
+**Reinforcement learning** is a technique that emulates a game-like situation. The algorithm comes up with a solution by try and error and gets for the actions ether rewards or penalties. As in games, the goal is to maximize the rewards. We will talk on the last day more about this technique.
+
+For the moment, we will focus on the first two tasks, supervised and unsupervised learning. To do so, we will first start with a small example, but before you start with the code, here a video to remind you of what we talked about in the class:
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -160,7 +157,22 @@ table(model$cluster,iris$Species)
 
 ## Introduction to Tensorflow
 
-The most commonly used package in ML is tensorflow, which is nicely explained in the following video: 
+
+All operations in TF are written in C++ and are highly optimized. But dont worry, we don’t have to use C++ to use TF because there are several bindings for other languages. TensorFlow officialy sup- ports a Python API, but meanwhile there are several community carried APIs for other languages:
+•R
+• Go
+• Rust
+• Swift
+• JavaScript
+In this course we will use TF with the https://tensorflow.rstudio.com/ binding, that was developed and published 2017 by the RStudio
+Team. They developed first a R package (reticulate) to call python in R. Actually, we are using in R the python TF module (more about this later).
+TF offers different levels of API. We could implement a neural network completly by ourselves, or we could use Keras which is provided by TF as a submodule. Keras is a powerful module for building and training neural networks. It allows us to build and train neural networks in a few lines of codes. Since the end of 2018, Keras and TF are completly interoperable, allowing us to utilize the best of both. In this course, we will show how we can use Keras
+for neural networks but also how we can use the TF’s automatic differenation for using complex objective functions.
+
+
+One of the most commonly used frameworks for machine learning is TensorFlow. TensorFlow is a open source linear algebra library with a focus on neural networks, published by Google in 2015. TF supports several interesting features, im particular automatic differentiation, several gradient optimizers and CPU and GPU parallelization. 
+
+These advantages are nicely explained in the following video: 
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -174,10 +186,13 @@ cat(
 
 To sum the most important points of the video up: 
 
-- TF is a math library which is highly optimized for neural networks
-- If a GPU is available, computations can be easily run on the GPU but even on a CPU is TF still very fast
-- The "backend" (i.e. all the functions and all computations) are written in C++ and CUDA (CUDA is a programming language for the GPU)
-- The interface (the part of TF that we use) is written in python and is also available in R, which means, we can write the code in R/Python but it will be executed by the (compiled) C++ backend. 
+* TF is a math library which is highly optimized for neural networks
+* If a GPU is available, computations can be easily run on the GPU but even on a CPU is TF still very fast
+* The "backend" (i.e. all the functions and all computations) are written in C++ and CUDA (CUDA is a programming language for the GPU)
+* The interface (the part of TF that we use) is written in python and is also available in R, which means, we can write the code in R/Python but it will be executed by the (compiled) C++ backend. 
+
+All operations in TF are written in C++ and are highly optimized. But dont worry, we don’t have to use C++ to use TF, because there are several bindings for other languages. Officially, TensorFlow only supports a Python API, but meanwhile there are several community carried APIs for other languages, including R, Go, Rust, Swift or JavaScript. In this book, we will use TF with the https://tensorflow.rstudio.com/ binding that was developed and published 2017 by the RStudio Team. They developed first a R package (reticulate) to call python in R. Actually, we are using in R the python TF module (more about this later).
+
 
 ### Tensorflow data containers
 TF has two data containers (structures):
@@ -276,19 +291,20 @@ Skipping the "L" is one of the most common errors when using R-TF!
 
 
 ## First steps with the keras framework
-Objective of this lesson: familiarize yourself with keras.
-keras is a higher level API within TF and developed to build easily neural networks.
-Keras can be found within TF: tf.keras...however, the RStudio team built a pkg on top of tf.keras
+
+We have seen that we can use TF directly from R, and we could use this knowledge to implement a neural network in TF directly from R. However, this can be quite cumbersome. For simple problems, it is usually faster to use a higher-level API that helps us with implementing the machine learning models in TF. The most common of those is Keras.
+
+Keras is a powerful framework for building and training neural networks with a few lines of codes. Since the end of 2018, Keras and TF are completely interoperable, allowing us to utilize the best of both. 
+
+The objective of this lesson is to familiarize yourself with keras. If you have TF installed, Keras can be found within TF: tf.keras. However, the RStudio team has built an R package on top of tf.keras, and it is more convenient to use this. To load the keras package, type
 
 ```{r}
 library(keras)
 ```
 
-
 ### Example workflow in keras
-We will now build a small classifier in keras to predict the three species of the iris dataset:
 
-Load the necessary packages and datasets:
+To show how keras works, we will now build a small classifier in keras to predict the three species of the iris dataset. Load the necessary packages and datasets:
 ```{r}
 library(keras)
 library(tensorflow)
