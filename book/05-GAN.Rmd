@@ -1,0 +1,176 @@
+# GANs, VAEs, and Reinforcement learning
+## Generative adversarial network (GANs)
+The idea of generative adversarial network (GAN) is that two neural networks contest with each other in a game. On network is creating data and is trying to "trick" the other into thinking that this data is real. A possible application is to create pictures that look like real photographs. However, the application of GANs today is much wider than just the creation of data. For example, GANs can also be used to "augment" data, i.e. to create new data and thereby improve the fitted model. 
+### MNIST - GAN based on DNNs
+GANs - two networks are playing against each other. The generator (similar to the decoder in AEs) creates new images from noise and tries to convince the discriminator that this is a real image.
+
+The discriminator is getting a mix of true images (from the dataset) and of artificially generated images from the generator. 
+
+Loss of the generator - when fakes are identified as fakes by the discriminator (simple binary_crossentropy loss, 0/1...)
+
+Loss of the discriminator - when fakes are identified as fakes (class 1) and true images as true images (class 0), again simple binary crossentropy.
+
+MNIST example:
+
+```{r}
+library(keras)
+library(tensorflow)
+rotate = function(x) t(apply(x, 2, rev))
+imgPlot = function(img, title = ""){
+ col=grey.colors(255)
+ image(rotate(img), col = col, xlab = "", ylab = "", axes=FALSE, main = paste0("Label: ", as.character(title)))
+}
+```
+
+We don't need the test set:
+
+```{r}
+data = dataset_mnist()
+train = data$train
+train_x = array((train$x-127.5)/127.5, c(dim(train$x)[1], 784L))
+```
+
+Define and test generator model:
+
+```{r}
+get_generator = function(){
+ generator = keras_model_sequential()
+ generator %>% 
+ layer_dense(units = 200L ,input_shape = c(100L)) %>% 
+ layer_activation_leaky_relu() %>% 
+ layer_dense(units = 200L) %>% 
+ layer_activation_leaky_relu() %>% 
+ layer_dense(units = 784L, activation = "tanh")
+ return(generator)
+}
+```
+
+```{r}
+generator = get_generator()
+sample = tf$random$normal(c(1L, 100L))
+imgPlot(array(generator(sample)$numpy(), c(28L, 28L)))
+```
+
+The noise of size = [100] (random vector with 100 values) is passed through the network and the output correspond to the number of pixels of one MNIST image (784)
+
+```{r}
+get_discriminator = function(){
+ discriminator = keras_model_sequential()
+ discriminator %>% 
+ layer_dense(units = 200L, input_shape = c(784L)) %>% 
+ layer_activation_leaky_relu() %>% 
+ layer_dense(units = 100L) %>% 
+ layer_activation_leaky_relu() %>% 
+ layer_dense(units = 1L, activation = "sigmoid")
+ return(discriminator)
+}
+```
+
+```{r}
+discriminator = get_discriminator()
+discriminator(generator(tf$random$normal(c(1L, 100L))))
+```
+
+The normal architecture of a binary classifier (will get images as input)
+
+Loss:
+
+```{r}
+ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE)
+loss_discriminator = function(real, fake){
+ real_loss = ce(tf$ones_like(real), real)
+ fake_loss = ce(tf$zeros_like(fake), fake)
+ return(real_loss+fake_loss)
+}
+loss_generator = function(fake){
+ return(ce(tf$ones_like(fake), fake))
+}
+```
+
+Binary crossentropy as loss function.
+
+However, we have to encode the true and predicted values for the two networks individually.
+
+The discriminator will get two losses - one for identifying fake images as fake, and one for identifying real MNIST images as real images.
+
+The generator will just get one loss - was it able to deceive the discriminator?
+
+Each network will get its own optimizer (while a AE will be treated as one network, in a GAN the networks will be treated independently)
+
+```{r}
+gen_opt = tf$keras$optimizers$RMSprop(1e-4)
+disc_opt = tf$keras$optimizers$RMSprop(1e-4)
+batch_size = 32L
+get_batch = function(){  # Helper function to get batches of images
+ indices = sample.int(nrow(train_x), batch_size)
+ return(tf$constant(train_x[indices,], "float32"))
+}
+```
+
+We have to write here our own training loop (we cannot use the fit function). Let's define a training function:
+
+```{r}
+train_step = function(images){
+ noise = tf$random$normal(c(32L, 100L))
+ with(tf$GradientTape(persistent = TRUE) %as% tape,{
+ gen_images = generator(noise)
+ fake_output = discriminator(gen_images)
+ real_output = discriminator(images)
+ gen_loss = loss_generator(fake_output)
+ disc_loss = loss_discriminator(real_output, fake_output)
+ })
+ gen_grads = tape$gradient(gen_loss, generator$weights)
+ disc_grads = tape$gradient(disc_loss, discriminator$weights)
+ rm(tape)
+ gen_opt$apply_gradients(purrr::transpose(list(gen_grads, generator$weights)))
+ disc_opt$apply_gradients(purrr::transpose(list(disc_grads, discriminator$weights)))
+ return(c(gen_loss, disc_loss))
+}
+train_step = tf$`function`(reticulate::py_func(train_step))
+```
+
+In each iteration (for each batch) we will do the following (the GradientTape records computations to do automatic differenation):
+
+1. sample noise
+2. Generator creates images from the noise
+3. Discriminator will make predictions for fake images and real images (response is a probability between [0,1])
+4. Calculate loss for generator
+5. Calculate loss for discriminator
+6. Calculate gradients for weights and the loss
+7. Update weights of generator
+8. Update weights of discriminator
+9. return losses
+
+```{r, eval=FALSE}
+steps = as.integer(nrow(train_x)/batch_size)
+generator = get_generator()
+discriminator = get_discriminator()
+epochs = 30L
+steps = as.integer(nrow(train_x)/batch_size)
+counter = 1
+gen_loss = NULL
+disc_loss = NULL
+for(i in 1:(epochs*steps)){
+ images = get_batch()
+ losses = train_step(images)
+ gen_loss = tf$reduce_sum(losses[[1]])$numpy()
+ disc_loss = tf$reduce_sum(losses[[2]])$numpy()
+ if(i %% 50*steps == 0) {
+ noise = tf$random$normal(c(1L, 100L))
+ imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
+ }
+ if(i %% steps == 0){
+ counter = 1
+ cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
+ }
+}
+```
+
+The actual training loop:
+
+1. Create networks
+2. get batch of images
+3. run train_step function
+4. print losses
+5. repeat step 2-4 for number of epochs
+
