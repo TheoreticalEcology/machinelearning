@@ -24,7 +24,7 @@
 <meta name="author" content="Maximilian Pichler and Florian Hartig" />
 
 
-<meta name="date" content="2021-04-30" />
+<meta name="date" content="2021-05-01" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -189,7 +189,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="4.2" data-path="Deep.html"><a href="Deep.html#convolutional-neural-networks---mnist"><i class="fa fa-check"></i><b>4.2</b> Convolutional Neural Networks - MNIST</a>
 <ul>
 <li class="chapter" data-level="4.2.1" data-path="Deep.html"><a href="Deep.html#data-augmentation"><i class="fa fa-check"></i><b>4.2.1</b> Data Augmentation</a></li>
-<li class="chapter" data-level="4.2.2" data-path="Deep.html"><a href="Deep.html#transfer-learning"><i class="fa fa-check"></i><b>4.2.2</b> Transfer learning</a></li>
+<li class="chapter" data-level="4.2.2" data-path="Deep.html"><a href="Deep.html#transfer"><i class="fa fa-check"></i><b>4.2.2</b> Transfer learning</a></li>
 </ul></li>
 <li class="chapter" data-level="4.3" data-path="Deep.html"><a href="Deep.html#flower-dataset"><i class="fa fa-check"></i><b>4.3</b> Flower dataset</a></li>
 </ul></li>
@@ -210,12 +210,23 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="6" data-path="gans-vaes-and-reinforcement-learning.html"><a href="gans-vaes-and-reinforcement-learning.html"><i class="fa fa-check"></i><b>6</b> GANs, VAEs, and Reinforcement learning</a>
 <ul>
-<li class="chapter" data-level="6.1" data-path="gans-vaes-and-reinforcement-learning.html"><a href="gans-vaes-and-reinforcement-learning.html#generative-adversarial-network-gans"><i class="fa fa-check"></i><b>6.1</b> Generative adversarial network (GANs)</a></li>
+<li class="chapter" data-level="6.1" data-path="gans-vaes-and-reinforcement-learning.html"><a href="gans-vaes-and-reinforcement-learning.html#generative-adversarial-network-gans"><i class="fa fa-check"></i><b>6.1</b> Generative adversarial network (GANs)</a>
+<ul>
+<li class="chapter" data-level="6.1.1" data-path="gans-vaes-and-reinforcement-learning.html"><a href="gans-vaes-and-reinforcement-learning.html#flower---gan"><i class="fa fa-check"></i><b>6.1.1</b> Flower - GAN</a></li>
+</ul></li>
 <li class="chapter" data-level="6.2" data-path="gans-vaes-and-reinforcement-learning.html"><a href="gans-vaes-and-reinforcement-learning.html#autoencoder"><i class="fa fa-check"></i><b>6.2</b> Autoencoder</a>
 <ul>
 <li class="chapter" data-level="6.2.1" data-path="gans-vaes-and-reinforcement-learning.html"><a href="gans-vaes-and-reinforcement-learning.html#autoencoder---mnist-cnn"><i class="fa fa-check"></i><b>6.2.1</b> Autoencoder - MNIST CNN</a></li>
 </ul></li>
 <li class="chapter" data-level="6.3" data-path="gans-vaes-and-reinforcement-learning.html"><a href="gans-vaes-and-reinforcement-learning.html#varational-autoencoder"><i class="fa fa-check"></i><b>6.3</b> Varational Autoencoder</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="datasets.html"><a href="datasets.html"><i class="fa fa-check"></i><b>7</b> Datasets</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="datasets.html"><a href="datasets.html#titanic"><i class="fa fa-check"></i><b>7.1</b> Titanic</a></li>
+<li class="chapter" data-level="7.2" data-path="datasets.html"><a href="datasets.html#plant-pollinator-database"><i class="fa fa-check"></i><b>7.2</b> Plant-pollinator database</a></li>
+<li class="chapter" data-level="7.3" data-path="datasets.html"><a href="datasets.html#wine"><i class="fa fa-check"></i><b>7.3</b> Wine</a></li>
+<li class="chapter" data-level="7.4" data-path="datasets.html"><a href="datasets.html#nasa"><i class="fa fa-check"></i><b>7.4</b> Nasa</a></li>
+<li class="chapter" data-level="7.5" data-path="datasets.html"><a href="datasets.html#flower"><i class="fa fa-check"></i><b>7.5</b> Flower</a></li>
 </ul></li>
 </ul>
 
@@ -315,14 +326,18 @@ minimized. This is the job of the optimizer. Thus, an optimization consists of:<
 </div>
 <div id="regularization" class="section level3" number="3.1.2">
 <h3><span class="header-section-number">3.1.2</span> Regularization</h3>
-<p>There are several ways to regularize models. In this section we will focus on lasso and ridge regularization for weights in neural networks.</p>
-<p>The idea of lasso and ridge regularization is to put some type of rubber band on the weights and pull them to zero if the data does not strongly push them away from zero.Having this in mind it is claer that important weights, which are supported by the data, are able be different to zero.</p>
-<p>Lasso and ridge have slightly different properties:</p>
-<ul>
-<li>Lasso: abs(sum(Weights))</li>
-<li>Ridge: (sum(Weights))^2
-Lasso tries to push the weights directly to zero, where as the Ridge allows small values around zero (caused by the difference of the absolute and squared function).</li>
-</ul>
+<p>Regularization means adding information or structure to a system in order to solve an ill-posed optimization problem or to prevent overfitting. There are many ways of regularizing a ML model. The most important distinction is between shrinkage estimators and estimators based on model averaging.</p>
+<p><strong>Shrikage estimators</strong> are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are <em>“shrunk”</em> to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also Lasso or LASSO, where the penality is proportional to the absolute deviation (L1 penalty), and the Tikhonov regularization aka ridge regression, where the penalty is proportional to the squared distance from the reference (L2 penalty). Thus, the loss function that we optimize is thus given by</p>
+<p><span class="math display">\[
+loss = fit - \lambda \cdot d
+\]</span>
+where fit refers to the standard loss function, <span class="math inline">\(\lambda\)</span> is the strength of the regularization, and <span class="math inline">\(d\)</span> is the chosen metrics, e.g. L1 or L2. <span class="math inline">\(\lambda\)</span> and possibly d are typically optimized under cross-validation</p>
+<p><strong>Model averaging</strong> refers to an entire set of techniques, including boosting, bagging and other averaging techniques. The general principle is that predictions are made by combining (= averaging) several models. This is based on on the insight that it often more efficient to have many simpler models and average them, than to have one “super model”. The reasons are complicated, and explained in more detail in Dormann et al., 2018. A particular important application of averaging is boosting, where the principle is that many weak learners are combined to a model average, resulting in a strong learner. Another related method is bootstrap aggregating, also called bagging. Idea here is to boostrap the data, and average the boot- strapped predictions.</p>
+<p>To see how these techniques work in practice, let’s first focus on lasso and ridge regularization for weights in neural networks. We can imagine that the lasso and ridge act similar to a rubber band on the weights that pulls them to zero if the data does not strongly push them away from zero. This leads to important weights, which are supported by the data, being estimated as different from zero, whereas unimportant model structures are reduced (shrunk) to zero.</p>
+<p>Lasso (penalty ~ abs(sum(Weights))) and ridge (penalty ~ (sum(Weights))^2) have slightly different properties, which are best understood if we express those as the effective prior preference that they create on the parameters:</p>
+<p><img src="_main_files/figure-html/unnamed-chunk-50-1.png" width="672" /></p>
+<p>As you can see, the Lasso creates a very strong preferencet towards exactly zero, but falls off less strongly towards the tails. This means that parameters tend to be estimated either to exactly zero, or, if not, they are more free than the ridge. For this reason, Lasso is often interpreted more as a model selection method.</p>
+<p>The Ridge, on the other hand, has a certain area around zero where it is relatively indifferent about deviations from zero, thus rarely leading to exactly zero values. However, it will create a stronger shrinkage for values that deviate significantly from zero.</p>
 <p>We can implement the linear regression also in keras, when we do not specify any hidden layers</p>
 <div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="fund.html#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
 <span id="cb75-2"><a href="fund.html#cb75-2" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> airquality[<span class="fu">complete.cases</span>(airquality),]</span>
@@ -333,16 +348,16 @@ Lasso tries to push the weights directly to zero, where as the Ridge allows smal
 <span id="cb75-7"><a href="fund.html#cb75-7" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
 <span id="cb75-8"><a href="fund.html#cb75-8" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(<span class="at">units =</span> 1L, <span class="at">activation =</span> <span class="st">&quot;linear&quot;</span>, <span class="at">input_shape =</span> <span class="fu">list</span>(<span class="fu">dim</span>(X)[<span class="dv">2</span>]))</span>
 <span id="cb75-9"><a href="fund.html#cb75-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
-<pre><code>## Model: &quot;sequential_32&quot;
-## _________________________________________________________________________________________________________________________
-## Layer (type)                                          Output Shape                                    Param #            
-## =========================================================================================================================
-## dense_85 (Dense)                                      (None, 1)                                       6                  
-## =========================================================================================================================
+<pre><code>## Model: &quot;sequential_42&quot;
+## __________________________________________________________________________________________________________________________________________________
+## Layer (type)                                                     Output Shape                                               Param #               
+## ==================================================================================================================================================
+## dense_111 (Dense)                                                (None, 1)                                                  6                     
+## ==================================================================================================================================================
 ## Total params: 6
 ## Trainable params: 6
 ## Non-trainable params: 0
-## _________________________________________________________________________________________________________________________</code></pre>
+## __________________________________________________________________________________________________________________________________________________</code></pre>
 <div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb77-1"><a href="fund.html#cb77-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
 <span id="cb77-2"><a href="fund.html#cb77-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">compile</span>(<span class="at">loss =</span> loss_mean_squared_error, <span class="fu">optimizer_adamax</span>(<span class="at">lr =</span> <span class="fl">0.5</span>))</span>
 <span id="cb77-3"><a href="fund.html#cb77-3" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span></span>
@@ -382,16 +397,16 @@ Lets see what happens when we put a l1 (lasso) regularization on the weights:</p
 <span id="cb81-3"><a href="fund.html#cb81-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 1L, <span class="at">activation =</span> <span class="st">&quot;linear&quot;</span>, <span class="at">input_shape =</span> <span class="fu">list</span>(<span class="fu">dim</span>(X)[<span class="dv">2</span>]), </span>
 <span id="cb81-4"><a href="fund.html#cb81-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l1</span>(<span class="dv">10</span>), <span class="at">bias_regularizer =</span> <span class="fu">regularizer_l1</span>(<span class="dv">10</span>))</span>
 <span id="cb81-5"><a href="fund.html#cb81-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
-<pre><code>## Model: &quot;sequential_33&quot;
-## _________________________________________________________________________________________________________________________
-## Layer (type)                                          Output Shape                                    Param #            
-## =========================================================================================================================
-## dense_86 (Dense)                                      (None, 1)                                       6                  
-## =========================================================================================================================
+<pre><code>## Model: &quot;sequential_43&quot;
+## __________________________________________________________________________________________________________________________________________________
+## Layer (type)                                                     Output Shape                                               Param #               
+## ==================================================================================================================================================
+## dense_112 (Dense)                                                (None, 1)                                                  6                     
+## ==================================================================================================================================================
 ## Total params: 6
 ## Trainable params: 6
 ## Non-trainable params: 0
-## _________________________________________________________________________________________________________________________</code></pre>
+## __________________________________________________________________________________________________________________________________________________</code></pre>
 <div class="sourceCode" id="cb83"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb83-1"><a href="fund.html#cb83-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
 <span id="cb83-2"><a href="fund.html#cb83-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">compile</span>(<span class="at">loss =</span> loss_mean_squared_error, <span class="fu">optimizer_adamax</span>(<span class="at">lr =</span> <span class="fl">0.5</span>), <span class="at">metrics =</span> <span class="fu">c</span>(metric_mean_squared_error))</span>
 <span id="cb83-3"><a href="fund.html#cb83-3" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span></span>
@@ -426,12 +441,12 @@ Lets see what happens when we put a l1 (lasso) regularization on the weights:</p
 ##   42.099099    4.582620  -11.806072   18.066786   -4.479175    2.384705</code></pre>
 <div class="sourceCode" id="cb87"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb87-1"><a href="fund.html#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(<span class="fu">unlist</span>(l1), <span class="fu">unlist</span>(unconstrained))</span></code></pre></div>
 <pre><code>##             [,1]       [,2]
-## [1,]  1.49009573   4.724220
-## [2,] -8.32269382 -12.099596
-## [3,] 13.60457993  16.894247
-## [4,] -0.11560421  -4.029854
-## [5,] -0.03922676   2.252557
-## [6,] 33.51544189  40.772564</code></pre>
+## [1,]  1.63864541   5.004925
+## [2,] -8.61910915 -12.627240
+## [3,] 12.97266769  16.611521
+## [4,] -0.06296927  -3.887562
+## [5,]  0.04676224   2.272530
+## [6,] 34.33927155  41.110775</code></pre>
 <p>One can clearly see that parameters are pulled towards zero because of the regularization.
 ## Tree-based ML algorithms
 Famous ML algorithms such as random Forest and gradient boosted trees are based on classification and regression trees.</p>
@@ -451,12 +466,12 @@ In this lecture we will explore regression and classifaction trees at the exampl
 <p>Fit and visualize a regression tree:</p>
 <div class="sourceCode" id="cb90"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb90-1"><a href="fund.html#cb90-1" aria-hidden="true" tabindex="-1"></a>rt <span class="ot">=</span> <span class="fu">rpart</span>(Ozone<span class="sc">~</span>., <span class="at">data =</span> data,<span class="at">control =</span> <span class="fu">rpart.control</span>(<span class="at">minsplit =</span> <span class="dv">10</span>))</span>
 <span id="cb90-2"><a href="fund.html#cb90-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rpart.plot</span>(rt)</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-53-1.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-54-1.png" width="672" /></p>
 <p>Visualize the predictions:</p>
 <div class="sourceCode" id="cb91"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb91-1"><a href="fund.html#cb91-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(rt, data)</span>
 <span id="cb91-2"><a href="fund.html#cb91-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(data<span class="sc">$</span>Temp, data<span class="sc">$</span>Ozone)</span>
 <span id="cb91-3"><a href="fund.html#cb91-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(data<span class="sc">$</span>Temp[<span class="fu">order</span>(data<span class="sc">$</span>Temp)], pred[<span class="fu">order</span>(data<span class="sc">$</span>Temp)], <span class="at">col =</span> <span class="st">&quot;red&quot;</span>)</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-54-1.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-55-1.png" width="672" /></p>
 <p>The angular form of the prediction line is typical for regression trees.</p>
 </div>
 <div id="random-forest" class="section level3" number="3.1.4">
@@ -473,7 +488,7 @@ In this lecture we will explore regression and classifaction trees at the exampl
 <span id="cb92-3"><a href="fund.html#cb92-3" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(rf, data)</span>
 <span id="cb92-4"><a href="fund.html#cb92-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Ozone<span class="sc">~</span>Temp, <span class="at">data =</span> data)</span>
 <span id="cb92-5"><a href="fund.html#cb92-5" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(data<span class="sc">$</span>Temp[<span class="fu">order</span>(data<span class="sc">$</span>Temp)], pred[<span class="fu">order</span>(data<span class="sc">$</span>Temp)], <span class="at">col =</span> <span class="st">&quot;red&quot;</span>)</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-55-1.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-56-1.png" width="672" /></p>
 <p>One advantage of RF is that we will get a variable importance:</p>
 <div class="sourceCode" id="cb93"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb93-1"><a href="fund.html#cb93-1" aria-hidden="true" tabindex="-1"></a><span class="fu">importance</span>(rf)</span></code></pre></div>
 <pre><code>##         IncNodePurity
@@ -580,7 +595,7 @@ In this lecture we will explore regression and classifaction trees at the exampl
 <span id="cb109-2"><a href="fund.html#cb109-2" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">=</span> iris[,<span class="dv">5</span>]</span>
 <span id="cb109-3"><a href="fund.html#cb109-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(X[<span class="sc">-</span><span class="dv">100</span>,<span class="dv">1</span>], X[<span class="sc">-</span><span class="dv">100</span>,<span class="dv">3</span>], <span class="at">col =</span> Y)</span>
 <span id="cb109-4"><a href="fund.html#cb109-4" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(X[<span class="dv">100</span>,<span class="dv">1</span>], X[<span class="dv">100</span>,<span class="dv">3</span>], <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">pch =</span> <span class="dv">18</span>, <span class="at">cex =</span> <span class="fl">1.3</span>)</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-57-1.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-58-1.png" width="672" /></p>
 <p>Which class would you decide for the blue point? What are the classes of the nearest points?… well this procedure is used by the kNN:</p>
 <p>Scaling is very important when dealing with distances (we also split the dataset into a training and a testing dataset):</p>
 <div class="sourceCode" id="cb110"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb110-1"><a href="fund.html#cb110-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> iris</span>
@@ -668,7 +683,7 @@ In this lecture we will explore regression and classifaction trees at the exampl
 <span id="cb116-2"><a href="fund.html#cb116-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
 <span id="cb116-3"><a href="fund.html#cb116-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(test<span class="sc">$</span>Sepal.Length, test<span class="sc">$</span>Petal.Length, <span class="at">col =</span>  pred, <span class="at">main =</span> <span class="st">&quot;predicted&quot;</span>)</span>
 <span id="cb116-4"><a href="fund.html#cb116-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(test<span class="sc">$</span>Sepal.Length, test<span class="sc">$</span>Petal.Length, <span class="at">col =</span>  test<span class="sc">$</span>Species, <span class="at">main =</span> <span class="st">&quot;observed&quot;</span>)</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-61-1.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-62-1.png" width="672" /></p>
 <div class="sourceCode" id="cb117"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb117-1"><a href="fund.html#cb117-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(oldpar)</span></code></pre></div>
 <pre><code>## Warning in par(oldpar): graphical parameter &quot;cin&quot; cannot be set</code></pre>
 <pre><code>## Warning in par(oldpar): graphical parameter &quot;cra&quot; cannot be set</code></pre>
@@ -736,22 +751,22 @@ In this lecture we will explore regression and classifaction trees at the exampl
 <span id="cb131-8"><a href="fund.html#cb131-8" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(<span class="at">units =</span> 100L, <span class="at">activation =</span> <span class="st">&quot;relu&quot;</span>, <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l1</span>(penalty)) <span class="sc">%&gt;%</span></span>
 <span id="cb131-9"><a href="fund.html#cb131-9" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(<span class="at">units =</span> 1L, <span class="at">activation =</span> <span class="st">&quot;linear&quot;</span>, <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l1</span>(penalty)) <span class="co"># one output dimension with a linear activation function</span></span>
 <span id="cb131-10"><a href="fund.html#cb131-10" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
-<pre><code>## Model: &quot;sequential_34&quot;
-## _________________________________________________________________________________________________________________________
-## Layer (type)                                          Output Shape                                    Param #            
-## =========================================================================================================================
-## dense_87 (Dense)                                      (None, 100)                                     600                
-## _________________________________________________________________________________________________________________________
-## dense_88 (Dense)                                      (None, 100)                                     10100              
-## _________________________________________________________________________________________________________________________
-## dense_89 (Dense)                                      (None, 100)                                     10100              
-## _________________________________________________________________________________________________________________________
-## dense_90 (Dense)                                      (None, 1)                                       101                
-## =========================================================================================================================
+<pre><code>## Model: &quot;sequential_44&quot;
+## __________________________________________________________________________________________________________________________________________________
+## Layer (type)                                                     Output Shape                                               Param #               
+## ==================================================================================================================================================
+## dense_113 (Dense)                                                (None, 100)                                                600                   
+## __________________________________________________________________________________________________________________________________________________
+## dense_114 (Dense)                                                (None, 100)                                                10100                 
+## __________________________________________________________________________________________________________________________________________________
+## dense_115 (Dense)                                                (None, 100)                                                10100                 
+## __________________________________________________________________________________________________________________________________________________
+## dense_116 (Dense)                                                (None, 1)                                                  101                   
+## ==================================================================================================================================================
 ## Total params: 20,901
 ## Trainable params: 20,901
 ## Non-trainable params: 0
-## _________________________________________________________________________________________________________________________</code></pre>
+## __________________________________________________________________________________________________________________________________________________</code></pre>
 <div class="sourceCode" id="cb133"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb133-1"><a href="fund.html#cb133-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
 <span id="cb133-2"><a href="fund.html#cb133-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">compile</span>(<span class="at">loss =</span> loss_mean_squared_error, <span class="fu">optimizer_adamax</span>(<span class="fl">0.1</span>))</span>
 <span id="cb133-3"><a href="fund.html#cb133-3" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span></span>
@@ -759,10 +774,10 @@ In this lecture we will explore regression and classifaction trees at the exampl
 <span id="cb133-5"><a href="fund.html#cb133-5" aria-hidden="true" tabindex="-1"></a> <span class="fu">fit</span>(<span class="at">x =</span> X, <span class="at">y =</span> <span class="fu">matrix</span>(Y, <span class="at">ncol =</span> 1L), <span class="at">epochs =</span> 100L, <span class="at">batch_size =</span> 20L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>, <span class="at">validation_split =</span> <span class="fl">0.2</span>)</span>
 <span id="cb133-6"><a href="fund.html#cb133-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model_history)</span></code></pre></div>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<p><img src="_main_files/figure-html/unnamed-chunk-64-1.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-65-1.png" width="672" /></p>
 <div class="sourceCode" id="cb135"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb135-1"><a href="fund.html#cb135-1" aria-hidden="true" tabindex="-1"></a>weights <span class="ot">=</span> <span class="fu">lapply</span>(model<span class="sc">$</span>weights, <span class="cf">function</span>(w) w<span class="sc">$</span><span class="fu">numpy</span>() )</span>
 <span id="cb135-2"><a href="fund.html#cb135-2" aria-hidden="true" tabindex="-1"></a>fields<span class="sc">::</span><span class="fu">image.plot</span>(weights[[<span class="dv">1</span>]])</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-64-2.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-65-2.png" width="672" /></p>
 </div>
 <div id="the-standard-ml-pipeline-at-the-example-of-the-titanic-dataset" class="section level2" number="3.4">
 <h2><span class="header-section-number">3.4</span> The standard ML pipeline at the example of the titanic dataset</h2>
@@ -821,45 +836,37 @@ Here is an (optional) video that explains the entire pipeline from a slightly di
 ##  $ home.dest: Factor w/ 370 levels &quot;&quot;,&quot;?Havana, Cuba&quot;,..: 121 213 1 1 1 1 322 350 1 1 ...
 ##  $ subset   : chr  &quot;train&quot; &quot;train&quot; &quot;train&quot; &quot;train&quot; ...</code></pre>
 <div class="sourceCode" id="cb141"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb141-1"><a href="fund.html#cb141-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data)</span></code></pre></div>
-<pre><code>##      pclass         survived          name               sex           age              sibsp            parch      
-##  Min.   :1.000   Min.   :0.0000   Length:1309        female:466   Min.   : 0.1667   Min.   :0.0000   Min.   :0.000  
-##  1st Qu.:2.000   1st Qu.:0.0000   Class :character   male  :843   1st Qu.:21.0000   1st Qu.:0.0000   1st Qu.:0.000  
-##  Median :3.000   Median :0.0000   Mode  :character                Median :28.0000   Median :0.0000   Median :0.000  
-##  Mean   :2.295   Mean   :0.3853                                   Mean   :29.8811   Mean   :0.4989   Mean   :0.385  
-##  3rd Qu.:3.000   3rd Qu.:1.0000                                   3rd Qu.:39.0000   3rd Qu.:1.0000   3rd Qu.:0.000  
-##  Max.   :3.000   Max.   :1.0000                                   Max.   :80.0000   Max.   :8.0000   Max.   :9.000  
-##                  NA&#39;s   :655                                      NA&#39;s   :263                                       
-##       ticket          fare                     cabin      embarked      boat          body      
-##  CA. 2343:  11   Min.   :  0.000                  :1014    :  2           :823   Min.   :  1.0  
-##  1601    :   8   1st Qu.:  7.896   C23 C25 C27    :   6   C:270    13     : 39   1st Qu.: 72.0  
-##  CA 2144 :   8   Median : 14.454   B57 B59 B63 B66:   5   Q:123    C      : 38   Median :155.0  
-##  3101295 :   7   Mean   : 33.295   G6             :   5   S:914    15     : 37   Mean   :160.8  
-##  347077  :   7   3rd Qu.: 31.275   B96 B98        :   4            14     : 33   3rd Qu.:256.0  
-##  347082  :   7   Max.   :512.329   C22 C26        :   4            4      : 31   Max.   :328.0  
-##  (Other) :1261   NA&#39;s   :1         (Other)        : 271            (Other):308   NA&#39;s   :1188   
-##                 home.dest      subset         
-##                      :564   Length:1309       
-##  New York, NY        : 64   Class :character  
-##  London              : 14   Mode  :character  
-##  Montreal, PQ        : 10                     
-##  Cornwall / Akron, OH:  9                     
-##  Paris, France       :  9                     
-##  (Other)             :639</code></pre>
+<pre><code>##      pclass         survived          name               sex           age              sibsp            parch            ticket          fare        
+##  Min.   :1.000   Min.   :0.0000   Length:1309        female:466   Min.   : 0.1667   Min.   :0.0000   Min.   :0.000   CA. 2343:  11   Min.   :  0.000  
+##  1st Qu.:2.000   1st Qu.:0.0000   Class :character   male  :843   1st Qu.:21.0000   1st Qu.:0.0000   1st Qu.:0.000   1601    :   8   1st Qu.:  7.896  
+##  Median :3.000   Median :0.0000   Mode  :character                Median :28.0000   Median :0.0000   Median :0.000   CA 2144 :   8   Median : 14.454  
+##  Mean   :2.295   Mean   :0.3853                                   Mean   :29.8811   Mean   :0.4989   Mean   :0.385   3101295 :   7   Mean   : 33.295  
+##  3rd Qu.:3.000   3rd Qu.:1.0000                                   3rd Qu.:39.0000   3rd Qu.:1.0000   3rd Qu.:0.000   347077  :   7   3rd Qu.: 31.275  
+##  Max.   :3.000   Max.   :1.0000                                   Max.   :80.0000   Max.   :8.0000   Max.   :9.000   347082  :   7   Max.   :512.329  
+##                  NA&#39;s   :655                                      NA&#39;s   :263                                        (Other) :1261   NA&#39;s   :1        
+##              cabin      embarked      boat          body                      home.dest      subset         
+##                 :1014    :  2           :823   Min.   :  1.0                       :564   Length:1309       
+##  C23 C25 C27    :   6   C:270    13     : 39   1st Qu.: 72.0   New York, NY        : 64   Class :character  
+##  B57 B59 B63 B66:   5   Q:123    C      : 38   Median :155.0   London              : 14   Mode  :character  
+##  G6             :   5   S:914    15     : 37   Mean   :160.8   Montreal, PQ        : 10                     
+##  B96 B98        :   4            14     : 33   3rd Qu.:256.0   Cornwall / Akron, OH:  9                     
+##  C22 C26        :   4            4      : 31   Max.   :328.0   Paris, France       :  9                     
+##  (Other)        : 271            (Other):308   NA&#39;s   :1188    (Other)             :639</code></pre>
 <div class="sourceCode" id="cb143"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb143-1"><a href="fund.html#cb143-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)</span></code></pre></div>
-<pre><code>##      pclass survived                         name    sex  age sibsp parch             ticket   fare cabin embarked boat
-## 561       2        1        Sinkkonen, Miss. Anna female 30.0     0     0             250648 13.000              S   10
-## 321       1        1            Woolner, Mr. Hugh   male   NA     0     0              19947 35.500   C52        S    D
-## 1177      3        0     Sage, Mr. Douglas Bullen   male   NA     8     2           CA. 2343 69.550              S     
-## 1098      3        0  Palsson, Master. Paul Folke   male  6.0     3     1             349909 21.075              S     
-## 1252      3        0   Tomlin, Mr. Ernest Portage   male 30.5     0     0             364499  8.050              S     
-## 1170      3        0 Saether, Mr. Simon Sivertsen   male 38.5     0     0 SOTON/O.Q. 3101262  7.250              S     
-##      body                home.dest subset
-## 561    NA Finland / Washington, DC  train
-## 321    NA          London, England  train
-## 1177   NA                           train
-## 1098   NA                           train
-## 1252   50                           train
-## 1170   32                           train</code></pre>
+<pre><code>##      pclass survived                         name    sex  age sibsp parch             ticket   fare cabin embarked boat body                home.dest
+## 561       2        1        Sinkkonen, Miss. Anna female 30.0     0     0             250648 13.000              S   10   NA Finland / Washington, DC
+## 321       1        1            Woolner, Mr. Hugh   male   NA     0     0              19947 35.500   C52        S    D   NA          London, England
+## 1177      3        0     Sage, Mr. Douglas Bullen   male   NA     8     2           CA. 2343 69.550              S        NA                         
+## 1098      3        0  Palsson, Master. Paul Folke   male  6.0     3     1             349909 21.075              S        NA                         
+## 1252      3        0   Tomlin, Mr. Ernest Portage   male 30.5     0     0             364499  8.050              S        50                         
+## 1170      3        0 Saether, Mr. Simon Sivertsen   male 38.5     0     0 SOTON/O.Q. 3101262  7.250              S        32                         
+##      subset
+## 561   train
+## 321   train
+## 1177  train
+## 1098  train
+## 1252  train
+## 1170  train</code></pre>
 <p>The name variable consists of 1309 unique factors (there are 1309 observations…):</p>
 <div class="sourceCode" id="cb145"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb145-1"><a href="fund.html#cb145-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(data<span class="sc">$</span>name))</span></code></pre></div>
 <pre><code>## [1] 1307</code></pre>
@@ -873,12 +880,10 @@ Here is an (optional) video that explains the entire pipeline from a slightly di
 <p>We get 18 unique titles:</p>
 <div class="sourceCode" id="cb148"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb148-1"><a href="fund.html#cb148-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(titles)</span></code></pre></div>
 <pre><code>## titles
-##          Capt           Col           Don          Dona            Dr      Jonkheer          Lady         Major 
-##             1             4             1             1             8             1             1             2 
-##        Master          Miss          Mlle           Mme            Mr           Mrs            Ms           Rev 
-##            61           260             2             1           757           197             2             8 
-##           Sir  the Countess 
-##             1             1</code></pre>
+##          Capt           Col           Don          Dona            Dr      Jonkheer          Lady         Major        Master          Miss 
+##             1             4             1             1             8             1             1             2            61           260 
+##          Mlle           Mme            Mr           Mrs            Ms           Rev           Sir  the Countess 
+##             2             1           757           197             2             8             1             1</code></pre>
 <p>With the forcats package we can easily handle and mutate factor variables.</p>
 <p>A few titles have a very low occurrence rate:</p>
 <div class="sourceCode" id="cb150"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb150-1"><a href="fund.html#cb150-1" aria-hidden="true" tabindex="-1"></a>titles <span class="ot">=</span> stringr<span class="sc">::</span><span class="fu">str_trim</span>((titles))</span>
@@ -964,30 +969,22 @@ Here is an (optional) video that explains the entire pipeline from a slightly di
 <p>As a second example, we will explore and clean the numeric “age” variable:</p>
 <p>Explore the variable:</p>
 <div class="sourceCode" id="cb158"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb158-1"><a href="fund.html#cb158-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data)</span></code></pre></div>
-<pre><code>##      pclass         survived          name               sex           age              sibsp            parch      
-##  Min.   :1.000   Min.   :0.0000   Length:1309        female:466   Min.   : 0.1667   Min.   :0.0000   Min.   :0.000  
-##  1st Qu.:2.000   1st Qu.:0.0000   Class :character   male  :843   1st Qu.:21.0000   1st Qu.:0.0000   1st Qu.:0.000  
-##  Median :3.000   Median :0.0000   Mode  :character                Median :28.0000   Median :0.0000   Median :0.000  
-##  Mean   :2.295   Mean   :0.3853                                   Mean   :29.8811   Mean   :0.4989   Mean   :0.385  
-##  3rd Qu.:3.000   3rd Qu.:1.0000                                   3rd Qu.:39.0000   3rd Qu.:1.0000   3rd Qu.:0.000  
-##  Max.   :3.000   Max.   :1.0000                                   Max.   :80.0000   Max.   :8.0000   Max.   :9.000  
-##                  NA&#39;s   :655                                      NA&#39;s   :263                                       
-##       ticket          fare                     cabin      embarked      boat          body      
-##  CA. 2343:  11   Min.   :  0.000                  :1014    :  2           :823   Min.   :  1.0  
-##  1601    :   8   1st Qu.:  7.896   C23 C25 C27    :   6   C:270    13     : 39   1st Qu.: 72.0  
-##  CA 2144 :   8   Median : 14.454   B57 B59 B63 B66:   5   Q:123    C      : 38   Median :155.0  
-##  3101295 :   7   Mean   : 33.295   G6             :   5   S:914    15     : 37   Mean   :160.8  
-##  347077  :   7   3rd Qu.: 31.275   B96 B98        :   4            14     : 33   3rd Qu.:256.0  
-##  347082  :   7   Max.   :512.329   C22 C26        :   4            4      : 31   Max.   :328.0  
-##  (Other) :1261   NA&#39;s   :1         (Other)        : 271            (Other):308   NA&#39;s   :1188   
-##                 home.dest      subset              title    
-##                      :564   Length:1309        officer: 23  
-##  New York, NY        : 64   Class :character   royal  :  6  
-##  London              : 14   Mode  :character   Master : 61  
-##  Montreal, PQ        : 10                      miss   :262  
-##  Cornwall / Akron, OH:  9                      mrs    :200  
-##  Paris, France       :  9                      Mr     :757  
-##  (Other)             :639</code></pre>
+<pre><code>##      pclass         survived          name               sex           age              sibsp            parch            ticket          fare        
+##  Min.   :1.000   Min.   :0.0000   Length:1309        female:466   Min.   : 0.1667   Min.   :0.0000   Min.   :0.000   CA. 2343:  11   Min.   :  0.000  
+##  1st Qu.:2.000   1st Qu.:0.0000   Class :character   male  :843   1st Qu.:21.0000   1st Qu.:0.0000   1st Qu.:0.000   1601    :   8   1st Qu.:  7.896  
+##  Median :3.000   Median :0.0000   Mode  :character                Median :28.0000   Median :0.0000   Median :0.000   CA 2144 :   8   Median : 14.454  
+##  Mean   :2.295   Mean   :0.3853                                   Mean   :29.8811   Mean   :0.4989   Mean   :0.385   3101295 :   7   Mean   : 33.295  
+##  3rd Qu.:3.000   3rd Qu.:1.0000                                   3rd Qu.:39.0000   3rd Qu.:1.0000   3rd Qu.:0.000   347077  :   7   3rd Qu.: 31.275  
+##  Max.   :3.000   Max.   :1.0000                                   Max.   :80.0000   Max.   :8.0000   Max.   :9.000   347082  :   7   Max.   :512.329  
+##                  NA&#39;s   :655                                      NA&#39;s   :263                                        (Other) :1261   NA&#39;s   :1        
+##              cabin      embarked      boat          body                      home.dest      subset              title    
+##                 :1014    :  2           :823   Min.   :  1.0                       :564   Length:1309        officer: 23  
+##  C23 C25 C27    :   6   C:270    13     : 39   1st Qu.: 72.0   New York, NY        : 64   Class :character   royal  :  6  
+##  B57 B59 B63 B66:   5   Q:123    C      : 38   Median :155.0   London              : 14   Mode  :character   Master : 61  
+##  G6             :   5   S:914    15     : 37   Mean   :160.8   Montreal, PQ        : 10                      miss   :262  
+##  B96 B98        :   4            14     : 33   3rd Qu.:256.0   Cornwall / Akron, OH:  9                      mrs    :200  
+##  C22 C26        :   4            4      : 31   Max.   :328.0   Paris, France       :  9                      Mr     :757  
+##  (Other)        : 271            (Other):308   NA&#39;s   :1188    (Other)             :639</code></pre>
 <div class="sourceCode" id="cb160"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb160-1"><a href="fund.html#cb160-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(data<span class="sc">$</span>age))<span class="sc">/</span><span class="fu">nrow</span>(data)</span></code></pre></div>
 <pre><code>## [1] 0.2009167</code></pre>
 <p>20% NAs!
@@ -1063,22 +1060,22 @@ The inner split is important because to assess the model’s performance and pot
 <span id="cb169-5"><a href="fund.html#cb169-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 20L, <span class="at">activation =</span> <span class="st">&quot;relu&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb169-6"><a href="fund.html#cb169-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 2L, <span class="at">activation =</span> <span class="st">&quot;softmax&quot;</span>)</span>
 <span id="cb169-7"><a href="fund.html#cb169-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
-<pre><code>## Model: &quot;sequential_35&quot;
-## _________________________________________________________________________________________________________________________
-## Layer (type)                                          Output Shape                                    Param #            
-## =========================================================================================================================
-## dense_91 (Dense)                                      (None, 20)                                      280                
-## _________________________________________________________________________________________________________________________
-## dense_92 (Dense)                                      (None, 20)                                      420                
-## _________________________________________________________________________________________________________________________
-## dense_93 (Dense)                                      (None, 20)                                      420                
-## _________________________________________________________________________________________________________________________
-## dense_94 (Dense)                                      (None, 2)                                       42                 
-## =========================================================================================================================
+<pre><code>## Model: &quot;sequential_45&quot;
+## _______________________________________________________________________________________________________________________________________________________
+## Layer (type)                                                       Output Shape                                                 Param #                
+## =======================================================================================================================================================
+## dense_117 (Dense)                                                  (None, 20)                                                   280                    
+## _______________________________________________________________________________________________________________________________________________________
+## dense_118 (Dense)                                                  (None, 20)                                                   420                    
+## _______________________________________________________________________________________________________________________________________________________
+## dense_119 (Dense)                                                  (None, 20)                                                   420                    
+## _______________________________________________________________________________________________________________________________________________________
+## dense_120 (Dense)                                                  (None, 2)                                                    42                     
+## =======================================================================================================================================================
 ## Total params: 1,162
 ## Trainable params: 1,162
 ## Non-trainable params: 0
-## _________________________________________________________________________________________________________________________</code></pre>
+## _______________________________________________________________________________________________________________________________________________________</code></pre>
 <div class="sourceCode" id="cb171"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb171-1"><a href="fund.html#cb171-1" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span></span>
 <span id="cb171-2"><a href="fund.html#cb171-2" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
 <span id="cb171-3"><a href="fund.html#cb171-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">compile</span>(<span class="at">loss =</span> loss_categorical_crossentropy, <span class="at">optimizer =</span> <span class="fu">optimizer_adamax</span>(<span class="fl">0.01</span>))</span>
@@ -1088,7 +1085,7 @@ The inner split is important because to assess the model’s performance and pot
 <span id="cb171-7"><a href="fund.html#cb171-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb171-8"><a href="fund.html#cb171-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model_history)</span></code></pre></div>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<p><img src="_main_files/figure-html/unnamed-chunk-86-1.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-87-1.png" width="672" /></p>
 </div>
 <div id="model-evaluation" class="section level3" number="3.4.5">
 <h3><span class="header-section-number">3.4.5</span> Model evaluation</h3>
@@ -1099,7 +1096,7 @@ The inner split is important because to assess the model’s performance and pot
 <span id="cb173-4"><a href="fund.html#cb173-4" aria-hidden="true" tabindex="-1"></a>predicted <span class="ot">=</span> <span class="fu">ifelse</span>(preds[,<span class="dv">2</span>] <span class="sc">&lt;</span> <span class="fl">0.5</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
 <span id="cb173-5"><a href="fund.html#cb173-5" aria-hidden="true" tabindex="-1"></a>observed <span class="ot">=</span> sub_test[,<span class="dv">1</span>]</span>
 <span id="cb173-6"><a href="fund.html#cb173-6" aria-hidden="true" tabindex="-1"></a>(<span class="at">accuracy =</span> <span class="fu">mean</span>(predicted <span class="sc">==</span> observed))</span></code></pre></div>
-<pre><code>## [1] 0.7755102</code></pre>
+<pre><code>## [1] 0.75</code></pre>
 </div>
 <div id="predictions-and-submission" class="section level3" number="3.4.6">
 <h3><span class="header-section-number">3.4.6</span> Predictions and submission</h3>
@@ -1111,7 +1108,7 @@ remove the subset and survived (NAs) columns</p>
 <span id="cb175-3"><a href="fund.html#cb175-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(subset <span class="sc">==</span> <span class="st">&quot;test&quot;</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb175-4"><a href="fund.html#cb175-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>subset, <span class="sc">-</span>survived)</span></code></pre></div>
 <p>We cannot assess the performance on the test split because the true survived ratio is unknown, however, we can now submit our predictions to the submission server at
-<a href="http://rhsbio6.uni-regensburg.de:8500" class="uri">http://rhsbio6.uni-regensburg.de:8500</a>
+<a href="http://rhsbio7.uni-regensburg.de:8500" class="uri">http://rhsbio7.uni-regensburg.de:8500</a>
 To do so, we have to transform our survived probablities into actual 0/1 predictions (probablities are not allowed) and create a csv:</p>
 <div class="sourceCode" id="cb176"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb176-1"><a href="fund.html#cb176-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> model <span class="sc">%&gt;%</span> </span>
 <span id="cb176-2"><a href="fund.html#cb176-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(<span class="fu">as.matrix</span>(submit))</span>
