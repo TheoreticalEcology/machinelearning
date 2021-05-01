@@ -237,7 +237,7 @@ lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 One advantage of RF is that we will get a variable importance:
 
 ```{r}
-importance(rf)
+rf$importance
 ```
 
 Important hyperparameters:
@@ -477,18 +477,7 @@ library(tidyverse)
 Load dataset:
 ```{r}
 load("datasets.RData")
-train = titanic$train
-test = titanic$test
-```
-
-For cleaning and exploration we will combine the datasets together (if we change a predictor in the train set, we have also to change it in the test set...).
-
-But we will create a new variable "subset" that tells us whether an observation belongs to the train or test split:
-```{r}
-test$survived = NA
-train$subset = "train"
-test$subset = "test"
-data = rbind(train,test)
+data = titanic
 ```
 
 Standard summaries:
@@ -621,7 +610,7 @@ colnames(one_pclass) = paste0(1:length(unique(data$pclass)), "pclass")
 Add the dummy encoded variables to the dataset:
 
 ```{r}
-data_sub = cbind(data.frame(survived= data_sub$survived, subset = data$subset), one_title, one_sex, age = data_sub$age2, fare = data_sub$fare, one_pclass)
+data_sub = cbind(data.frame(survived= data_sub$survived), one_title, one_sex, age = data_sub$age2, fare = data_sub$fare, one_pclass)
 head(data_sub)
 ```
 
@@ -635,10 +624,8 @@ The inner split is important because to assess the model's performance and poten
 Outer split:
 
 ```{r}
-train = data_sub %>% 
-  filter(subset == "train") %>% 
-  filter(!is.na(fare)) %>% 
-  select(-subset)
+train = data_sub[!is.na(data_sub$survived),]
+test = data_sub[is.na(data_sub$survived),]
 ```
 Inner split:
 
@@ -687,10 +674,9 @@ When we are satisfied with the performance of our model in the inner split, we w
 select all observations that belong to the outer test split (the filter function)
 remove the subset and survived (NAs) columns
 ```{r}
-submit= 
-  data_sub %>% 
-    filter(subset == "test") %>% 
-    select(-subset, -survived)
+submit = 
+  test %>% 
+      select(-survived)
 ```
 
 We cannot assess the performance on the test split because the true survived ratio is unknown, however, we can now submit our predictions to the submission server at 
@@ -700,7 +686,7 @@ To do so, we have to transform our survived probablities into actual 0/1 predict
 ```{r}
 pred = model %>% 
   predict(as.matrix(submit))
-pred = ifelse(pred[,2] < 0.5, 0, 1)
+
 ```
 
 All values > 0.5 will be set to 1 and values < 0.5 to zero.

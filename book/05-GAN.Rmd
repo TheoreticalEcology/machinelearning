@@ -1,6 +1,8 @@
 # GANs, VAEs, and Reinforcement learning
+
 ## Generative adversarial network (GANs)
 The idea of generative adversarial network (GAN) is that two neural networks contest with each other in a game. On network is creating data and is trying to "trick" the other into thinking that this data is real. A possible application is to create pictures that look like real photographs. However, the application of GANs today is much wider than just the creation of data. For example, GANs can also be used to "augment" data, i.e. to create new data and thereby improve the fitted model. 
+
 ### MNIST - GAN based on DNNs
 GANs - two networks are playing against each other. The generator (similar to the decoder in AEs) creates new images from noise and tries to convince the discriminator that this is a real image.
 
@@ -358,17 +360,16 @@ up_size_model %>%
  layer_dense(units = 100L, activation = "relu") %>% 
  layer_dense(units = 784L, activation = "sigmoid")
 ### Combine models into one
-autoencoder = keras_model(inputs = down_size_model$input, 
- outputs = up_size_model(down_size_model$output))
-autoencoder %>% 
- compile(loss = loss_binary_crossentropy, optimizer = optimizer_adamax(0.01))
+autoencoder = tf$keras$models$Model(inputs=down_size_model$input,  outputs=up_size_model(down_size_model$output))
+autoencoder$compile(loss = loss_binary_crossentropy, optimizer = optimizer_adamax(0.01))
 image = autoencoder(train_x[1,,drop = FALSE])$numpy()
 par(mfrow = c(1,2))
 imgPlot(array(train_x[1,,drop = FALSE], c(28, 28)))
 imgPlot(array(image, c(28, 28)))
-autoencoder$fit(x = tf$constant(train_x), y = tf$constant(train_x), epochs = 10L, batch_size = 32L)
+autoencoder$fit(x = tf$constant(train_x), y = tf$constant(train_x), epochs = 5L, batch_size = 32L)
 ```
 
+After training:
 ```{r}
 pred_dim = down_size_model(test_x)
 reconstr_pred = autoencoder(test_x)
@@ -384,6 +385,7 @@ We can also use CNNs isntead of DNNs. There is also an inverse convolutional lay
 data = tf$keras$datasets$mnist$load_data()
 train = data[[1]]
 train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L))
+test_x = array(data[[2]][[1/255/255, c(dim(data[[2]][[1/255), 1L))
 down_size_model = keras_model_sequential()
 down_size_model %>% 
  layer_conv_2d(filters = 32L, activation = "relu", kernel_size = c(2L,2L), 
@@ -399,11 +401,10 @@ up_size_model %>%
  layer_conv_2d_transpose(filters = 16L, kernel_size = c(7,7), activation = "relu", strides = c(1L,1L)) %>% 
  layer_conv_2d_transpose(filters = 32L, activation = "relu", kernel_size = c(2,2), strides = c(4L,4L)) %>% 
  layer_conv_2d(filters = 1, kernel_size = c(1L, 1L), strides = c(1L, 1L), activation = "sigmoid")
-autoencoder = keras_model(inputs = down_size_model$input, 
- outputs = up_size_model(down_size_model$output))
-autoencoder %>% 
- compile(loss = loss_binary_crossentropy, optimizer = optimizer_rmsprop(0.001))
-autoencoder$fit(x = tf$constant(train_x), y = tf$constant(train_x), epochs = 10L, batch_size = 64L)
+
+autoencoder = tf$keras$models$Model(inputs = down_size_model$input, outputs = up_size_model(down_size_model$output))
+autoencoder$compile(loss = loss_binary_crossentropy, optimizer = optimizer_rmsprop(0.001))
+autoencoder$fit(x = tf$constant(train_x), y = tf$constant(train_x), epochs = 1L, batch_size = 64L)
 pred_dim = down_size_model(tf$constant(test_x, "float32"))
 reconstr_pred = autoencoder(tf$constant(test_x, "float32"))
 imgPlot(reconstr_pred[10,,,]$numpy()[,,1])
