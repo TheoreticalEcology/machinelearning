@@ -181,16 +181,17 @@ cbind(unlist(l1), unlist(unconstrained))
 
 One can clearly see that parameters are pulled towards zero because of the regularization.
 ## Tree-based ML algorithms
-Famous ML algorithms such as random Forest and gradient boosted trees are based on classification and regression trees.
+Famous ML algorithms such as random Forest and gradient boosted trees are based on classification- and regression trees.
 
 ### Classification and Regression Trees
 Tree-based models in general use a series of if-then rules to generate predictions from one or more decision trees.
-In this lecture we will explore regression and classifaction trees at the example of the airquality data set. We first prepare and visualize the data and afterwards fit a decision tree. 
+In this lecture, we will explore regression and classifaction trees at the example of the airquality data set. There is one important hyper-parameter for regression trees: minsplit
 
-There is one important hyper-parameter for regression trees: minsplit
+- it controls the depth of tree (see the help of rpart for a description)
+- it controls the complexity of the tree and thus also be seen as a regularization parameter
 
-- controls the depth of tree (see the help of tree for a description)
-- controls the complexity of the tree and can be seen also as a regularization parameter
+We first prepare and visualize the data and afterwards fit a decision tree. 
+
 ```{r}
 library(rpart)
 library(rpart.plot)
@@ -212,17 +213,19 @@ plot(data$Temp, data$Ozone)
 lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 ```
 
-The angular form of the prediction line is typical for regression trees.
+The angular form of the prediction line is typical for regression trees and is a weakness of it.
 
 
 
 ### Random Forest
-Random Forest creates an ensemble of regression/classification trees.
+To overcome this weakness, a random forest uses an ensemble of regression/classification trees. Thus, the random forest is in principle nothing else than a normal regression/classification tree, but it uses the idea of the "wisdom of the crowd": By asking many people (regression/classification trees) one can make a more informed decision (prediction/classification). When you buy a new phone for example you would also no directly go into the shop, but search in the internet and ask your friends and family.  
 
-However, there are two randomization steps with the RF that are responsible for the success of RF:
+There are two randomization steps with the RF that are responsible for the success of RF:
 
-- bootstrap sample for each tree (we will sample observations with replacement from the dataset)
-- at each split, we will sample a subset of predictors which are then considered as potential splitting criterion
+- bootstrap sample for each tree (we will sample observations with replacement from the dataset, for the phone this is like that not everyone has experience about each phone)
+- at each split, we will sample a subset of predictors which are then considered as potential splitting criterion (for the phone this is like that not everyone has the same decision criteria). 
+
+Applying the random forest follows the same principle as for the methods before: we visualize the data (we have already done this so often for the airquality data set, thus we skip it here), fit the algorithm and then plot the outcomes.
 
 Fit a RF and visualize the predictions:
 
@@ -234,37 +237,35 @@ plot(Ozone~Temp, data = data)
 lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 ```
 
-One advantage of RF is that we will get a variable importance:
+One advantage of RF is that we will get a variable importance. At each split in each tree, the improvement in the split-criterion is the importance measure attributed to the splitting variable, and is accumulated over all the trees in the forest separately for each variable. Thus the variable importance shows us how important a variable is averaged over all trees.
 
 ```{r}
 rf$importance
 ```
 
-Important hyperparameters:
+There are several important hyperparameters in a random forest, that we can tune to get better results:
 
-- Similar to regression and classification trees, the hyper parameter nodesize controls for complexity. -> Minimum size of terminal nodes. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
+- Similar to the minsplit parameter in regression and classification trees, the hyper parameter nodesize controls for complexity -> Minimum size of terminal nodes in the tree. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
 - mtry - Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.
 
 
 ### Boosted regression trees
-RF fits hundreds of trees independent of each other.
+RF fits hundreds of trees independent of each other. Here, the idea of a boosted regression tree comes in. Maybe we could learn from the errors the previous weak learners make and thus enhance the performance of the algorithm. 
 
-In boosted regression trees, we will start with a weak learner (weak learner == regression tree) and then  fit sequentially additional weak learners.
+Thus, a boosted regression tree (BRT) starts with a simple regression tree (weak learner) and then fits sequentially additional trees to improve the results.
+There are two different strategies to do so:
 
-There are two different approaches to enhance the performance:
+- AdaBoost, wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.
+- Gradient boosting (state of the art), each sequential model will be fit on the residual errors of the previous model.
 
-- AdaBoost, wrong classified observations (by the previous tree) will get a higher weight, the chain of trees will focus on difficult/missclassified observations
-- Gradient boosting (state of the art), each sequential model will be fit on the residual errors of the previous model
-
-Fit a BRT using xgboost:
+We can fit a BRT using xgboost, but before we have to transform the data into a xgb.Dmatrix.
 ```{r BRT1,cache=TRUE}
 library(xgboost)
 data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
 brt = xgboost(data_xg, nrounds = 16L, nthreads = 4L)
 ```
 
-
-xgboost has a weird syntax, we have to transform our data into a xgb.DMatrix object to be able to fit the model. We will do 500 rounds which means we will fit 500 sequential models:
+The nrounds controls how many sequantial trees we fit, in our example this was 16. When we predict to new data, we can limit the number of trees used to prevent overfitting (remeber: each new tree tries to improve the predictions of the previous trees). 
 
 Let us visualize the predictions for different number of trees:
 ```{r BRT2,cache=TRUE}
@@ -275,8 +276,12 @@ for(i in 1:4){
   lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 }
 ```
+There are also other ways to control for complexity of the BRT algorithm:
 
-xgboost also provides an variable importance:
+- max_depth, depth of each tree
+- shrinkage (each tree will get a weight and the weight will decrease with the number of trees)
+
+When having specified the final model, we can as for random forests get a variable importance:
 
 ```{r BRT3,cache=TRUE}
 xgboost::xgb.importance(model = brt)
@@ -284,27 +289,24 @@ sqrt(mean((data$Ozone - pred)^2)) # RMSE
 data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
 ```
 
-xgboost has an argument to do cross-validation:
+One important strength of xgboost is that we can directly do a cross-validation and specify its properties with nfold (the original dataset is randomly partitioned intonfoldequal size subsamples and each time one of these data sets is used for predictions to judge the performance):
+
 ```{r BRT4,cache=TRUE}
 brt = xgboost(data_xg, nrounds = 5L)
 brt_cv = xgboost::xgb.cv(data = data_xg, nfold = 3L, nrounds = 3L, nthreads = 4L)
 print(brt_cv)
 ```
 
-There are different ways to control for complexity:
-
-- max_depth, depth of each tree
-- shrinkage (each tree will get a weight and the weight will decrease with the number of trees)
+This now tells us how well the model performed.
 
 
 ## Distance-based algorithms
 In this chapter, we introduce support-vector machines (SVMs) and other distance-based methods.
 
 ### k-nearest-neighbor
-k-nearest-neighbor classifies new observations by calculating the nearest n neighbors.
+K Nearest Neighbour (kNN) is a simple algorithm that stores all the available cases and classifies the new data based on a similarity measure. It is mostly used to classifies a data point based on how its k nearest neighbours are classified.
 
-The labels of the n nearest neighbors decide the class of the new point:
-
+Let us first see an example:
 ```{r}
 X = scale(iris[,1:4])
 Y = iris[,5]
@@ -312,9 +314,9 @@ plot(X[-100,1], X[-100,3], col = Y)
 points(X[100,1], X[100,3], col = "blue", pch = 18, cex = 1.3)
 ```
 
-Which class would you decide for the blue point? What are the classes of the nearest points?... well this procedure is used by the kNN:
+Which class would you decide for the blue point? What are the classes of the nearest points? Well this procedure is used by the kNN and thus there is actually no "real" learning in a kNN.
 
-Scaling is very important when dealing with distances (we also split the dataset into a training and a testing dataset):
+For applying a kNN, we first have to scale teh data set, because we deal with distances and a priori want the same influence of all predictors (image one variable has values from -10.000 to 10.000 and one from -1 to 1, then the influence of the first variable on the distance to the other points is stronger than the second variable). As in the iris-data set there are no real test, we also have to split the data into train and test. Then we will follow the usual pipeline. 
 
 ```{r}
 data = iris
@@ -333,10 +335,10 @@ summary(knn)
 table(test$Species, fitted(knn))
 ```
 
-Actually, there is no "real" learning in a kNN. 
+ 
 
 ### Support Vector Machines (SVM)
-Support vectors machine try to find a hyperplane in the predictor space which separates the classes in the best way.
+Support vectors machines have a different approach. They try to divide the predictor space into spaces sectors for each class. To do so a SVM fits the parameters of a hyperplane (a n-1 dimensional subspace in a n-dimensional space) in the predictor space by optimizing the distance between the hyperlane and the nearest point from each class. 
 
 Fitting a SVM:
 
@@ -363,11 +365,9 @@ mean(pred==test$Species) # accuracy
 ```
 
 
-SVM can only work on linear separable problems. ( A problem is called linearly separable if there exists at least one line in the plane with all of the points of one group on one side of the line and all the points of the others group on the other side).
+SVM can only work on linear separable problems (A problem is called linearly separable if there exists at least one line in the plane with all of the points of one class on one side of the hyperplane and all the points of the others classes on the other side).
 
-However, there is a trick, the so called kernel trick.
-
-The kernel trick maps the predictor space into a (higher dimensional) space in which the problem is linear separable:
+If this is not possible, we however, can use the so called kernel trick, which maps the predictor space into a (higher dimensional) space in which the problem is linear separable. After having identified the boundaries in the higher-dimensional space, we can project them back into the original dimensions. 
 
 ```{r, eval=FALSE}
 set.seed(42)
@@ -396,9 +396,11 @@ animation::saveGIF({
 knitr::include_graphics("images/svm.gif")
 ```
 
+As you have seen this does not work with each kernel. Thus, the problem is to find the actual correct kernel, which is again an optimization procedure and can thus be approximated.
 
 ## Artificial neural networks
-Regularization in ANNs
+Now, we will come to artificial neural networks (ANNs), for which the topic of regularization is also important. We can specify the regularization in each layer via the kernel_regularization argument. 
+
 ```{r}
 library(keras)
 data = airquality
@@ -425,7 +427,9 @@ weights = lapply(model$weights, function(w) w$numpy() )
 fields::image.plot(weights[[1]])
 ```
 
+Additionally to the usual l1 and l2 regularisation there is an additional regularisation: the so called dropout-layer (we will learn about this in more detail later).
 
+Before we specialise on any tuning it is important to understand that ML always consists of a pipeline of actions. 
 ## The standard ML pipeline at the example of the titanic dataset
 The typical ML workflow consist of:
 
@@ -448,7 +452,7 @@ cat(
 )
 ```
 
-In the following example, we use tidyverse, a collection of R packages for data science / data manipulation mainly developed by Hadley Wickham. A video that explains the basics here 
+In the following example, we use tidyverse, a collection of R packages for data science / data manipulation mainly developed by Hadley Wickham. A video that explains the basics can be found here 
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -460,11 +464,11 @@ cat(
 )
 ```
 
-A good reference is R for data science by Hadley [](https://r4ds.had.co.nz/)
+Another good reference is R for data science by Hadley [](https://r4ds.had.co.nz/)
 
 For this lecture you need the titanic dataset provided by us. You can find it in GRIPS (datasets.RData in the dataset and submission section) or at [](http://rhsbio6.uni-regensburg.de:8500).
 
-We have split the dataset already into training and testing datasets (the test split has one column less than the train split, why?)
+We have split the dataset already into training and testing datasets (the test split has one column less than the train split, as the result is not known a priori for the test)
 
 ### Data cleaning
 Load necessary libraries:
@@ -507,7 +511,6 @@ We get 18 unique titles:
 table(titles)
 ```
 
-With the forcats package we can easily handle and mutate factor variables.
 
 A few titles have a very low occurrence rate:
 ```{r}
@@ -516,22 +519,8 @@ titles %>%
  fct_count()
 ```
 
-We will collapse titles with low occurrences into one title:
+We will collapse titles with low occurrences into one title, which we can easily do with the forcats package.
 
-```{r}
-titles2 =
-  forcats::fct_collapse(titles,
-                        officer = c("Capt", "Col", "Major", "Dr", "Rev"),
-                        royal = c("Jonkheer", "Don", "Sir", "the Countess", "Dona", "Lady"),
-                        miss = c("Miss", "Mlle"),
-                        mrs = c("Mrs", "Mme", "Ms")
-                        )
-titles = stringr::str_trim((titles))
-titles %>%
- fct_count()
-```
-
-We will collapse titles with low occurrences into one title:
 ```{r}
 titles2 =
   forcats::fct_collapse(titles,
@@ -542,7 +531,7 @@ titles2 =
                         )
 ```
 
-Count titles again:
+We can count titles again to see the new number of titles
 
 ```{r}
 titles2 %>%  
@@ -563,11 +552,12 @@ Explore the variable:
 ```{r}
 summary(data)
 sum(is.na(data$age))/nrow(data)
-
 ```
 
 20% NAs!
-Either we remove all observations with NAs, or we impute (fill) the missing values, e.g. with the median age:
+Either we remove all observations with NAs, or we impute (fill) the missing values, e.g. with the median age. However, age itself might depend on other variables such as sex, class and title. We want to fill the NAs with the median age of these groups.
+In tidyverse we can easily "group" the data, i.e. we will nest the observations (here: group_by after sex, pclass and title).
+After grouping, all operations (such as our median(age....)) will be done within the specified groups.
  
 ```{r}
 data =
@@ -577,17 +567,13 @@ data =
     ungroup()
 ```
  
-However, age itself might depend on other variables such as sex, class and title. We want to fill the NAs with the median age of these groups.
-In tidyverse we can easily "group" the data, i.e. we will nest the observations (here: group_by after sex, pclass and title).
-After grouping, all operations (such as our median(age....)) will be done within the specified groups.
 
 ### Pre-processing and feature selection
-Keras cannot handle factors and we have to scale the data.
+We want to you keras in our example, but it cannot handle factors and requires scaled the data.
 
-For now we will sub-select a batch of predictors and:
+Normally, one would do this for all predictors, but as we here only showe the pipeline, we have sub-selected a bunch of predictors and do this only for them.
 
-- scale the numeric predictors
-- change the factors with only two groups/levels into integer
+We first scale the numeric predictors abd change the factors with only two groups/levels into integer (this can be handled from keras)
 ```{r}
 data_sub =
   data %>%
@@ -596,7 +582,7 @@ data_sub =
     mutate(sex = as.integer(sex) - 1L, title = as.integer(title) - 1L, pclass = as.integer(pclass - 1L))
 ```
 
-One hot encoding of factors with > 2 levels:
+Factors with more than two levels, should be one hot encoded:
 ```{r}
 one_title = k_one_hot(data_sub$title, length(unique(data$title)))$numpy()
 colnames(one_title) = levels(data$title)
@@ -607,7 +593,7 @@ colnames(one_sex) = levels(data$sex)
 one_pclass = k_one_hot(data_sub$pclass,  length(unique(data$pclass)))$numpy()
 colnames(one_pclass) = paste0(1:length(unique(data$pclass)), "pclass")
 ```
-Add the dummy encoded variables to the dataset:
+And we have to add the dummy encoded variables to the dataset:
 
 ```{r}
 data_sub = cbind(data.frame(survived= data_sub$survived), one_title, one_sex, age = data_sub$age2, fare = data_sub$fare, one_pclass)
@@ -637,7 +623,7 @@ sub_test = train[-indices,]
 What is the difference between the two splits? (Tip: have a look at the variable survived)
 
 ### Model fitting
-In the next step we will fit a keras model on the train split of the inner split:
+In the next step we will fit a keras model on the train data of the inner split:
 ```{r}
 model = keras_model_sequential()
 model %>%
@@ -657,7 +643,7 @@ plot(model_history)
 ```
 
 ### Model evaluation
-We will predict survived for the test set of the inner split and calculate the accuracy:
+We will predict survived for the test data of the inner split and calculate the accuracy:
 
 ```{r}
 preds =
@@ -669,10 +655,9 @@ observed = sub_test[,1]
 ```
 
 ### Predictions and submission
-When we are satisfied with the performance of our model in the inner split, we will create predictions for the test split of the outer split:
+When we are satisfied with the performance of our model in the inner split, we will create predictions for the test data of the outer split:
 
-select all observations that belong to the outer test split (the filter function)
-remove the subset and survived (NAs) columns
+To do so, we select all observations that belong to the outer test split (use the filter function) and remove the survived (NAs) columns
 ```{r}
 submit = 
   test %>% 
@@ -681,7 +666,7 @@ submit =
 
 We cannot assess the performance on the test split because the true survived ratio is unknown, however, we can now submit our predictions to the submission server at 
 http://rhsbio7.uni-regensburg.de:8500
-To do so, we have to transform our survived probablities into actual 0/1 predictions (probablities are not allowed) and create a csv:
+To do so, we have to transform our survived probabilities into actual 0/1 predictions (probabilities are not allowed) and create a csv:
 
 ```{r}
 pred = model %>% 
