@@ -1,16 +1,21 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 
 
 # Introduction to Machine Learning {#introduction}
 
-In this introductory chapter, we introduce the three basic ML tasks
+There are three basic ML tasks
 
-* Supervised learning
 * Unsupervised learning
+* Supervised learning
 * Reinforcement learning
 
-In **supervised learning**, you train an algorithm using labeled data, which means that you already know the correct answer for a part of the data (the so called tracings data). 
-
 **Unsupervised learning** is a technique, where one does not need to supervise the model. Instead, you allow the model to work on its own to discover information.
+
+In **supervised learning**, you train an algorithm using labeled data, which means that you already know the correct answer for a part of the data (the so called tracings data). 
 
 **Reinforcement learning** is a technique that emulates a game-like situation. The algorithm comes up with a solution by try and error and gets for the actions ether rewards or penalties. As in games, the goal is to maximize the rewards. We will talk on the last day more about this technique.
 
@@ -25,6 +30,229 @@ cat(
   </iframe>'
 )
 ```
+
+
+## Unsupervised learning
+
+In unsupervised learning, we  want to identify patterns in data without having any examples (supervision) about what the correct patterns / classes are. As an example, consider our iris dataset. Here, we have 150 observations of 4 floral traits
+
+```{r, fig.width=10, fig.height=4}
+colors = hcl.colors(3)
+traits = as.matrix(iris[,1:4]) 
+species = iris$Species
+image(y = 1:4, x = 1:length(species) , z = traits, 
+      ylab = "Floral trait", xlab = "Individual")
+```
+
+The observations are from 3 species, and indeed those species tend to have different traits, meaning that the observations form 3 clusters. 
+
+```{r}
+pairs(traits, pch = as.integer(species), col = colors[as.integer(species)])
+```
+
+However, imagine we didn't know what species are, which is basically the situation in which people in the antique have been. The people just noted that some plants have different flowers than others, and decided to give them different names. This kind of process is what unsupervised learning does.
+
+### Hierarchical clustering
+
+Build up a hierarchy (tree) between data points
+
+* Agglomerative: start with each data point in their own cluster, merge them up hierarchically
+* Divisive: start with all data in one cluster, and split hierarchically
+
+Merges / splits are done according to linkage criterion, which measures distance between (potential) clusters. Cut the tree at a certain height to get clusters. 
+
+Here an example
+
+```{r}
+set.seed(123)
+
+d = dist(traits)
+hc <- hclust(d, method = "complete")
+
+plot(hc)
+rect.hclust(hc, k = 3)
+```
+
+Same plot, but with colors for true species identity
+
+```{r}
+library(ape)
+plot(as.phylo(hc), 
+     tip.color = colors[as.integer(species)], 
+     direction = "downwards")
+
+hcRes3 <- cutree(hc, k = 3)
+```
+
+Calculate confusion matrix - note we switching labels here so that it fits to the species
+
+```{r}
+tmp <- hcRes3
+tmp[hcRes3 == 2] = 3
+tmp[hcRes3 == 3] = 2
+hcRes3 <- tmp
+table(hcRes3, species)
+```
+
+Note that results might change if you choose a different agglomeration method, distance metric, or whether you scale your variables. Compare, e.g. to this example
+
+```{r}
+hc <- hclust(d, method = "ward.D2")
+
+plot(as.phylo(hc), 
+     tip.color = colors[as.integer(species)], 
+     direction = "downwards")
+
+hcRes3 <- cutree(hc, k = 3)
+table(hcRes3, species)
+```
+
+Which method is best? 
+
+```{r}
+library(dendextend)
+methods <- c("ward.D", "single", "complete", "average", "mcquitty", "median", "centroid", "ward.D2")
+out <- dendlist()
+for(i in seq_along(methods)) {
+  res <- hclust(d, method = methods[i])   
+  out <- dendlist(out, as.dendrogram(res))
+}
+names(out) <- methods
+out
+
+get_ordered_3_clusters <- function(dend) {
+  cutree(dend, k = 3)[order.dendrogram(dend)]
+}
+dend_3_clusters <- lapply(out, get_ordered_3_clusters)
+compare_clusters_to_iris <- function(clus) {FM_index(clus, rep(1:3, each = 50), assume_sorted_vectors = TRUE)}
+clusters_performance <- sapply(dend_3_clusters, compare_clusters_to_iris)
+dotchart(sort(clusters_performance), xlim = c(0.3,1),
+         xlab = "Fowlkes-Mallows index",
+         main = "Performance of linkage methods \n in detecting the 3 species",
+         pch = 19)
+```
+
+
+We might conclude here that ward.D2 works best. However, as we will learn later, optimizing the method without a hold-out for testing means that we may be overfitting. We should check this using cross-validation. 
+
+### k-means clustering
+
+Another example for an unsupervised learning algorithm is k-means clustering, one of the simplest and most popular unsupervised machine learning algorithms.
+
+A cluster refers to a collection of data points aggregated together because of certain similarities. In our example from above this similarities could be similar flowers aggregated together to a plant. 
+
+To start with the algorithm, you first have to specify the number of clusters (for our example the number of species). Each cluster has a centroid, which is the imaginary or real location representing the center of the cluster (for our example this would be how an average plant of a specific species would look like). The algorithm starts by randomly putting centroids somewhere and then adds each new data point to the cluster which minimizes the overall in-cluster sum of squares. After the algorithm has assigned a new data point to a cluster the centroid gets updated. By iterating this procedure for all data points and then starting again, the algorithm can find the optimum centroids and the data-points belonging to this cluster.
+
+The k in K-means refers to the number of clusters and the ‘means’ refers to averaging of the data-points to find the centroids.
+
+A typical pipeline for using kmeans clustering looks the same as for the other algortihms. After having visualized the data, we fit the model, visualize the results and have a look at the performance by use of the confusion matrix.
+
+```{r}
+set.seed(123)
+
+kc <- kmeans(traits, 3)
+kc
+```
+
+Visualizing the results. Color codes true species identity, symbol shows cluster result
+
+```{r}
+plot(iris[c("Sepal.Length", "Sepal.Width")], col =  colors[as.integer(species)], pch = kc$cluster)
+points(kc$centers[, c("Sepal.Length", "Sepal.Width")], col = colors, pch = 1:3, cex = 3)
+```
+
+We see that there are are some discrepancies. Confusion matrix:
+```{r}
+table(iris$Species, kc$cluster)
+```
+
+If you want to animate the clustering process, you could run 
+
+```{r, eval = F}
+library(animation)
+saveGIF(kmeans.ani(x = traits[,1:2], col = colors), interval = 1, ani.width = 800, ani.height = 800)
+```
+
+Ellbow technique to determine the number of clusters
+
+```{r}
+getSumSq <- function(k){kmeans(traits, k, nstart=25)$tot.withinss}
+iris.kmeans1to10 <- sapply(1:10, getSumSq)
+plot(1:10, iris.kmeans1to10, type="b", pch = 19, frame = FALSE, 
+     xlab="Number of clusters K",
+     ylab="Total within-clusters sum of squares")
+```
+
+
+### Density-based clustering
+
+
+```{r}
+set.seed(123)
+
+library(dbscan)
+kNNdistplot(traits, k =  4)
+abline(h = 0.4, lty = 2)
+
+# fpc package
+dc <- dbscan(traits, eps = 0.4, minPts = 6)
+dc
+
+library(factoextra)
+fviz_cluster(dc, traits, geom = "point", ggtheme = theme_light())
+```
+
+### Model-based clustering
+
+The last class of methods for unsupervised clustering are so-called model-based clustering methods. 
+
+```{r}
+library(mclust)
+mb = Mclust(traits)
+```
+
+Mclust automatically compares a number of candidate models (#clusters, shape) according to BIC. We can look at the selected model via
+
+```{r}
+mb$G # two clusters
+mb$modelName # > ellipsoidal, equal shape
+```
+
+We see that the algorithm prefers to have 2 clusters. For better comparability to the other 2 methods, we will overrule this by setting:
+
+```{r}
+mb3 = Mclust(traits, 3)
+```
+
+Result in terms of the predicted densities for the 3 clusters
+
+```{r}
+plot(mb3, "density")
+```
+
+Predicted clusters
+
+
+```{r}
+plot(mb3, what=c("classification"), add = T)
+```
+
+Confusion matrix
+
+```{r}
+table(iris$Species, mb3$classification)
+```
+
+### Ordination 
+
+Note the relationship between clustering and ordination. Here a PCA ordination on on the 
+
+```{r}
+pcTraits <- prcomp(traits, center = TRUE,scale. = TRUE)
+biplot(pcTraits, xlim = c(-0.25,0.25), ylim = c(-0.25,0.25))
+```
+
+You can cluster the results of this ordination, ordinate before clustering, or superimpose one on the other. 
 
 
 ## Supervised learning: regression and classification
@@ -44,12 +272,8 @@ cat(
 ### Supervised regression using Random Forest
 
 The random forest (RF) algorithm is possibly the most widely used ML algorithm and can be used for regression and classification. We will talk more about the algorithm on Day 2. 
-In the following we see a typical workflow for a regression: First, we visualize the data. Next, we fit the model and lastly we visualize the results. 
 
-Visualization of the data:
-```{r}
-plot(iris, col = iris$Species)
-```
+For the moment, we want to go through typical workflow for a supervised regression: First, we visualize the data. Next, we fit the model and lastly we visualize the results. We will again use the iris dataset that we used before. The goal is now to predict Sepal.Length based on the infomration about the other variables (including species). 
 
 Fitting the model
 ```{r}
@@ -76,6 +300,7 @@ reprtree:::plot.getTree(m1, iris)
 ```
 
 ### Supervised classification using Random Forest
+
 With the RF, we can also do classification. The steps are the same as for regression tasks, but we can additionally, see how well it performed by looking at the so called confusion matrix. Each row of this matrix contains the instances in a predicted class and each column represent the instances in an actual class. Thus the diagonals are the correctly predicted classes and the off-diagnoal elements are the falsly classified elements.
 
 Fitting the model:
@@ -110,49 +335,6 @@ Confusion matrix:
 ```{r}
 table(predict(m1),iris$Species)
 ```
-
-
-## Unsupervised learning
-
-In unsupervised learning, we basically want to identify patterns in data without having any guidance (supervision) about what the correct patterns / classes are.
-
-It is all much easier with a practical example. Consider our iris dataset.
-
-- Here, we have observations of different species together with their flower traits.
-
-Imagine we didn't know what species are, which is basically the situation in which people in the antique have been.
-The people just noted that some plants have different flowers than others, and decided to give them different names. This kind of process is what unsupervised learning does.
-
-### k-means clustering
-An example for an unsupervised learning algorithm is k-means clustering, one of the simplest and most popular unsupervised machine learning algorithms.
-
-A cluster refers to a collection of data points aggregated together because of certain similarities. In our example from above this similarities could be similar flowers aggregated together to a plant. 
-
-To start with the algorithm, you first have to specify the number of clusters (for our example the number of species). Each cluster has a centroid, which is the imaginary or real location representing the center of the cluster (for our example this would be how an average plant of a specific species would look like). The algorithm starts by randomly putting centroids somewhere and then adds each new data point to the cluster which minimizes the overall in-cluster sum of squares. After the algorithm has assigned a new data point to a cluster the centroid gets updated. By iterating this procedure for all data points and then starting again, the algorithm can find the optimum centroids and the data-points belonging to this cluster.
-
-The k in K-means refers to the number of clusters and the ‘means’ refers to averaging of the data-points to find the centroids.
-
-A typical pipeline for using kmeans clustering looks the same as for the other algortihms. After having visualized the data, we fit the model, visualize the results and have a look at the performance by use of the confusion matrix.
-
-```{r}
-sIris = scale(iris[,1:4])
-model<- kmeans(sIris,3) # aplly k-means algorithm with no. of centroids(k)=3
-model
-```
-
-Visualizing the results:
-
-```{r}
-par(mfrow = c(1,2))
-plot(Petal.Length~Petal.Width, data = sIris, col = model$cluster, main = "Predicted clusters")
-plot(Petal.Length~Petal.Width, data = sIris, col = iris$Species, main = "True species")
-```
-
-Confusion matrix:
-```{r}
-table(model$cluster,iris$Species)
-```
-
 
 
 ## Introduction to Tensorflow
