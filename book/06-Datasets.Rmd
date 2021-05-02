@@ -1,5 +1,11 @@
 # Datasets
-You can download the datasets we use in the course [here](http://rhsbio7.uni-regensburg.de:8500) (ignore browser warnings)
+You can download the datasets we use in the course [here](http://rhsbio7.uni-regensburg.de:8500) (ignore browser warnings) or by installing the EcoData package:
+
+```{r,eval=FALSE}
+devtools::install_github(repo = "florianhartig/EcoData", subdir = "EcoData", 
+dependencies = TRUE, build_vignettes = TRUE)
+```
+
 
 ## Titanic 
 The dataset is a collection of titanic passengers with information about their age, class, sex, and their survival status. The competition here is simple: train a ML model and predict the survival probability.
@@ -13,6 +19,7 @@ A minimal working example:
 1. Load dataset
 ```{r}
 load("datasets.RData")
+# titanic = EcoData::titanic_ml
 summary(titanic)
 ```
 
@@ -65,6 +72,7 @@ A minimal working example:
 1. Load dataset
 ```{r}
 load("datasets.RData")
+# plant_poll = EcoData::plantPollinator_df
 summary(plant_poll)
 ```
 
@@ -115,6 +123,7 @@ A minimal working example:
 1. Load dataset
 ```{r}
 load("datasets.RData")
+# wine = EcoData::wine
 summary(wine)
 ```
 
@@ -158,6 +167,7 @@ For inspiration and data exploration notebooks, check out the kaggle competition
 1. Load dataset
 ```{r}
 load("datasets.RData")
+# nasa = EcoData::nasa
 summary(nasa)
 ```
 
@@ -218,6 +228,11 @@ train = lapply(train, readRDS)
 train_classes = lapply(train, function(d) dim(d)[1])
 train = abind::abind(train, along = 1L)
 labels_train = rep(0:4, unlist(train_classes))
+
+# flower = EcoData::dataset_flower()
+# train = flower$train
+# test = flower$test
+# train_classes = flower$labels
 ```
 
 Let's visualize a flower:
@@ -230,7 +245,7 @@ train[100,,,] %>%
 ```
 
 2. Build & train model:
-```{r}
+```{r,eval=FALSE}
 model = keras_model_sequential()
 model %>% 
   layer_conv_2d(filters = 4L, kernel_size = 2L, input_shape = c(80L, 80L, 3L)) %>% 
@@ -239,14 +254,14 @@ model %>%
   layer_dense(units = 5L, activation = "softmax")
 
 model %>% 
-  compile(optimizer = optimizer_adamax(0.01), loss = loss_categorical_crossentropy)
+  compile(optimizer = keras::optimizer_adamax(0.01), loss = keras::loss_categorical_crossentropy)
 
 model %>% 
   fit(epochs = 2L, x = train/255, y = keras::k_one_hot(labels_train, 5L))
 ```
 
 3. Predictions
-```{r}
+```{r,eval=FALSE}
 preds = model %>% predict(test/255)
 preds = apply(preds, 1, which.max)-1
 head(preds)

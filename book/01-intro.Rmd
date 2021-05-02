@@ -339,18 +339,18 @@ table(predict(m1),iris$Species)
 
 ## Introduction to Tensorflow
 
+All operations in TF are written in C++ and are highly optimized. But dont worry, we don’t have to use C++ to use TF because there are several bindings for other languages. TensorFlow officialy supports a Python API, but meanwhile there are several community carried APIs for other languages:
 
-All operations in TF are written in C++ and are highly optimized. But dont worry, we don’t have to use C++ to use TF because there are several bindings for other languages. TensorFlow officialy sup- ports a Python API, but meanwhile there are several community carried APIs for other languages:
-• R
-• Go
-• Rust
-• Swift
-• JavaScript
+* R
+* Go
+* Rust
+* Swift
+* JavaScript
+
 In this course we will use TF with the https://tensorflow.rstudio.com/ binding, that was developed and published 2017 by the RStudio
 Team. They developed first a R package (reticulate) to call python in R. Actually, we are using in R the python TF module (more about this later).
 TF offers different levels of API. We could implement a neural network completly by ourselves, or we could use Keras which is provided by TF as a submodule. Keras is a powerful module for building and training neural networks. It allows us to build and train neural networks in a few lines of codes. Since the end of 2018, Keras and TF are completly interoperable, allowing us to utilize the best of both. In this course, we will show how we can use Keras
 for neural networks but also how we can use the TF’s automatic differenation for using complex objective functions.
-
 
 One of the most commonly used frameworks for machine learning is TensorFlow. TensorFlow is a open source linear algebra library with a focus on neural networks, published by Google in 2015. TF supports several interesting features, im particular automatic differentiation, several gradient optimizers and CPU and GPU parallelization. 
 
@@ -375,18 +375,26 @@ To sum the most important points of the video up:
 
 All operations in TF are written in C++ and are highly optimized. But dont worry, we don’t have to use C++ to use TF, because there are several bindings for other languages. Officially, TensorFlow only supports a Python API, but meanwhile there are several community carried APIs for other languages, including R, Go, Rust, Swift or JavaScript. In this book, we will use TF with the https://tensorflow.rstudio.com/ binding that was developed and published 2017 by the RStudio Team. They developed first a R package (reticulate) to call python in R. Actually, we are using in R the python TF module (more about this later).
 
+Useful links:
+
+* [TensorFlow documentation](https://www.tensorflow.org/api_docs/python/tf) (which is for the python API, bust just replace the '.' with '$')
+* [Rstudio tensorflow website](https://tensorflow.rstudio.com/)
+
 
 ### Tensorflow data containers
 TF has two data containers (structures):
-- constant (tf$constant) :creates a constant (immutable) value in the computation graph
-- variable (tf$Variable): creates a mutable value in the computation graph (used as parameter/weight in models)
+
+* constant (tf$constant) :creates a constant (immutable) value in the computation graph
+* variable (tf$Variable): creates a mutable value in the computation graph (used as parameter/weight in models)
 
 To get started with tensorflow, we have to load the library and check if the installation worked. 
+
 ```{r}
 library(tensorflow)
 # Don't worry about weird messages. TF supports additional optimizations
 exists("tf")
 ```
+
 Don't worry about weird messages (they will only appear once at the start of the session).
 
 We now can define the variables and do some math with them:
@@ -431,7 +439,7 @@ In other languages you have to state explicitly the type, e.g. in C: int a = 5; 
 While TF tries to infer dynamically the type, often you must state it explicitly.
 Common important types: 
 - float32 (floating point number with 32bits, "single precision")
-- float64 (floating point number with 64bits,"double precision")
+- float64 (floating point number with 64bits, "double precision")
 - int8 (integer with 8bits)
 The reason why TF is so explicit about the types is that many GPUs (e.g. the NVIDIA geforces) can handle only up to 32bit numbers! (you do not need high precision in graphical modeling)
 
@@ -444,7 +452,8 @@ c = m / b # doesn't work! we try to divide float32/float64
 ```
 
 So what went wrong here: we tried to divide a float32 to a float64 number, but, we can only divide numbers of the same type! 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
+r_matrix = matrix(runif(10*10), 10,10)
 m = tf$constant(r_matrix, dtype = "float64")
 b = tf$constant(2.0, dtype = "float64")
 c = m / b # now it works
@@ -453,6 +462,7 @@ c = m / b # now it works
 We can also specify the type of the object by providing an object e.g. tf$float64.
 
 ```{r}
+r_matrix = matrix(runif(10*10), 10,10)
 m = tf$constant(r_matrix, dtype = tf$float64)
 ```
 
@@ -470,6 +480,78 @@ tf$reshape(r_matrix, shape = c(5L, 20L))$numpy()
 ```
 
 Skipping the "L" is one of the most common errors when using R-TF!
+
+## Introduction to PyTorch
+PyTorch is another famous library for deep learning. As for tensorflow, torch itself is written in c++ but the API in python. Last year, the RStudio team released R-torch, and while r-tensorflow calls the python API in the background, the r-torch API is built directly on the c++ torch library! 
+
+Useful links:
+
+* [PyTorch documentation](https://pytorch.org/docs/stable/index.html) (which is for the python API, bust just replace the '.' with '$')
+* [R-torch website](https://torch.mlverse.org/)
+
+
+### PyTorch data containers
+TF has two data containers (structures):
+
+* constant (tf_tensor(...)) :creates a constant (immutable) value in the computation graph
+* variable (tf_$Variable_tensor(..., requires_grad=TRUE)): creates a mutable value in the computation graph (used as parameter/weight in models)
+
+To get started with torch, we have to load the library and check if the installation worked. 
+
+```{r}
+library(torch)
+```
+
+Don't worry about weird messages (they will only appear once at the start of the session).
+
+We now can define the variables and do some math with them:
+
+```{r}
+a = torch_tensor(5.)
+b = torch_tensor(10.)
+print(a)
+print(b)
+c = a$add( b )
+print(c)
+```
+
+The r-torch package provides all common methods (an advantage over tensorflow)
+
+```{r}
+a = torch_tensor(5.)
+b = torch_tensor(10.)
+print(a+b)
+print(a/b)
+print(a*b)
+```
+
+
+Their operators also transfrom automatically R numbers into tensors when attempting to add a tensor to a R number:
+
+```{r}
+d = a + 5  # 5 is automatically converted to a tensor
+print(d)
+```
+
+As for tensorflow, we have to explicitly transform the tensors back to R:
+
+```{r}
+class(d)
+class(as.numeric(d))
+```
+
+### Torch data types - good practise with R-TF
+Similar to tensorflow:
+
+```{r,eval=FALSE}
+r_matrix = matrix(runif(10*10), 10,10)
+m = torch_tensor(r_matrix, dtype = torch_float32()) 
+b = torch_tensor(2.0, dtype = torch_float64())
+c = m / b 
+```
+But here's a difference! With tensorfow we would get an error, but with r-torch, m is automatically casted to a double (float64). However, this is still bad practise!
+
+During the course we will try to provide for all keras/tensorflow examples the corresponding pytorch code snippets.
 
 
 ## First steps with the keras framework
@@ -509,13 +591,14 @@ head(Y) # 3 colums, one for each level in the response
 ```
 After having prepared the data, we will now see a typical workflow to specify a model in keras. 
 
-1. Initiliaze a sequential model in keras:
+**1. Initiliaze a sequential model in keras:**
 ```{r, cache=TRUE}
 model = keras_model_sequential()
 ```
 A sequential keras model is a higher order type of model within keras and consists of one input and one output model. 
 
-2. Add hidden layers to the model (we will learn more about hidden layers during the next days). 
+
+**2. Add hidden layers to the model (we will learn more about hidden layers during the next days).**
 When specifiying the hidden layers, we also have to specify a so called activation function and their shape. 
 You can think of the activation function as decisive for what is forwarded to the next neuron (but we will learn more about it later). The shape of the input is the number of predictors (here 4) and the shape of the output is the number of classes (here 3).
 ```{r, cache=TRUE}
@@ -527,27 +610,122 @@ model %>%
 ```
 - softmax scales a potential multidimensional vector to the interval (0,1]
 
-3. compile the model with a loss function (here: cross entropy) and an optimizer (here: Adamax). We will leaern about other options later, so for now, do not worry about the "lr" argument, crossentropy or the optimizer.
+<details>
+<summary>
+**<span style="color: #CC2FAA">torch</span>**
+</summary>
+<p>
+The torch syntax is very similar, we will give a list of layers to 'nn_sequential' function. Here, we have to specify the softmax activation function as an extra layer:
+```{r}
+model_torch = 
+  nn_sequential(
+    nn_linear(4L, 20L),
+    nn_linear(20L, 20L),
+    nn_linear(20L, 20L),
+    nn_linear(20L, 3L),
+    nn_softmax(2)
+  )
+```
+</details>
+<br/>
+
+
+**3. Compile the model with a loss function (here: cross entropy) and an optimizer (here: Adamax).** 
+
+We will leaern about other options later, so for now, do not worry about the "lr" argument, crossentropy or the optimizer.
 ```{r, cache=TRUE}
 model %>%
-  compile(loss = loss_categorical_crossentropy, optimizer_adamax(0.001))
+  compile(loss = loss_categorical_crossentropy, keras::optimizer_adamax(lr = 0.001))
 summary(model)
 ```
 
+<details>
+<summary>
+**<span style="color: #CC2FAA">torch</span>**
+</summary>
+<p>
+Specify optimizer and the parameters which will be trained (in our case the parameters of the network)
+```{r}
+optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.01)
+```
+</details>
+<br/>
 
-4. Fit the model in 30 iterations(epochs) :
+
+**4. Fit model in 30 iterations(epochs)**
+
 ```{r, cache=TRUE}
 model_history =
   model %>%
     fit(x = X, y = apply(Y,2,as.integer), epochs = 30L, batch_size = 20L, shuffle = TRUE)
 ```
 
-5. Plot the training history:
+<details>
+<summary>
+**<span style="color: #CC2FAA">torch</span>**
+</summary>
+<p>
+In torch, we jump directly to the training loop, however, here we have to write our own training loop:
+
+1. get a batch of data
+2. predict on batch
+3. calculate loss between predictions and true labels
+4. backpropagate error
+5. update weights
+6. go to step 1 and repeat
+```{r}
+# Calculate number of training steps
+epochs = 30
+batch_size = 20
+steps = round(nrow(X)/batch_size*30)
+
+X_torch = torch_tensor(X)
+Y_torch = torch_tensor(apply(Y, 1, which.max)) 
+
+# set model into training status
+model_torch$train()
+
+log_losses = NULL
+
+# training loop
+for(i in 1:steps) {
+  # get batch
+  indices = sample.int( nrow(X), batch_size)
+  
+  # reset backpropagation
+  optimizer_torch$zero_grad()
+  
+  # predict and calculate loss
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_cross_entropy(pred, Y_torch[indices])
+  
+  # backprop and weight update
+  loss$backward()
+  optimizer_torch$step()
+  
+  log_losses[i] = as.numeric(loss)
+}
+```
+</details>
+<br/>
+
+**5. Plot training history:**
 ```{r, cache=TRUE}
 plot(model_history)
 ```
 
-6. Create predictions:
+<details>
+<summary>
+**<span style="color: #CC2FAA">torch</span>**
+</summary>
+<p>
+```{r}
+plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
+```
+</details>
+<br/>
+
+**6. Create predictions:**
 ```{r, cache=TRUE}
 predictions = predict(model, X) # probabilities for each class
 ```
@@ -563,12 +741,29 @@ preds = apply(predictions, 1, which.max)
 print(preds)
 ```
 
-7. Calculate Accuracy (how often we have been correct):
+<details>
+<summary>
+**<span style="color: #CC2FAA">torch</span>**
+</summary>
+<p>
+The torch syntax is very similar, we will give a list of layers to 'nn_sequential' function. Here, we have to specify the softmax activation function as an extra layer:
+```{r}
+model_torch$eval()
+preds_torch = model_torch(torch_tensor(X))
+preds_torch = apply(preds_torch, 1, which.max) 
+print(preds_torch)
+mean(preds_torch == as.integer(iris$Species))
+```
+</details>
+<br/>
+
+**7. Calculate Accuracy (how often we have been correct):**
+
 ```{r, cache=TRUE}
 mean(preds == as.integer(iris$Species))
 ```
 
-8. Plot predictions, to see if we have been done a good job:
+**8. Plot predictions, to see if we have done a good job:**
 ```{r, cache=TRUE}
 oldpar = par()
 par(mfrow = c(1,2))
