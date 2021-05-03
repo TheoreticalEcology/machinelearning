@@ -54,6 +54,7 @@ opt$par will return the best values found by the optimizer, which is really clos
 
 
 #### Advanced optimization example
+
 Optimization is also done when fitting a linear regression model. Thereby, we optimize the weights (intercept and slope). But using lm (y~x) is too simple, we would like to do this by hand to also better understand what optimization is and how it works.
 
 As an example we take the airquality data set. First, we have to be sure to have no NAs in there. Then we split into response (Ozone) and predictors (Month, Day, Solar.R, Wind, Temp).Additionally it is beneficial for the optimizer, when the different predictors have the same support, and thus we scale them. 
@@ -123,9 +124,18 @@ Regularization means adding information or structure to a system in order to sol
 $$
 loss = fit - \lambda \cdot d
 $$
-where fit refers to the standard loss function, $\lambda$ is the strength of the regularization, and $d$ is the chosen metrics, e.g. L1 or L2. $\lambda$ and possibly d are typically optimized under cross-validation
+where fit refers to the standard loss function, $\lambda$ is the strength of the regularization, and $d$ is the chosen metrics, e.g. L1 or L2:
+$$
+loss_{L1} = fit - \lambda \cdot \Vert weights \Vert_1
+$$
+$$
+loss_{L2} = fit - \lambda \cdot \Vert weights \Vert_2
+$$
+$\lambda$ and possibly d are typically optimized under cross-validation. L1 and L2 can be also combined which is then called elastic net (see @zou2005)
 
-**Model averaging** refers to an entire set of techniques, including boosting, bagging and other averaging techniques. The general principle is that predictions are made by combining (= averaging) several models. This is based on on the insight that it often more efficient to have many simpler models and average them, than to have one "super model". The reasons are complicated, and explained in more detail in Dormann et al., 2018. A particular important application of averaging is boosting, where the principle is that many weak learners are combined to a model average, resulting in a strong learner. Another related method is bootstrap aggregating, also called bagging. Idea here is to boostrap the data, and average the boot- strapped predictions.
+**Model averaging** refers to an entire set of techniques, including boosting, bagging and other averaging techniques. The general principle is that predictions are made by combining (= averaging) several models. This is based on on the insight that it often more efficient to have many simpler models and average them, than to have one "super model". The reasons are complicated, and explained in more detail in @dormann2018.
+
+A particular important application of averaging is boosting, where the principle is that many weak learners are combined to a model average, resulting in a strong learner. Another related method is bootstrap aggregating, also called bagging. Idea here is to boostrap the data, and average the boot-strapped predictions.
 
 To see how these techniques work in practice, let's first focus on lasso and ridge regularization for weights in neural networks. We can imagine that the lasso and ridge act similar to a rubber band on the weights that pulls them to zero if the data does not strongly push them away from zero. This leads to important weights, which are supported by the data, being estimated as different from zero, whereas unimportant model structures are reduced (shrunk) to zero.
 
@@ -137,7 +147,7 @@ curve(dexp(abs(x)), -5, 5, main = "Lasso prior")
 curve(dnorm(abs(x)), -5, 5, main = "Ridge prior")
 ```
 
-As you can see, the Lasso creates a very strong preferencet towards exactly zero, but falls off less strongly towards the tails. This means that parameters tend to be estimated either to exactly zero, or, if not, they are more free than the ridge. For this reason, Lasso is often interpreted more as a model selection method. 
+As you can see, the Lasso creates a very strong preference towards exactly zero, but falls off less strongly towards the tails. This means that parameters tend to be estimated either to exactly zero, or, if not, they are more free than the ridge. For this reason, Lasso is often interpreted more as a model selection method. 
 
 The Ridge, on the other hand, has a certain area around zero where it is relatively indifferent about deviations from zero, thus rarely leading to exactly zero values. However, it will create a stronger shrinkage for values that deviate significantly from zero. 
 
@@ -162,6 +172,36 @@ unconstrained = model$get_weights()
 summary(lm(Y~X))
 coef(lm(Y~X))
 ```
+
+<details>
+<summary>
+**<span style="color: #CC2FAA">torch</span>**
+</summary>
+<p>
+```{r}
+library(torch)
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(X)[2], out_features = 1L)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+X_torch = torch_tensor(X)
+Y_torch = torch_tensor(matrix(Y, ncol = 1L), dtype = torch_float32())
+for(i in 1:500) {
+  indices = sample.int(nrow(X), 20L)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_mse_loss(pred, Y_torch[indices,,drop=FALSE])
+  loss$sum()$backward()
+  opt$step()
+}
+coef(lm(Y~X))
+model_torch$parameters
+```
+</details>
+<br/>
+
+
 But keras also allows use to use lasso and ridge on the weights. 
 Lets see what happens when we put a l1 (lasso) regularization on the weights:
 ```{r, cache=TRUE}
@@ -182,6 +222,38 @@ cbind(unlist(l1), unlist(unconstrained))
 ```
 
 One can clearly see that parameters are pulled towards zero because of the regularization.
+
+<details>
+<summary>
+**<span style="color: #CC2FAA">torch</span>**
+</summary>
+<p>
+In torch, we have to specify the regularization on our own when calculating the loss.
+```{r}
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(X)[2], out_features = 1L)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+X_torch = torch_tensor(X)
+Y_torch = torch_tensor(matrix(Y, ncol = 1L), dtype = torch_float32())
+for(i in 1:500) {
+  indices = sample.int(nrow(X), 20L)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_mse_loss(pred, Y_torch[indices,,drop=FALSE])
+  
+  ## Add l1:
+  for(i in 1:length(model_torch$parameters)) loss = loss + model_torch$parameters[[i]]$abs()$sum()*10.0
+  
+  loss$sum()$backward()
+  opt$step()
+}
+coef(lm(Y~X))
+model_torch$parameters
+```
+</details>
+<br/>
 
 
 ## Tree-based ML algorithms
@@ -414,7 +486,7 @@ summary(data)
 X = scale(data[,2:6])
 Y = data[,1]
 model = keras_model_sequential()
-penalty = 0.01
+penalty = 0.1
 model %>%
  layer_dense(units = 100L, activation = "relu", input_shape = list(5L), kernel_regularizer = regularizer_l1(penalty)) %>%
  layer_dense(units = 100L, activation = "relu", kernel_regularizer = regularizer_l1(penalty) ) %>%
@@ -431,9 +503,53 @@ weights = lapply(model$weights, function(w) w$numpy() )
 fields::image.plot(weights[[1]])
 ```
 
+<details>
+<summary>
+**<span style="color: #CC2FAA">torch</span>**
+</summary>
+<p>
+Again, we have to do the regularization on our own:
+```{r}
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(X)[2], out_features = 100L),
+  nn_relu(),
+  nn_linear(100L, 100L),
+  nn_relu(),
+  nn_linear(100L, 100L),
+  nn_relu(),
+  nn_linear(100L, 1L),
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.1)
+
+X_torch = torch_tensor(X)
+Y_torch = torch_tensor(matrix(Y, ncol = 1L), dtype = torch_float32())
+for(i in 1:500) {
+  indices = sample.int(nrow(X), 20L)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_mse_loss(pred, Y_torch[indices,,drop=FALSE])
+  
+  ## Add l1 (only on the 'kernel weights'):
+  for(i in seq(1, 8, by = 2)) loss = loss + model_torch$parameters[[i]]$abs()$sum()*0.1
+  
+  loss$sum()$backward()
+  opt$step()
+}
+```
+
+Let's visualize the first (input layer):
+```{r}
+fields::image.plot(as.matrix(model_torch$parameters$`0.weight`))
+```
+
+</details>
+<br/>
+
+
 Additionally to the usual l1 and l2 regularisation there is an additional regularisation: the so called dropout-layer (we will learn about this in more detail later).
 
 Before we specialise on any tuning it is important to understand that ML always consists of a pipeline of actions. 
+
 ## The standard ML pipeline at the example of the titanic dataset
 The typical ML workflow consist of:
 
@@ -485,6 +601,9 @@ library(tidyverse)
 Load dataset:
 ```{r}
 load("datasets.RData")
+# library(EcoData)
+# data(titanic_ml)
+# titanic = titanic_ml
 data = titanic
 ```
 
@@ -568,6 +687,7 @@ data =
   data %>%
     group_by(sex, pclass, title) %>%
     mutate(age2 = ifelse(is.na(age), median(age, na.rm = TRUE), age)) %>%
+    mutate(fare2 = ifelse(is.na(fare), median(fare, na.rm = TRUE), fare)) %>%
     ungroup()
 ```
  
@@ -581,8 +701,8 @@ We first scale the numeric predictors abd change the factors with only two group
 ```{r}
 data_sub =
   data %>%
-    select(survived, sex, age2, fare, title, pclass) %>%
-    mutate(age2 = scales::rescale(age2, c(0,1)), fare = scales::rescale(fare, c(0,1))) %>%
+    select(survived, sex, age2, fare2, title, pclass) %>%
+    mutate(age2 = scales::rescale(age2, c(0,1)), fare2 = scales::rescale(fare2, c(0,1))) %>%
     mutate(sex = as.integer(sex) - 1L, title = as.integer(title) - 1L, pclass = as.integer(pclass - 1L))
 ```
 
@@ -600,7 +720,7 @@ colnames(one_pclass) = paste0(1:length(unique(data$pclass)), "pclass")
 And we have to add the dummy encoded variables to the dataset:
 
 ```{r}
-data_sub = cbind(data.frame(survived= data_sub$survived), one_title, one_sex, age = data_sub$age2, fare = data_sub$fare, one_pclass)
+data_sub = cbind(data.frame(survived= data_sub$survived), one_title, one_sex, age = data_sub$age2, fare = data_sub$fare2, one_pclass)
 head(data_sub)
 ```
 
@@ -646,6 +766,39 @@ model_history =
 plot(model_history)
 ```
 
+<details>
+<summary>
+**<span style="color: #CC2FAA">torch</span>**
+</summary>
+<p>
+Again, we have to do the regularization on our own:
+```{r}
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(sub_train[,-1])[2], out_features = 20L),
+  nn_relu(),
+  nn_linear(20L, 20L),
+  nn_relu(),
+  nn_linear(20L, 2L),
+  nn_softmax(2L)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.01)
+
+X_torch = torch_tensor( as.matrix(sub_train[,-1])) 
+Y_torch = torch_tensor(sub_train[,1]+1, dtype= torch_long())
+for(i in 1:500) {
+  indices = sample.int(nrow(sub_train), 20L)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_cross_entropy(pred, Y_torch[indices], reduction = "mean")
+  loss$sum()$backward()
+  opt$step()
+}
+```
+</details>
+<br/>
+
+
+
 ### Model evaluation
 We will predict survived for the test data of the inner split and calculate the accuracy:
 
@@ -657,6 +810,24 @@ predicted = ifelse(preds[,2] < 0.5, 0, 1)
 observed = sub_test[,1]
 (accuracy = mean(predicted == observed))
 ```
+
+
+<details>
+<summary>
+**<span style="color: #CC2FAA">torch</span>**
+</summary>
+<p>
+Again, we have to do the regularization on our own:
+```{r}
+model_torch$eval()
+preds_torch = model_torch(torch_tensor(as.matrix(sub_test[,-1])))
+preds_torch = as.matrix(preds_torch)
+preds_torch = apply(preds_torch, 1, which.max)
+(accuracy = mean(preds_torch-1 == observed))
+```
+</details>
+<br/>
+
 
 ### Predictions and submission
 When we are satisfied with the performance of our model in the inner split, we will create predictions for the test data of the outer split:
@@ -685,3 +856,259 @@ write.csv(data.frame(y=pred), file = "Max_1.csv")
 ```
 
 The file name is used as the ID on the submission server, so change it to whatever you want as long as you can identify yourself. 
+
+## Bonus - Reproducible ML pipelines with mlr3
+
+As we have seen today, many of the ML algorithms are distributed over several packages but the general ML pipeline is very similar for all models: feature engineering, feature selection?, hyper-parameter tuning and cross validation. 
+
+The idea of the mlr3 framework is now to provide a general ML interface which you can use to build reproducible and automatic ML pipelines. The key features of mlr3 are:
+
+* All common ML packages are integrated into mlr3, you can easily switch between different ML algorithms
+* A common 'language'/workflow to specify ML pipelines
+* Support for different CV strategies
+* Hyper-parameter tuning for all supported ML algorithms
+* Ensemble models
+
+Useful links:
+
+* [mlr3-book](https://mlr3book.mlr-org.com/) (still in work)
+* [mlr3 website](https://mlr3.mlr-org.com/)
+* [mlr3 cheatsheet](https://cheatsheets.mlr-org.com/mlr3.pdf)
+
+### mlr3 - the basic workflow
+The mlr3 actually consists of several packages for different tasks (e.g. mlr3tuning for hyper-parameter tuning, mlr3pipelines for data preparation pipes).
+But let's start with the basic workflow.
+```{r,message=FALSE}
+library(EcoData)
+library(tidyverse)
+library(mlr3)
+library(mlr3learners)
+library(mlr3pipelines)
+library(mlr3tuning)
+library(mlr3measures)
+data(nasa)
+str(nasa)
+```
+
+Let's drop time, name, ID variable, and create a classification task:
+```{r}
+data = nasa %>% select(-Orbit.Determination.Date, -Close.Approach.Date, -Name, -Neo.Reference.ID)
+data$Hazardous = as.factor(data$Hazardous)
+
+
+# create a classification task
+task = TaskClassif$new(id = "nasa", backend = data, target = "Hazardous", positive = "1")
+```
+
+Create a generic pipeline of data transformation (imputation -> scaling -> encoding of categorical variables):
+```{r}
+# let's create the preprossing graph
+preprocessing = po("imputeoor") %>>% po("scale") %>>% po("encode") 
+
+# run the task trhough it
+transformed_task = preprocessing$train(task)[[1]]
+
+transformed_task$missings()
+
+```
+
+We can even visualize the pre-processing graph:
+```{r}
+preprocessing$plot()
+```
+
+Now, to test our model (randomForest) by 10-CV, we will:
+
+* specify the missing target rows as validation so that they will be ignores
+* specify the CV, the learner (the ML model we want to use), and the measurement (AUC)
+* run (benchmark) our model
+
+```{r mlr1}
+transformed_task$data()
+transformed_task$set_row_roles((1:nrow(data))[is.na(data$Hazardous)], "validation")
+
+cv10 = mlr3::rsmp("cv", folds = 10L)
+rf = lrn("classif.ranger", predict_type = "prob")
+measurement =  msr("classif.auc")
+
+```
+
+
+```{r,eval=FALSE}
+result = mlr3::resample(transformed_task, rf, resampling = cv10, store_models = TRUE)
+
+# calclate the average AUC of the holdouts
+result$aggregate( measurement )
+```
+
+Very cool! Pre-processing + CV10 model evaluation in a few lines of code!
+
+Let's create the final predictions:
+```{r mlr2,eval=FALSE}
+preds = 
+  sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task, 
+                                                        row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[,"1",drop=FALSE])
+dim(preds)
+predictions = apply(preds, 1, mean)
+```
+You could now submit the predictions [here](http://rhsbio7.uni-regensburg.de:8500)
+
+But we are still not happy, let's do some hyper-parameter tuning!
+
+### mlr3 - hyper-parameter tuning
+ML algorithms have a varying number of hyper-parameters which can (!!!) have a high impact on the predictive performance. To list a few hyper parameters:
+
+**Random Forest**
+
+* mtry
+* min node size
+
+**kNN**
+
+* kernel
+* number of neighbors
+* distance metric
+
+**BRT**
+
+* nrounds
+* max depth
+* alpha
+* booster
+* eta
+* gamma
+* lambda
+
+With mlr3, we can easily extend the above example to do hyper-parameter tuning within nested cross-validation (the tuning has its own inner CV)
+
+Print the hyper-parameter space of our RF learner:
+```{r}
+rf$param_set
+```
+
+
+Define the hyper-parameter space of RF:
+
+```{r mlr3}
+library(paradox)
+rf_pars = 
+    paradox::ParamSet$new(
+      list(paradox::ParamInt$new("min.node.size", lower = 1, upper = 30L),
+           paradox::ParamInt$new("mtry", lower = 1, upper = 30L),
+           paradox::ParamLgl$new("regularization.usedepth", default = TRUE)))
+print(rf_pars)
+```
+
+To setup the tuning pipeline we need:
+
+* inner CV resample object
+* tuning criterion (e.g. AUC)
+* tuning method (e.g. random or block search)
+* tuning terminator (when should we stop tune? E.g. after n iterations)
+
+
+```{r mlr4}
+inner3 = mlr3::rsmp("cv", folds = 3L)
+measurement =  msr("classif.auc")
+tuner =  mlr3tuning::tnr("random_search") 
+terminator = mlr3tuning::trm("evals", n_evals = 5L)
+rf = lrn("classif.ranger", predict_type = "prob")
+
+learner_tuner = AutoTuner$new(learner = rf, 
+                              measure = measurement, 
+                              tuner = tuner, 
+                              terminator = terminator,
+                              search_space = rf_pars,
+                              resampling = inner3)
+print(learner_tuner)
+```
+
+Now we can wrap it normally into the 10-CV setup as previously:
+```{r,eval=FALSE}
+outer3 = mlr3::rsmp("cv", folds = 3L)
+result = mlr3::resample(transformed_task, learner_tuner, resampling = outer3, store_models = TRUE)
+
+# calclate the average AUC of the holdouts
+result$aggregate( measurement )
+```
+Yeah, we were able to improve the performance!
+
+Let's create the final predictions:
+```{r,eval=FALSE}
+preds = 
+  sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task, 
+                                                        row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[,"1",drop=FALSE])
+dim(preds)
+predictions = apply(preds, 1, mean)
+```
+
+
+### mlr3 - hyper-parameter tuning with oversampling
+Let's go one step back, maybe you have noticed that our classes are unbalanced:
+```{r}
+table(data$Hazardous)
+```
+Many ML algorithms have problems with unbalanced data because if the imbalance is too strong it is cheaper for the algorithm to focus on only one class (e.g. by predicting only 0s oder 1s). You need to keep in mind that ML algorithms are greedy and their main focus is to minimize the loss function.
+
+There are few techniques to correct for imbalance:
+
+* oversampling (oversample the undersampled class)
+* undersampling (undersample the oversampled class)
+* SMOTE synthetic minority over-sampling technique (in short, we will use a kNN to create new samples around our undersampled class)
+
+Here, we will use oversampling which we can do by extending our rf learner:
+```{r}
+rf_over = po("classbalancing", id = "over", adjust = "minor")  %>>%  rf
+
+# However rf_over is now a "graph", but we can easily transform it back into a learner:
+rf_over_learner = GraphLearner$new(rf_over)
+print(rf_over_learner)
+```
+The learner has now a new feature space:
+
+```{r}
+rf_over_learner$param_set
+```
+We can also tune the oversampling rate!
+```{r}
+rf_pars_over = 
+    paradox::ParamSet$new(
+      list(paradox::ParamInt$new("over.ratio", lower = 1, upper = 7L),
+           paradox::ParamInt$new("classif.ranger.min.node.size", lower = 1, upper = 30L),
+           paradox::ParamInt$new("classif.ranger.mtry", lower = 1, upper = 30L),
+           paradox::ParamLgl$new("classif.ranger.regularization.usedepth", default = TRUE)))
+
+inner3 = mlr3::rsmp("cv", folds = 3L)
+measurement =  msr("classif.auc")
+tuner =  mlr3tuning::tnr("random_search") 
+terminator = mlr3tuning::trm("evals", n_evals = 5L)
+
+learner_tuner_over = AutoTuner$new(learner = rf_over_learner, 
+                                   measure = measurement, 
+                                   tuner = tuner, 
+                                   terminator = terminator,
+                                   search_space = rf_pars_over,
+                                   resampling = inner3)
+print(learner_tuner)
+```
+
+```{r,eval=FALSE}
+outer3 = mlr3::rsmp("cv", folds = 3L)
+result = mlr3::resample(transformed_task, learner_tuner_over, resampling = outer3, store_models = TRUE)
+
+# calclate the average AUC of the holdouts
+result$aggregate( measurement )
+```
+
+
+5 iterations in the hyper-space is not very much...
+
+Let's create the final predictions:
+```{r,eval=FALSE}
+preds = 
+  sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task, 
+                                                        row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[,"1",drop=FALSE])
+dim(preds)
+predictions = apply(preds, 1, mean)
+```
+
