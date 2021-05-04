@@ -234,6 +234,8 @@ div.csl-indent {
 <li class="chapter" data-level="4.2.1" data-path="Deep.html"><a href="Deep.html#data-augmentation"><i class="fa fa-check"></i><b>4.2.1</b> Data Augmentation</a></li>
 <li class="chapter" data-level="4.2.2" data-path="Deep.html"><a href="Deep.html#transfer"><i class="fa fa-check"></i><b>4.2.2</b> Transfer learning</a></li>
 </ul></li>
+<li class="chapter" data-level="4.3" data-path="Deep.html"><a href="Deep.html#natural-language-processing-nlp"><i class="fa fa-check"></i><b>4.3</b> Natural Language Processing (NLP)</a></li>
+<li class="chapter" data-level="4.4" data-path="Deep.html"><a href="Deep.html#recurrent-neural-networks-rnns"><i class="fa fa-check"></i><b>4.4</b> Recurrent neural networks (RNNs)</a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="xAI.html"><a href="xAI.html"><i class="fa fa-check"></i><b>5</b> Explainable AI (xAI), NLP, and RNNs</a>
 <ul>
@@ -247,8 +249,6 @@ div.csl-indent {
 <li class="chapter" data-level="5.1.6" data-path="xAI.html"><a href="xAI.html#local-explainer---lime-explaining-single-instances-observations"><i class="fa fa-check"></i><b>5.1.6</b> Local explainer - LIME explaining single instances (observations)</a></li>
 <li class="chapter" data-level="5.1.7" data-path="xAI.html"><a href="xAI.html#local-explainer---shapley"><i class="fa fa-check"></i><b>5.1.7</b> Local explainer - Shapley</a></li>
 </ul></li>
-<li class="chapter" data-level="5.2" data-path="xAI.html"><a href="xAI.html#natural-language-processing-nlp"><i class="fa fa-check"></i><b>5.2</b> Natural Language Processing (NLP)</a></li>
-<li class="chapter" data-level="5.3" data-path="xAI.html"><a href="xAI.html#recurrent-neural-networks-rnns"><i class="fa fa-check"></i><b>5.3</b> Recurrent neural networks (RNNs)</a></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="gans-vaes-and-reinforcement-learning.html"><a href="gans-vaes-and-reinforcement-learning.html"><i class="fa fa-check"></i><b>6</b> GANs, VAEs, and Reinforcement learning</a>
 <ul>
@@ -312,15 +312,15 @@ Before we discuss xAI methods in more detail, we want to make one thing very cle
 ## 
 ## Response: y
 ##            Df Sum Sq Mean Sq F value Pr(&gt;F)    
-## x1          1  84.81  84.806 87.6299 &lt;2e-16 ***
-## x2          1   0.07   0.072  0.0747 0.7847    
-## Residuals 997 964.87   0.968                   
+## x1          1  75.20  75.196 77.9101 &lt;2e-16 ***
+## x2          1   0.02   0.021  0.0216 0.8831    
+## Residuals 997 962.27   0.965                   
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>Fit RF and show variable importance</p>
 <div class="sourceCode" id="cb369"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb369-1"><a href="xAI.html#cb369-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">importance=</span><span class="cn">TRUE</span>)</span>
 <span id="cb369-2"><a href="xAI.html#cb369-2" aria-hidden="true" tabindex="-1"></a><span class="fu">varImpPlot</span>(fit)</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-172-1.png" width="672" />
+<p><img src="_main_files/figure-html/unnamed-chunk-174-1.png" width="672" />
 Variable importance is now split nearly evenly.</p>
 <p>Task: understand why this is - remember:</p>
 <ul>
@@ -345,7 +345,7 @@ Variable importance is now split nearly evenly.</p>
 <p>Importance - not to be mistaken for the RF importance. This importance can be calculated for all ML models and is based on a permutation approach (have a look at the book):</p>
 <div class="sourceCode" id="cb372"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb372-1"><a href="xAI.html#cb372-1" aria-hidden="true" tabindex="-1"></a>imp <span class="ot">=</span> FeatureImp<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">loss =</span> <span class="st">&quot;mae&quot;</span>)</span>
 <span id="cb372-2"><a href="xAI.html#cb372-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(imp)</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-175-1.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-177-1.png" width="672" /></p>
 <p>It tells us how important the individual variables are for predictions.</p>
 </div>
 <div id="partial-dependencies" class="section level3" number="5.1.2">
@@ -353,11 +353,11 @@ Variable importance is now split nearly evenly.</p>
 <p>Partial dependencies are similar to allEffects plot, the idea is to visualize “marginal effects” of predictors (with the feature argument we specify the variable we want to visualize):</p>
 <div class="sourceCode" id="cb373"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb373-1"><a href="xAI.html#cb373-1" aria-hidden="true" tabindex="-1"></a>eff <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">&quot;rm&quot;</span>, <span class="at">method =</span> <span class="st">&quot;pdp&quot;</span>, <span class="at">grid.size =</span> <span class="dv">30</span>)</span>
 <span id="cb373-2"><a href="xAI.html#cb373-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(eff)</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-176-1.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-178-1.png" width="672" /></p>
 <p>Partial dependencies can be also plotted for single observations:</p>
 <div class="sourceCode" id="cb374"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb374-1"><a href="xAI.html#cb374-1" aria-hidden="true" tabindex="-1"></a>eff <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">&quot;rm&quot;</span>, <span class="at">method =</span> <span class="st">&quot;pdp+ice&quot;</span>, <span class="at">grid.size =</span> <span class="dv">30</span>)</span>
 <span id="cb374-2"><a href="xAI.html#cb374-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(eff)</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-177-1.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-179-1.png" width="672" /></p>
 <p>One disadvantage of partial dependencies is that they are sensitive to correlated predictors. Accumulated local effects can be used to account for correlation for predictors</p>
 </div>
 <div id="accumulated-local-effects" class="section level3" number="5.1.3">
@@ -365,7 +365,7 @@ Variable importance is now split nearly evenly.</p>
 <p>ALE re basically partial dependencies plots but try to correct for correlations between predictors</p>
 <div class="sourceCode" id="cb375"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb375-1"><a href="xAI.html#cb375-1" aria-hidden="true" tabindex="-1"></a>ale <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">&quot;rm&quot;</span>, <span class="at">method =</span> <span class="st">&quot;ale&quot;</span>)</span>
 <span id="cb375-2"><a href="xAI.html#cb375-2" aria-hidden="true" tabindex="-1"></a>ale<span class="sc">$</span><span class="fu">plot</span>()</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-178-1.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-180-1.png" width="672" /></p>
 <p>If there is no collinearity, you shouldn’t see much difference between partial dependencies and ALE plots.</p>
 </div>
 <div id="friedmans-h-statistic" class="section level3" number="5.1.4">
@@ -373,62 +373,38 @@ Variable importance is now split nearly evenly.</p>
 <p>The H-statistic can be used to find interactions between predictors. However, again, keep in mind that the H-statistic is sensible to correlation between predictors:</p>
 <div class="sourceCode" id="cb376"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb376-1"><a href="xAI.html#cb376-1" aria-hidden="true" tabindex="-1"></a>interact <span class="ot">=</span> Interaction<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="st">&quot;lstat&quot;</span>)</span>
 <span id="cb376-2"><a href="xAI.html#cb376-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(interact)</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-179-1.png" width="672" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-181-1.png" width="672" /></p>
 </div>
 <div id="global-explainer---simplifying-the-ml-model" class="section level3" number="5.1.5">
 <h3><span class="header-section-number">5.1.5</span> Global explainer - Simplifying the ML model</h3>
 <p>Another idea is to simplify the ML model with another simpler model such as a decision tree. We create predictions for a lot of different predictors values and then we will fit a decision tree on the predictions:</p>
-<div class="sourceCode" id="cb377"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb377-1"><a href="xAI.html#cb377-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(partykit)</span></code></pre></div>
-<pre><code>## Loading required package: libcoin</code></pre>
-<pre><code>## Loading required package: mvtnorm</code></pre>
-<pre><code>## 
-## Attaching package: &#39;mvtnorm&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:mclust&#39;:
-## 
-##     dmvnorm</code></pre>
-<div class="sourceCode" id="cb382"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb382-1"><a href="xAI.html#cb382-1" aria-hidden="true" tabindex="-1"></a>tree <span class="ot">=</span> TreeSurrogate<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">maxdepth =</span> <span class="dv">2</span>)</span>
-<span id="cb382-2"><a href="xAI.html#cb382-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tree)</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-180-1.png" width="672" /></p>
+<div class="sourceCode" id="cb377"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb377-1"><a href="xAI.html#cb377-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(partykit)</span>
+<span id="cb377-2"><a href="xAI.html#cb377-2" aria-hidden="true" tabindex="-1"></a>tree <span class="ot">=</span> TreeSurrogate<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">maxdepth =</span> <span class="dv">2</span>)</span>
+<span id="cb377-3"><a href="xAI.html#cb377-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tree)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-182-1.png" width="672" /></p>
 </div>
 <div id="local-explainer---lime-explaining-single-instances-observations" class="section level3" number="5.1.6">
 <h3><span class="header-section-number">5.1.6</span> Local explainer - LIME explaining single instances (observations)</h3>
 <p>The global approach is to simplify a black-box model via a simpler surrogate Model.</p>
 <p>However, sometimes we are only interested in understanding how single observations/predictions are generated. The lime approach explores the feature space around one observations and fits then a simpler model (e.g. a linear model) on the feature space around one observation:</p>
-<div class="sourceCode" id="cb383"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb383-1"><a href="xAI.html#cb383-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span></code></pre></div>
-<pre><code>## Loaded glmnet 4.1-1</code></pre>
-<div class="sourceCode" id="cb385"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb385-1"><a href="xAI.html#cb385-1" aria-hidden="true" tabindex="-1"></a>lime.explain <span class="ot">=</span> LocalModel<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">x.interest =</span> X[<span class="dv">1</span>,])</span></code></pre></div>
-<pre><code>## Loading required package: gower</code></pre>
-<div class="sourceCode" id="cb387"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb387-1"><a href="xAI.html#cb387-1" aria-hidden="true" tabindex="-1"></a>lime.explain<span class="sc">$</span>results</span></code></pre></div>
+<div class="sourceCode" id="cb378"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb378-1"><a href="xAI.html#cb378-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span>
+<span id="cb378-2"><a href="xAI.html#cb378-2" aria-hidden="true" tabindex="-1"></a>lime.explain <span class="ot">=</span> LocalModel<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">x.interest =</span> X[<span class="dv">1</span>,])</span>
+<span id="cb378-3"><a href="xAI.html#cb378-3" aria-hidden="true" tabindex="-1"></a>lime.explain<span class="sc">$</span>results</span></code></pre></div>
 <pre><code>##               beta x.recoded    effect x.original feature feature.value
 ## rm       4.1893817     6.575 27.545185      6.575      rm      rm=6.575
 ## ptratio -0.5307031    15.300 -8.119758       15.3 ptratio  ptratio=15.3
 ## lstat   -0.4398104     4.980 -2.190256       4.98   lstat    lstat=4.98</code></pre>
-<div class="sourceCode" id="cb389"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb389-1"><a href="xAI.html#cb389-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lime.explain)</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-181-1.png" width="672" /></p>
+<div class="sourceCode" id="cb380"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb380-1"><a href="xAI.html#cb380-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lime.explain)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-183-1.png" width="672" /></p>
 </div>
 <div id="local-explainer---shapley" class="section level3" number="5.1.7">
 <h3><span class="header-section-number">5.1.7</span> Local explainer - Shapley</h3>
 <p>Shapley computes feature contributions for single predictions with the Shapley value, an approach from cooperative game theory. The idea is that the features values of an instance cooperate to achieve the prediction. The Shapley value fairly distributes the difference of the instance’s prediction and the datasets average prediction among the features:</p>
-<div class="sourceCode" id="cb390"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb390-1"><a href="xAI.html#cb390-1" aria-hidden="true" tabindex="-1"></a>shapley <span class="ot">=</span> Shapley<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">x.interest =</span> X[<span class="dv">1</span>,])</span>
-<span id="cb390-2"><a href="xAI.html#cb390-2" aria-hidden="true" tabindex="-1"></a>shapley<span class="sc">$</span><span class="fu">plot</span>()</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-182-1.png" width="672" /></p>
-</div>
-</div>
-<div id="natural-language-processing-nlp" class="section level2" number="5.2">
-<h2><span class="header-section-number">5.2</span> Natural Language Processing (NLP)</h2>
-<p>What this video to get an idea about what NLP is about</p>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/UFtXy0KRxVI" frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-</iframe>
-<p>See also the blog post linked with the youtube video with accompanying code to the video. Moreover, here is an article that shows now NLP works with keras, however, written in Python. As a challenge, you can take the code and implement it in R <img src="https://nlpforhackers.io/keras-intro/" /></p>
-</div>
-<div id="recurrent-neural-networks-rnns" class="section level2" number="5.3">
-<h2><span class="header-section-number">5.3</span> Recurrent neural networks (RNNs)</h2>
-<p>Recurrent Neural Networks are used to model sequential data, i.e. temporal sequence that exhibits temporal dynamic behavior. Here is a good introduction to the topic:</p>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/SEnXr6v2ifU" frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-</iframe>
+<div class="sourceCode" id="cb381"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb381-1"><a href="xAI.html#cb381-1" aria-hidden="true" tabindex="-1"></a>shapley <span class="ot">=</span> Shapley<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">x.interest =</span> X[<span class="dv">1</span>,])</span>
+<span id="cb381-2"><a href="xAI.html#cb381-2" aria-hidden="true" tabindex="-1"></a>shapley<span class="sc">$</span><span class="fu">plot</span>()</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-184-1.png" width="672" /></p>
 
+</div>
 </div>
 </div>
             </section>
