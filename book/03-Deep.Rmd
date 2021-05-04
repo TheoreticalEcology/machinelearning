@@ -1,13 +1,60 @@
 # Deep learning {#Deep}
-## Deep Neural Networks
 
-This lecture today is about deep neural networks. We will first look at regularization in deep neural networks and then explore convolutional neural networks.
+In this section, we will discuss both different (deep) network architectures and different means to regularize and improve those deep architectures. 
 
-### Dropout and Early stopping
+## Network architectures
+
+### Deep neural networks (DNNs)
+
+Deep neural networks are basically the same as simple ANN, only that they have more hidden layers.
+
+
+### Convolutional neural networks (DNNs)
+
+The main purpose of CNNs is image recognition. In a CNN, we have at least one convolution layer, additional to the normal, fully connected DNN layers. 
+
+Neurons in a convolution layer are connected only to a small spatially contiguous area of the input layer (receptive field). We use this structure (feature map) to scan the entire picture. The weights are optimized, but the same for all nodes of the hidden layer (shared weights). Think of the feature map as a kernel or filter that is used to scan the image. 
+
+We use this kernel to scan the input features / neurons (e.g. picture). The kernel weights are optimized, but we use the same weights across the entire input neurons (shared weights). The resulting hidden layer is called a feature map. You can think of the feature maps as a map that shows you where the “shapes” expressed by the kernel appear in the input. One kernel / feature map will not be enough, we typically have many shapes that we want to recognize. Thus, the input layer is typically connected to several feature maps, which can be aggregated and followed by a second layer of feature maps, and so on. 
+
+### Recurrent neural networks (RNNs)
+
+Recurrent Neural Networks are used to model sequential data, i.e. temporal sequence that exhibits temporal dynamic behavior. Here is a good introduction to the topic:
+
+```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+'<iframe width="560" height="315" 
+  src="https://www.youtube.com/watch?v=SEnXr6v2ifU"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+
+### Natural language processing (NLP)
+
+NLP is actually more of a task than a network structure, but in the area of deep learning for NLP, particular network structures are used. This video should get you an idea about what NLP is about
+
+```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+'<iframe width="560" height="315" 
+  src="https://www.youtube.com/watch?v=UFtXy0KRxVI"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+See also the blog post linked with the youtube video with accompanying code to the video. Moreover, here is an article that shows now NLP works with keras, however, written in Python. As a challenge, you can take the code and implement it in R https://nlpforhackers.io/keras-intro/
+
+
+## Case study: dropout and early stopping in a deep neural network 
+
 Regularization in deep neural networks is very important because the problem of overfitting. Standard regularization from statistics like l1 and l2 regularization are often feasy and require a lot of tuning. There are more stable and robust methods:
 
-- Early stopping: Early stopping allows us to stop the training when for instance the test loss does not increase anymore
-- Dropout: The Dropout layer randomly sets input units to 0 with a frequency of rate at each step during training time, which helps prevent overfitting. Dropout is more robust than l1 and l2, and tuning of the dropout rate can be beneficial but a rate between 0.2-0.5 works often quite well
+* Early stopping: Early stopping allows us to stop the training when for instance the test loss does not increase anymore
+* Dropout: The Dropout layer randomly sets input units to 0 with a frequency of rate at each step during training time, which helps prevent overfitting. Dropout is more robust than l1 and l2, and tuning of the dropout rate can be beneficial but a rate between 0.2-0.5 works often quite well
 
 **Data preparation**
 
@@ -239,7 +286,7 @@ legend("topright", bty = "n", col = c("darkblue", "darkred"), lty = 1, pch = c(1
 </details>
 <br/>
 
-## Convolutional Neural Networks - MNIST
+## Case study - fitting a Convolutional Neural Networks on MNIST
 We will show the use of convolutinal neural networks with the MNIST dataset.The MNIST dataset is maybe one of the most famous image datasets. It is a dataset of 60,000 handwritten digits from 0-9.
 
 To do so, we define a few helper functions:
@@ -569,6 +616,7 @@ print(test_accuracy)
 
 
 ### Transfer learning {#transfer}
+
 Another approach to reduce the necessary number of images or to speed up convergence of the models is the use of transfer learning.
 
 The main idea of transfer learning is that all the convolutional layers have mainly one task - learning to identify highly correlated neighbored features and therefore these learn structures such as edges in the image and only the top layer, the dense layer is the actual classifier of the CNN. Thus, one could think that we could only train the top layer as classifier. To do so, it will be confronted by sets of different edges/structures and has to decide the label based on these.
@@ -692,37 +740,6 @@ print(test_accuracy)
 </details>
 <br/>
 
-
-
-## Natural Language Processing (NLP)
-What this video to get an idea about what NLP is about
-
-
-```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-'<iframe width="560" height="315" 
-  src="https://www.youtube.com/embed/UFtXy0KRxVI"
-  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
-
-
-See also the blog post linked with the youtube video with accompanying code to the video. Moreover, here is an article that shows now NLP works with keras, however, written in Python. As a challenge, you can take the code and implement it in R ![](https://nlpforhackers.io/keras-intro/)
-
-## Recurrent neural networks (RNNs)
-Recurrent Neural Networks are used to model sequential data, i.e. temporal sequence that exhibits temporal dynamic behavior. Here is a good introduction to the topic:
-
-```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-'<iframe width="560" height="315" 
-  src="https://www.youtube.com/embed/SEnXr6v2ifU"
-  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
 
 
 
