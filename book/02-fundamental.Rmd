@@ -322,7 +322,7 @@ rf$importance
 There are several important hyperparameters in a random forest, that we can tune to get better results:
 
 - Similar to the minsplit parameter in regression and classification trees, the hyper parameter nodesize controls for complexity -> Minimum size of terminal nodes in the tree. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
-- mtry - Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.
+- mtry - 	Number of features randomly sampled as candidates at each split.
 
 
 ### Boosted regression trees
@@ -365,13 +365,15 @@ sqrt(mean((data$Ozone - pred)^2)) # RMSE
 data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
 ```
 
-One important strength of xgboost is that we can directly do a cross-validation and specify its properties with nfold (the original dataset is randomly partitioned intonfoldequal size subsamples and each time one of these data sets is used for predictions to judge the performance):
+One important strength of xgboost is that we can directly do a cross-validation (which is indepdent on the BRT itself!) and specify its properties with nfold (the original dataset is randomly partitioned intonfoldequal size subsamples and each time one of these data sets is used for predictions to judge the performance):
 
 ```{r BRT4,cache=TRUE}
 brt = xgboost(data_xg, nrounds = 5L)
 brt_cv = xgboost::xgb.cv(data = data_xg, nfold = 3L, nrounds = 3L, nthreads = 4L)
 print(brt_cv)
 ```
+
+If we do three-folded CV, we actually fit three different BRT models (xgboost models)
 
 This now tells us how well the model performed.
 
@@ -592,7 +594,7 @@ We have split the dataset already into training and testing datasets (the test s
 
 ### Data cleaning
 Load necessary libraries:
-```{r}
+```{r, message=FALSE}
 library(keras)
 library(tensorflow)
 library(tidyverse)
@@ -857,7 +859,7 @@ write.csv(data.frame(y=pred), file = "Max_1.csv")
 
 The file name is used as the ID on the submission server, so change it to whatever you want as long as you can identify yourself. 
 
-## Bonus - ML pipelines with mlr3
+## Bonus - ML pipelines with mlr3 {#mlr}
 
 As we have seen today, many of the ML algorithms are distributed over several packages but the general ML pipeline is very similar for all models: feature engineering, feature selection?, hyper-parameter tuning and cross validation. 
 
