@@ -24,7 +24,7 @@
 <meta name="author" content="Maximilian Pichler and Florian Hartig" />
 
 
-<meta name="date" content="2021-05-03" />
+<meta name="date" content="2021-05-04" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -216,7 +216,7 @@ div.csl-indent {
 <li class="chapter" data-level="3.5.5" data-path="fund.html"><a href="fund.html#model-evaluation"><i class="fa fa-check"></i><b>3.5.5</b> Model evaluation</a></li>
 <li class="chapter" data-level="3.5.6" data-path="fund.html"><a href="fund.html#predictions-and-submission"><i class="fa fa-check"></i><b>3.5.6</b> Predictions and submission</a></li>
 </ul></li>
-<li class="chapter" data-level="3.6" data-path="fund.html"><a href="fund.html#bonus---reproducible-ml-pipelines-with-mlr3"><i class="fa fa-check"></i><b>3.6</b> Bonus - Reproducible ML pipelines with mlr3</a>
+<li class="chapter" data-level="3.6" data-path="fund.html"><a href="fund.html#bonus---ml-pipelines-with-mlr3"><i class="fa fa-check"></i><b>3.6</b> Bonus - ML pipelines with mlr3</a>
 <ul>
 <li class="chapter" data-level="3.6.1" data-path="fund.html"><a href="fund.html#mlr3---the-basic-workflow"><i class="fa fa-check"></i><b>3.6.1</b> mlr3 - the basic workflow</a></li>
 <li class="chapter" data-level="3.6.2" data-path="fund.html"><a href="fund.html#mlr3---hyper-parameter-tuning"><i class="fa fa-check"></i><b>3.6.2</b> mlr3 - hyper-parameter tuning</a></li>
@@ -302,112 +302,183 @@ Regularization in deep neural networks is very important because the problem of 
 <h2><span class="header-section-number">4.2</span> Convolutional Neural Networks - MNIST</h2>
 <p>We will show the use of convolutinal neural networks with the MNIST dataset.The MNIST dataset is maybe one of the most famous image datasets. It is a dataset of 60,000 handwritten digits from 0-9.</p>
 <p>To do so, we define a few helper functions:</p>
-<div class="sourceCode" id="cb302"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb302-1"><a href="Deep.html#cb302-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb302-2"><a href="Deep.html#cb302-2" aria-hidden="true" tabindex="-1"></a>rotate <span class="ot">=</span> <span class="cf">function</span>(x) <span class="fu">t</span>(<span class="fu">apply</span>(x, <span class="dv">2</span>, rev))</span>
-<span id="cb302-3"><a href="Deep.html#cb302-3" aria-hidden="true" tabindex="-1"></a>imgPlot <span class="ot">=</span> <span class="cf">function</span>(img, <span class="at">title =</span> <span class="st">&quot;&quot;</span>){</span>
-<span id="cb302-4"><a href="Deep.html#cb302-4" aria-hidden="true" tabindex="-1"></a> col<span class="ot">=</span><span class="fu">grey.colors</span>(<span class="dv">255</span>)</span>
-<span id="cb302-5"><a href="Deep.html#cb302-5" aria-hidden="true" tabindex="-1"></a> <span class="fu">image</span>(<span class="fu">rotate</span>(img), <span class="at">col =</span> col, <span class="at">xlab =</span> <span class="st">&quot;&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;&quot;</span>, <span class="at">axes=</span><span class="cn">FALSE</span>, <span class="at">main =</span> <span class="fu">paste0</span>(<span class="st">&quot;Label: &quot;</span>, <span class="fu">as.character</span>(title)))</span>
-<span id="cb302-6"><a href="Deep.html#cb302-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb303"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb303-1"><a href="Deep.html#cb303-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
+<span id="cb303-2"><a href="Deep.html#cb303-2" aria-hidden="true" tabindex="-1"></a>rotate <span class="ot">=</span> <span class="cf">function</span>(x) <span class="fu">t</span>(<span class="fu">apply</span>(x, <span class="dv">2</span>, rev))</span>
+<span id="cb303-3"><a href="Deep.html#cb303-3" aria-hidden="true" tabindex="-1"></a>imgPlot <span class="ot">=</span> <span class="cf">function</span>(img, <span class="at">title =</span> <span class="st">&quot;&quot;</span>){</span>
+<span id="cb303-4"><a href="Deep.html#cb303-4" aria-hidden="true" tabindex="-1"></a> col<span class="ot">=</span><span class="fu">grey.colors</span>(<span class="dv">255</span>)</span>
+<span id="cb303-5"><a href="Deep.html#cb303-5" aria-hidden="true" tabindex="-1"></a> <span class="fu">image</span>(<span class="fu">rotate</span>(img), <span class="at">col =</span> col, <span class="at">xlab =</span> <span class="st">&quot;&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;&quot;</span>, <span class="at">axes=</span><span class="cn">FALSE</span>, <span class="at">main =</span> <span class="fu">paste0</span>(<span class="st">&quot;Label: &quot;</span>, <span class="fu">as.character</span>(title)))</span>
+<span id="cb303-6"><a href="Deep.html#cb303-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <p>The dataset is so famous that there is an automatic download function in keras:</p>
-<div class="sourceCode" id="cb303"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb303-1"><a href="Deep.html#cb303-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">dataset_mnist</span>()</span>
-<span id="cb303-2"><a href="Deep.html#cb303-2" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data<span class="sc">$</span>train</span>
-<span id="cb303-3"><a href="Deep.html#cb303-3" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> data<span class="sc">$</span>test</span></code></pre></div>
+<div class="sourceCode" id="cb304"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb304-1"><a href="Deep.html#cb304-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">dataset_mnist</span>()</span>
+<span id="cb304-2"><a href="Deep.html#cb304-2" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data<span class="sc">$</span>train</span>
+<span id="cb304-3"><a href="Deep.html#cb304-3" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> data<span class="sc">$</span>test</span></code></pre></div>
 <p>Let’s visualize a few digits:</p>
-<div class="sourceCode" id="cb304"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb304-1"><a href="Deep.html#cb304-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">3</span>))</span>
-<span id="cb304-2"><a href="Deep.html#cb304-2" aria-hidden="true" tabindex="-1"></a>.n <span class="ot">=</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>, <span class="cf">function</span>(x) <span class="fu">imgPlot</span>(train<span class="sc">$</span>x[x,,], train<span class="sc">$</span>y[x]))</span></code></pre></div>
+<div class="sourceCode" id="cb305"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb305-1"><a href="Deep.html#cb305-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>))</span>
+<span id="cb305-2"><a href="Deep.html#cb305-2" aria-hidden="true" tabindex="-1"></a>.n <span class="ot">=</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="cf">function</span>(x) <span class="fu">imgPlot</span>(train<span class="sc">$</span>x[x,,], train<span class="sc">$</span>y[x]))</span></code></pre></div>
 <p><img src="_main_files/figure-html/unnamed-chunk-142-1.png" width="672" /></p>
 <p>Similar to the normal ML workflow, we have to scale the pixels (from 0-255) to the range of [0,1] and one hot encode the response. To scale the pixels, we will use arrays instead of matrices. Arrays are called tensors in mathematics and a 2d array/tensor is typically called a matrix.</p>
-<div class="sourceCode" id="cb305"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb305-1"><a href="Deep.html#cb305-1" aria-hidden="true" tabindex="-1"></a>train_x <span class="ot">=</span> <span class="fu">array</span>(train<span class="sc">$</span>x<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(train<span class="sc">$</span>x), <span class="dv">1</span>))</span>
-<span id="cb305-2"><a href="Deep.html#cb305-2" aria-hidden="true" tabindex="-1"></a>test_x <span class="ot">=</span> <span class="fu">array</span>(test<span class="sc">$</span>x<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(test<span class="sc">$</span>x), <span class="dv">1</span>))</span>
-<span id="cb305-3"><a href="Deep.html#cb305-3" aria-hidden="true" tabindex="-1"></a>train_y <span class="ot">=</span> <span class="fu">to_categorical</span>(train<span class="sc">$</span>y, <span class="dv">10</span>)</span>
-<span id="cb305-4"><a href="Deep.html#cb305-4" aria-hidden="true" tabindex="-1"></a>test_y <span class="ot">=</span> <span class="fu">to_categorical</span>(test<span class="sc">$</span>y, <span class="dv">10</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb306"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb306-1"><a href="Deep.html#cb306-1" aria-hidden="true" tabindex="-1"></a>train_x <span class="ot">=</span> <span class="fu">array</span>(train<span class="sc">$</span>x<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(train<span class="sc">$</span>x), <span class="dv">1</span>))</span>
+<span id="cb306-2"><a href="Deep.html#cb306-2" aria-hidden="true" tabindex="-1"></a>test_x <span class="ot">=</span> <span class="fu">array</span>(test<span class="sc">$</span>x<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(test<span class="sc">$</span>x), <span class="dv">1</span>))</span>
+<span id="cb306-3"><a href="Deep.html#cb306-3" aria-hidden="true" tabindex="-1"></a>train_y <span class="ot">=</span> <span class="fu">to_categorical</span>(train<span class="sc">$</span>y, <span class="dv">10</span>)</span>
+<span id="cb306-4"><a href="Deep.html#cb306-4" aria-hidden="true" tabindex="-1"></a>test_y <span class="ot">=</span> <span class="fu">to_categorical</span>(test<span class="sc">$</span>y, <span class="dv">10</span>)</span></code></pre></div>
 <p>The last dimension stands for the number of channels in the image. In our case we have only one channel because the images are white-black.</p>
 <p>Normally we would have three channels - colors are encoded by the combination of three base colors (usually red,green,blue).</p>
 <p>To build our convolutional model, we have to specify a kernel. In our case, we will use 16 convolutional kernels (filters) of size 2x2. These are 2D kernels because our images are 2D. For movies for example, one would use a 3D kernel (the third dimension would correspond to time and not to the color channels).</p>
-<div class="sourceCode" id="cb306"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb306-1"><a href="Deep.html#cb306-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb306-2"><a href="Deep.html#cb306-2" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
-<span id="cb306-3"><a href="Deep.html#cb306-3" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_conv_2d</span>(<span class="at">input_shape =</span> <span class="fu">c</span>(28L, 28L,1L),<span class="at">filters =</span> 16L, <span class="at">kernel_size =</span> <span class="fu">c</span>(2L,2L), <span class="at">activation =</span> <span class="st">&quot;relu&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb306-4"><a href="Deep.html#cb306-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_max_pooling_2d</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb306-5"><a href="Deep.html#cb306-5" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 16L, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L), <span class="at">activation =</span> <span class="st">&quot;relu&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb306-6"><a href="Deep.html#cb306-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_max_pooling_2d</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb306-7"><a href="Deep.html#cb306-7" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_flatten</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb306-8"><a href="Deep.html#cb306-8" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(100L, <span class="at">activation =</span> <span class="st">&quot;relu&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb306-9"><a href="Deep.html#cb306-9" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(10L, <span class="at">activation =</span> <span class="st">&quot;softmax&quot;</span>)</span>
-<span id="cb306-10"><a href="Deep.html#cb306-10" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
+<div class="sourceCode" id="cb307"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb307-1"><a href="Deep.html#cb307-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
+<span id="cb307-2"><a href="Deep.html#cb307-2" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
+<span id="cb307-3"><a href="Deep.html#cb307-3" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_conv_2d</span>(<span class="at">input_shape =</span> <span class="fu">c</span>(28L, 28L,1L),<span class="at">filters =</span> 16L, <span class="at">kernel_size =</span> <span class="fu">c</span>(2L,2L), <span class="at">activation =</span> <span class="st">&quot;relu&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb307-4"><a href="Deep.html#cb307-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_max_pooling_2d</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb307-5"><a href="Deep.html#cb307-5" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 16L, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L), <span class="at">activation =</span> <span class="st">&quot;relu&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb307-6"><a href="Deep.html#cb307-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_max_pooling_2d</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb307-7"><a href="Deep.html#cb307-7" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_flatten</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb307-8"><a href="Deep.html#cb307-8" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(100L, <span class="at">activation =</span> <span class="st">&quot;relu&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb307-9"><a href="Deep.html#cb307-9" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(10L, <span class="at">activation =</span> <span class="st">&quot;softmax&quot;</span>)</span>
+<span id="cb307-10"><a href="Deep.html#cb307-10" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
 <pre><code>## Model: &quot;sequential_5&quot;
-## __________________________________________________________________________________________________________________________________
-## Layer (type)                                              Output Shape                                        Param #             
-## ==================================================================================================================================
-## conv2d (Conv2D)                                           (None, 27, 27, 16)                                  80                  
-## __________________________________________________________________________________________________________________________________
-## max_pooling2d (MaxPooling2D)                              (None, 13, 13, 16)                                  0                   
-## __________________________________________________________________________________________________________________________________
-## conv2d_1 (Conv2D)                                         (None, 11, 11, 16)                                  2320                
-## __________________________________________________________________________________________________________________________________
-## max_pooling2d_1 (MaxPooling2D)                            (None, 5, 5, 16)                                    0                   
-## __________________________________________________________________________________________________________________________________
-## flatten (Flatten)                                         (None, 400)                                         0                   
-## __________________________________________________________________________________________________________________________________
-## dense_14 (Dense)                                          (None, 100)                                         40100               
-## __________________________________________________________________________________________________________________________________
-## dense_15 (Dense)                                          (None, 10)                                          1010                
-## ==================================================================================================================================
+## ______________________________________________________________________________________________________________________________________________
+## Layer (type)                                                   Output Shape                                             Param #               
+## ==============================================================================================================================================
+## conv2d (Conv2D)                                                (None, 27, 27, 16)                                       80                    
+## ______________________________________________________________________________________________________________________________________________
+## max_pooling2d (MaxPooling2D)                                   (None, 13, 13, 16)                                       0                     
+## ______________________________________________________________________________________________________________________________________________
+## conv2d_1 (Conv2D)                                              (None, 11, 11, 16)                                       2320                  
+## ______________________________________________________________________________________________________________________________________________
+## max_pooling2d_1 (MaxPooling2D)                                 (None, 5, 5, 16)                                         0                     
+## ______________________________________________________________________________________________________________________________________________
+## flatten (Flatten)                                              (None, 400)                                              0                     
+## ______________________________________________________________________________________________________________________________________________
+## dense_14 (Dense)                                               (None, 100)                                              40100                 
+## ______________________________________________________________________________________________________________________________________________
+## dense_15 (Dense)                                               (None, 10)                                               1010                  
+## ==============================================================================================================================================
 ## Total params: 43,510
 ## Trainable params: 43,510
 ## Non-trainable params: 0
-## __________________________________________________________________________________________________________________________________</code></pre>
+## ______________________________________________________________________________________________________________________________________________</code></pre>
 <p>We additionally used a pooling layer to downsize the resulting feature maps. After another convolutional and pooling layer we flatten the output, i.e. the following dense layer treats the previous layer as a full layer (so the dense layer is connected to all weights from the last feature maps).Having flattened the layer, we can simply use our typical output layer.</p>
+<details>
+<summary>
+<strong><span style="color: #CC2FAA">torch</span></strong>
+</summary>
+<p>
+<p>Prepare/download data:</p>
+<div class="sourceCode" id="cb309"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb309-1"><a href="Deep.html#cb309-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
+<span id="cb309-2"><a href="Deep.html#cb309-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torchvision)</span>
+<span id="cb309-3"><a href="Deep.html#cb309-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb309-4"><a href="Deep.html#cb309-4" aria-hidden="true" tabindex="-1"></a>train_ds <span class="ot">=</span> <span class="fu">mnist_dataset</span>(</span>
+<span id="cb309-5"><a href="Deep.html#cb309-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;.&quot;</span>,</span>
+<span id="cb309-6"><a href="Deep.html#cb309-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">download =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb309-7"><a href="Deep.html#cb309-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">train =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb309-8"><a href="Deep.html#cb309-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">transform =</span> transform_to_tensor</span>
+<span id="cb309-9"><a href="Deep.html#cb309-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb309-10"><a href="Deep.html#cb309-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb309-11"><a href="Deep.html#cb309-11" aria-hidden="true" tabindex="-1"></a>test_ds <span class="ot">=</span> <span class="fu">kmnist_dataset</span>(</span>
+<span id="cb309-12"><a href="Deep.html#cb309-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;.&quot;</span>,</span>
+<span id="cb309-13"><a href="Deep.html#cb309-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">download =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb309-14"><a href="Deep.html#cb309-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">train =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb309-15"><a href="Deep.html#cb309-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">transform =</span> transform_to_tensor</span>
+<span id="cb309-16"><a href="Deep.html#cb309-16" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>Build dataloader:</p>
+<div class="sourceCode" id="cb310"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb310-1"><a href="Deep.html#cb310-1" aria-hidden="true" tabindex="-1"></a>train_dl <span class="ot">=</span> <span class="fu">dataloader</span>(train_ds, <span class="at">batch_size =</span> <span class="dv">32</span>, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb310-2"><a href="Deep.html#cb310-2" aria-hidden="true" tabindex="-1"></a>test_dl <span class="ot">=</span> <span class="fu">dataloader</span>(test_ds, <span class="at">batch_size =</span> <span class="dv">32</span>)</span>
+<span id="cb310-3"><a href="Deep.html#cb310-3" aria-hidden="true" tabindex="-1"></a>first_batch <span class="ot">=</span> train_dl<span class="sc">$</span><span class="fu">.iter</span>()</span>
+<span id="cb310-4"><a href="Deep.html#cb310-4" aria-hidden="true" tabindex="-1"></a>df <span class="ot">=</span> first_batch<span class="sc">$</span><span class="fu">.next</span>()</span>
+<span id="cb310-5"><a href="Deep.html#cb310-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb310-6"><a href="Deep.html#cb310-6" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>x<span class="sc">$</span><span class="fu">size</span>()</span></code></pre></div>
+<p>Build CNN:</p>
+<div class="sourceCode" id="cb311"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb311-1"><a href="Deep.html#cb311-1" aria-hidden="true" tabindex="-1"></a>net <span class="ot">&lt;-</span> <span class="fu">nn_module</span>(</span>
+<span id="cb311-2"><a href="Deep.html#cb311-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;mnist&quot;</span>,</span>
+<span id="cb311-3"><a href="Deep.html#cb311-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>() {</span>
+<span id="cb311-4"><a href="Deep.html#cb311-4" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>conv1 <span class="ot">&lt;-</span> <span class="fu">nn_conv2d</span>(<span class="dv">1</span>, 16L, 2L)</span>
+<span id="cb311-5"><a href="Deep.html#cb311-5" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>conv2 <span class="ot">&lt;-</span> <span class="fu">nn_conv2d</span>(16L, 16L, <span class="dv">3</span>)</span>
+<span id="cb311-6"><a href="Deep.html#cb311-6" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>fc1 <span class="ot">&lt;-</span> <span class="fu">nn_linear</span>(400L, 100L)</span>
+<span id="cb311-7"><a href="Deep.html#cb311-7" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>fc2 <span class="ot">&lt;-</span> <span class="fu">nn_linear</span>(100L, 10L)</span>
+<span id="cb311-8"><a href="Deep.html#cb311-8" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb311-9"><a href="Deep.html#cb311-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">forward =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb311-10"><a href="Deep.html#cb311-10" aria-hidden="true" tabindex="-1"></a>    x <span class="sc">%&gt;%</span> </span>
+<span id="cb311-11"><a href="Deep.html#cb311-11" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">conv1</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb311-12"><a href="Deep.html#cb311-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nnf_relu</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb311-13"><a href="Deep.html#cb311-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nnf_max_pool2d</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span>         </span>
+<span id="cb311-14"><a href="Deep.html#cb311-14" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">conv2</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb311-15"><a href="Deep.html#cb311-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nnf_relu</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb311-16"><a href="Deep.html#cb311-16" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nnf_max_pool2d</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb311-17"><a href="Deep.html#cb311-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">torch_flatten</span>(<span class="at">start_dim =</span> <span class="dv">2</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb311-18"><a href="Deep.html#cb311-18" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">fc1</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb311-19"><a href="Deep.html#cb311-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nnf_relu</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb311-20"><a href="Deep.html#cb311-20" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">fc2</span>()</span>
+<span id="cb311-21"><a href="Deep.html#cb311-21" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb311-22"><a href="Deep.html#cb311-22" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb311-23"><a href="Deep.html#cb311-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb311-24"><a href="Deep.html#cb311-24" aria-hidden="true" tabindex="-1"></a>opt <span class="ot">=</span> <span class="fu">optim_adam</span>(<span class="at">params =</span> model_torch<span class="sc">$</span>parameters, <span class="at">lr =</span> <span class="fl">0.1</span>)</span>
+<span id="cb311-25"><a href="Deep.html#cb311-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb311-26"><a href="Deep.html#cb311-26" aria-hidden="true" tabindex="-1"></a>X_torch <span class="ot">=</span> <span class="fu">torch_tensor</span>(X)</span>
+<span id="cb311-27"><a href="Deep.html#cb311-27" aria-hidden="true" tabindex="-1"></a>Y_torch <span class="ot">=</span> <span class="fu">torch_tensor</span>(<span class="fu">matrix</span>(Y, <span class="at">ncol =</span> 1L), <span class="at">dtype =</span> <span class="fu">torch_float32</span>())</span>
+<span id="cb311-28"><a href="Deep.html#cb311-28" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">500</span>) {</span>
+<span id="cb311-29"><a href="Deep.html#cb311-29" aria-hidden="true" tabindex="-1"></a>  indices <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="fu">nrow</span>(X), 20L)</span>
+<span id="cb311-30"><a href="Deep.html#cb311-30" aria-hidden="true" tabindex="-1"></a>  opt<span class="sc">$</span><span class="fu">zero_grad</span>()</span>
+<span id="cb311-31"><a href="Deep.html#cb311-31" aria-hidden="true" tabindex="-1"></a>  pred <span class="ot">=</span> <span class="fu">model_torch</span>(X_torch[indices, ])</span>
+<span id="cb311-32"><a href="Deep.html#cb311-32" aria-hidden="true" tabindex="-1"></a>  loss <span class="ot">=</span> <span class="fu">nnf_mse_loss</span>(pred, Y_torch[indices,,<span class="at">drop=</span><span class="cn">FALSE</span>])</span>
+<span id="cb311-33"><a href="Deep.html#cb311-33" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb311-34"><a href="Deep.html#cb311-34" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Add l1 (only on the &#39;kernel weights&#39;):</span></span>
+<span id="cb311-35"><a href="Deep.html#cb311-35" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">8</span>, <span class="at">by =</span> <span class="dv">2</span>)) loss <span class="ot">=</span> loss <span class="sc">+</span> model_torch<span class="sc">$</span>parameters[[i]]<span class="sc">$</span><span class="fu">abs</span>()<span class="sc">$</span><span class="fu">sum</span>()<span class="sc">*</span><span class="fl">0.1</span></span>
+<span id="cb311-36"><a href="Deep.html#cb311-36" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb311-37"><a href="Deep.html#cb311-37" aria-hidden="true" tabindex="-1"></a>  loss<span class="sc">$</span><span class="fu">sum</span>()<span class="sc">$</span><span class="fu">backward</span>()</span>
+<span id="cb311-38"><a href="Deep.html#cb311-38" aria-hidden="true" tabindex="-1"></a>  opt<span class="sc">$</span><span class="fu">step</span>()</span>
+<span id="cb311-39"><a href="Deep.html#cb311-39" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+</details>
+<p><br/></p>
 <p>The rest is as usual: First we compile the model.</p>
-<div class="sourceCode" id="cb308"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb308-1"><a href="Deep.html#cb308-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
-<span id="cb308-2"><a href="Deep.html#cb308-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">compile</span>(</span>
-<span id="cb308-3"><a href="Deep.html#cb308-3" aria-hidden="true" tabindex="-1"></a> <span class="at">optimizer =</span> keras<span class="sc">::</span><span class="fu">optimizer_adamax</span>(<span class="fl">0.01</span>),</span>
-<span id="cb308-4"><a href="Deep.html#cb308-4" aria-hidden="true" tabindex="-1"></a> <span class="at">loss =</span> loss_categorical_crossentropy</span>
-<span id="cb308-5"><a href="Deep.html#cb308-5" aria-hidden="true" tabindex="-1"></a> )</span>
-<span id="cb308-6"><a href="Deep.html#cb308-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
+<div class="sourceCode" id="cb312"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb312-1"><a href="Deep.html#cb312-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
+<span id="cb312-2"><a href="Deep.html#cb312-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">compile</span>(</span>
+<span id="cb312-3"><a href="Deep.html#cb312-3" aria-hidden="true" tabindex="-1"></a> <span class="at">optimizer =</span> keras<span class="sc">::</span><span class="fu">optimizer_adamax</span>(<span class="fl">0.01</span>),</span>
+<span id="cb312-4"><a href="Deep.html#cb312-4" aria-hidden="true" tabindex="-1"></a> <span class="at">loss =</span> loss_categorical_crossentropy</span>
+<span id="cb312-5"><a href="Deep.html#cb312-5" aria-hidden="true" tabindex="-1"></a> )</span>
+<span id="cb312-6"><a href="Deep.html#cb312-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
 <pre><code>## Model: &quot;sequential_5&quot;
-## __________________________________________________________________________________________________________________________________
-## Layer (type)                                              Output Shape                                        Param #             
-## ==================================================================================================================================
-## conv2d (Conv2D)                                           (None, 27, 27, 16)                                  80                  
-## __________________________________________________________________________________________________________________________________
-## max_pooling2d (MaxPooling2D)                              (None, 13, 13, 16)                                  0                   
-## __________________________________________________________________________________________________________________________________
-## conv2d_1 (Conv2D)                                         (None, 11, 11, 16)                                  2320                
-## __________________________________________________________________________________________________________________________________
-## max_pooling2d_1 (MaxPooling2D)                            (None, 5, 5, 16)                                    0                   
-## __________________________________________________________________________________________________________________________________
-## flatten (Flatten)                                         (None, 400)                                         0                   
-## __________________________________________________________________________________________________________________________________
-## dense_14 (Dense)                                          (None, 100)                                         40100               
-## __________________________________________________________________________________________________________________________________
-## dense_15 (Dense)                                          (None, 10)                                          1010                
-## ==================================================================================================================================
+## ______________________________________________________________________________________________________________________________________________
+## Layer (type)                                                   Output Shape                                             Param #               
+## ==============================================================================================================================================
+## conv2d (Conv2D)                                                (None, 27, 27, 16)                                       80                    
+## ______________________________________________________________________________________________________________________________________________
+## max_pooling2d (MaxPooling2D)                                   (None, 13, 13, 16)                                       0                     
+## ______________________________________________________________________________________________________________________________________________
+## conv2d_1 (Conv2D)                                              (None, 11, 11, 16)                                       2320                  
+## ______________________________________________________________________________________________________________________________________________
+## max_pooling2d_1 (MaxPooling2D)                                 (None, 5, 5, 16)                                         0                     
+## ______________________________________________________________________________________________________________________________________________
+## flatten (Flatten)                                              (None, 400)                                              0                     
+## ______________________________________________________________________________________________________________________________________________
+## dense_14 (Dense)                                               (None, 100)                                              40100                 
+## ______________________________________________________________________________________________________________________________________________
+## dense_15 (Dense)                                               (None, 10)                                               1010                  
+## ==============================================================================================================================================
 ## Total params: 43,510
 ## Trainable params: 43,510
 ## Non-trainable params: 0
-## __________________________________________________________________________________________________________________________________</code></pre>
+## ______________________________________________________________________________________________________________________________________________</code></pre>
 <p>Then, we train the model:</p>
-<div class="sourceCode" id="cb310"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb310-1"><a href="Deep.html#cb310-1" aria-hidden="true" tabindex="-1"></a>epochs <span class="ot">=</span> 5L</span>
-<span id="cb310-2"><a href="Deep.html#cb310-2" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> 32L</span>
-<span id="cb310-3"><a href="Deep.html#cb310-3" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
-<span id="cb310-4"><a href="Deep.html#cb310-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">fit</span>(</span>
-<span id="cb310-5"><a href="Deep.html#cb310-5" aria-hidden="true" tabindex="-1"></a> <span class="at">x =</span> train_x, </span>
-<span id="cb310-6"><a href="Deep.html#cb310-6" aria-hidden="true" tabindex="-1"></a> <span class="at">y =</span> train_y,</span>
-<span id="cb310-7"><a href="Deep.html#cb310-7" aria-hidden="true" tabindex="-1"></a> <span class="at">epochs =</span> epochs,</span>
-<span id="cb310-8"><a href="Deep.html#cb310-8" aria-hidden="true" tabindex="-1"></a> <span class="at">batch_size =</span> batch_size,</span>
-<span id="cb310-9"><a href="Deep.html#cb310-9" aria-hidden="true" tabindex="-1"></a> <span class="at">shuffle =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb310-10"><a href="Deep.html#cb310-10" aria-hidden="true" tabindex="-1"></a> <span class="at">validation_split =</span> <span class="fl">0.2</span></span>
-<span id="cb310-11"><a href="Deep.html#cb310-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb314"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb314-1"><a href="Deep.html#cb314-1" aria-hidden="true" tabindex="-1"></a>epochs <span class="ot">=</span> 5L</span>
+<span id="cb314-2"><a href="Deep.html#cb314-2" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> 32L</span>
+<span id="cb314-3"><a href="Deep.html#cb314-3" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
+<span id="cb314-4"><a href="Deep.html#cb314-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">fit</span>(</span>
+<span id="cb314-5"><a href="Deep.html#cb314-5" aria-hidden="true" tabindex="-1"></a> <span class="at">x =</span> train_x, </span>
+<span id="cb314-6"><a href="Deep.html#cb314-6" aria-hidden="true" tabindex="-1"></a> <span class="at">y =</span> train_y,</span>
+<span id="cb314-7"><a href="Deep.html#cb314-7" aria-hidden="true" tabindex="-1"></a> <span class="at">epochs =</span> epochs,</span>
+<span id="cb314-8"><a href="Deep.html#cb314-8" aria-hidden="true" tabindex="-1"></a> <span class="at">batch_size =</span> batch_size,</span>
+<span id="cb314-9"><a href="Deep.html#cb314-9" aria-hidden="true" tabindex="-1"></a> <span class="at">shuffle =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb314-10"><a href="Deep.html#cb314-10" aria-hidden="true" tabindex="-1"></a> <span class="at">validation_split =</span> <span class="fl">0.2</span></span>
+<span id="cb314-11"><a href="Deep.html#cb314-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
 <div id="data-augmentation" class="section level3" number="4.2.1">
 <h3><span class="header-section-number">4.2.1</span> Data Augmentation</h3>
 <p>Having to train a CNN using very little data is a common problem. Data augmentation helps to artificially increase the number of images.</p>
 <p>The idea is that a CNN learns specific structures such as edges from images. Rotating, adding noise, and zooming in and out will preserve the overall key structure we are interested in, but the model will see new images and has to search once again for the key structures.</p>
 <p>Luckily, it is very easy to use data augmentation in keras.</p>
 <p>To show this, we will use again the MNIST dataset. We have to define a generator object (it is a specific object which infinitly draws samples from our dataset). In the generator we can turn on the data augementation. However, now we have to set the step size (steps_per_epoch) because the model does not know the first dimension of the image.</p>
-<div class="sourceCode" id="cb311"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb311-1"><a href="Deep.html#cb311-1" aria-hidden="true" tabindex="-1"></a>aug <span class="ot">=</span> <span class="fu">image_data_generator</span>()</span>
-<span id="cb311-2"><a href="Deep.html#cb311-2" aria-hidden="true" tabindex="-1"></a>generator <span class="ot">=</span> <span class="fu">flow_images_from_data</span>(train_x, train_y,<span class="at">generator =</span> aug, <span class="at">batch_size =</span> 100L)</span>
-<span id="cb311-3"><a href="Deep.html#cb311-3" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
-<span id="cb311-4"><a href="Deep.html#cb311-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">fit</span>(generator, <span class="at">steps_per_epoch =</span> <span class="fu">floor</span>(<span class="fu">dim</span>(train_x)[<span class="dv">1</span>]<span class="sc">/</span>100L),<span class="at">epochs =</span> 1L)</span></code></pre></div>
+<div class="sourceCode" id="cb315"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb315-1"><a href="Deep.html#cb315-1" aria-hidden="true" tabindex="-1"></a>aug <span class="ot">=</span> <span class="fu">image_data_generator</span>()</span>
+<span id="cb315-2"><a href="Deep.html#cb315-2" aria-hidden="true" tabindex="-1"></a>generator <span class="ot">=</span> <span class="fu">flow_images_from_data</span>(train_x, train_y,<span class="at">generator =</span> aug, <span class="at">batch_size =</span> 100L)</span>
+<span id="cb315-3"><a href="Deep.html#cb315-3" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
+<span id="cb315-4"><a href="Deep.html#cb315-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">fit</span>(generator, <span class="at">steps_per_epoch =</span> <span class="fu">floor</span>(<span class="fu">dim</span>(train_x)[<span class="dv">1</span>]<span class="sc">/</span>100L),<span class="at">epochs =</span> 1L)</span></code></pre></div>
 <p>So using data augmentation, we can artificially increase the number of images.</p>
 </div>
 <div id="transfer" class="section level3" number="4.2.2">
@@ -416,41 +487,41 @@ Regularization in deep neural networks is very important because the problem of 
 <p>The main idea of transfer learning is that all the convolutional layers have mainly one task - learning to identify highly correlated neighbored features and therefore these learn structures such as edges in the image and only the top layer, the dense layer is the actual classifier of the CNN. Thus, one could think that we could only train the top layer as classifier. To do so, it will be confronted by sets of different edges/structures and has to decide the label based on these.</p>
 <p>Again, this sounds very complicating but is again quite easy with keras:</p>
 <p>We will do this now with the CIFAR10 data set, so we have to prepare the data:</p>
-<div class="sourceCode" id="cb312"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb312-1"><a href="Deep.html#cb312-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">dataset_cifar10</span>()</span>
-<span id="cb312-2"><a href="Deep.html#cb312-2" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data<span class="sc">$</span>train</span>
-<span id="cb312-3"><a href="Deep.html#cb312-3" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> data<span class="sc">$</span>test</span>
-<span id="cb312-4"><a href="Deep.html#cb312-4" aria-hidden="true" tabindex="-1"></a>image <span class="ot">=</span> train<span class="sc">$</span>x[<span class="dv">5</span>,,,]</span>
-<span id="cb312-5"><a href="Deep.html#cb312-5" aria-hidden="true" tabindex="-1"></a>image <span class="sc">%&gt;%</span> </span>
-<span id="cb312-6"><a href="Deep.html#cb312-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb312-7"><a href="Deep.html#cb312-7" aria-hidden="true" tabindex="-1"></a> <span class="st">`</span><span class="at">/</span><span class="st">`</span>(., <span class="dv">255</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb312-8"><a href="Deep.html#cb312-8" aria-hidden="true" tabindex="-1"></a> <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb312-9"><a href="Deep.html#cb312-9" aria-hidden="true" tabindex="-1"></a> <span class="fu">plot</span>()</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-148-1.png" width="672" /></p>
-<div class="sourceCode" id="cb313"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb313-1"><a href="Deep.html#cb313-1" aria-hidden="true" tabindex="-1"></a>train_x <span class="ot">=</span> <span class="fu">array</span>(train<span class="sc">$</span>x<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(train<span class="sc">$</span>x)))</span>
-<span id="cb313-2"><a href="Deep.html#cb313-2" aria-hidden="true" tabindex="-1"></a>test_x <span class="ot">=</span> <span class="fu">array</span>(test<span class="sc">$</span>x<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(test<span class="sc">$</span>x)))</span>
-<span id="cb313-3"><a href="Deep.html#cb313-3" aria-hidden="true" tabindex="-1"></a>train_y <span class="ot">=</span> <span class="fu">to_categorical</span>(train<span class="sc">$</span>y, <span class="dv">10</span>)</span>
-<span id="cb313-4"><a href="Deep.html#cb313-4" aria-hidden="true" tabindex="-1"></a>test_y <span class="ot">=</span> <span class="fu">to_categorical</span>(test<span class="sc">$</span>y, <span class="dv">10</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb316"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb316-1"><a href="Deep.html#cb316-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">dataset_cifar10</span>()</span>
+<span id="cb316-2"><a href="Deep.html#cb316-2" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data<span class="sc">$</span>train</span>
+<span id="cb316-3"><a href="Deep.html#cb316-3" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> data<span class="sc">$</span>test</span>
+<span id="cb316-4"><a href="Deep.html#cb316-4" aria-hidden="true" tabindex="-1"></a>image <span class="ot">=</span> train<span class="sc">$</span>x[<span class="dv">5</span>,,,]</span>
+<span id="cb316-5"><a href="Deep.html#cb316-5" aria-hidden="true" tabindex="-1"></a>image <span class="sc">%&gt;%</span> </span>
+<span id="cb316-6"><a href="Deep.html#cb316-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb316-7"><a href="Deep.html#cb316-7" aria-hidden="true" tabindex="-1"></a> <span class="st">`</span><span class="at">/</span><span class="st">`</span>(., <span class="dv">255</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb316-8"><a href="Deep.html#cb316-8" aria-hidden="true" tabindex="-1"></a> <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb316-9"><a href="Deep.html#cb316-9" aria-hidden="true" tabindex="-1"></a> <span class="fu">plot</span>()</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-151-1.png" width="672" /></p>
+<div class="sourceCode" id="cb317"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb317-1"><a href="Deep.html#cb317-1" aria-hidden="true" tabindex="-1"></a>train_x <span class="ot">=</span> <span class="fu">array</span>(train<span class="sc">$</span>x<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(train<span class="sc">$</span>x)))</span>
+<span id="cb317-2"><a href="Deep.html#cb317-2" aria-hidden="true" tabindex="-1"></a>test_x <span class="ot">=</span> <span class="fu">array</span>(test<span class="sc">$</span>x<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(test<span class="sc">$</span>x)))</span>
+<span id="cb317-3"><a href="Deep.html#cb317-3" aria-hidden="true" tabindex="-1"></a>train_y <span class="ot">=</span> <span class="fu">to_categorical</span>(train<span class="sc">$</span>y, <span class="dv">10</span>)</span>
+<span id="cb317-4"><a href="Deep.html#cb317-4" aria-hidden="true" tabindex="-1"></a>test_y <span class="ot">=</span> <span class="fu">to_categorical</span>(test<span class="sc">$</span>y, <span class="dv">10</span>)</span></code></pre></div>
 <p>Keras provides download functions for all famous architectures/CNN models which are already trained on the imagenet dataset (another famous dataset). These trained networks come already without their top layer, so we have to set include_top to false and change the input shape.</p>
-<div class="sourceCode" id="cb314"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb314-1"><a href="Deep.html#cb314-1" aria-hidden="true" tabindex="-1"></a>densenet <span class="ot">=</span> <span class="fu">application_densenet201</span>(<span class="at">include_top =</span> <span class="cn">FALSE</span>, <span class="at">input_shape  =</span> <span class="fu">c</span>(32L, 32L, 3L))</span></code></pre></div>
+<div class="sourceCode" id="cb318"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb318-1"><a href="Deep.html#cb318-1" aria-hidden="true" tabindex="-1"></a>densenet <span class="ot">=</span> <span class="fu">application_densenet201</span>(<span class="at">include_top =</span> <span class="cn">FALSE</span>, <span class="at">input_shape  =</span> <span class="fu">c</span>(32L, 32L, 3L))</span></code></pre></div>
 <p>Now, we will use not a sequential model but just a “keras_model” where we can specify the inputs and outputs. Thereby, the outputs are our own top layer, but the inputs are the densenet inputs, as these are already pre-trained.</p>
-<div class="sourceCode" id="cb315"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb315-1"><a href="Deep.html#cb315-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">keras_model</span>(<span class="at">inputs =</span> densenet<span class="sc">$</span>input, <span class="at">outputs =</span> </span>
-<span id="cb315-2"><a href="Deep.html#cb315-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_flatten</span>(<span class="fu">layer_dense</span>(densenet<span class="sc">$</span>output, <span class="at">units =</span> 10L, <span class="at">activation =</span> <span class="st">&quot;softmax&quot;</span>))</span>
-<span id="cb315-3"><a href="Deep.html#cb315-3" aria-hidden="true" tabindex="-1"></a> )</span></code></pre></div>
+<div class="sourceCode" id="cb319"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb319-1"><a href="Deep.html#cb319-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">keras_model</span>(<span class="at">inputs =</span> densenet<span class="sc">$</span>input, <span class="at">outputs =</span> </span>
+<span id="cb319-2"><a href="Deep.html#cb319-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_flatten</span>(<span class="fu">layer_dense</span>(densenet<span class="sc">$</span>output, <span class="at">units =</span> 10L, <span class="at">activation =</span> <span class="st">&quot;softmax&quot;</span>))</span>
+<span id="cb319-3"><a href="Deep.html#cb319-3" aria-hidden="true" tabindex="-1"></a> )</span></code></pre></div>
 <p>In the next step we want to freeze all layers except for our own last layer (with freezing I mean that these are not trained: we do not want to train the complete model, we only want to train the last layer). You can check the number of trainable weights via summary(model)</p>
-<div class="sourceCode" id="cb316"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb316-1"><a href="Deep.html#cb316-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">freeze_weights</span>(<span class="at">to =</span> <span class="fu">length</span>(model<span class="sc">$</span>layers)<span class="sc">-</span><span class="dv">1</span>)</span>
-<span id="cb316-2"><a href="Deep.html#cb316-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
+<div class="sourceCode" id="cb320"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb320-1"><a href="Deep.html#cb320-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">freeze_weights</span>(<span class="at">to =</span> <span class="fu">length</span>(model<span class="sc">$</span>layers)<span class="sc">-</span><span class="dv">1</span>)</span>
+<span id="cb320-2"><a href="Deep.html#cb320-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
 <p>And then the usual training:</p>
-<div class="sourceCode" id="cb317"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb317-1"><a href="Deep.html#cb317-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
-<span id="cb317-2"><a href="Deep.html#cb317-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">compile</span>(<span class="at">loss =</span> loss_categorical_crossentropy, <span class="at">optimizer =</span> <span class="fu">optimizer_adamax</span>())</span>
-<span id="cb317-3"><a href="Deep.html#cb317-3" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
-<span id="cb317-4"><a href="Deep.html#cb317-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">fit</span>(</span>
-<span id="cb317-5"><a href="Deep.html#cb317-5" aria-hidden="true" tabindex="-1"></a> <span class="at">x =</span> train_x, </span>
-<span id="cb317-6"><a href="Deep.html#cb317-6" aria-hidden="true" tabindex="-1"></a> <span class="at">y =</span> train_y,</span>
-<span id="cb317-7"><a href="Deep.html#cb317-7" aria-hidden="true" tabindex="-1"></a> <span class="at">epochs =</span> 1L,</span>
-<span id="cb317-8"><a href="Deep.html#cb317-8" aria-hidden="true" tabindex="-1"></a> <span class="at">batch_size =</span> 32L,</span>
-<span id="cb317-9"><a href="Deep.html#cb317-9" aria-hidden="true" tabindex="-1"></a> <span class="at">shuffle =</span> T,</span>
-<span id="cb317-10"><a href="Deep.html#cb317-10" aria-hidden="true" tabindex="-1"></a> <span class="at">validation_split =</span> <span class="fl">0.2</span>,</span>
-<span id="cb317-11"><a href="Deep.html#cb317-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb321"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb321-1"><a href="Deep.html#cb321-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
+<span id="cb321-2"><a href="Deep.html#cb321-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">compile</span>(<span class="at">loss =</span> loss_categorical_crossentropy, <span class="at">optimizer =</span> <span class="fu">optimizer_adamax</span>())</span>
+<span id="cb321-3"><a href="Deep.html#cb321-3" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
+<span id="cb321-4"><a href="Deep.html#cb321-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">fit</span>(</span>
+<span id="cb321-5"><a href="Deep.html#cb321-5" aria-hidden="true" tabindex="-1"></a> <span class="at">x =</span> train_x, </span>
+<span id="cb321-6"><a href="Deep.html#cb321-6" aria-hidden="true" tabindex="-1"></a> <span class="at">y =</span> train_y,</span>
+<span id="cb321-7"><a href="Deep.html#cb321-7" aria-hidden="true" tabindex="-1"></a> <span class="at">epochs =</span> 1L,</span>
+<span id="cb321-8"><a href="Deep.html#cb321-8" aria-hidden="true" tabindex="-1"></a> <span class="at">batch_size =</span> 32L,</span>
+<span id="cb321-9"><a href="Deep.html#cb321-9" aria-hidden="true" tabindex="-1"></a> <span class="at">shuffle =</span> T,</span>
+<span id="cb321-10"><a href="Deep.html#cb321-10" aria-hidden="true" tabindex="-1"></a> <span class="at">validation_split =</span> <span class="fl">0.2</span>,</span>
+<span id="cb321-11"><a href="Deep.html#cb321-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
 <p>We have seen, that transfer-learning can easily be done using keras.</p>
 
 </div>

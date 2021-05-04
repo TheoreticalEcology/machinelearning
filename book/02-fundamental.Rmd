@@ -771,15 +771,13 @@ plot(model_history)
 **<span style="color: #CC2FAA">torch</span>**
 </summary>
 <p>
-Again, we have to do the regularization on our own:
 ```{r}
 model_torch = nn_sequential(
   nn_linear(in_features = dim(sub_train[,-1])[2], out_features = 20L),
   nn_relu(),
   nn_linear(20L, 20L),
   nn_relu(),
-  nn_linear(20L, 2L),
-  nn_softmax(2L)
+  nn_linear(20L, 2L)
 )
 opt = optim_adam(params = model_torch$parameters, lr = 0.01)
 
@@ -790,10 +788,12 @@ for(i in 1:500) {
   opt$zero_grad()
   pred = model_torch(X_torch[indices, ])
   loss = nnf_cross_entropy(pred, Y_torch[indices], reduction = "mean")
-  loss$sum()$backward()
+  print(loss)
+  loss$backward()
   opt$step()
 }
 ```
+Note: the 'nnf_cross_entropy' expects predictions on the scale of the linear predictors (the loss function itself will apply the softmax!)
 </details>
 <br/>
 
@@ -817,14 +817,14 @@ observed = sub_test[,1]
 **<span style="color: #CC2FAA">torch</span>**
 </summary>
 <p>
-Again, we have to do the regularization on our own:
 ```{r}
 model_torch$eval()
-preds_torch = model_torch(torch_tensor(as.matrix(sub_test[,-1])))
+preds_torch = nnf_softmax( model_torch(torch_tensor(as.matrix(sub_test[,-1]))) , dim = 2L)
 preds_torch = as.matrix(preds_torch)
 preds_torch = apply(preds_torch, 1, which.max)
 (accuracy = mean(preds_torch-1 == observed))
 ```
+Now we have to use the softmax function.
 </details>
 <br/>
 
@@ -857,7 +857,7 @@ write.csv(data.frame(y=pred), file = "Max_1.csv")
 
 The file name is used as the ID on the submission server, so change it to whatever you want as long as you can identify yourself. 
 
-## Bonus - Reproducible ML pipelines with mlr3
+## Bonus - ML pipelines with mlr3
 
 As we have seen today, many of the ML algorithms are distributed over several packages but the general ML pipeline is very similar for all models: feature engineering, feature selection?, hyper-parameter tuning and cross validation. 
 

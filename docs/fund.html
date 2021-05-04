@@ -24,7 +24,7 @@
 <meta name="author" content="Maximilian Pichler and Florian Hartig" />
 
 
-<meta name="date" content="2021-05-03" />
+<meta name="date" content="2021-05-04" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -216,7 +216,7 @@ div.csl-indent {
 <li class="chapter" data-level="3.5.5" data-path="fund.html"><a href="fund.html#model-evaluation"><i class="fa fa-check"></i><b>3.5.5</b> Model evaluation</a></li>
 <li class="chapter" data-level="3.5.6" data-path="fund.html"><a href="fund.html#predictions-and-submission"><i class="fa fa-check"></i><b>3.5.6</b> Predictions and submission</a></li>
 </ul></li>
-<li class="chapter" data-level="3.6" data-path="fund.html"><a href="fund.html#bonus---reproducible-ml-pipelines-with-mlr3"><i class="fa fa-check"></i><b>3.6</b> Bonus - Reproducible ML pipelines with mlr3</a>
+<li class="chapter" data-level="3.6" data-path="fund.html"><a href="fund.html#bonus---ml-pipelines-with-mlr3"><i class="fa fa-check"></i><b>3.6</b> Bonus - ML pipelines with mlr3</a>
 <ul>
 <li class="chapter" data-level="3.6.1" data-path="fund.html"><a href="fund.html#mlr3---the-basic-workflow"><i class="fa fa-check"></i><b>3.6.1</b> mlr3 - the basic workflow</a></li>
 <li class="chapter" data-level="3.6.2" data-path="fund.html"><a href="fund.html#mlr3---hyper-parameter-tuning"><i class="fa fa-check"></i><b>3.6.2</b> mlr3 - hyper-parameter tuning</a></li>
@@ -398,15 +398,15 @@ loss_{L2} = fit - \lambda \cdot \Vert weights \Vert_2
 <span id="cb153-8"><a href="fund.html#cb153-8" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(<span class="at">units =</span> 1L, <span class="at">activation =</span> <span class="st">&quot;linear&quot;</span>, <span class="at">input_shape =</span> <span class="fu">list</span>(<span class="fu">dim</span>(X)[<span class="dv">2</span>]))</span>
 <span id="cb153-9"><a href="fund.html#cb153-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
 <pre><code>## Model: &quot;sequential_1&quot;
-## __________________________________________________________________________________________________________________________________
-## Layer (type)                                              Output Shape                                        Param #             
-## ==================================================================================================================================
-## dense_4 (Dense)                                           (None, 1)                                           6                   
-## ==================================================================================================================================
+## ______________________________________________________________________________________________________________________________________________
+## Layer (type)                                                   Output Shape                                             Param #               
+## ==============================================================================================================================================
+## dense_4 (Dense)                                                (None, 1)                                                6                     
+## ==============================================================================================================================================
 ## Total params: 6
 ## Trainable params: 6
 ## Non-trainable params: 0
-## __________________________________________________________________________________________________________________________________</code></pre>
+## ______________________________________________________________________________________________________________________________________________</code></pre>
 <div class="sourceCode" id="cb155"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb155-1"><a href="fund.html#cb155-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
 <span id="cb155-2"><a href="fund.html#cb155-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">compile</span>(<span class="at">loss =</span> loss_mean_squared_error, <span class="fu">optimizer_adamax</span>(<span class="at">lr =</span> <span class="fl">0.5</span>))</span>
 <span id="cb155-3"><a href="fund.html#cb155-3" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span></span>
@@ -483,15 +483,15 @@ Lets see what happens when we put a l1 (lasso) regularization on the weights:</p
 <span id="cb163-4"><a href="fund.html#cb163-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l1</span>(<span class="dv">10</span>), <span class="at">bias_regularizer =</span> <span class="fu">regularizer_l1</span>(<span class="dv">10</span>))</span>
 <span id="cb163-5"><a href="fund.html#cb163-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
 <pre><code>## Model: &quot;sequential_2&quot;
-## __________________________________________________________________________________________________________________________________
-## Layer (type)                                              Output Shape                                        Param #             
-## ==================================================================================================================================
-## dense_5 (Dense)                                           (None, 1)                                           6                   
-## ==================================================================================================================================
+## ______________________________________________________________________________________________________________________________________________
+## Layer (type)                                                   Output Shape                                             Param #               
+## ==============================================================================================================================================
+## dense_5 (Dense)                                                (None, 1)                                                6                     
+## ==============================================================================================================================================
 ## Total params: 6
 ## Trainable params: 6
 ## Non-trainable params: 0
-## __________________________________________________________________________________________________________________________________</code></pre>
+## ______________________________________________________________________________________________________________________________________________</code></pre>
 <div class="sourceCode" id="cb165"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb165-1"><a href="fund.html#cb165-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
 <span id="cb165-2"><a href="fund.html#cb165-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">compile</span>(<span class="at">loss =</span> loss_mean_squared_error, <span class="fu">optimizer_adamax</span>(<span class="at">lr =</span> <span class="fl">0.5</span>), <span class="at">metrics =</span> <span class="fu">c</span>(metric_mean_squared_error))</span>
 <span id="cb165-3"><a href="fund.html#cb165-3" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span></span>
@@ -525,13 +525,13 @@ Lets see what happens when we put a l1 (lasso) regularization on the weights:</p
 <pre><code>## (Intercept)    XSolar.R       XWind       XTemp      XMonth        XDay 
 ##   42.099099    4.582620  -11.806072   18.066786   -4.479175    2.384705</code></pre>
 <div class="sourceCode" id="cb169"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb169-1"><a href="fund.html#cb169-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(<span class="fu">unlist</span>(l1), <span class="fu">unlist</span>(unconstrained))</span></code></pre></div>
-<pre><code>##              [,1]       [,2]
-## [1,]  1.384161830   4.817326
-## [2,] -7.899905205 -11.997836
-## [3,] 13.681981087  17.861799
-## [4,]  0.003938348  -4.223959
-## [5,] -0.027146807   2.308593
-## [6,] 33.478698730  41.522942</code></pre>
+<pre><code>##             [,1]       [,2]
+## [1,]  1.83119392   4.966063
+## [2,] -8.65913582 -12.359894
+## [3,] 13.14374161  16.775646
+## [4,] -0.01310635  -3.842851
+## [5,]  0.01826540   2.256198
+## [6,] 34.21205521  40.817753</code></pre>
 <p>One can clearly see that parameters are pulled towards zero because of the regularization.</p>
 <details>
 <summary>
@@ -649,7 +649,7 @@ There are two different strategies to do so:</p>
 <div class="sourceCode" id="cb184"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb184-1"><a href="fund.html#cb184-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
 <span id="cb184-2"><a href="fund.html#cb184-2" aria-hidden="true" tabindex="-1"></a>data_xg <span class="ot">=</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> <span class="fu">as.matrix</span>(<span class="fu">scale</span>(data[,<span class="sc">-</span><span class="dv">1</span>])), <span class="at">label =</span> data<span class="sc">$</span>Ozone)</span>
 <span id="cb184-3"><a href="fund.html#cb184-3" aria-hidden="true" tabindex="-1"></a>brt <span class="ot">=</span> <span class="fu">xgboost</span>(data_xg, <span class="at">nrounds =</span> 16L, <span class="at">nthreads =</span> 4L)</span></code></pre></div>
-<pre><code>## [22:50:17] WARNING: amalgamation/../src/learner.cc:516: 
+<pre><code>## [09:33:57] WARNING: amalgamation/../src/learner.cc:516: 
 ## Parameters: { nthreads } might not be used.
 ## 
 ##   This may not be accurate due to some parameters are only used in language bindings but
@@ -659,9 +659,9 @@ There are two different strategies to do so:</p>
 ## 
 ## [1]  train-rmse:39.724625 
 ## [2]  train-rmse:30.225761 
-## [3]  train-rmse:23.134838 
+## [3]  train-rmse:23.134840 
 ## [4]  train-rmse:17.899178 
-## [5]  train-rmse:14.097785 
+## [5]  train-rmse:14.097784 
 ## [6]  train-rmse:11.375458 
 ## [7]  train-rmse:9.391275 
 ## [8]  train-rmse:7.889690 
@@ -672,7 +672,7 @@ There are two different strategies to do so:</p>
 ## [13] train-rmse:4.069464 
 ## [14] train-rmse:3.674615 
 ## [15] train-rmse:3.424578 
-## [16] train-rmse:3.191301</code></pre>
+## [16] train-rmse:3.191302</code></pre>
 <p>The nrounds controls how many sequantial trees we fit, in our example this was 16. When we predict to new data, we can limit the number of trees used to prevent overfitting (remeber: each new tree tries to improve the predictions of the previous trees).</p>
 <p>Let us visualize the predictions for different number of trees:</p>
 <div class="sourceCode" id="cb186"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb186-1"><a href="fund.html#cb186-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
@@ -701,20 +701,20 @@ There are also other ways to control for complexity of the BRT algorithm:</p>
 <p>One important strength of xgboost is that we can directly do a cross-validation and specify its properties with nfold (the original dataset is randomly partitioned intonfoldequal size subsamples and each time one of these data sets is used for predictions to judge the performance):</p>
 <div class="sourceCode" id="cb192"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb192-1"><a href="fund.html#cb192-1" aria-hidden="true" tabindex="-1"></a>brt <span class="ot">=</span> <span class="fu">xgboost</span>(data_xg, <span class="at">nrounds =</span> 5L)</span></code></pre></div>
 <pre><code>## [1]  train-rmse:39.724625 
-## [2]  train-rmse:30.225760 
-## [3]  train-rmse:23.134840 
+## [2]  train-rmse:30.225761 
+## [3]  train-rmse:23.134838 
 ## [4]  train-rmse:17.899178 
 ## [5]  train-rmse:14.097784</code></pre>
 <div class="sourceCode" id="cb194"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb194-1"><a href="fund.html#cb194-1" aria-hidden="true" tabindex="-1"></a>brt_cv <span class="ot">=</span> xgboost<span class="sc">::</span><span class="fu">xgb.cv</span>(<span class="at">data =</span> data_xg, <span class="at">nfold =</span> 3L, <span class="at">nrounds =</span> 3L, <span class="at">nthreads =</span> 4L)</span></code></pre></div>
-<pre><code>## [1]  train-rmse:39.886848+1.148135   test-rmse:40.835789+4.206757 
-## [2]  train-rmse:30.437888+0.922479   test-rmse:32.590284+4.841707 
-## [3]  train-rmse:23.503599+0.751941   test-rmse:27.267021+5.103056</code></pre>
+<pre><code>## [1]  train-rmse:39.886848+1.148135   test-rmse:40.835786+4.206755 
+## [2]  train-rmse:30.437888+0.922479   test-rmse:32.590283+4.841707 
+## [3]  train-rmse:23.503598+0.751941   test-rmse:27.267021+5.103056</code></pre>
 <div class="sourceCode" id="cb196"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb196-1"><a href="fund.html#cb196-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(brt_cv)</span></code></pre></div>
 <pre><code>## ##### xgb.cv 3-folds
 ##  iter train_rmse_mean train_rmse_std test_rmse_mean test_rmse_std
-##     1        39.88685      1.1481345       40.83579      4.206757
+##     1        39.88685      1.1481345       40.83579      4.206755
 ##     2        30.43789      0.9224789       32.59028      4.841707
-##     3        23.50360      0.7519415       27.26702      5.103056</code></pre>
+##     3        23.50360      0.7519412       27.26702      5.103056</code></pre>
 <p>This now tells us how well the model performed.</p>
 </div>
 </div>
@@ -885,21 +885,21 @@ There are also other ways to control for complexity of the BRT algorithm:</p>
 <span id="cb220-9"><a href="fund.html#cb220-9" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(<span class="at">units =</span> 1L, <span class="at">activation =</span> <span class="st">&quot;linear&quot;</span>, <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l1</span>(penalty)) <span class="co"># one output dimension with a linear activation function</span></span>
 <span id="cb220-10"><a href="fund.html#cb220-10" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
 <pre><code>## Model: &quot;sequential_3&quot;
-## __________________________________________________________________________________________________________________________________
-## Layer (type)                                              Output Shape                                        Param #             
-## ==================================================================================================================================
-## dense_6 (Dense)                                           (None, 100)                                         600                 
-## __________________________________________________________________________________________________________________________________
-## dense_7 (Dense)                                           (None, 100)                                         10100               
-## __________________________________________________________________________________________________________________________________
-## dense_8 (Dense)                                           (None, 100)                                         10100               
-## __________________________________________________________________________________________________________________________________
-## dense_9 (Dense)                                           (None, 1)                                           101                 
-## ==================================================================================================================================
+## ______________________________________________________________________________________________________________________________________________
+## Layer (type)                                                   Output Shape                                             Param #               
+## ==============================================================================================================================================
+## dense_6 (Dense)                                                (None, 100)                                              600                   
+## ______________________________________________________________________________________________________________________________________________
+## dense_7 (Dense)                                                (None, 100)                                              10100                 
+## ______________________________________________________________________________________________________________________________________________
+## dense_8 (Dense)                                                (None, 100)                                              10100                 
+## ______________________________________________________________________________________________________________________________________________
+## dense_9 (Dense)                                                (None, 1)                                                101                   
+## ==============================================================================================================================================
 ## Total params: 20,901
 ## Trainable params: 20,901
 ## Non-trainable params: 0
-## __________________________________________________________________________________________________________________________________</code></pre>
+## ______________________________________________________________________________________________________________________________________________</code></pre>
 <div class="sourceCode" id="cb222"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb222-1"><a href="fund.html#cb222-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
 <span id="cb222-2"><a href="fund.html#cb222-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">compile</span>(<span class="at">loss =</span> loss_mean_squared_error, keras<span class="sc">::</span><span class="fu">optimizer_adamax</span>(<span class="fl">0.1</span>))</span>
 <span id="cb222-3"><a href="fund.html#cb222-3" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span></span>
@@ -981,12 +981,12 @@ Here is an (optional) video that explains the entire pipeline from a slightly di
 <pre><code>## Registered S3 method overwritten by &#39;cli&#39;:
 ##   method     from
 ##   print.tree tree</code></pre>
-<pre><code>## ── Attaching packages ───────────────────────────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ── Attaching packages ───────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
 <pre><code>## ✓ tibble  3.0.3     ✓ dplyr   1.0.2
 ## ✓ tidyr   1.1.0     ✓ stringr 1.4.0
 ## ✓ readr   1.4.0     ✓ forcats 0.5.0
 ## ✓ purrr   0.3.4</code></pre>
-<pre><code>## ── Conflicts ──────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+<pre><code>## ── Conflicts ──────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
 ## x dplyr::combine()       masks randomForest::combine()
 ## x dplyr::filter()        masks stats::filter()
 ## x dplyr::lag()           masks stats::lag()
@@ -1017,22 +1017,22 @@ Here is an (optional) video that explains the entire pipeline from a slightly di
 ##  $ body     : int  NA NA NA NA 50 32 NA NA NA NA ...
 ##  $ home.dest: Factor w/ 370 levels &quot;&quot;,&quot;?Havana, Cuba&quot;,..: 121 213 1 1 1 1 322 350 1 1 ...</code></pre>
 <div class="sourceCode" id="cb235"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb235-1"><a href="fund.html#cb235-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data)</span></code></pre></div>
-<pre><code>##      pclass         survived          name               sex           age              sibsp            parch      
-##  Min.   :1.000   Min.   :0.0000   Length:1309        female:466   Min.   : 0.1667   Min.   :0.0000   Min.   :0.000  
-##  1st Qu.:2.000   1st Qu.:0.0000   Class :character   male  :843   1st Qu.:21.0000   1st Qu.:0.0000   1st Qu.:0.000  
-##  Median :3.000   Median :0.0000   Mode  :character                Median :28.0000   Median :0.0000   Median :0.000  
-##  Mean   :2.295   Mean   :0.3853                                   Mean   :29.8811   Mean   :0.4989   Mean   :0.385  
-##  3rd Qu.:3.000   3rd Qu.:1.0000                                   3rd Qu.:39.0000   3rd Qu.:1.0000   3rd Qu.:0.000  
-##  Max.   :3.000   Max.   :1.0000                                   Max.   :80.0000   Max.   :8.0000   Max.   :9.000  
-##                  NA&#39;s   :655                                      NA&#39;s   :263                                       
-##       ticket          fare                     cabin      embarked      boat          body                      home.dest  
-##  CA. 2343:  11   Min.   :  0.000                  :1014    :  2           :823   Min.   :  1.0                       :564  
-##  1601    :   8   1st Qu.:  7.896   C23 C25 C27    :   6   C:270    13     : 39   1st Qu.: 72.0   New York, NY        : 64  
-##  CA 2144 :   8   Median : 14.454   B57 B59 B63 B66:   5   Q:123    C      : 38   Median :155.0   London              : 14  
-##  3101295 :   7   Mean   : 33.295   G6             :   5   S:914    15     : 37   Mean   :160.8   Montreal, PQ        : 10  
-##  347077  :   7   3rd Qu.: 31.275   B96 B98        :   4            14     : 33   3rd Qu.:256.0   Cornwall / Akron, OH:  9  
-##  347082  :   7   Max.   :512.329   C22 C26        :   4            4      : 31   Max.   :328.0   Paris, France       :  9  
-##  (Other) :1261   NA&#39;s   :1         (Other)        : 271            (Other):308   NA&#39;s   :1188    (Other)             :639</code></pre>
+<pre><code>##      pclass         survived          name               sex           age              sibsp            parch            ticket    
+##  Min.   :1.000   Min.   :0.0000   Length:1309        female:466   Min.   : 0.1667   Min.   :0.0000   Min.   :0.000   CA. 2343:  11  
+##  1st Qu.:2.000   1st Qu.:0.0000   Class :character   male  :843   1st Qu.:21.0000   1st Qu.:0.0000   1st Qu.:0.000   1601    :   8  
+##  Median :3.000   Median :0.0000   Mode  :character                Median :28.0000   Median :0.0000   Median :0.000   CA 2144 :   8  
+##  Mean   :2.295   Mean   :0.3853                                   Mean   :29.8811   Mean   :0.4989   Mean   :0.385   3101295 :   7  
+##  3rd Qu.:3.000   3rd Qu.:1.0000                                   3rd Qu.:39.0000   3rd Qu.:1.0000   3rd Qu.:0.000   347077  :   7  
+##  Max.   :3.000   Max.   :1.0000                                   Max.   :80.0000   Max.   :8.0000   Max.   :9.000   347082  :   7  
+##                  NA&#39;s   :655                                      NA&#39;s   :263                                        (Other) :1261  
+##       fare                     cabin      embarked      boat          body                      home.dest  
+##  Min.   :  0.000                  :1014    :  2           :823   Min.   :  1.0                       :564  
+##  1st Qu.:  7.896   C23 C25 C27    :   6   C:270    13     : 39   1st Qu.: 72.0   New York, NY        : 64  
+##  Median : 14.454   B57 B59 B63 B66:   5   Q:123    C      : 38   Median :155.0   London              : 14  
+##  Mean   : 33.295   G6             :   5   S:914    15     : 37   Mean   :160.8   Montreal, PQ        : 10  
+##  3rd Qu.: 31.275   B96 B98        :   4            14     : 33   3rd Qu.:256.0   Cornwall / Akron, OH:  9  
+##  Max.   :512.329   C22 C26        :   4            4      : 31   Max.   :328.0   Paris, France       :  9  
+##  NA&#39;s   :1         (Other)        : 271            (Other):308   NA&#39;s   :1188    (Other)             :639</code></pre>
 <div class="sourceCode" id="cb237"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb237-1"><a href="fund.html#cb237-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)</span></code></pre></div>
 <pre><code>##      pclass survived                         name    sex  age sibsp parch             ticket   fare cabin embarked boat body
 ## 561       2        1        Sinkkonen, Miss. Anna female 30.0     0     0             250648 13.000              S   10   NA
@@ -1061,10 +1061,10 @@ Here is an (optional) video that explains the entire pipeline from a slightly di
 <p>We get 18 unique titles:</p>
 <div class="sourceCode" id="cb242"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb242-1"><a href="fund.html#cb242-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(titles)</span></code></pre></div>
 <pre><code>## titles
-##          Capt           Col           Don          Dona            Dr      Jonkheer          Lady         Major        Master 
-##             1             4             1             1             8             1             1             2            61 
-##          Miss          Mlle           Mme            Mr           Mrs            Ms           Rev           Sir  the Countess 
-##           260             2             1           757           197             2             8             1             1</code></pre>
+##          Capt           Col           Don          Dona            Dr      Jonkheer          Lady         Major        Master          Miss 
+##             1             4             1             1             8             1             1             2            61           260 
+##          Mlle           Mme            Mr           Mrs            Ms           Rev           Sir  the Countess 
+##             2             1           757           197             2             8             1             1</code></pre>
 <p>A few titles have a very low occurrence rate:</p>
 <div class="sourceCode" id="cb244"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb244-1"><a href="fund.html#cb244-1" aria-hidden="true" tabindex="-1"></a>titles <span class="ot">=</span> stringr<span class="sc">::</span><span class="fu">str_trim</span>((titles))</span>
 <span id="cb244-2"><a href="fund.html#cb244-2" aria-hidden="true" tabindex="-1"></a>titles <span class="sc">%&gt;%</span></span>
@@ -1117,30 +1117,22 @@ Here is an (optional) video that explains the entire pipeline from a slightly di
 <p>As a second example, we will explore and clean the numeric “age” variable:</p>
 <p>Explore the variable:</p>
 <div class="sourceCode" id="cb250"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb250-1"><a href="fund.html#cb250-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data)</span></code></pre></div>
-<pre><code>##      pclass         survived          name               sex           age              sibsp            parch      
-##  Min.   :1.000   Min.   :0.0000   Length:1309        female:466   Min.   : 0.1667   Min.   :0.0000   Min.   :0.000  
-##  1st Qu.:2.000   1st Qu.:0.0000   Class :character   male  :843   1st Qu.:21.0000   1st Qu.:0.0000   1st Qu.:0.000  
-##  Median :3.000   Median :0.0000   Mode  :character                Median :28.0000   Median :0.0000   Median :0.000  
-##  Mean   :2.295   Mean   :0.3853                                   Mean   :29.8811   Mean   :0.4989   Mean   :0.385  
-##  3rd Qu.:3.000   3rd Qu.:1.0000                                   3rd Qu.:39.0000   3rd Qu.:1.0000   3rd Qu.:0.000  
-##  Max.   :3.000   Max.   :1.0000                                   Max.   :80.0000   Max.   :8.0000   Max.   :9.000  
-##                  NA&#39;s   :655                                      NA&#39;s   :263                                       
-##       ticket          fare                     cabin      embarked      boat          body                      home.dest  
-##  CA. 2343:  11   Min.   :  0.000                  :1014    :  2           :823   Min.   :  1.0                       :564  
-##  1601    :   8   1st Qu.:  7.896   C23 C25 C27    :   6   C:270    13     : 39   1st Qu.: 72.0   New York, NY        : 64  
-##  CA 2144 :   8   Median : 14.454   B57 B59 B63 B66:   5   Q:123    C      : 38   Median :155.0   London              : 14  
-##  3101295 :   7   Mean   : 33.295   G6             :   5   S:914    15     : 37   Mean   :160.8   Montreal, PQ        : 10  
-##  347077  :   7   3rd Qu.: 31.275   B96 B98        :   4            14     : 33   3rd Qu.:256.0   Cornwall / Akron, OH:  9  
-##  347082  :   7   Max.   :512.329   C22 C26        :   4            4      : 31   Max.   :328.0   Paris, France       :  9  
-##  (Other) :1261   NA&#39;s   :1         (Other)        : 271            (Other):308   NA&#39;s   :1188    (Other)             :639  
-##      title    
-##  officer: 23  
-##  royal  :  6  
-##  Master : 61  
-##  miss   :262  
-##  mrs    :200  
-##  Mr     :757  
-## </code></pre>
+<pre><code>##      pclass         survived          name               sex           age              sibsp            parch            ticket    
+##  Min.   :1.000   Min.   :0.0000   Length:1309        female:466   Min.   : 0.1667   Min.   :0.0000   Min.   :0.000   CA. 2343:  11  
+##  1st Qu.:2.000   1st Qu.:0.0000   Class :character   male  :843   1st Qu.:21.0000   1st Qu.:0.0000   1st Qu.:0.000   1601    :   8  
+##  Median :3.000   Median :0.0000   Mode  :character                Median :28.0000   Median :0.0000   Median :0.000   CA 2144 :   8  
+##  Mean   :2.295   Mean   :0.3853                                   Mean   :29.8811   Mean   :0.4989   Mean   :0.385   3101295 :   7  
+##  3rd Qu.:3.000   3rd Qu.:1.0000                                   3rd Qu.:39.0000   3rd Qu.:1.0000   3rd Qu.:0.000   347077  :   7  
+##  Max.   :3.000   Max.   :1.0000                                   Max.   :80.0000   Max.   :8.0000   Max.   :9.000   347082  :   7  
+##                  NA&#39;s   :655                                      NA&#39;s   :263                                        (Other) :1261  
+##       fare                     cabin      embarked      boat          body                      home.dest       title    
+##  Min.   :  0.000                  :1014    :  2           :823   Min.   :  1.0                       :564   officer: 23  
+##  1st Qu.:  7.896   C23 C25 C27    :   6   C:270    13     : 39   1st Qu.: 72.0   New York, NY        : 64   royal  :  6  
+##  Median : 14.454   B57 B59 B63 B66:   5   Q:123    C      : 38   Median :155.0   London              : 14   Master : 61  
+##  Mean   : 33.295   G6             :   5   S:914    15     : 37   Mean   :160.8   Montreal, PQ        : 10   miss   :262  
+##  3rd Qu.: 31.275   B96 B98        :   4            14     : 33   3rd Qu.:256.0   Cornwall / Akron, OH:  9   mrs    :200  
+##  Max.   :512.329   C22 C26        :   4            4      : 31   Max.   :328.0   Paris, France       :  9   Mr     :757  
+##  NA&#39;s   :1         (Other)        : 271            (Other):308   NA&#39;s   :1188    (Other)             :639</code></pre>
 <div class="sourceCode" id="cb252"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb252-1"><a href="fund.html#cb252-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(data<span class="sc">$</span>age))<span class="sc">/</span><span class="fu">nrow</span>(data)</span></code></pre></div>
 <pre><code>## [1] 0.2009167</code></pre>
 <p>20% NAs!
@@ -1212,21 +1204,21 @@ The inner split is important because to assess the model’s performance and pot
 <span id="cb261-6"><a href="fund.html#cb261-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 2L, <span class="at">activation =</span> <span class="st">&quot;softmax&quot;</span>)</span>
 <span id="cb261-7"><a href="fund.html#cb261-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
 <pre><code>## Model: &quot;sequential_4&quot;
-## __________________________________________________________________________________________________________________________________
-## Layer (type)                                              Output Shape                                        Param #             
-## ==================================================================================================================================
-## dense_10 (Dense)                                          (None, 20)                                          280                 
-## __________________________________________________________________________________________________________________________________
-## dense_11 (Dense)                                          (None, 20)                                          420                 
-## __________________________________________________________________________________________________________________________________
-## dense_12 (Dense)                                          (None, 20)                                          420                 
-## __________________________________________________________________________________________________________________________________
-## dense_13 (Dense)                                          (None, 2)                                           42                  
-## ==================================================================================================================================
+## ______________________________________________________________________________________________________________________________________________
+## Layer (type)                                                   Output Shape                                             Param #               
+## ==============================================================================================================================================
+## dense_10 (Dense)                                               (None, 20)                                               280                   
+## ______________________________________________________________________________________________________________________________________________
+## dense_11 (Dense)                                               (None, 20)                                               420                   
+## ______________________________________________________________________________________________________________________________________________
+## dense_12 (Dense)                                               (None, 20)                                               420                   
+## ______________________________________________________________________________________________________________________________________________
+## dense_13 (Dense)                                               (None, 2)                                                42                    
+## ==============================================================================================================================================
 ## Total params: 1,162
 ## Trainable params: 1,162
 ## Non-trainable params: 0
-## __________________________________________________________________________________________________________________________________</code></pre>
+## ______________________________________________________________________________________________________________________________________________</code></pre>
 <div class="sourceCode" id="cb263"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb263-1"><a href="fund.html#cb263-1" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span></span>
 <span id="cb263-2"><a href="fund.html#cb263-2" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
 <span id="cb263-3"><a href="fund.html#cb263-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">compile</span>(<span class="at">loss =</span> loss_categorical_crossentropy, <span class="at">optimizer =</span> keras<span class="sc">::</span><span class="fu">optimizer_adamax</span>(<span class="fl">0.01</span>))</span>
@@ -1242,52 +1234,1552 @@ The inner split is important because to assess the model’s performance and pot
 <strong><span style="color: #CC2FAA">torch</span></strong>
 </summary>
 <p>
-<p>Again, we have to do the regularization on our own:</p>
 <div class="sourceCode" id="cb265"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb265-1"><a href="fund.html#cb265-1" aria-hidden="true" tabindex="-1"></a>model_torch <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
 <span id="cb265-2"><a href="fund.html#cb265-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_linear</span>(<span class="at">in_features =</span> <span class="fu">dim</span>(sub_train[,<span class="sc">-</span><span class="dv">1</span>])[<span class="dv">2</span>], <span class="at">out_features =</span> 20L),</span>
 <span id="cb265-3"><a href="fund.html#cb265-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_relu</span>(),</span>
 <span id="cb265-4"><a href="fund.html#cb265-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_linear</span>(20L, 20L),</span>
 <span id="cb265-5"><a href="fund.html#cb265-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_relu</span>(),</span>
-<span id="cb265-6"><a href="fund.html#cb265-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_linear</span>(20L, 2L),</span>
-<span id="cb265-7"><a href="fund.html#cb265-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_softmax</span>(2L)</span>
-<span id="cb265-8"><a href="fund.html#cb265-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb265-9"><a href="fund.html#cb265-9" aria-hidden="true" tabindex="-1"></a>opt <span class="ot">=</span> <span class="fu">optim_adam</span>(<span class="at">params =</span> model_torch<span class="sc">$</span>parameters, <span class="at">lr =</span> <span class="fl">0.01</span>)</span>
-<span id="cb265-10"><a href="fund.html#cb265-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb265-11"><a href="fund.html#cb265-11" aria-hidden="true" tabindex="-1"></a>X_torch <span class="ot">=</span> <span class="fu">torch_tensor</span>( <span class="fu">as.matrix</span>(sub_train[,<span class="sc">-</span><span class="dv">1</span>])) </span>
-<span id="cb265-12"><a href="fund.html#cb265-12" aria-hidden="true" tabindex="-1"></a>Y_torch <span class="ot">=</span> <span class="fu">torch_tensor</span>(sub_train[,<span class="dv">1</span>]<span class="sc">+</span><span class="dv">1</span>, <span class="at">dtype=</span> <span class="fu">torch_long</span>())</span>
-<span id="cb265-13"><a href="fund.html#cb265-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">500</span>) {</span>
-<span id="cb265-14"><a href="fund.html#cb265-14" aria-hidden="true" tabindex="-1"></a>  indices <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="fu">nrow</span>(sub_train), 20L)</span>
-<span id="cb265-15"><a href="fund.html#cb265-15" aria-hidden="true" tabindex="-1"></a>  opt<span class="sc">$</span><span class="fu">zero_grad</span>()</span>
-<span id="cb265-16"><a href="fund.html#cb265-16" aria-hidden="true" tabindex="-1"></a>  pred <span class="ot">=</span> <span class="fu">model_torch</span>(X_torch[indices, ])</span>
-<span id="cb265-17"><a href="fund.html#cb265-17" aria-hidden="true" tabindex="-1"></a>  loss <span class="ot">=</span> <span class="fu">nnf_cross_entropy</span>(pred, Y_torch[indices], <span class="at">reduction =</span> <span class="st">&quot;mean&quot;</span>)</span>
-<span id="cb265-18"><a href="fund.html#cb265-18" aria-hidden="true" tabindex="-1"></a>  loss<span class="sc">$</span><span class="fu">sum</span>()<span class="sc">$</span><span class="fu">backward</span>()</span>
+<span id="cb265-6"><a href="fund.html#cb265-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_linear</span>(20L, 2L)</span>
+<span id="cb265-7"><a href="fund.html#cb265-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb265-8"><a href="fund.html#cb265-8" aria-hidden="true" tabindex="-1"></a>opt <span class="ot">=</span> <span class="fu">optim_adam</span>(<span class="at">params =</span> model_torch<span class="sc">$</span>parameters, <span class="at">lr =</span> <span class="fl">0.01</span>)</span>
+<span id="cb265-9"><a href="fund.html#cb265-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb265-10"><a href="fund.html#cb265-10" aria-hidden="true" tabindex="-1"></a>X_torch <span class="ot">=</span> <span class="fu">torch_tensor</span>( <span class="fu">as.matrix</span>(sub_train[,<span class="sc">-</span><span class="dv">1</span>])) </span>
+<span id="cb265-11"><a href="fund.html#cb265-11" aria-hidden="true" tabindex="-1"></a>Y_torch <span class="ot">=</span> <span class="fu">torch_tensor</span>(sub_train[,<span class="dv">1</span>]<span class="sc">+</span><span class="dv">1</span>, <span class="at">dtype=</span> <span class="fu">torch_long</span>())</span>
+<span id="cb265-12"><a href="fund.html#cb265-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">500</span>) {</span>
+<span id="cb265-13"><a href="fund.html#cb265-13" aria-hidden="true" tabindex="-1"></a>  indices <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="fu">nrow</span>(sub_train), 20L)</span>
+<span id="cb265-14"><a href="fund.html#cb265-14" aria-hidden="true" tabindex="-1"></a>  opt<span class="sc">$</span><span class="fu">zero_grad</span>()</span>
+<span id="cb265-15"><a href="fund.html#cb265-15" aria-hidden="true" tabindex="-1"></a>  pred <span class="ot">=</span> <span class="fu">model_torch</span>(X_torch[indices, ])</span>
+<span id="cb265-16"><a href="fund.html#cb265-16" aria-hidden="true" tabindex="-1"></a>  loss <span class="ot">=</span> <span class="fu">nnf_cross_entropy</span>(pred, Y_torch[indices], <span class="at">reduction =</span> <span class="st">&quot;mean&quot;</span>)</span>
+<span id="cb265-17"><a href="fund.html#cb265-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(loss)</span>
+<span id="cb265-18"><a href="fund.html#cb265-18" aria-hidden="true" tabindex="-1"></a>  loss<span class="sc">$</span><span class="fu">backward</span>()</span>
 <span id="cb265-19"><a href="fund.html#cb265-19" aria-hidden="true" tabindex="-1"></a>  opt<span class="sc">$</span><span class="fu">step</span>()</span>
 <span id="cb265-20"><a href="fund.html#cb265-20" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<pre><code>## torch_tensor
+## 0.600605
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.713966
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.624833
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.562861
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.659837
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.661591
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.573079
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.486285
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.571937
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.594414
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.506588
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.60903
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.698406
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.462774
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.504531
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.49776
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.414905
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.504964
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.36285
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.585738
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.583234
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.326668
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.419244
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.568218
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.446056
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.452696
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.472433
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.806326
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.358187
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.521575
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.532126
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.480248
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.370052
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.628258
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.503833
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.471884
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.487388
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.448204
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.411743
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.637575
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.442059
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.559647
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.563267
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.292835
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.827301
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.452518
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.503567
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.352898
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.515345
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.473251
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.455236
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.345241
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.495728
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.466617
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.607082
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.571724
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.520343
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.465361
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.287574
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.415956
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.525262
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.56666
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.410049
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.328077
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.693319
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.513291
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.523499
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.614559
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.822555
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.435441
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.623172
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.394318
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.543468
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.508506
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.582264
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.620471
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.472904
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.545548
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.554418
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.549918
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.582093
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.552035
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.536633
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.534704
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.350802
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.637397
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.36231
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.400035
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.429416
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.479106
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.383524
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.373288
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.500294
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.371644
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.447939
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.466302
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.446136
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.544847
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.358187
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.366732
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.376349
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.450531
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.522482
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.4944
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.261515
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.498661
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.486472
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.626465
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.335406
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.420512
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.325044
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.4301
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.725395
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.359322
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.265872
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.390193
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.640108
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.408429
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.587104
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.381276
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.384219
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.450813
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.410222
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.549275
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.420621
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.360546
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.359805
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.622582
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.258224
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.36549
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.354083
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.27681
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.538122
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.68646
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.591272
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.465731
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.679444
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.406246
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.553238
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.525602
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.502366
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.58678
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.377182
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.457884
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.343113
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.267463
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.301554
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.656355
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.579878
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.464934
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.319074
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.362222
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.363369
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.315364
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.617935
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.535758
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.6308
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.373272
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.39481
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.346882
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.263988
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.55051
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.475978
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.309636
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.420034
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.349128
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.555671
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.279757
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.523262
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.645603
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.492278
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.3952
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.231097
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.551847
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.28232
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.331877
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.441517
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.378488
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.393968
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.234852
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.195316
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.406825
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.248121
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.436391
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.377268
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.360815
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.568114
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.407227
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.277808
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.498751
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.473593
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.588454
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.235972
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.501485
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.480454
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.464296
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.634907
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.268554
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.416189
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.363898
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.42647
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.425178
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.436496
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.393159
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.368216
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.41152
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.552905
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.424957
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.441404
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.452291
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.354405
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.384672
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.362755
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.442303
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.350552
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.35231
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.530846
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.338713
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.35309
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.314363
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.400153
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.455704
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.188961
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.236374
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.501377
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.577531
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.376974
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.705046
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.396747
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.213701
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.666717
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.332463
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.466428
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.687733
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.454114
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.461725
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.691842
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.357916
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.512732
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.521689
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.557134
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.486869
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.409329
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.430013
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.38912
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.633755
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.413968
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.381573
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.493132
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.38975
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.230306
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.42708
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.4914
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.538658
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.587504
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.42983
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.386577
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.413694
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.303241
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.263059
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.56095
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.245347
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.373478
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.398738
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.346336
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.564692
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.550551
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.429937
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.495096
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.367334
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.671733
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.507904
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.293211
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.372914
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.503504
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.442897
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.595201
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.487153
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.50999
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.507624
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.469478
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.50099
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.544387
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.48036
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.366009
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.472128
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.376413
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.244304
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.551176
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.327074
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.432975
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.683187
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.490545
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.398489
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.452802
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.411548
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.514968
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.38397
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.368477
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.550876
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.569317
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.616826
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.473901
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.401554
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.432199
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.581722
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.603836
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.523894
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.341895
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.541845
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.425748
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.455741
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.477843
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.500774
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.308574
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.388147
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.630819
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.688684
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.551838
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.438245
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.340543
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.462814
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.505602
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.369646
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.411786
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.423062
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.355365
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.520117
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.407764
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.511006
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.477741
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.229529
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.452935
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.322062
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.648127
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.231512
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.259272
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.525599
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.309627
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.474593
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.321023
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.271389
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.401595
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.469386
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.319121
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.394988
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.620297
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.391223
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.518524
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.389516
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.674167
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.326414
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.284941
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.435553
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.338091
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.472892
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.392852
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.363889
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.259643
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.541967
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.337473
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.383496
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.508748
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.28884
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.289964
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.301343
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.510689
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.362454
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.372615
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.360318
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.611527
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.536971
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.496298
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.35911
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.343511
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.30354
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.550453
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.588405
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.349836
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.420748
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.458144
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.516653
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.330279
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.454351
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.383064
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.299893
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.386579
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.230065
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.378872
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.375974
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.476503
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.510544
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.388366
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.519049
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.427328
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.581966
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.519299
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.39557
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.307247
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.649424
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.178305
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.30201
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.312931
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.348002
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.358797
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.450719
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.513209
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.304966
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.242953
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.446352
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.34699
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.500856
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.473452
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.409428
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.605283
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.273946
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.402838
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.521263
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.268145
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.399205
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.345178
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.438832
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.368021
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.235596
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.498275
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.248239
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.358151
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.40633
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.285305
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.748475
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.447732
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.324534
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.280778
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.253803
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.175096
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.335114
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.743348
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.625232
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.590254
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.17984
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.373871
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.27901
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.377848
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.308713
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.388908
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.422443
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.492854
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.531212
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.411344
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.557984
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.536792
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.565692
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.353073
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.413359
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.454199
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.491371
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.398505
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.570545
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.392144
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.388277
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.445143
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.215443
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.390016
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.302149
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.420345
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.401161
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.370043
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.451373
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.683094
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.635257
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.301471
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.364249
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.399922
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.344139
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.286979
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.526125
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.533233
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.369229
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.380212
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.387652
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.672645
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.514013
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.435793
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.598015
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.443449
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.429058
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.614062
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.357682
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.407341
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.524894
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.524493
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.549687
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.412597
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.536988
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.409332
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.541061
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.412716
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.644943
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.311481
+## [ CPUFloatType{} ]
+## torch_tensor
+## 0.464991
+## [ CPUFloatType{} ]</code></pre>
+Note: the ‘nnf_cross_entropy’ expects predictions on the scale of the linear predictors (the loss function itself will apply the softmax!)
 </details>
 <p><br/></p>
 </div>
 <div id="model-evaluation" class="section level3" number="3.5.5">
 <h3><span class="header-section-number">3.5.5</span> Model evaluation</h3>
 <p>We will predict survived for the test data of the inner split and calculate the accuracy:</p>
-<div class="sourceCode" id="cb266"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb266-1"><a href="fund.html#cb266-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span></span>
-<span id="cb266-2"><a href="fund.html#cb266-2" aria-hidden="true" tabindex="-1"></a>  model <span class="sc">%&gt;%</span></span>
-<span id="cb266-3"><a href="fund.html#cb266-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">predict</span>(<span class="at">x =</span> <span class="fu">as.matrix</span>(sub_test[,<span class="sc">-</span><span class="dv">1</span>]))</span>
-<span id="cb266-4"><a href="fund.html#cb266-4" aria-hidden="true" tabindex="-1"></a>predicted <span class="ot">=</span> <span class="fu">ifelse</span>(preds[,<span class="dv">2</span>] <span class="sc">&lt;</span> <span class="fl">0.5</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
-<span id="cb266-5"><a href="fund.html#cb266-5" aria-hidden="true" tabindex="-1"></a>observed <span class="ot">=</span> sub_test[,<span class="dv">1</span>]</span>
-<span id="cb266-6"><a href="fund.html#cb266-6" aria-hidden="true" tabindex="-1"></a>(<span class="at">accuracy =</span> <span class="fu">mean</span>(predicted <span class="sc">==</span> observed))</span></code></pre></div>
-<pre><code>## [1] 0.7817259</code></pre>
+<div class="sourceCode" id="cb267"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb267-1"><a href="fund.html#cb267-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span></span>
+<span id="cb267-2"><a href="fund.html#cb267-2" aria-hidden="true" tabindex="-1"></a>  model <span class="sc">%&gt;%</span></span>
+<span id="cb267-3"><a href="fund.html#cb267-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">predict</span>(<span class="at">x =</span> <span class="fu">as.matrix</span>(sub_test[,<span class="sc">-</span><span class="dv">1</span>]))</span>
+<span id="cb267-4"><a href="fund.html#cb267-4" aria-hidden="true" tabindex="-1"></a>predicted <span class="ot">=</span> <span class="fu">ifelse</span>(preds[,<span class="dv">2</span>] <span class="sc">&lt;</span> <span class="fl">0.5</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb267-5"><a href="fund.html#cb267-5" aria-hidden="true" tabindex="-1"></a>observed <span class="ot">=</span> sub_test[,<span class="dv">1</span>]</span>
+<span id="cb267-6"><a href="fund.html#cb267-6" aria-hidden="true" tabindex="-1"></a>(<span class="at">accuracy =</span> <span class="fu">mean</span>(predicted <span class="sc">==</span> observed))</span></code></pre></div>
+<pre><code>## [1] 0.7614213</code></pre>
 <details>
 <summary>
 <strong><span style="color: #CC2FAA">torch</span></strong>
 </summary>
 <p>
-<p>Again, we have to do the regularization on our own:</p>
-<div class="sourceCode" id="cb268"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb268-1"><a href="fund.html#cb268-1" aria-hidden="true" tabindex="-1"></a>model_torch<span class="sc">$</span><span class="fu">eval</span>()</span>
-<span id="cb268-2"><a href="fund.html#cb268-2" aria-hidden="true" tabindex="-1"></a>preds_torch <span class="ot">=</span> <span class="fu">model_torch</span>(<span class="fu">torch_tensor</span>(<span class="fu">as.matrix</span>(sub_test[,<span class="sc">-</span><span class="dv">1</span>])))</span>
-<span id="cb268-3"><a href="fund.html#cb268-3" aria-hidden="true" tabindex="-1"></a>preds_torch <span class="ot">=</span> <span class="fu">as.matrix</span>(preds_torch)</span>
-<span id="cb268-4"><a href="fund.html#cb268-4" aria-hidden="true" tabindex="-1"></a>preds_torch <span class="ot">=</span> <span class="fu">apply</span>(preds_torch, <span class="dv">1</span>, which.max)</span>
-<span id="cb268-5"><a href="fund.html#cb268-5" aria-hidden="true" tabindex="-1"></a>(<span class="at">accuracy =</span> <span class="fu">mean</span>(preds_torch<span class="dv">-1</span> <span class="sc">==</span> observed))</span></code></pre></div>
+<div class="sourceCode" id="cb269"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb269-1"><a href="fund.html#cb269-1" aria-hidden="true" tabindex="-1"></a>model_torch<span class="sc">$</span><span class="fu">eval</span>()</span>
+<span id="cb269-2"><a href="fund.html#cb269-2" aria-hidden="true" tabindex="-1"></a>preds_torch <span class="ot">=</span> <span class="fu">nnf_softmax</span>( <span class="fu">model_torch</span>(<span class="fu">torch_tensor</span>(<span class="fu">as.matrix</span>(sub_test[,<span class="sc">-</span><span class="dv">1</span>]))) , <span class="at">dim =</span> 2L)</span>
+<span id="cb269-3"><a href="fund.html#cb269-3" aria-hidden="true" tabindex="-1"></a>preds_torch <span class="ot">=</span> <span class="fu">as.matrix</span>(preds_torch)</span>
+<span id="cb269-4"><a href="fund.html#cb269-4" aria-hidden="true" tabindex="-1"></a>preds_torch <span class="ot">=</span> <span class="fu">apply</span>(preds_torch, <span class="dv">1</span>, which.max)</span>
+<span id="cb269-5"><a href="fund.html#cb269-5" aria-hidden="true" tabindex="-1"></a>(<span class="at">accuracy =</span> <span class="fu">mean</span>(preds_torch<span class="dv">-1</span> <span class="sc">==</span> observed))</span></code></pre></div>
 <pre><code>## [1] 0.7563452</code></pre>
+Now we have to use the softmax function.
 </details>
 <p><br/></p>
 </div>
@@ -1295,22 +2787,22 @@ The inner split is important because to assess the model’s performance and pot
 <h3><span class="header-section-number">3.5.6</span> Predictions and submission</h3>
 <p>When we are satisfied with the performance of our model in the inner split, we will create predictions for the test data of the outer split:</p>
 <p>To do so, we select all observations that belong to the outer test split (use the filter function) and remove the survived (NAs) columns</p>
-<div class="sourceCode" id="cb270"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb270-1"><a href="fund.html#cb270-1" aria-hidden="true" tabindex="-1"></a>submit <span class="ot">=</span> </span>
-<span id="cb270-2"><a href="fund.html#cb270-2" aria-hidden="true" tabindex="-1"></a>  test <span class="sc">%&gt;%</span> </span>
-<span id="cb270-3"><a href="fund.html#cb270-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(<span class="sc">-</span>survived)</span></code></pre></div>
+<div class="sourceCode" id="cb271"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb271-1"><a href="fund.html#cb271-1" aria-hidden="true" tabindex="-1"></a>submit <span class="ot">=</span> </span>
+<span id="cb271-2"><a href="fund.html#cb271-2" aria-hidden="true" tabindex="-1"></a>  test <span class="sc">%&gt;%</span> </span>
+<span id="cb271-3"><a href="fund.html#cb271-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(<span class="sc">-</span>survived)</span></code></pre></div>
 <p>We cannot assess the performance on the test split because the true survived ratio is unknown, however, we can now submit our predictions to the submission server at
 <a href="http://rhsbio7.uni-regensburg.de:8500" class="uri">http://rhsbio7.uni-regensburg.de:8500</a>
 To do so, we have to transform our survived probabilities into actual 0/1 predictions (probabilities are not allowed) and create a csv:</p>
-<div class="sourceCode" id="cb271"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb271-1"><a href="fund.html#cb271-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> model <span class="sc">%&gt;%</span> </span>
-<span id="cb271-2"><a href="fund.html#cb271-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(<span class="fu">as.matrix</span>(submit))</span></code></pre></div>
+<div class="sourceCode" id="cb272"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb272-1"><a href="fund.html#cb272-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> model <span class="sc">%&gt;%</span> </span>
+<span id="cb272-2"><a href="fund.html#cb272-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(<span class="fu">as.matrix</span>(submit))</span></code></pre></div>
 <p>All values &gt; 0.5 will be set to 1 and values &lt; 0.5 to zero.
 For the submission it is critical to change the predictions into a data.frame and save it with the write.csv function:</p>
-<div class="sourceCode" id="cb272"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb272-1"><a href="fund.html#cb272-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y=</span>pred), <span class="at">file =</span> <span class="st">&quot;Max_1.csv&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb273"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb273-1"><a href="fund.html#cb273-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y=</span>pred), <span class="at">file =</span> <span class="st">&quot;Max_1.csv&quot;</span>)</span></code></pre></div>
 <p>The file name is used as the ID on the submission server, so change it to whatever you want as long as you can identify yourself.</p>
 </div>
 </div>
-<div id="bonus---reproducible-ml-pipelines-with-mlr3" class="section level2" number="3.6">
-<h2><span class="header-section-number">3.6</span> Bonus - Reproducible ML pipelines with mlr3</h2>
+<div id="bonus---ml-pipelines-with-mlr3" class="section level2" number="3.6">
+<h2><span class="header-section-number">3.6</span> Bonus - ML pipelines with mlr3</h2>
 <p>As we have seen today, many of the ML algorithms are distributed over several packages but the general ML pipeline is very similar for all models: feature engineering, feature selection?, hyper-parameter tuning and cross validation.</p>
 <p>The idea of the mlr3 framework is now to provide a general ML interface which you can use to build reproducible and automatic ML pipelines. The key features of mlr3 are:</p>
 <ul>
@@ -1330,15 +2822,15 @@ For the submission it is critical to change the predictions into a data.frame an
 <h3><span class="header-section-number">3.6.1</span> mlr3 - the basic workflow</h3>
 <p>The mlr3 actually consists of several packages for different tasks (e.g. mlr3tuning for hyper-parameter tuning, mlr3pipelines for data preparation pipes).
 But let’s start with the basic workflow.</p>
-<div class="sourceCode" id="cb273"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb273-1"><a href="fund.html#cb273-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
-<span id="cb273-2"><a href="fund.html#cb273-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb273-3"><a href="fund.html#cb273-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3)</span>
-<span id="cb273-4"><a href="fund.html#cb273-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3learners)</span>
-<span id="cb273-5"><a href="fund.html#cb273-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3pipelines)</span>
-<span id="cb273-6"><a href="fund.html#cb273-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3tuning)</span>
-<span id="cb273-7"><a href="fund.html#cb273-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3measures)</span>
-<span id="cb273-8"><a href="fund.html#cb273-8" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(nasa)</span>
-<span id="cb273-9"><a href="fund.html#cb273-9" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(nasa)</span></code></pre></div>
+<div class="sourceCode" id="cb274"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb274-1"><a href="fund.html#cb274-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
+<span id="cb274-2"><a href="fund.html#cb274-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb274-3"><a href="fund.html#cb274-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3)</span>
+<span id="cb274-4"><a href="fund.html#cb274-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3learners)</span>
+<span id="cb274-5"><a href="fund.html#cb274-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3pipelines)</span>
+<span id="cb274-6"><a href="fund.html#cb274-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3tuning)</span>
+<span id="cb274-7"><a href="fund.html#cb274-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3measures)</span>
+<span id="cb274-8"><a href="fund.html#cb274-8" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(nasa)</span>
+<span id="cb274-9"><a href="fund.html#cb274-9" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(nasa)</span></code></pre></div>
 <pre><code>## &#39;data.frame&#39;:    4687 obs. of  40 variables:
 ##  $ Neo.Reference.ID            : int  3449084 3702322 3406893 NA 2363305 3017307 2438430 3653917 3519490 2066391 ...
 ##  $ Name                        : int  NA 3702322 3406893 3082923 2363305 3017307 2438430 3653917 3519490 NA ...
@@ -1381,20 +2873,20 @@ But let’s start with the basic workflow.</p>
 ##  $ Equinox                     : Factor w/ 1 level &quot;J2000&quot;: 1 1 NA 1 1 1 1 1 1 1 ...
 ##  $ Hazardous                   : int  0 0 0 1 1 0 0 0 1 1 ...</code></pre>
 <p>Let’s drop time, name, ID variable, and create a classification task:</p>
-<div class="sourceCode" id="cb275"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb275-1"><a href="fund.html#cb275-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> nasa <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>Orbit.Determination.Date, <span class="sc">-</span>Close.Approach.Date, <span class="sc">-</span>Name, <span class="sc">-</span>Neo.Reference.ID)</span>
-<span id="cb275-2"><a href="fund.html#cb275-2" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>Hazardous <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>Hazardous)</span>
-<span id="cb275-3"><a href="fund.html#cb275-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb275-4"><a href="fund.html#cb275-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb275-5"><a href="fund.html#cb275-5" aria-hidden="true" tabindex="-1"></a><span class="co"># create a classification task</span></span>
-<span id="cb275-6"><a href="fund.html#cb275-6" aria-hidden="true" tabindex="-1"></a>task <span class="ot">=</span> TaskClassif<span class="sc">$</span><span class="fu">new</span>(<span class="at">id =</span> <span class="st">&quot;nasa&quot;</span>, <span class="at">backend =</span> data, <span class="at">target =</span> <span class="st">&quot;Hazardous&quot;</span>, <span class="at">positive =</span> <span class="st">&quot;1&quot;</span>)</span></code></pre></div>
-<p>Create a generic pipeline of data transformation (imputation -&gt; scaling -&gt; encoding of categorical variables):</p>
-<div class="sourceCode" id="cb276"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb276-1"><a href="fund.html#cb276-1" aria-hidden="true" tabindex="-1"></a><span class="co"># let&#39;s create the preprossing graph</span></span>
-<span id="cb276-2"><a href="fund.html#cb276-2" aria-hidden="true" tabindex="-1"></a>preprocessing <span class="ot">=</span> <span class="fu">po</span>(<span class="st">&quot;imputeoor&quot;</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">&quot;scale&quot;</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">&quot;encode&quot;</span>) </span>
+<div class="sourceCode" id="cb276"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb276-1"><a href="fund.html#cb276-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> nasa <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>Orbit.Determination.Date, <span class="sc">-</span>Close.Approach.Date, <span class="sc">-</span>Name, <span class="sc">-</span>Neo.Reference.ID)</span>
+<span id="cb276-2"><a href="fund.html#cb276-2" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>Hazardous <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>Hazardous)</span>
 <span id="cb276-3"><a href="fund.html#cb276-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb276-4"><a href="fund.html#cb276-4" aria-hidden="true" tabindex="-1"></a><span class="co"># run the task trhough it</span></span>
-<span id="cb276-5"><a href="fund.html#cb276-5" aria-hidden="true" tabindex="-1"></a>transformed_task <span class="ot">=</span> preprocessing<span class="sc">$</span><span class="fu">train</span>(task)[[<span class="dv">1</span>]]</span>
-<span id="cb276-6"><a href="fund.html#cb276-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb276-7"><a href="fund.html#cb276-7" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">missings</span>()</span></code></pre></div>
+<span id="cb276-4"><a href="fund.html#cb276-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb276-5"><a href="fund.html#cb276-5" aria-hidden="true" tabindex="-1"></a><span class="co"># create a classification task</span></span>
+<span id="cb276-6"><a href="fund.html#cb276-6" aria-hidden="true" tabindex="-1"></a>task <span class="ot">=</span> TaskClassif<span class="sc">$</span><span class="fu">new</span>(<span class="at">id =</span> <span class="st">&quot;nasa&quot;</span>, <span class="at">backend =</span> data, <span class="at">target =</span> <span class="st">&quot;Hazardous&quot;</span>, <span class="at">positive =</span> <span class="st">&quot;1&quot;</span>)</span></code></pre></div>
+<p>Create a generic pipeline of data transformation (imputation -&gt; scaling -&gt; encoding of categorical variables):</p>
+<div class="sourceCode" id="cb277"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb277-1"><a href="fund.html#cb277-1" aria-hidden="true" tabindex="-1"></a><span class="co"># let&#39;s create the preprossing graph</span></span>
+<span id="cb277-2"><a href="fund.html#cb277-2" aria-hidden="true" tabindex="-1"></a>preprocessing <span class="ot">=</span> <span class="fu">po</span>(<span class="st">&quot;imputeoor&quot;</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">&quot;scale&quot;</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">&quot;encode&quot;</span>) </span>
+<span id="cb277-3"><a href="fund.html#cb277-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb277-4"><a href="fund.html#cb277-4" aria-hidden="true" tabindex="-1"></a><span class="co"># run the task trhough it</span></span>
+<span id="cb277-5"><a href="fund.html#cb277-5" aria-hidden="true" tabindex="-1"></a>transformed_task <span class="ot">=</span> preprocessing<span class="sc">$</span><span class="fu">train</span>(task)[[<span class="dv">1</span>]]</span>
+<span id="cb277-6"><a href="fund.html#cb277-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb277-7"><a href="fund.html#cb277-7" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">missings</span>()</span></code></pre></div>
 <pre><code>##                    Hazardous           Absolute.Magnitude                Aphelion.Dist           Asc.Node.Longitude 
 ##                         4187                            0                            0                            0 
 ##                 Eccentricity    Epoch.Date.Close.Approach             Epoch.Osculation         Est.Dia.in.Feet.max. 
@@ -1416,7 +2908,7 @@ But let’s start with the basic workflow.</p>
 ##          Orbiting.Body.Earth       Orbiting.Body..MISSING 
 ##                            0                            0</code></pre>
 <p>We can even visualize the pre-processing graph:</p>
-<div class="sourceCode" id="cb278"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb278-1"><a href="fund.html#cb278-1" aria-hidden="true" tabindex="-1"></a>preprocessing<span class="sc">$</span><span class="fu">plot</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb279"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb279-1"><a href="fund.html#cb279-1" aria-hidden="true" tabindex="-1"></a>preprocessing<span class="sc">$</span><span class="fu">plot</span>()</span></code></pre></div>
 <p><img src="_main_files/figure-html/unnamed-chunk-129-1.png" width="672" /></p>
 <p>Now, to test our model (randomForest) by 10-CV, we will:</p>
 <ul>
@@ -1424,7 +2916,7 @@ But let’s start with the basic workflow.</p>
 <li>specify the CV, the learner (the ML model we want to use), and the measurement (AUC)</li>
 <li>run (benchmark) our model</li>
 </ul>
-<div class="sourceCode" id="cb279"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb279-1"><a href="fund.html#cb279-1" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">data</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb280"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb280-1"><a href="fund.html#cb280-1" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">data</span>()</span></code></pre></div>
 <pre><code>##       Hazardous Absolute.Magnitude Aphelion.Dist Asc.Node.Longitude Eccentricity Epoch.Date.Close.Approach Epoch.Osculation
 ##    1:         0        -0.81322649   -0.38042005       -1.140837452 -0.315605975                -4.7929881       0.14026773
 ##    2:         0         0.02110348    0.94306517       -1.380254611  0.744287645                 1.1058704      -0.26325244
@@ -1497,22 +2989,22 @@ But let’s start with the basic workflow.</p>
 ## 4685:                 -1.222499918      -0.3034586             1                0                   1                      0
 ## 4686:                 -0.757142920       0.2353030             1                0                   1                      0
 ## 4687:                 -0.269030636       0.1857979             1                0                   1                      0</code></pre>
-<div class="sourceCode" id="cb281"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb281-1"><a href="fund.html#cb281-1" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">set_row_roles</span>((<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)], <span class="st">&quot;validation&quot;</span>)</span>
-<span id="cb281-2"><a href="fund.html#cb281-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb281-3"><a href="fund.html#cb281-3" aria-hidden="true" tabindex="-1"></a>cv10 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">&quot;cv&quot;</span>, <span class="at">folds =</span> 10L)</span>
-<span id="cb281-4"><a href="fund.html#cb281-4" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">&quot;classif.ranger&quot;</span>, <span class="at">predict_type =</span> <span class="st">&quot;prob&quot;</span>)</span>
-<span id="cb281-5"><a href="fund.html#cb281-5" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">&quot;classif.auc&quot;</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb282"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb282-1"><a href="fund.html#cb282-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">resample</span>(transformed_task, rf, <span class="at">resampling =</span> cv10, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span>
+<div class="sourceCode" id="cb282"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb282-1"><a href="fund.html#cb282-1" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">set_row_roles</span>((<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)], <span class="st">&quot;validation&quot;</span>)</span>
 <span id="cb282-2"><a href="fund.html#cb282-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb282-3"><a href="fund.html#cb282-3" aria-hidden="true" tabindex="-1"></a><span class="co"># calclate the average AUC of the holdouts</span></span>
-<span id="cb282-4"><a href="fund.html#cb282-4" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>( measurement )</span></code></pre></div>
+<span id="cb282-3"><a href="fund.html#cb282-3" aria-hidden="true" tabindex="-1"></a>cv10 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">&quot;cv&quot;</span>, <span class="at">folds =</span> 10L)</span>
+<span id="cb282-4"><a href="fund.html#cb282-4" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">&quot;classif.ranger&quot;</span>, <span class="at">predict_type =</span> <span class="st">&quot;prob&quot;</span>)</span>
+<span id="cb282-5"><a href="fund.html#cb282-5" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">&quot;classif.auc&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb283"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb283-1"><a href="fund.html#cb283-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">resample</span>(transformed_task, rf, <span class="at">resampling =</span> cv10, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb283-2"><a href="fund.html#cb283-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb283-3"><a href="fund.html#cb283-3" aria-hidden="true" tabindex="-1"></a><span class="co"># calclate the average AUC of the holdouts</span></span>
+<span id="cb283-4"><a href="fund.html#cb283-4" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>( measurement )</span></code></pre></div>
 <p>Very cool! Pre-processing + CV10 model evaluation in a few lines of code!</p>
 <p>Let’s create the final predictions:</p>
-<div class="sourceCode" id="cb283"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb283-1"><a href="fund.html#cb283-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> </span>
-<span id="cb283-2"><a href="fund.html#cb283-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="cf">function</span>(i) result<span class="sc">$</span>learners[[i]]<span class="sc">$</span><span class="fu">predict</span>(transformed_task, </span>
-<span id="cb283-3"><a href="fund.html#cb283-3" aria-hidden="true" tabindex="-1"></a>                                                        <span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)])<span class="sc">$</span>data<span class="sc">$</span>prob[,<span class="st">&quot;1&quot;</span>,<span class="at">drop=</span><span class="cn">FALSE</span>])</span>
-<span id="cb283-4"><a href="fund.html#cb283-4" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(preds)</span>
-<span id="cb283-5"><a href="fund.html#cb283-5" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">apply</span>(preds, <span class="dv">1</span>, mean)</span></code></pre></div>
+<div class="sourceCode" id="cb284"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb284-1"><a href="fund.html#cb284-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> </span>
+<span id="cb284-2"><a href="fund.html#cb284-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="cf">function</span>(i) result<span class="sc">$</span>learners[[i]]<span class="sc">$</span><span class="fu">predict</span>(transformed_task, </span>
+<span id="cb284-3"><a href="fund.html#cb284-3" aria-hidden="true" tabindex="-1"></a>                                                        <span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)])<span class="sc">$</span>data<span class="sc">$</span>prob[,<span class="st">&quot;1&quot;</span>,<span class="at">drop=</span><span class="cn">FALSE</span>])</span>
+<span id="cb284-4"><a href="fund.html#cb284-4" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(preds)</span>
+<span id="cb284-5"><a href="fund.html#cb284-5" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">apply</span>(preds, <span class="dv">1</span>, mean)</span></code></pre></div>
 <p>You could now submit the predictions <a href="http://rhsbio7.uni-regensburg.de:8500">here</a></p>
 <p>But we are still not happy, let’s do some hyper-parameter tuning!</p>
 </div>
@@ -1542,7 +3034,7 @@ But let’s start with the basic workflow.</p>
 </ul>
 <p>With mlr3, we can easily extend the above example to do hyper-parameter tuning within nested cross-validation (the tuning has its own inner CV)</p>
 <p>Print the hyper-parameter space of our RF learner:</p>
-<div class="sourceCode" id="cb284"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb284-1"><a href="fund.html#cb284-1" aria-hidden="true" tabindex="-1"></a>rf<span class="sc">$</span>param_set</span></code></pre></div>
+<div class="sourceCode" id="cb285"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb285-1"><a href="fund.html#cb285-1" aria-hidden="true" tabindex="-1"></a>rf<span class="sc">$</span>param_set</span></code></pre></div>
 <pre><code>## &lt;ParamSet&gt;
 ##                               id    class lower upper nlevels        default    parents value
 ##  1:                        alpha ParamDbl  -Inf   Inf     Inf            0.5                 
@@ -1575,13 +3067,13 @@ But let’s start with the basic workflow.</p>
 ## 28:                 write.forest ParamLgl    NA    NA       2           TRUE                 
 ##                               id    class lower upper nlevels        default    parents value</code></pre>
 <p>Define the hyper-parameter space of RF:</p>
-<div class="sourceCode" id="cb286"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb286-1"><a href="fund.html#cb286-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(paradox)</span>
-<span id="cb286-2"><a href="fund.html#cb286-2" aria-hidden="true" tabindex="-1"></a>rf_pars <span class="ot">=</span> </span>
-<span id="cb286-3"><a href="fund.html#cb286-3" aria-hidden="true" tabindex="-1"></a>    paradox<span class="sc">::</span>ParamSet<span class="sc">$</span><span class="fu">new</span>(</span>
-<span id="cb286-4"><a href="fund.html#cb286-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(paradox<span class="sc">::</span>ParamInt<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;min.node.size&quot;</span>, <span class="at">lower =</span> <span class="dv">1</span>, <span class="at">upper =</span> 30L),</span>
-<span id="cb286-5"><a href="fund.html#cb286-5" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamInt<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;mtry&quot;</span>, <span class="at">lower =</span> <span class="dv">1</span>, <span class="at">upper =</span> 30L),</span>
-<span id="cb286-6"><a href="fund.html#cb286-6" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamLgl<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;regularization.usedepth&quot;</span>, <span class="at">default =</span> <span class="cn">TRUE</span>)))</span>
-<span id="cb286-7"><a href="fund.html#cb286-7" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rf_pars)</span></code></pre></div>
+<div class="sourceCode" id="cb287"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb287-1"><a href="fund.html#cb287-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(paradox)</span>
+<span id="cb287-2"><a href="fund.html#cb287-2" aria-hidden="true" tabindex="-1"></a>rf_pars <span class="ot">=</span> </span>
+<span id="cb287-3"><a href="fund.html#cb287-3" aria-hidden="true" tabindex="-1"></a>    paradox<span class="sc">::</span>ParamSet<span class="sc">$</span><span class="fu">new</span>(</span>
+<span id="cb287-4"><a href="fund.html#cb287-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(paradox<span class="sc">::</span>ParamInt<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;min.node.size&quot;</span>, <span class="at">lower =</span> <span class="dv">1</span>, <span class="at">upper =</span> 30L),</span>
+<span id="cb287-5"><a href="fund.html#cb287-5" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamInt<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;mtry&quot;</span>, <span class="at">lower =</span> <span class="dv">1</span>, <span class="at">upper =</span> 30L),</span>
+<span id="cb287-6"><a href="fund.html#cb287-6" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamLgl<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;regularization.usedepth&quot;</span>, <span class="at">default =</span> <span class="cn">TRUE</span>)))</span>
+<span id="cb287-7"><a href="fund.html#cb287-7" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rf_pars)</span></code></pre></div>
 <pre><code>## &lt;ParamSet&gt;
 ##                         id    class lower upper nlevels        default value
 ## 1:           min.node.size ParamInt     1    30      30 &lt;NoDefault[3]&gt;      
@@ -1594,19 +3086,19 @@ But let’s start with the basic workflow.</p>
 <li>tuning method (e.g. random or block search)</li>
 <li>tuning terminator (when should we stop tune? E.g. after n iterations)</li>
 </ul>
-<div class="sourceCode" id="cb288"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb288-1"><a href="fund.html#cb288-1" aria-hidden="true" tabindex="-1"></a>inner3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">&quot;cv&quot;</span>, <span class="at">folds =</span> 3L)</span>
-<span id="cb288-2"><a href="fund.html#cb288-2" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">&quot;classif.auc&quot;</span>)</span>
-<span id="cb288-3"><a href="fund.html#cb288-3" aria-hidden="true" tabindex="-1"></a>tuner <span class="ot">=</span>  mlr3tuning<span class="sc">::</span><span class="fu">tnr</span>(<span class="st">&quot;random_search&quot;</span>) </span>
-<span id="cb288-4"><a href="fund.html#cb288-4" aria-hidden="true" tabindex="-1"></a>terminator <span class="ot">=</span> mlr3tuning<span class="sc">::</span><span class="fu">trm</span>(<span class="st">&quot;evals&quot;</span>, <span class="at">n_evals =</span> 5L)</span>
-<span id="cb288-5"><a href="fund.html#cb288-5" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">&quot;classif.ranger&quot;</span>, <span class="at">predict_type =</span> <span class="st">&quot;prob&quot;</span>)</span>
-<span id="cb288-6"><a href="fund.html#cb288-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb288-7"><a href="fund.html#cb288-7" aria-hidden="true" tabindex="-1"></a>learner_tuner <span class="ot">=</span> AutoTuner<span class="sc">$</span><span class="fu">new</span>(<span class="at">learner =</span> rf, </span>
-<span id="cb288-8"><a href="fund.html#cb288-8" aria-hidden="true" tabindex="-1"></a>                              <span class="at">measure =</span> measurement, </span>
-<span id="cb288-9"><a href="fund.html#cb288-9" aria-hidden="true" tabindex="-1"></a>                              <span class="at">tuner =</span> tuner, </span>
-<span id="cb288-10"><a href="fund.html#cb288-10" aria-hidden="true" tabindex="-1"></a>                              <span class="at">terminator =</span> terminator,</span>
-<span id="cb288-11"><a href="fund.html#cb288-11" aria-hidden="true" tabindex="-1"></a>                              <span class="at">search_space =</span> rf_pars,</span>
-<span id="cb288-12"><a href="fund.html#cb288-12" aria-hidden="true" tabindex="-1"></a>                              <span class="at">resampling =</span> inner3)</span>
-<span id="cb288-13"><a href="fund.html#cb288-13" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(learner_tuner)</span></code></pre></div>
+<div class="sourceCode" id="cb289"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb289-1"><a href="fund.html#cb289-1" aria-hidden="true" tabindex="-1"></a>inner3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">&quot;cv&quot;</span>, <span class="at">folds =</span> 3L)</span>
+<span id="cb289-2"><a href="fund.html#cb289-2" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">&quot;classif.auc&quot;</span>)</span>
+<span id="cb289-3"><a href="fund.html#cb289-3" aria-hidden="true" tabindex="-1"></a>tuner <span class="ot">=</span>  mlr3tuning<span class="sc">::</span><span class="fu">tnr</span>(<span class="st">&quot;random_search&quot;</span>) </span>
+<span id="cb289-4"><a href="fund.html#cb289-4" aria-hidden="true" tabindex="-1"></a>terminator <span class="ot">=</span> mlr3tuning<span class="sc">::</span><span class="fu">trm</span>(<span class="st">&quot;evals&quot;</span>, <span class="at">n_evals =</span> 5L)</span>
+<span id="cb289-5"><a href="fund.html#cb289-5" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">&quot;classif.ranger&quot;</span>, <span class="at">predict_type =</span> <span class="st">&quot;prob&quot;</span>)</span>
+<span id="cb289-6"><a href="fund.html#cb289-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb289-7"><a href="fund.html#cb289-7" aria-hidden="true" tabindex="-1"></a>learner_tuner <span class="ot">=</span> AutoTuner<span class="sc">$</span><span class="fu">new</span>(<span class="at">learner =</span> rf, </span>
+<span id="cb289-8"><a href="fund.html#cb289-8" aria-hidden="true" tabindex="-1"></a>                              <span class="at">measure =</span> measurement, </span>
+<span id="cb289-9"><a href="fund.html#cb289-9" aria-hidden="true" tabindex="-1"></a>                              <span class="at">tuner =</span> tuner, </span>
+<span id="cb289-10"><a href="fund.html#cb289-10" aria-hidden="true" tabindex="-1"></a>                              <span class="at">terminator =</span> terminator,</span>
+<span id="cb289-11"><a href="fund.html#cb289-11" aria-hidden="true" tabindex="-1"></a>                              <span class="at">search_space =</span> rf_pars,</span>
+<span id="cb289-12"><a href="fund.html#cb289-12" aria-hidden="true" tabindex="-1"></a>                              <span class="at">resampling =</span> inner3)</span>
+<span id="cb289-13"><a href="fund.html#cb289-13" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(learner_tuner)</span></code></pre></div>
 <pre><code>## &lt;AutoTuner:classif.ranger.tuned&gt;
 ## * Model: -
 ## * Parameters: list()
@@ -1615,23 +3107,23 @@ But let’s start with the basic workflow.</p>
 ## * Feature types: logical, integer, numeric, character, factor, ordered
 ## * Properties: importance, multiclass, oob_error, twoclass, weights</code></pre>
 <p>Now we can wrap it normally into the 10-CV setup as previously:</p>
-<div class="sourceCode" id="cb290"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb290-1"><a href="fund.html#cb290-1" aria-hidden="true" tabindex="-1"></a>outer3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">&quot;cv&quot;</span>, <span class="at">folds =</span> 3L)</span>
-<span id="cb290-2"><a href="fund.html#cb290-2" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">resample</span>(transformed_task, learner_tuner, <span class="at">resampling =</span> outer3, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb290-3"><a href="fund.html#cb290-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb290-4"><a href="fund.html#cb290-4" aria-hidden="true" tabindex="-1"></a><span class="co"># calclate the average AUC of the holdouts</span></span>
-<span id="cb290-5"><a href="fund.html#cb290-5" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>( measurement )</span></code></pre></div>
+<div class="sourceCode" id="cb291"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb291-1"><a href="fund.html#cb291-1" aria-hidden="true" tabindex="-1"></a>outer3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">&quot;cv&quot;</span>, <span class="at">folds =</span> 3L)</span>
+<span id="cb291-2"><a href="fund.html#cb291-2" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">resample</span>(transformed_task, learner_tuner, <span class="at">resampling =</span> outer3, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb291-3"><a href="fund.html#cb291-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb291-4"><a href="fund.html#cb291-4" aria-hidden="true" tabindex="-1"></a><span class="co"># calclate the average AUC of the holdouts</span></span>
+<span id="cb291-5"><a href="fund.html#cb291-5" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>( measurement )</span></code></pre></div>
 <p>Yeah, we were able to improve the performance!</p>
 <p>Let’s create the final predictions:</p>
-<div class="sourceCode" id="cb291"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb291-1"><a href="fund.html#cb291-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> </span>
-<span id="cb291-2"><a href="fund.html#cb291-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="cf">function</span>(i) result<span class="sc">$</span>learners[[i]]<span class="sc">$</span><span class="fu">predict</span>(transformed_task, </span>
-<span id="cb291-3"><a href="fund.html#cb291-3" aria-hidden="true" tabindex="-1"></a>                                                        <span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)])<span class="sc">$</span>data<span class="sc">$</span>prob[,<span class="st">&quot;1&quot;</span>,<span class="at">drop=</span><span class="cn">FALSE</span>])</span>
-<span id="cb291-4"><a href="fund.html#cb291-4" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(preds)</span>
-<span id="cb291-5"><a href="fund.html#cb291-5" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">apply</span>(preds, <span class="dv">1</span>, mean)</span></code></pre></div>
+<div class="sourceCode" id="cb292"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb292-1"><a href="fund.html#cb292-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> </span>
+<span id="cb292-2"><a href="fund.html#cb292-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="cf">function</span>(i) result<span class="sc">$</span>learners[[i]]<span class="sc">$</span><span class="fu">predict</span>(transformed_task, </span>
+<span id="cb292-3"><a href="fund.html#cb292-3" aria-hidden="true" tabindex="-1"></a>                                                        <span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)])<span class="sc">$</span>data<span class="sc">$</span>prob[,<span class="st">&quot;1&quot;</span>,<span class="at">drop=</span><span class="cn">FALSE</span>])</span>
+<span id="cb292-4"><a href="fund.html#cb292-4" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(preds)</span>
+<span id="cb292-5"><a href="fund.html#cb292-5" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">apply</span>(preds, <span class="dv">1</span>, mean)</span></code></pre></div>
 </div>
 <div id="mlr3---hyper-parameter-tuning-with-oversampling" class="section level3" number="3.6.3">
 <h3><span class="header-section-number">3.6.3</span> mlr3 - hyper-parameter tuning with oversampling</h3>
 <p>Let’s go one step back, maybe you have noticed that our classes are unbalanced:</p>
-<div class="sourceCode" id="cb292"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb292-1"><a href="fund.html#cb292-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data<span class="sc">$</span>Hazardous)</span></code></pre></div>
+<div class="sourceCode" id="cb293"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb293-1"><a href="fund.html#cb293-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data<span class="sc">$</span>Hazardous)</span></code></pre></div>
 <pre><code>## 
 ##   0   1 
 ## 412  88</code></pre>
@@ -1643,11 +3135,11 @@ But let’s start with the basic workflow.</p>
 <li>SMOTE synthetic minority over-sampling technique (in short, we will use a kNN to create new samples around our undersampled class)</li>
 </ul>
 <p>Here, we will use oversampling which we can do by extending our rf learner:</p>
-<div class="sourceCode" id="cb294"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb294-1"><a href="fund.html#cb294-1" aria-hidden="true" tabindex="-1"></a>rf_over <span class="ot">=</span> <span class="fu">po</span>(<span class="st">&quot;classbalancing&quot;</span>, <span class="at">id =</span> <span class="st">&quot;over&quot;</span>, <span class="at">adjust =</span> <span class="st">&quot;minor&quot;</span>)  <span class="sc">%&gt;&gt;%</span>  rf</span>
-<span id="cb294-2"><a href="fund.html#cb294-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb294-3"><a href="fund.html#cb294-3" aria-hidden="true" tabindex="-1"></a><span class="co"># However rf_over is now a &quot;graph&quot;, but we can easily transform it back into a learner:</span></span>
-<span id="cb294-4"><a href="fund.html#cb294-4" aria-hidden="true" tabindex="-1"></a>rf_over_learner <span class="ot">=</span> GraphLearner<span class="sc">$</span><span class="fu">new</span>(rf_over)</span>
-<span id="cb294-5"><a href="fund.html#cb294-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rf_over_learner)</span></code></pre></div>
+<div class="sourceCode" id="cb295"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb295-1"><a href="fund.html#cb295-1" aria-hidden="true" tabindex="-1"></a>rf_over <span class="ot">=</span> <span class="fu">po</span>(<span class="st">&quot;classbalancing&quot;</span>, <span class="at">id =</span> <span class="st">&quot;over&quot;</span>, <span class="at">adjust =</span> <span class="st">&quot;minor&quot;</span>)  <span class="sc">%&gt;&gt;%</span>  rf</span>
+<span id="cb295-2"><a href="fund.html#cb295-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb295-3"><a href="fund.html#cb295-3" aria-hidden="true" tabindex="-1"></a><span class="co"># However rf_over is now a &quot;graph&quot;, but we can easily transform it back into a learner:</span></span>
+<span id="cb295-4"><a href="fund.html#cb295-4" aria-hidden="true" tabindex="-1"></a>rf_over_learner <span class="ot">=</span> GraphLearner<span class="sc">$</span><span class="fu">new</span>(rf_over)</span>
+<span id="cb295-5"><a href="fund.html#cb295-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rf_over_learner)</span></code></pre></div>
 <pre><code>## &lt;GraphLearner:over.classif.ranger&gt;
 ## * Model: -
 ## * Parameters: over.ratio=1, over.reference=all, over.adjust=minor, over.shuffle=TRUE, classif.ranger.num.threads=1
@@ -1656,7 +3148,7 @@ But let’s start with the basic workflow.</p>
 ## * Feature types: logical, integer, numeric, character, factor, ordered, POSIXct
 ## * Properties: featureless, importance, missings, multiclass, oob_error, selected_features, twoclass, weights</code></pre>
 <p>The learner has now a new feature space:</p>
-<div class="sourceCode" id="cb296"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb296-1"><a href="fund.html#cb296-1" aria-hidden="true" tabindex="-1"></a>rf_over_learner<span class="sc">$</span>param_set</span></code></pre></div>
+<div class="sourceCode" id="cb297"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb297-1"><a href="fund.html#cb297-1" aria-hidden="true" tabindex="-1"></a>rf_over_learner<span class="sc">$</span>param_set</span></code></pre></div>
 <pre><code>## &lt;ParamSetCollection&gt;
 ##                                              id    class lower upper nlevels        default                   parents value
 ##  1:                        classif.ranger.alpha ParamDbl  -Inf   Inf     Inf            0.5                                
@@ -1693,25 +3185,25 @@ But let’s start with the basic workflow.</p>
 ## 32:                                over.shuffle ParamLgl    NA    NA       2 &lt;NoDefault[3]&gt;                            TRUE
 ##                                              id    class lower upper nlevels        default                   parents value</code></pre>
 <p>We can also tune the oversampling rate!</p>
-<div class="sourceCode" id="cb298"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb298-1"><a href="fund.html#cb298-1" aria-hidden="true" tabindex="-1"></a>rf_pars_over <span class="ot">=</span> </span>
-<span id="cb298-2"><a href="fund.html#cb298-2" aria-hidden="true" tabindex="-1"></a>    paradox<span class="sc">::</span>ParamSet<span class="sc">$</span><span class="fu">new</span>(</span>
-<span id="cb298-3"><a href="fund.html#cb298-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(paradox<span class="sc">::</span>ParamInt<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;over.ratio&quot;</span>, <span class="at">lower =</span> <span class="dv">1</span>, <span class="at">upper =</span> 7L),</span>
-<span id="cb298-4"><a href="fund.html#cb298-4" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamInt<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;classif.ranger.min.node.size&quot;</span>, <span class="at">lower =</span> <span class="dv">1</span>, <span class="at">upper =</span> 30L),</span>
-<span id="cb298-5"><a href="fund.html#cb298-5" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamInt<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;classif.ranger.mtry&quot;</span>, <span class="at">lower =</span> <span class="dv">1</span>, <span class="at">upper =</span> 30L),</span>
-<span id="cb298-6"><a href="fund.html#cb298-6" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamLgl<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;classif.ranger.regularization.usedepth&quot;</span>, <span class="at">default =</span> <span class="cn">TRUE</span>)))</span>
-<span id="cb298-7"><a href="fund.html#cb298-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb298-8"><a href="fund.html#cb298-8" aria-hidden="true" tabindex="-1"></a>inner3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">&quot;cv&quot;</span>, <span class="at">folds =</span> 3L)</span>
-<span id="cb298-9"><a href="fund.html#cb298-9" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">&quot;classif.auc&quot;</span>)</span>
-<span id="cb298-10"><a href="fund.html#cb298-10" aria-hidden="true" tabindex="-1"></a>tuner <span class="ot">=</span>  mlr3tuning<span class="sc">::</span><span class="fu">tnr</span>(<span class="st">&quot;random_search&quot;</span>) </span>
-<span id="cb298-11"><a href="fund.html#cb298-11" aria-hidden="true" tabindex="-1"></a>terminator <span class="ot">=</span> mlr3tuning<span class="sc">::</span><span class="fu">trm</span>(<span class="st">&quot;evals&quot;</span>, <span class="at">n_evals =</span> 5L)</span>
-<span id="cb298-12"><a href="fund.html#cb298-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb298-13"><a href="fund.html#cb298-13" aria-hidden="true" tabindex="-1"></a>learner_tuner_over <span class="ot">=</span> AutoTuner<span class="sc">$</span><span class="fu">new</span>(<span class="at">learner =</span> rf_over_learner, </span>
-<span id="cb298-14"><a href="fund.html#cb298-14" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">measure =</span> measurement, </span>
-<span id="cb298-15"><a href="fund.html#cb298-15" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">tuner =</span> tuner, </span>
-<span id="cb298-16"><a href="fund.html#cb298-16" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">terminator =</span> terminator,</span>
-<span id="cb298-17"><a href="fund.html#cb298-17" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">search_space =</span> rf_pars_over,</span>
-<span id="cb298-18"><a href="fund.html#cb298-18" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">resampling =</span> inner3)</span>
-<span id="cb298-19"><a href="fund.html#cb298-19" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(learner_tuner)</span></code></pre></div>
+<div class="sourceCode" id="cb299"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb299-1"><a href="fund.html#cb299-1" aria-hidden="true" tabindex="-1"></a>rf_pars_over <span class="ot">=</span> </span>
+<span id="cb299-2"><a href="fund.html#cb299-2" aria-hidden="true" tabindex="-1"></a>    paradox<span class="sc">::</span>ParamSet<span class="sc">$</span><span class="fu">new</span>(</span>
+<span id="cb299-3"><a href="fund.html#cb299-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(paradox<span class="sc">::</span>ParamInt<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;over.ratio&quot;</span>, <span class="at">lower =</span> <span class="dv">1</span>, <span class="at">upper =</span> 7L),</span>
+<span id="cb299-4"><a href="fund.html#cb299-4" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamInt<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;classif.ranger.min.node.size&quot;</span>, <span class="at">lower =</span> <span class="dv">1</span>, <span class="at">upper =</span> 30L),</span>
+<span id="cb299-5"><a href="fund.html#cb299-5" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamInt<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;classif.ranger.mtry&quot;</span>, <span class="at">lower =</span> <span class="dv">1</span>, <span class="at">upper =</span> 30L),</span>
+<span id="cb299-6"><a href="fund.html#cb299-6" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamLgl<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;classif.ranger.regularization.usedepth&quot;</span>, <span class="at">default =</span> <span class="cn">TRUE</span>)))</span>
+<span id="cb299-7"><a href="fund.html#cb299-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb299-8"><a href="fund.html#cb299-8" aria-hidden="true" tabindex="-1"></a>inner3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">&quot;cv&quot;</span>, <span class="at">folds =</span> 3L)</span>
+<span id="cb299-9"><a href="fund.html#cb299-9" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">&quot;classif.auc&quot;</span>)</span>
+<span id="cb299-10"><a href="fund.html#cb299-10" aria-hidden="true" tabindex="-1"></a>tuner <span class="ot">=</span>  mlr3tuning<span class="sc">::</span><span class="fu">tnr</span>(<span class="st">&quot;random_search&quot;</span>) </span>
+<span id="cb299-11"><a href="fund.html#cb299-11" aria-hidden="true" tabindex="-1"></a>terminator <span class="ot">=</span> mlr3tuning<span class="sc">::</span><span class="fu">trm</span>(<span class="st">&quot;evals&quot;</span>, <span class="at">n_evals =</span> 5L)</span>
+<span id="cb299-12"><a href="fund.html#cb299-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb299-13"><a href="fund.html#cb299-13" aria-hidden="true" tabindex="-1"></a>learner_tuner_over <span class="ot">=</span> AutoTuner<span class="sc">$</span><span class="fu">new</span>(<span class="at">learner =</span> rf_over_learner, </span>
+<span id="cb299-14"><a href="fund.html#cb299-14" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">measure =</span> measurement, </span>
+<span id="cb299-15"><a href="fund.html#cb299-15" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">tuner =</span> tuner, </span>
+<span id="cb299-16"><a href="fund.html#cb299-16" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">terminator =</span> terminator,</span>
+<span id="cb299-17"><a href="fund.html#cb299-17" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">search_space =</span> rf_pars_over,</span>
+<span id="cb299-18"><a href="fund.html#cb299-18" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">resampling =</span> inner3)</span>
+<span id="cb299-19"><a href="fund.html#cb299-19" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(learner_tuner)</span></code></pre></div>
 <pre><code>## &lt;AutoTuner:classif.ranger.tuned&gt;
 ## * Model: -
 ## * Parameters: list()
@@ -1719,18 +3211,18 @@ But let’s start with the basic workflow.</p>
 ## * Predict Type: prob
 ## * Feature types: logical, integer, numeric, character, factor, ordered
 ## * Properties: importance, multiclass, oob_error, twoclass, weights</code></pre>
-<div class="sourceCode" id="cb300"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb300-1"><a href="fund.html#cb300-1" aria-hidden="true" tabindex="-1"></a>outer3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">&quot;cv&quot;</span>, <span class="at">folds =</span> 3L)</span>
-<span id="cb300-2"><a href="fund.html#cb300-2" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">resample</span>(transformed_task, learner_tuner_over, <span class="at">resampling =</span> outer3, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb300-3"><a href="fund.html#cb300-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb300-4"><a href="fund.html#cb300-4" aria-hidden="true" tabindex="-1"></a><span class="co"># calclate the average AUC of the holdouts</span></span>
-<span id="cb300-5"><a href="fund.html#cb300-5" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>( measurement )</span></code></pre></div>
+<div class="sourceCode" id="cb301"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb301-1"><a href="fund.html#cb301-1" aria-hidden="true" tabindex="-1"></a>outer3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">&quot;cv&quot;</span>, <span class="at">folds =</span> 3L)</span>
+<span id="cb301-2"><a href="fund.html#cb301-2" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">resample</span>(transformed_task, learner_tuner_over, <span class="at">resampling =</span> outer3, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb301-3"><a href="fund.html#cb301-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb301-4"><a href="fund.html#cb301-4" aria-hidden="true" tabindex="-1"></a><span class="co"># calclate the average AUC of the holdouts</span></span>
+<span id="cb301-5"><a href="fund.html#cb301-5" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>( measurement )</span></code></pre></div>
 <p>5 iterations in the hyper-space is not very much…</p>
 <p>Let’s create the final predictions:</p>
-<div class="sourceCode" id="cb301"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb301-1"><a href="fund.html#cb301-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> </span>
-<span id="cb301-2"><a href="fund.html#cb301-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="cf">function</span>(i) result<span class="sc">$</span>learners[[i]]<span class="sc">$</span><span class="fu">predict</span>(transformed_task, </span>
-<span id="cb301-3"><a href="fund.html#cb301-3" aria-hidden="true" tabindex="-1"></a>                                                        <span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)])<span class="sc">$</span>data<span class="sc">$</span>prob[,<span class="st">&quot;1&quot;</span>,<span class="at">drop=</span><span class="cn">FALSE</span>])</span>
-<span id="cb301-4"><a href="fund.html#cb301-4" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(preds)</span>
-<span id="cb301-5"><a href="fund.html#cb301-5" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">apply</span>(preds, <span class="dv">1</span>, mean)</span></code></pre></div>
+<div class="sourceCode" id="cb302"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb302-1"><a href="fund.html#cb302-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> </span>
+<span id="cb302-2"><a href="fund.html#cb302-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="cf">function</span>(i) result<span class="sc">$</span>learners[[i]]<span class="sc">$</span><span class="fu">predict</span>(transformed_task, </span>
+<span id="cb302-3"><a href="fund.html#cb302-3" aria-hidden="true" tabindex="-1"></a>                                                        <span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)])<span class="sc">$</span>data<span class="sc">$</span>prob[,<span class="st">&quot;1&quot;</span>,<span class="at">drop=</span><span class="cn">FALSE</span>])</span>
+<span id="cb302-4"><a href="fund.html#cb302-4" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(preds)</span>
+<span id="cb302-5"><a href="fund.html#cb302-5" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">apply</span>(preds, <span class="dv">1</span>, mean)</span></code></pre></div>
 
 </div>
 </div>

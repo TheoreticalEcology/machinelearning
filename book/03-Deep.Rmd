@@ -33,8 +33,8 @@ test = data$test
 Let's visualize a few digits:
 
 ```{r}
-par(mfrow = c(3,3))
-.n = sapply(1:9, function(x) imgPlot(train$x[x,,], train$y[x]))
+par(mfrow = c(1,3))
+.n = sapply(1:3, function(x) imgPlot(train$x[x,,], train$y[x]))
 ```
 
 Similar to the normal ML workflow, we have to scale the pixels (from 0-255) to the range of [0,1] and one hot encode the response. To scale the pixels, we will use arrays instead of matrices. Arrays are called tensors in mathematics and a 2d array/tensor is typically called a matrix.
@@ -66,6 +66,91 @@ summary(model)
 ```
 
 We additionally used a pooling layer to downsize the resulting feature maps. After another convolutional and pooling layer we flatten the output, i.e. the following dense layer treats the previous layer as a full layer (so the dense layer is connected to all weights from the last feature maps).Having flattened the layer, we can simply use our typical output layer.
+
+
+<details>
+<summary>
+**<span style="color: #CC2FAA">torch</span>**
+</summary>
+<p>
+Prepare/download data:
+```{r, eval=FALSE}
+library(torch)
+library(torchvision)
+
+train_ds = mnist_dataset(
+  ".",
+  download = TRUE,
+  train = TRUE,
+  transform = transform_to_tensor
+)
+
+test_ds = kmnist_dataset(
+  ".",
+  download = TRUE,
+  train = FALSE,
+  transform = transform_to_tensor
+)
+```
+
+Build dataloader:
+```{r,eval=FALSE}
+train_dl = dataloader(train_ds, batch_size = 32, shuffle = TRUE)
+test_dl = dataloader(test_ds, batch_size = 32)
+first_batch = train_dl$.iter()
+df = first_batch$.next()
+
+df$x$size()
+```
+
+Build CNN:
+
+```{r,eval=FALSE}
+net <- nn_module(
+  "mnist",
+  initialize = function() {
+    self$conv1 <- nn_conv2d(1, 16L, 2L)
+    self$conv2 <- nn_conv2d(16L, 16L, 3)
+    self$fc1 <- nn_linear(400L, 100L)
+    self$fc2 <- nn_linear(100L, 10L)
+  },
+  forward = function(x) {
+    x %>% 
+      self$conv1() %>%
+      nnf_relu() %>%
+      nnf_max_pool2d(2) %>%         
+      self$conv2() %>%
+      nnf_relu() %>%
+      nnf_max_pool2d(2) %>%
+      torch_flatten(start_dim = 2) %>%
+      self$fc1() %>%
+      nnf_relu() %>%
+      self$fc2()
+  }
+)
+
+opt = optim_adam(params = model_torch$parameters, lr = 0.1)
+
+X_torch = torch_tensor(X)
+Y_torch = torch_tensor(matrix(Y, ncol = 1L), dtype = torch_float32())
+for(i in 1:500) {
+  indices = sample.int(nrow(X), 20L)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_mse_loss(pred, Y_torch[indices,,drop=FALSE])
+  
+  ## Add l1 (only on the 'kernel weights'):
+  for(i in seq(1, 8, by = 2)) loss = loss + model_torch$parameters[[i]]$abs()$sum()*0.1
+  
+  loss$sum()$backward()
+  opt$step()
+}
+```
+
+</details>
+<br/>
+
+
 
 The rest is as usual: First we compile the model.
 
