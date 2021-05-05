@@ -1,45 +1,11 @@
-# Explainable AI (xAI), NLP, and RNNs {#xAI}
-The goal of xAI is to explain WHY a fitted ML models makes certain predictions, for example how important different variables are for predictions etc. There are various important applications for this, ranging from a better technical understanding of the models over understanding which data is important to improve predictions to questions of fairness and discrimination (e.g. to understand if an algorithm uses skin color to make a decision).
+# Interpretation and causality with machine learning
 
-In general, xAI != causality
-Before we discuss xAI methods in more detail, we want to make one thing very clear - in general, xAI methods measure which variables are used by the algorithm for predictions, or how much variables improve predictions.
+## Explainable AI
 
-The important point to note here: if a variable causes something, we could also expect that it helps to predict the very thing. The opposite, however, is not generally true - it is very often possible that a variable that doesn't cause something can predict something.
+The goal of explainable AI (xAI, aka interpretable machine learning) is to explain WHY a fitted ML models makes certain predictions, for example how important different variables are for predictions etc. There are various important applications for this, ranging from a better technical understanding of the models over understanding which data is important to improve predictions to questions of fairness and discrimination (e.g. to understand if an algorithm uses skin color to make a decision).
 
-In statistics (in particular course: advanced biostatistics), we discuss the issue of causality at length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
+### A practical example
 
-Here an example for the variable importance indicators in the RF algorithm. The purpose of this script is to show that RF variable importance will split importance values for collinear variables evenly, even if collinearity is low enough so that variables are sepearable and would be correctly separated by an lm / ANOVA
-
-We simulate a dataset with 2 predictors that are strongly correlated, but only one of them has an effect on the response. 
-```{r}
-# simulation parameters
-n = 1000
-col = 0.7
-# create collinear predictors
-x1 = runif(n)
-x2 = col * x1 + (1-col) * runif(n)
-# response is only influenced by x1
-y = x1 + rnorm(n)
-```
-lm / anova correctly identify x1 as causal variable
-```{r}
-anova(lm(y ~ x1 + x2))
-```
-
-Fit RF and show variable importance
-```{r}
-fit <- randomForest(y ~ x1 + x2, importance=TRUE)
-varImpPlot(fit)
-```
-Variable importance is now split nearly evenly.
-
-Task: understand why this is - remember: 
-
-- How the random forest works - variables are randomly hidden from the regression tree when the trees for the forest are built
-- Remember that as x1 ~ x2, we can use x2 as a replacement for x1
-- Remember that the variable importance measures the average contributions of the different variables in the trees of the forest
-
-## xAI Methods
 In this lecture we will work with another famous dataset, the Boston housing dataset:
 
 We will fit a random forest and use the iml pkg for xAI, see ![](https://christophm.github.io/interpretable-ml-book/)
@@ -139,4 +105,59 @@ Shapley computes feature contributions for single predictions with the Shapley v
 shapley = Shapley$new(predictor, x.interest = X[1,])
 shapley$plot()
 ```
+
+## Causal machine learning
+
+In general, xAI != causality. xAI methods measure which variables are used by the algorithm for predictions, or how much variables improve predictions. The important point to note here: if a variable causes something, we could also expect that it helps to predict the very thing. The opposite, however, is not generally true - it is very often possible that a variable that doesn't cause something can predict something.
+
+In statistics (in particular course: advanced biostatistics), we discuss the issue of causality at length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
+
+Here an example for the variable importance indicators in the RF algorithm. The purpose of this script is to show that RF variable importance will split importance values for collinear variables evenly, even if collinearity is low enough so that variables are sepearable and would be correctly separated by an lm / ANOVA
+
+We simulate a dataset with 2 predictors that are strongly correlated, but only one of them has an effect on the response. 
+```{r}
+# simulation parameters
+n = 1000
+col = 0.7
+# create collinear predictors
+x1 = runif(n)
+x2 = col * x1 + (1-col) * runif(n)
+# response is only influenced by x1
+y = x1 + rnorm(n)
+```
+lm / anova correctly identify x1 as causal variable
+```{r}
+anova(lm(y ~ x1 + x2))
+```
+
+Fit RF and show variable importance
+```{r}
+fit <- randomForest(y ~ x1 + x2, importance=TRUE)
+varImpPlot(fit)
+```
+Variable importance is now split nearly evenly.
+
+Task: understand why this is - remember: 
+
+- How the random forest works - variables are randomly hidden from the regression tree when the trees for the forest are built
+- Remember that as x1 ~ x2, we can use x2 as a replacement for x1
+- Remember that the variable importance measures the average contributions of the different variables in the trees of the forest
+
+### Causal inference on static data 
+
+Pearl
+
+
+Automatic discovery 
+
+### Causal inference on dynamic data 
+
+Granger causality
+
+
+### Transferring these ideas to ML
+
+N
+
+
 
