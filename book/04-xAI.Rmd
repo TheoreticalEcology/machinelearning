@@ -2,7 +2,7 @@
 
 ## Explainable AI
 
-The goal of explainable AI (xAI, aka interpretable machine learning) is to explain WHY a fitted ML models makes certain predictions, for example how important different variables are for predictions etc. There are various important applications for this, ranging from a better technical understanding of the models over understanding which data is important to improve predictions to questions of fairness and discrimination (e.g. to understand if an algorithm uses skin color to make a decision).
+The goal of explainable AI (xAI, aka interpretable machine learning) is to explain WHY a fitted ML models makes certain predictions. A typical example is to understand  how important different variables are for predictions. There incentives to do so range from a better technical understanding of the models over understanding which data is important to improve predictions to questions of fairness and discrimination (e.g. to understand if an algorithm uses skin color to make a decision).
 
 ### A practical example
 
@@ -18,27 +18,25 @@ data("Boston", package = "MASS")
 rf = randomForest(medv ~ ., data = Boston, ntree = 50)
 ```
 
-xAI packages are generic, i.e. they can handle almost all ML models. First, we have to create a Predictor object, that holds the model and the data. The iml package uses R6 classes: New objects can be created by calling Predictor$new().
+xAI packages are written generic, i.e. they can handle almost all ML models. 
+When we want to use them, we first have to create a Predictor object, that holds the model and the data. The iml package uses R6 classes, that means new objects can be created by calling Predictor$new(). (do not worry if you do not know what R6 classes are, just use the command)
 
 ```{r}
 X = Boston[which(names(Boston) != "medv")]
 predictor = Predictor$new(rf, data = X, y = Boston$medv)
 ```
 
-### Variable Importance
-Importance - not to be mistaken for the RF importance. This importance can be calculated for all ML models and is based on a permutation approach (have a look at the book):
+### Feature Importance
+Feature importance, should not be mistaken with the RF variable importance. It tells us how important the individual variables are for predictions and can be calculated for all ML models and is based on a permutation approach (have a look at the book):
 
 ```{r}
 imp = FeatureImp$new(predictor, loss = "mae")
 plot(imp)
 ```
 
-It tells us how important the individual variables are for predictions.
-
-
 ### Partial dependencies
 
-Partial dependencies are similar to allEffects plot, the idea is to visualize "marginal effects" of predictors (with the feature argument we specify the variable we want to visualize):
+Partial dependencies are similar to allEffects plots for normal regressions, the idea is to visualize "marginal effects" of predictors (with the feature argument we specify the variable we want to visualize):
 
 ```{r}
 eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp", grid.size = 30)
@@ -54,15 +52,15 @@ plot(eff)
 
 One disadvantage of partial dependencies is that they are sensitive to correlated predictors. Accumulated local effects can be used to account for correlation for predictors
 
-### Accumulated local effects
+### Accumulated local effects 
 
-ALE re basically partial dependencies plots but try to correct for correlations between predictors
+Accumulated local effects (ALE) are basically partial dependencies plots but try to correct for correlations between predictors
 ```{r}
 ale = FeatureEffect$new(predictor, feature = "rm", method = "ale")
 ale$plot()
 ```
 
-If there is no collinearity, you shouldn't see much difference between partial dependencies and ALE plots.
+If there is no colinearity, you shouldn't see much difference between partial dependencies and ALE plots.
 
 ### Friedmans H-statistic
 
@@ -75,7 +73,7 @@ plot(interact)
 
 ### Global explainer - Simplifying the ML model
 
-Another idea is to simplify the ML model with another simpler model such as a decision tree. We create predictions for a lot of different predictors values and then we will fit a decision tree on the predictions:
+Another idea is to simplify the ML model with another simpler model such as a decision tree. We create predictions with the ML model for a lot of different input values and then we fit on these predictions a decision tree, which we can then interpret.
 
 ```{r}
 library(partykit)
@@ -85,9 +83,9 @@ plot(tree)
 
 ### Local explainer - LIME explaining single instances (observations)
 
-The global approach is to simplify a black-box model via a simpler surrogate Model. 
+The global approach is to simplify the entire ML-black-box model via a simpler model, which is then interpretable. 
 
-However, sometimes we are only interested in understanding how single observations/predictions are generated. The lime approach explores the feature space around one observations and fits then a simpler model (e.g. a linear model) on the feature space around one observation:
+However, sometimes we are only interested in understanding how single observations/predictions are generated. The lime approach explores the feature space around one observations and based on this local spare fits then a simpler model (e.g. a linear model):
 
 ```{r}
 library(glmnet)
@@ -99,7 +97,7 @@ plot(lime.explain)
 
 ### Local explainer - Shapley 
 
-Shapley computes feature contributions for single predictions with the Shapley value, an approach from cooperative game theory. The idea is that the features values of an instance cooperate to achieve the prediction. The Shapley value fairly distributes the difference of the instance's prediction and the datasets average prediction among the features:
+The Shapley method computes the so called Shapley value, feature contributions for single predictions, and is based on an approach from cooperative game theory. The idea is that each feature value of the instance is a "player" in a game, where the prediction is the reward. The Shapley value tells us how to fairly distribute the award among the feature. 
 
 ```{r}
 shapley = Shapley$new(predictor, x.interest = X[1,])
@@ -108,11 +106,11 @@ shapley$plot()
 
 ## Causal machine learning
 
-In general, xAI != causality. xAI methods measure which variables are used by the algorithm for predictions, or how much variables improve predictions. The important point to note here: if a variable causes something, we could also expect that it helps to predict the very thing. The opposite, however, is not generally true - it is very often possible that a variable that doesn't cause something can predict something.
+In general, xAI != causality. xAI methods measure which variables are used by the algorithm for predictions, or how much variables improve predictions. However, it is very often possible that a variable that does not cause something can predict something. So you can not interpret predictive power with causality.
 
-In statistics (in particular course: advanced biostatistics), we discuss the issue of causality at length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
+In statistical courses (in particular course: advanced biostatistics), we discuss the issue of causality at length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
 
-Here an example for the variable importance indicators in the RF algorithm. The purpose of this script is to show that RF variable importance will split importance values for collinear variables evenly, even if collinearity is low enough so that variables are sepearable and would be correctly separated by an lm / ANOVA
+We will illustrate the problem at an example for the variable importance in the RF algorithm. The  RF variable importance will split importance values for colinear variables evenly. Thus, colinearty introduces importance even if colinearity is low enough so that variables would be separable and would be correctly separated by an lm / ANOVA.
 
 We simulate a dataset with 2 predictors that are strongly correlated, but only one of them has an effect on the response. 
 ```{r}
