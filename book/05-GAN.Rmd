@@ -32,6 +32,18 @@ train = data$train
 train_x = array((train$x-127.5)/127.5, c(dim(train$x)[1], 784L))
 ```
 
+```{r}
+batch_size = 32L
+get_batch = function(){  # Helper function to get batches of images
+ indices = sample.int(nrow(train_x), batch_size)
+ return(tf$constant(train_x[indices,], "float32"))
+}
+
+dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
+dataset$batch(batch_size)
+```
+
+
 Define and test generator model:
 
 ```{r}
@@ -102,11 +114,6 @@ Each network will get its own optimizer (while a AE will be treated as one netwo
 ```{r}
 gen_opt = tf$keras$optimizers$RMSprop(1e-4)
 disc_opt = tf$keras$optimizers$RMSprop(1e-4)
-batch_size = 32L
-get_batch = function(){  # Helper function to get batches of images
- indices = sample.int(nrow(train_x), batch_size)
- return(tf$constant(train_x[indices,], "float32"))
-}
 ```
 
 We have to write here our own training loop (we cannot use the fit function). Let's define a training function:
@@ -115,11 +122,11 @@ We have to write here our own training loop (we cannot use the fit function). Le
 train_step = function(images){
  noise = tf$random$normal(c(32L, 100L))
  with(tf$GradientTape(persistent = TRUE) %as% tape,{
- gen_images = generator(noise)
- fake_output = discriminator(gen_images)
- real_output = discriminator(images)
- gen_loss = loss_generator(fake_output)
- disc_loss = loss_discriminator(real_output, fake_output)
+   gen_images = generator(noise)
+   fake_output = discriminator(gen_images)
+   real_output = discriminator(images)
+   gen_loss = loss_generator(fake_output)
+   disc_loss = loss_discriminator(real_output, fake_output)
  })
  gen_grads = tape$gradient(gen_loss, generator$weights)
  disc_grads = tape$gradient(disc_loss, discriminator$weights)
@@ -144,28 +151,45 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 9. return losses
 
 ```{r, eval=FALSE}
-steps = as.integer(nrow(train_x)/batch_size)
 generator = get_generator()
 discriminator = get_discriminator()
 epochs = 30L
 steps = as.integer(nrow(train_x)/batch_size)
 counter = 1
-gen_loss = NULL
-disc_loss = NULL
-for(i in 1:(epochs*steps)){
- images = get_batch()
- losses = train_step(images)
- gen_loss = tf$reduce_sum(losses[[1]])$numpy()
- disc_loss = tf$reduce_sum(losses[[2]])$numpy()
- if(i %% 50*steps == 0) {
- noise = tf$random$normal(c(1L, 100L))
- imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
- }
- if(i %% steps == 0){
- counter = 1
- cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
- }
+gen_loss = c()
+disc_loss = c()
+
+for(e in 1:epochs) {
+  dat = reticulate::as_iterator(dataset$batch(batch_size))
+  
+   coro::loop(for (images in dat) {
+      losses = train_step(images)
+      gen_loss = c(gen_loss, tf$reduce_sum(losses[[1]])$numpy())
+      disc_loss = c(disc_loss, tf$reduce_sum(losses[[2]])$numpy())
+   })
+   
+  cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
+  if(e %% 5 == 0) {
+    noise = tf$random$normal(c(1L, 100L))
+    imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
+  }
 }
+
+
+# for(i in 1:(epochs*steps)){
+#  images = get_batch()
+#  losses = train_step(images)
+#  gen_loss = tf$reduce_sum(losses[[1]])$numpy()
+#  disc_loss = tf$reduce_sum(losses[[2]])$numpy()
+#  if(i %% 50*steps == 0) {
+#  noise = tf$random$normal(c(1L, 100L))
+#  imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
+#  }
+#  if(i %% steps == 0){
+#  counter = 1
+#  cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
+#  }
+# }
 ```
 
 The actual training loop:

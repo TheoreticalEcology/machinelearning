@@ -4,21 +4,21 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Machine Learning and AI in TensorFlow and R</title>
-  <meta name="description" content="Machine Learning and AI in TensorFlow and R" />
+  <title>5 Interpretation and causality with machine learning | Machine Learning and AI in TensorFlow and R</title>
+  <meta name="description" content="5 Interpretation and causality with machine learning | Machine Learning and AI in TensorFlow and R" />
   <meta name="generator" content="bookdown 0.22 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Machine Learning and AI in TensorFlow and R" />
+  <meta property="og:title" content="5 Interpretation and causality with machine learning | Machine Learning and AI in TensorFlow and R" />
   <meta property="og:type" content="book" />
   
   
-  <meta property="og:description" content="Machine Learning and AI in TensorFlow and R" />
+  <meta property="og:description" content="5 Interpretation and causality with machine learning | Machine Learning and AI in TensorFlow and R" />
   <meta name="github-repo" content="rstudio/bookdown-demo" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Machine Learning and AI in TensorFlow and R" />
+  <meta name="twitter:title" content="5 Interpretation and causality with machine learning | Machine Learning and AI in TensorFlow and R" />
   
-  <meta name="twitter:description" content="Machine Learning and AI in TensorFlow and R" />
+  <meta name="twitter:description" content="5 Interpretation and causality with machine learning | Machine Learning and AI in TensorFlow and R" />
   
 
 <meta name="author" content="Maximilian Pichler and Florian Hartig" />
@@ -31,8 +31,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-
-<link rel="next" href="introduction.html"/>
+<link rel="prev" href="Deep.html"/>
+<link rel="next" href="gans-vaes-and-reinforcement-learning.html"/>
 <script src="libs/header-attrs-2.6/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -298,38 +298,148 @@ div.csl-indent {
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Machine Learning and AI in TensorFlow and R</h1>
-<p class="author"><em>Maximilian Pichler and Florian Hartig</em></p>
-<p class="date" style="margin-top: 1.5em;"><em>2021-05-05</em></p>
+<div id="interpretation-and-causality-with-machine-learning" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> Interpretation and causality with machine learning</h1>
+<div id="explainable-ai" class="section level2" number="5.1">
+<h2><span class="header-section-number">5.1</span> Explainable AI</h2>
+<p>The goal of explainable AI (xAI, aka interpretable machine learning) is to explain WHY a fitted ML models makes certain predictions. A typical example is to understand how important different variables are for predictions. There incentives to do so range from a better technical understanding of the models over understanding which data is important to improve predictions to questions of fairness and discrimination (e.g. to understand if an algorithm uses skin color to make a decision).</p>
+<div id="a-practical-example" class="section level3" number="5.1.1">
+<h3><span class="header-section-number">5.1.1</span> A practical example</h3>
+<p>In this lecture we will work with another famous dataset, the Boston housing dataset:</p>
+<p>We will fit a random forest and use the iml pkg for xAI, see <img src="https://christophm.github.io/interpretable-ml-book/" /></p>
+<div class="sourceCode" id="cb364"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb364-1"><a href="interpretation-and-causality-with-machine-learning.html#cb364-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb364-2"><a href="interpretation-and-causality-with-machine-learning.html#cb364-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;iml&quot;</span>)</span>
+<span id="cb364-3"><a href="interpretation-and-causality-with-machine-learning.html#cb364-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;randomForest&quot;</span>)</span>
+<span id="cb364-4"><a href="interpretation-and-causality-with-machine-learning.html#cb364-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;Boston&quot;</span>, <span class="at">package =</span> <span class="st">&quot;MASS&quot;</span>)</span>
+<span id="cb364-5"><a href="interpretation-and-causality-with-machine-learning.html#cb364-5" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">randomForest</span>(medv <span class="sc">~</span> ., <span class="at">data =</span> Boston, <span class="at">ntree =</span> <span class="dv">50</span>)</span></code></pre></div>
+<p>xAI packages are written generic, i.e. they can handle almost all ML models.
+When we want to use them, we first have to create a Predictor object, that holds the model and the data. The iml package uses R6 classes, that means new objects can be created by calling Predictor$new(). (do not worry if you do not know what R6 classes are, just use the command)</p>
+<div class="sourceCode" id="cb365"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb365-1"><a href="interpretation-and-causality-with-machine-learning.html#cb365-1" aria-hidden="true" tabindex="-1"></a>X <span class="ot">=</span> Boston[<span class="fu">which</span>(<span class="fu">names</span>(Boston) <span class="sc">!=</span> <span class="st">&quot;medv&quot;</span>)]</span>
+<span id="cb365-2"><a href="interpretation-and-causality-with-machine-learning.html#cb365-2" aria-hidden="true" tabindex="-1"></a>predictor <span class="ot">=</span> Predictor<span class="sc">$</span><span class="fu">new</span>(rf, <span class="at">data =</span> X, <span class="at">y =</span> Boston<span class="sc">$</span>medv)</span></code></pre></div>
 </div>
-<div id="prerequisites" class="section level1" number="1">
-<h1><span class="header-section-number">1</span> Prerequisites</h1>
-<p><strong>R system</strong></p>
-<p>Make sure you have a recent version of R (&gt;=3.6, ideally &gt;=4.0) and RStudio on your computers.</p>
-<p><strong>Keras and tensorflow</strong></p>
-<p>If you want to run the code on your own laptops, you also will need to install TensorFlow / Keras for R. For this, the following should work for most people:</p>
-<p>Run in R:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="index.html#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;keras&quot;</span>, <span class="at">dependencies =</span> T)</span>
-<span id="cb1-2"><a href="index.html#cb1-2" aria-hidden="true" tabindex="-1"></a>keras<span class="sc">::</span><span class="fu">install_keras</span>()</span></code></pre></div>
-<p>This should work on most computers, in particular of all software is recent. Sometimes, however, things don’t work well, in particular the python distribution often makes problems. If the install does not work for you, we can look at it on Monday together. Also, we will provide some virtual machines in case your computers / laptops are too old or you don’t manage to install tensorflow.</p>
-<p><strong>Torch for R</strong></p>
-<p>We may also use Torch for R. This is an R frontend for the popular PyTorch framework. To install torch, type in R:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="index.html#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;torch&quot;</span>)</span>
-<span id="cb2-2"><a href="index.html#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span></code></pre></div>
-<p><strong>EcoData</strong></p>
-<p>Finally, we may sometimes use datasets from the EcoData package. To install the package, run:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="index.html#cb3-1" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="at">repo =</span> <span class="st">&quot;florianhartig/EcoData&quot;</span>, <span class="at">subdir =</span> <span class="st">&quot;EcoData&quot;</span>, </span>
-<span id="cb3-2"><a href="index.html#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">dependencies =</span> <span class="cn">TRUE</span>, <span class="at">build_vignettes =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div id="feature-importance" class="section level3" number="5.1.2">
+<h3><span class="header-section-number">5.1.2</span> Feature Importance</h3>
+<p>Feature importance, should not be mistaken with the RF variable importance. It tells us how important the individual variables are for predictions and can be calculated for all ML models and is based on a permutation approach (have a look at the book):</p>
+<div class="sourceCode" id="cb366"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb366-1"><a href="interpretation-and-causality-with-machine-learning.html#cb366-1" aria-hidden="true" tabindex="-1"></a>imp <span class="ot">=</span> FeatureImp<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">loss =</span> <span class="st">&quot;mae&quot;</span>)</span>
+<span id="cb366-2"><a href="interpretation-and-causality-with-machine-learning.html#cb366-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(imp)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-174-1.png" width="672" /></p>
+</div>
+<div id="partial-dependencies" class="section level3" number="5.1.3">
+<h3><span class="header-section-number">5.1.3</span> Partial dependencies</h3>
+<p>Partial dependencies are similar to allEffects plots for normal regressions, the idea is to visualize “marginal effects” of predictors (with the feature argument we specify the variable we want to visualize):</p>
+<div class="sourceCode" id="cb367"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb367-1"><a href="interpretation-and-causality-with-machine-learning.html#cb367-1" aria-hidden="true" tabindex="-1"></a>eff <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">&quot;rm&quot;</span>, <span class="at">method =</span> <span class="st">&quot;pdp&quot;</span>, <span class="at">grid.size =</span> <span class="dv">30</span>)</span>
+<span id="cb367-2"><a href="interpretation-and-causality-with-machine-learning.html#cb367-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(eff)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-175-1.png" width="672" /></p>
+<p>Partial dependencies can be also plotted for single observations:</p>
+<div class="sourceCode" id="cb368"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb368-1"><a href="interpretation-and-causality-with-machine-learning.html#cb368-1" aria-hidden="true" tabindex="-1"></a>eff <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">&quot;rm&quot;</span>, <span class="at">method =</span> <span class="st">&quot;pdp+ice&quot;</span>, <span class="at">grid.size =</span> <span class="dv">30</span>)</span>
+<span id="cb368-2"><a href="interpretation-and-causality-with-machine-learning.html#cb368-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(eff)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-176-1.png" width="672" /></p>
+<p>One disadvantage of partial dependencies is that they are sensitive to correlated predictors. Accumulated local effects can be used to account for correlation for predictors</p>
+</div>
+<div id="accumulated-local-effects" class="section level3" number="5.1.4">
+<h3><span class="header-section-number">5.1.4</span> Accumulated local effects</h3>
+<p>Accumulated local effects (ALE) are basically partial dependencies plots but try to correct for correlations between predictors</p>
+<div class="sourceCode" id="cb369"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb369-1"><a href="interpretation-and-causality-with-machine-learning.html#cb369-1" aria-hidden="true" tabindex="-1"></a>ale <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">&quot;rm&quot;</span>, <span class="at">method =</span> <span class="st">&quot;ale&quot;</span>)</span>
+<span id="cb369-2"><a href="interpretation-and-causality-with-machine-learning.html#cb369-2" aria-hidden="true" tabindex="-1"></a>ale<span class="sc">$</span><span class="fu">plot</span>()</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-177-1.png" width="672" /></p>
+<p>If there is no colinearity, you shouldn’t see much difference between partial dependencies and ALE plots.</p>
+</div>
+<div id="friedmans-h-statistic" class="section level3" number="5.1.5">
+<h3><span class="header-section-number">5.1.5</span> Friedmans H-statistic</h3>
+<p>The H-statistic can be used to find interactions between predictors. However, again, keep in mind that the H-statistic is sensible to correlation between predictors:</p>
+<div class="sourceCode" id="cb370"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb370-1"><a href="interpretation-and-causality-with-machine-learning.html#cb370-1" aria-hidden="true" tabindex="-1"></a>interact <span class="ot">=</span> Interaction<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="st">&quot;lstat&quot;</span>)</span>
+<span id="cb370-2"><a href="interpretation-and-causality-with-machine-learning.html#cb370-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(interact)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-178-1.png" width="672" /></p>
+</div>
+<div id="global-explainer---simplifying-the-ml-model" class="section level3" number="5.1.6">
+<h3><span class="header-section-number">5.1.6</span> Global explainer - Simplifying the ML model</h3>
+<p>Another idea is to simplify the ML model with another simpler model such as a decision tree. We create predictions with the ML model for a lot of different input values and then we fit on these predictions a decision tree, which we can then interpret.</p>
+<div class="sourceCode" id="cb371"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb371-1"><a href="interpretation-and-causality-with-machine-learning.html#cb371-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(partykit)</span>
+<span id="cb371-2"><a href="interpretation-and-causality-with-machine-learning.html#cb371-2" aria-hidden="true" tabindex="-1"></a>tree <span class="ot">=</span> TreeSurrogate<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">maxdepth =</span> <span class="dv">2</span>)</span>
+<span id="cb371-3"><a href="interpretation-and-causality-with-machine-learning.html#cb371-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tree)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-179-1.png" width="672" /></p>
+</div>
+<div id="local-explainer---lime-explaining-single-instances-observations" class="section level3" number="5.1.7">
+<h3><span class="header-section-number">5.1.7</span> Local explainer - LIME explaining single instances (observations)</h3>
+<p>The global approach is to simplify the entire ML-black-box model via a simpler model, which is then interpretable.</p>
+<p>However, sometimes we are only interested in understanding how single observations/predictions are generated. The lime approach explores the feature space around one observations and based on this local spare fits then a simpler model (e.g. a linear model):</p>
+<div class="sourceCode" id="cb372"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb372-1"><a href="interpretation-and-causality-with-machine-learning.html#cb372-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span>
+<span id="cb372-2"><a href="interpretation-and-causality-with-machine-learning.html#cb372-2" aria-hidden="true" tabindex="-1"></a>lime.explain <span class="ot">=</span> LocalModel<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">x.interest =</span> X[<span class="dv">1</span>,])</span>
+<span id="cb372-3"><a href="interpretation-and-causality-with-machine-learning.html#cb372-3" aria-hidden="true" tabindex="-1"></a>lime.explain<span class="sc">$</span>results</span></code></pre></div>
+<pre><code>##               beta x.recoded    effect x.original feature feature.value
+## rm       4.1893817     6.575 27.545185      6.575      rm      rm=6.575
+## ptratio -0.5307031    15.300 -8.119758       15.3 ptratio  ptratio=15.3
+## lstat   -0.4398104     4.980 -2.190256       4.98   lstat    lstat=4.98</code></pre>
+<div class="sourceCode" id="cb374"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb374-1"><a href="interpretation-and-causality-with-machine-learning.html#cb374-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lime.explain)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-180-1.png" width="672" /></p>
+</div>
+<div id="local-explainer---shapley" class="section level3" number="5.1.8">
+<h3><span class="header-section-number">5.1.8</span> Local explainer - Shapley</h3>
+<p>The Shapley method computes the so called Shapley value, feature contributions for single predictions, and is based on an approach from cooperative game theory. The idea is that each feature value of the instance is a “player” in a game, where the prediction is the reward. The Shapley value tells us how to fairly distribute the award among the feature.</p>
+<div class="sourceCode" id="cb375"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb375-1"><a href="interpretation-and-causality-with-machine-learning.html#cb375-1" aria-hidden="true" tabindex="-1"></a>shapley <span class="ot">=</span> Shapley<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">x.interest =</span> X[<span class="dv">1</span>,])</span>
+<span id="cb375-2"><a href="interpretation-and-causality-with-machine-learning.html#cb375-2" aria-hidden="true" tabindex="-1"></a>shapley<span class="sc">$</span><span class="fu">plot</span>()</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-181-1.png" width="672" /></p>
+</div>
+</div>
+<div id="causal-machine-learning" class="section level2" number="5.2">
+<h2><span class="header-section-number">5.2</span> Causal machine learning</h2>
+<p>In general, xAI != causality. xAI methods measure which variables are used by the algorithm for predictions, or how much variables improve predictions. However, it is very often possible that a variable that does not cause something can predict something. So you can not interpret predictive power with causality.</p>
+<p>In statistical courses (in particular course: advanced biostatistics), we discuss the issue of causality at length. Here, we don’t want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what’s going on in the algorithm, not about what’s going on in reality.</p>
+<p>We will illustrate the problem at an example for the variable importance in the RF algorithm. The RF variable importance will split importance values for colinear variables evenly. Thus, colinearty introduces importance even if colinearity is low enough so that variables would be separable and would be correctly separated by an lm / ANOVA.</p>
+<p>We simulate a dataset with 2 predictors that are strongly correlated, but only one of them has an effect on the response.</p>
+<div class="sourceCode" id="cb376"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb376-1"><a href="interpretation-and-causality-with-machine-learning.html#cb376-1" aria-hidden="true" tabindex="-1"></a><span class="co"># simulation parameters</span></span>
+<span id="cb376-2"><a href="interpretation-and-causality-with-machine-learning.html#cb376-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">1000</span></span>
+<span id="cb376-3"><a href="interpretation-and-causality-with-machine-learning.html#cb376-3" aria-hidden="true" tabindex="-1"></a>col <span class="ot">=</span> <span class="fl">0.7</span></span>
+<span id="cb376-4"><a href="interpretation-and-causality-with-machine-learning.html#cb376-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create collinear predictors</span></span>
+<span id="cb376-5"><a href="interpretation-and-causality-with-machine-learning.html#cb376-5" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">=</span> <span class="fu">runif</span>(n)</span>
+<span id="cb376-6"><a href="interpretation-and-causality-with-machine-learning.html#cb376-6" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">=</span> col <span class="sc">*</span> x1 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>col) <span class="sc">*</span> <span class="fu">runif</span>(n)</span>
+<span id="cb376-7"><a href="interpretation-and-causality-with-machine-learning.html#cb376-7" aria-hidden="true" tabindex="-1"></a><span class="co"># response is only influenced by x1</span></span>
+<span id="cb376-8"><a href="interpretation-and-causality-with-machine-learning.html#cb376-8" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> x1 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span></code></pre></div>
+<p>lm / anova correctly identify x1 as causal variable</p>
+<div class="sourceCode" id="cb377"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb377-1"><a href="interpretation-and-causality-with-machine-learning.html#cb377-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2))</span></code></pre></div>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: y
+##            Df Sum Sq Mean Sq  F value Pr(&gt;F)    
+## x1          1 106.30 106.300 110.1988 &lt;2e-16 ***
+## x2          1   0.23   0.228   0.2368 0.6267    
+## Residuals 997 961.73   0.965                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Fit RF and show variable importance</p>
+<div class="sourceCode" id="cb379"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb379-1"><a href="interpretation-and-causality-with-machine-learning.html#cb379-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">importance=</span><span class="cn">TRUE</span>)</span>
+<span id="cb379-2"><a href="interpretation-and-causality-with-machine-learning.html#cb379-2" aria-hidden="true" tabindex="-1"></a><span class="fu">varImpPlot</span>(fit)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-184-1.png" width="672" />
+Variable importance is now split nearly evenly.</p>
+<p>Task: understand why this is - remember:</p>
+<ul>
+<li>How the random forest works - variables are randomly hidden from the regression tree when the trees for the forest are built</li>
+<li>Remember that as x1 ~ x2, we can use x2 as a replacement for x1</li>
+<li>Remember that the variable importance measures the average contributions of the different variables in the trees of the forest</li>
+</ul>
+<div id="causal-inference-on-static-data" class="section level3" number="5.2.1">
+<h3><span class="header-section-number">5.2.1</span> Causal inference on static data</h3>
+<p>Pearl</p>
+<p>Automatic discovery</p>
+</div>
+<div id="causal-inference-on-dynamic-data" class="section level3" number="5.2.2">
+<h3><span class="header-section-number">5.2.2</span> Causal inference on dynamic data</h3>
+<p>Granger causality</p>
+</div>
+<div id="transferring-these-ideas-to-ml" class="section level3" number="5.2.3">
+<h3><span class="header-section-number">5.2.3</span> Transferring these ideas to ML</h3>
+<p>N</p>
 
+</div>
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="introduction.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="Deep.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="gans-vaes-and-reinforcement-learning.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
