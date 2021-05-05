@@ -106,15 +106,21 @@ shapley = Shapley$new(predictor, x.interest = X[1,])
 shapley$plot()
 ```
 
-## Causal machine learning
+## Causal inference and machine learning
 
-In general, xAI != causality. xAI methods measure which variables are used by the algorithm for predictions, or how much variables improve predictions. The important point to note here: if a variable causes something, we could also expect that it helps to predict the very thing. The opposite, however, is not generally true - it is very often possible that a variable that doesn't cause something can predict something.
+xAI aims at explaining how predictions are being made. In general, xAI != causality. xAI methods measure which variables are used by the algorithm for predictions, or how much variables improve predictions. The important point to note here: if a variable causes something, we could also expect that it helps to predict the very thing. The opposite, however, is not generally true - it is very often possible that a variable that doesn't cause something can predict something.
 
 In statistics (in particular course: advanced biostatistics), we discuss the issue of causality at length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
 
-Here an example for the variable importance indicators in the RF algorithm. The purpose of this script is to show that RF variable importance will split importance values for collinear variables evenly, even if collinearity is low enough so that variables are sepearable and would be correctly separated by an lm / ANOVA
+### Causal inference on static data 
 
-We simulate a dataset with 2 predictors that are strongly correlated, but only one of them has an effect on the response. 
+Methods for causal inference depend on whether we have dynamic or static data. The latter is the more common case. With static data, the problem is confounding - if you have several predictors that are correlated, you can get spurious correlations between a given predictor and the response.
+
+A multiple regression, and a few other methods are able to correct for other predictors, and thus isolate the causal effect. The same is not necessarily true for ML algorithms and xAI methods. This is not a bug, but a feature - for making good predictions, it is often no problem, but rather an advantage to also use non-causal predictors. 
+
+Here an example for the variable importance indicators in the RF algorithm. The purpose of this script is to show that RF variable importance will split importance values for collinear variables evenly, even if collinearity is low enough so that variables are separable and would be correctly separated by an lm / ANOVA
+
+We first simulate a dataset with 2 predictors that are strongly correlated, but only one of them has an effect on the response. 
 ```{r}
 # simulation parameters
 n = 1000
@@ -139,25 +145,102 @@ Variable importance is now split nearly evenly.
 
 Task: understand why this is - remember: 
 
-- How the random forest works - variables are randomly hidden from the regression tree when the trees for the forest are built
-- Remember that as x1 ~ x2, we can use x2 as a replacement for x1
-- Remember that the variable importance measures the average contributions of the different variables in the trees of the forest
+* How the random forest works - variables are randomly hidden from the regression tree when the trees for the forest are built
+* Remember that as x1 ~ x2, we can use x2 as a replacement for x1
+* Remember that the variable importance measures the average contributions of the different variables in the trees of the forest
 
-### Causal inference on static data 
+### Structural equation models
 
-Pearl
+If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). SEMs are are designed to estimate entire causal diagrams. There are two main SEM packages in R: for anything that is non-normal, you will currently have to estimate the DAG piece-wise with CRAN package piecewiseSEM. Example for a vegetation dataset:
+
+```{r}
+library(piecewiseSEM)
+mod = psem(
+ lm(rich ~ distance + elev + abiotic + age + hetero + firesev + cover, data = keeley),
+ lm(firesev ~ elev + age + cover, data = keeley), 
+ lm(cover ~ age + elev + hetero + abiotic, data = keeley)
+)
+summary(mod)
+plot(mod)
+```
+
+For linear SEMs, we can estimate the entire DAG in one go. This also allows to have unobserved variables in the DAG. One of the most popular packages for this is lavaan
+
+```{r}
+library(lavaan)
+mod <- "
+ rich ~ distance + elev + abiotic + age + hetero + firesev + cover
+ firesev ~ elev + age + cover
+ cover ~ age + elev + abiotic 
+"
+fit<-sem(mod,data=keeley)
+summary(fit)
+```
 
 
-Automatic discovery 
+Plot options ... not so nice as before
+
+```{r}
+library(lavaanPlot)
+lavaanPlot(model = fit)
+```
+Another plotting option
+
+```{r}
+library(semPlot)
+semPaths(fit)
+```
+
+
+### Automatic causal discovery
+
+But how to we get the causal graph? In statistics, it common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithsm, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the PC algorithm. Here an example using the pcalg package:
+
+```{r}
+# Bioconductor dependencies have to installed by hand, e.g. BiocManager::install("Rgraphviz")
+library(pcalg)
+```
+
+Loading the data
+
+```{r}
+data("gmG", package = "pcalg") ## loads data sets gmG and gmG8
+suffStat <- list(C = cor(gmG8$x), n = nrow(gmG8$x))
+varNames <- gmG8$g@nodes
+```
+
+First, the kkeleton algorithm creates a basic graph without connections
+
+```{r}
+skel.gmG8 <- skeleton(suffStat, indepTest = gaussCItest,
+labels = varNames, alpha = 0.01)
+Rgraphviz::plot(skel.gmG8)
+```
+
+What is missing here is the direction of the errors. The PC algorith now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows. 
+
+```{r}
+pc.gmG8 <- pc(suffStat, indepTest = gaussCItest,
+labels = varNames, alpha = 0.01)
+Rgraphviz::plot(pc.gmG8 )
+```
 
 ### Causal inference on dynamic data 
 
-Granger causality
+When working with dynamic data, we can use an additional piece of information - the effect usually preceeds the cause, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as Granger causality, or Granger methods. Here an example: 
 
+```{r}
+library(lmtest)
+## Which came first: the chicken or the egg?
+data(ChickEgg)
+grangertest(egg ~ chicken, order = 3, data = ChickEgg)
+grangertest(chicken ~ egg, order = 3, data = ChickEgg)
+```
 
-### Transferring these ideas to ML
+### Outlook for machine learning
 
-N
+As we have seen, there are already a few methods / algorithms to discover causality from large data, but the systematic transfer of these concepts to machine learning, in particular deep learning, is still at its infancy. At the moment, this field is actively researched and changes extremely fast, so we recommend to use google to see what is currently going on. Particular, in business and industry, there is a large interest in learning about causal effect from large datasets. In our opinion, a great topic for young scientists to specialize on. 
+
 
 
 
