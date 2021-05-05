@@ -235,10 +235,10 @@ train_classes = lapply(train, function(d) dim(d)[1])
 train = abind::abind(train, along = 1L)
 labels_train = rep(0:4, unlist(train_classes))
 
-# flower = EcoData::dataset_flower()
-# train = flower$train
-# test = flower$test
-# train_classes = flower$labels
+flower = EcoData::dataset_flower()
+train = flower$train
+test = flower$test
+train_classes = flower$labels
 ```
 
 Let's visualize a flower:
@@ -254,7 +254,7 @@ train[100,,,] %>%
 ```{r,eval=FALSE}
 model = keras_model_sequential()
 model %>% 
-  layer_conv_2d(filters = 4L, kernel_size = 2L, input_shape = c(80L, 80L, 3L)) %>% 
+  layer_conv_2d(filters = 4L, kernel_size = 2L, input_shape = list( 80L, 80L, 3L)) %>% 
   layer_max_pooling_2d() %>% 
   layer_flatten() %>% 
   layer_dense(units = 5L, activation = "softmax")
@@ -262,8 +262,33 @@ model %>%
 model %>% 
   compile(optimizer = keras::optimizer_adamax(0.01), loss = keras::loss_categorical_crossentropy)
 
-model %>% 
-  fit(epochs = 2L, x = train/255, y = keras::k_one_hot(labels_train, 5L))
+
+### Model fitting ###
+epochs = 50L
+batch_size = 25L
+steps = floor(dim(train)[1]/batch_size)
+generator = keras::flow_images_from_data(x = train/255 , y = keras::k_one_hot(labels_train, 5L), batch_size = batch_size)
+
+optim = optimizer_adamax(0.01)
+epoch_losses = c()
+for(e in 1:epochs) {
+  epoch_loss = c()
+  for(s in 1:steps) {
+    batch = reticulate::iter_next(generator)
+    with(tf$GradientTape() %as% tape, {
+        pred = model(batch[[1]])
+        loss = keras::loss_categorical_crossentropy(batch[[2]], pred)
+        loss = tf$reduce_mean(loss)
+      })
+    gradients = tape$gradient(target = loss, sources = model$weights)
+    optim$apply_gradients(purrr::transpose(list(gradients, model$weights)))
+    epoch_loss = c(epoch_loss, loss$numpy())
+  }
+  epoch_losses = c(epoch_losses, epoch_loss)
+  cat("Epoch: ", e, " Loss: ", mean(epoch_losses), " \n")
+}
+
+
 ```
 
 3. Predictions
