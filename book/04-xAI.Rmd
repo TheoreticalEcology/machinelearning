@@ -151,7 +151,7 @@ Task: understand why this is - remember:
 
 If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). SEMs are are designed to estimate entire causal diagrams. There are two main SEM packages in R: for anything that is non-normal, you will currently have to estimate the DAG piece-wise with CRAN package piecewiseSEM. Example for a vegetation dataset:
 
-```{r}
+```{r,eval=FALSE}
 library(piecewiseSEM)
 mod = psem(
  lm(rich ~ distance + elev + abiotic + age + hetero + firesev + cover, data = keeley),
@@ -164,7 +164,7 @@ plot(mod)
 
 For linear SEMs, we can estimate the entire DAG in one go. This also allows to have unobserved variables in the DAG. One of the most popular packages for this is lavaan
 
-```{r}
+```{r,eval=FALSE}
 library(lavaan)
 mod <- "
  rich ~ distance + elev + abiotic + age + hetero + firesev + cover
@@ -178,13 +178,13 @@ summary(fit)
 
 Plot options ... not so nice as before
 
-```{r}
+```{r,eval=FALSE}
 library(lavaanPlot)
 lavaanPlot(model = fit)
 ```
 Another plotting option
 
-```{r}
+```{r,eval=FALSE}
 library(semPlot)
 semPaths(fit)
 ```
@@ -194,7 +194,7 @@ semPaths(fit)
 
 But how to we get the causal graph? In statistics, it common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithsm, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the PC algorithm. Here an example using the pcalg package:
 
-```{r}
+```{r,eval=FALSE}
 # Bioconductor dependencies have to installed by hand, e.g. 
 # BiocManager::install(c("Rgraphviz", "graph", "RBGL")
 library(pcalg)
@@ -202,7 +202,7 @@ library(pcalg)
 
 Loading the data
 
-```{r}
+```{r,eval=FALSE}
 data("gmG", package = "pcalg") ## loads data sets gmG and gmG8
 suffStat <- list(C = cor(gmG8$x), n = nrow(gmG8$x))
 varNames <- gmG8$g@nodes
@@ -210,7 +210,7 @@ varNames <- gmG8$g@nodes
 
 First, the kkeleton algorithm creates a basic graph without connections
 
-```{r}
+```{r,eval=FALSE}
 skel.gmG8 <- skeleton(suffStat, indepTest = gaussCItest,
 labels = varNames, alpha = 0.01)
 Rgraphviz::plot(skel.gmG8)
@@ -218,7 +218,7 @@ Rgraphviz::plot(skel.gmG8)
 
 What is missing here is the direction of the errors. The PC algorith now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.
 
-```{r}
+```{r,eval=FALSE}
 pc.gmG8 <- pc(suffStat, indepTest = gaussCItest,
 labels = varNames, alpha = 0.01)
 Rgraphviz::plot(pc.gmG8 )
