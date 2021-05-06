@@ -53,6 +53,10 @@
 
 <link href="libs/anchor-sections-1.0.1/anchor-sections.css" rel="stylesheet" />
 <script src="libs/anchor-sections-1.0.1/anchor-sections.js"></script>
+<script src="libs/htmlwidgets-1.5.1/htmlwidgets.js"></script>
+<script src="libs/viz-1.8.2/viz.js"></script>
+<link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
+<script src="libs/grViz-binding-1.0.6.1/grViz.js"></script>
 
 
 <style type="text/css">
@@ -1121,74 +1125,76 @@ Questions:</p>
 <pre><code>## [1] 0.3893</code></pre>
 </details>
 <p><br/></p>
+<p><strong>Flower dataset</strong></p>
 <p>Let’s do it with our flower dataset:</p>
 <div class="sourceCode" id="cb364"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb364-1"><a href="Deep.html#cb364-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> EcoData<span class="sc">::</span><span class="fu">dataset_flower</span>()</span>
 <span id="cb364-2"><a href="Deep.html#cb364-2" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data<span class="sc">$</span>train</span>
 <span id="cb364-3"><a href="Deep.html#cb364-3" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> data<span class="sc">$</span>test</span>
 <span id="cb364-4"><a href="Deep.html#cb364-4" aria-hidden="true" tabindex="-1"></a>labels <span class="ot">=</span> data<span class="sc">$</span>labels</span>
 <span id="cb364-5"><a href="Deep.html#cb364-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb364-6"><a href="Deep.html#cb364-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb364-7"><a href="Deep.html#cb364-7" aria-hidden="true" tabindex="-1"></a>densenet <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">application_densenet201</span>(<span class="at">include_top =</span> <span class="cn">FALSE</span>, <span class="at">input_shape =</span> <span class="fu">list</span>(80L, 80L, 3L))</span>
-<span id="cb364-8"><a href="Deep.html#cb364-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb364-9"><a href="Deep.html#cb364-9" aria-hidden="true" tabindex="-1"></a>keras<span class="sc">::</span><span class="fu">freeze_weights</span>(inception)</span>
-<span id="cb364-10"><a href="Deep.html#cb364-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb364-11"><a href="Deep.html#cb364-11" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model</span>(<span class="at">inputs =</span> densenet<span class="sc">$</span>input, </span>
-<span id="cb364-12"><a href="Deep.html#cb364-12" aria-hidden="true" tabindex="-1"></a>                    <span class="at">outputs =</span> densenet<span class="sc">$</span>output <span class="sc">%&gt;%</span> </span>
-<span id="cb364-13"><a href="Deep.html#cb364-13" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">layer_flatten</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb364-14"><a href="Deep.html#cb364-14" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">layer_dropout</span>(<span class="fl">0.2</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb364-15"><a href="Deep.html#cb364-15" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">layer_dense</span>(<span class="at">units =</span> 200L) <span class="sc">%&gt;%</span> </span>
-<span id="cb364-16"><a href="Deep.html#cb364-16" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">layer_dropout</span>(<span class="fl">0.2</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb364-17"><a href="Deep.html#cb364-17" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">layer_dense</span>(<span class="at">units =</span> 5L, <span class="at">activation=</span><span class="st">&quot;softmax&quot;</span>))</span>
-<span id="cb364-18"><a href="Deep.html#cb364-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-6"><a href="Deep.html#cb364-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
+<span id="cb364-7"><a href="Deep.html#cb364-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-8"><a href="Deep.html#cb364-8" aria-hidden="true" tabindex="-1"></a>densenet <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">application_densenet201</span>(<span class="at">include_top =</span> <span class="cn">FALSE</span>, <span class="at">input_shape =</span> <span class="fu">list</span>(80L, 80L, 3L))</span>
+<span id="cb364-9"><a href="Deep.html#cb364-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-10"><a href="Deep.html#cb364-10" aria-hidden="true" tabindex="-1"></a>keras<span class="sc">::</span><span class="fu">freeze_weights</span>(densenet)</span>
+<span id="cb364-11"><a href="Deep.html#cb364-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-12"><a href="Deep.html#cb364-12" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model</span>(<span class="at">inputs =</span> densenet<span class="sc">$</span>input, </span>
+<span id="cb364-13"><a href="Deep.html#cb364-13" aria-hidden="true" tabindex="-1"></a>                    <span class="at">outputs =</span> densenet<span class="sc">$</span>output <span class="sc">%&gt;%</span> </span>
+<span id="cb364-14"><a href="Deep.html#cb364-14" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">layer_flatten</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb364-15"><a href="Deep.html#cb364-15" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">layer_dropout</span>(<span class="fl">0.2</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb364-16"><a href="Deep.html#cb364-16" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">layer_dense</span>(<span class="at">units =</span> 200L) <span class="sc">%&gt;%</span> </span>
+<span id="cb364-17"><a href="Deep.html#cb364-17" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">layer_dropout</span>(<span class="fl">0.2</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb364-18"><a href="Deep.html#cb364-18" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">layer_dense</span>(<span class="at">units =</span> 5L, <span class="at">activation=</span><span class="st">&quot;softmax&quot;</span>))</span>
 <span id="cb364-19"><a href="Deep.html#cb364-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb364-20"><a href="Deep.html#cb364-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Data augmentation</span></span>
-<span id="cb364-21"><a href="Deep.html#cb364-21" aria-hidden="true" tabindex="-1"></a>aug <span class="ot">=</span> <span class="fu">image_data_generator</span>(<span class="at">rotation_range =</span> <span class="dv">180</span>,<span class="at">zoom_range =</span> <span class="fl">0.4</span>,<span class="at">width_shift_range =</span> <span class="fl">0.2</span>, <span class="at">height_shift_range =</span> <span class="fl">0.2</span>, <span class="at">vertical_flip =</span> <span class="cn">TRUE</span>, <span class="at">horizontal_flip =</span> <span class="cn">TRUE</span>,<span class="at">preprocessing_function =</span> imagenet_preprocess_input)</span>
-<span id="cb364-22"><a href="Deep.html#cb364-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb364-23"><a href="Deep.html#cb364-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Data preparation / splitting</span></span>
-<span id="cb364-24"><a href="Deep.html#cb364-24" aria-hidden="true" tabindex="-1"></a>indices <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="fu">nrow</span>(train), <span class="fl">0.1</span><span class="sc">*</span><span class="fu">nrow</span>(train))</span>
-<span id="cb364-25"><a href="Deep.html#cb364-25" aria-hidden="true" tabindex="-1"></a>generator <span class="ot">=</span> <span class="fu">flow_images_from_data</span>(train[<span class="sc">-</span>indices,,,], <span class="fu">k_one_hot</span>(labels[<span class="sc">-</span>indices], <span class="at">num_classes =</span> 5L), <span class="at">batch_size =</span> 25L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb364-26"><a href="Deep.html#cb364-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb364-27"><a href="Deep.html#cb364-27" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> <span class="fu">imagenet_preprocess_input</span>(train[indices,,,])</span>
-<span id="cb364-28"><a href="Deep.html#cb364-28" aria-hidden="true" tabindex="-1"></a>test_labels <span class="ot">=</span> <span class="fu">k_one_hot</span>(labels[indices], <span class="at">num_classes =</span> 5L)</span>
-<span id="cb364-29"><a href="Deep.html#cb364-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb364-30"><a href="Deep.html#cb364-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Our own training loop with early stopping:</span></span>
-<span id="cb364-31"><a href="Deep.html#cb364-31" aria-hidden="true" tabindex="-1"></a>epochs <span class="ot">=</span> 1L</span>
-<span id="cb364-32"><a href="Deep.html#cb364-32" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> 45L</span>
-<span id="cb364-33"><a href="Deep.html#cb364-33" aria-hidden="true" tabindex="-1"></a>steps <span class="ot">=</span> <span class="fu">floor</span>(<span class="fu">dim</span>(train)[<span class="dv">1</span>]<span class="sc">/</span>batch_size)</span>
-<span id="cb364-34"><a href="Deep.html#cb364-34" aria-hidden="true" tabindex="-1"></a>optim <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">optimizer_rmsprop</span>(<span class="at">lr =</span> <span class="fl">0.0005</span>)</span>
-<span id="cb364-35"><a href="Deep.html#cb364-35" aria-hidden="true" tabindex="-1"></a>max_patience <span class="ot">=</span> 10L</span>
-<span id="cb364-36"><a href="Deep.html#cb364-36" aria-hidden="true" tabindex="-1"></a>patience <span class="ot">=</span> 1L</span>
-<span id="cb364-37"><a href="Deep.html#cb364-37" aria-hidden="true" tabindex="-1"></a>min_val_loss <span class="ot">=</span> <span class="cn">Inf</span></span>
-<span id="cb364-38"><a href="Deep.html#cb364-38" aria-hidden="true" tabindex="-1"></a>val_losses <span class="ot">=</span> <span class="fu">c</span>()</span>
-<span id="cb364-39"><a href="Deep.html#cb364-39" aria-hidden="true" tabindex="-1"></a>epoch_losses <span class="ot">=</span> <span class="fu">c</span>()</span>
-<span id="cb364-40"><a href="Deep.html#cb364-40" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>epochs) {</span>
-<span id="cb364-41"><a href="Deep.html#cb364-41" aria-hidden="true" tabindex="-1"></a>  epoch_loss <span class="ot">=</span> <span class="fu">c</span>()</span>
-<span id="cb364-42"><a href="Deep.html#cb364-42" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(s <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>steps) {</span>
-<span id="cb364-43"><a href="Deep.html#cb364-43" aria-hidden="true" tabindex="-1"></a>    batch <span class="ot">=</span> reticulate<span class="sc">::</span><span class="fu">iter_next</span>(generator)</span>
-<span id="cb364-44"><a href="Deep.html#cb364-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">with</span>(tf<span class="sc">$</span><span class="fu">GradientTape</span>() <span class="sc">%as%</span> tape, {</span>
-<span id="cb364-45"><a href="Deep.html#cb364-45" aria-hidden="true" tabindex="-1"></a>        pred <span class="ot">=</span> <span class="fu">model</span>(batch[[<span class="dv">1</span>]], <span class="at">training =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb364-46"><a href="Deep.html#cb364-46" aria-hidden="true" tabindex="-1"></a>        loss <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">loss_categorical_crossentropy</span>(batch[[<span class="dv">2</span>]], pred)</span>
-<span id="cb364-47"><a href="Deep.html#cb364-47" aria-hidden="true" tabindex="-1"></a>        loss <span class="ot">=</span> tf<span class="sc">$</span><span class="fu">reduce_mean</span>(loss)</span>
-<span id="cb364-48"><a href="Deep.html#cb364-48" aria-hidden="true" tabindex="-1"></a>      })</span>
-<span id="cb364-49"><a href="Deep.html#cb364-49" aria-hidden="true" tabindex="-1"></a>    gradients <span class="ot">=</span> tape<span class="sc">$</span><span class="fu">gradient</span>(<span class="at">target =</span> loss, <span class="at">sources =</span> model<span class="sc">$</span>trainable_variables)</span>
-<span id="cb364-50"><a href="Deep.html#cb364-50" aria-hidden="true" tabindex="-1"></a>    optim<span class="sc">$</span><span class="fu">apply_gradients</span>(purrr<span class="sc">::</span><span class="fu">transpose</span>(<span class="fu">list</span>(gradients, model<span class="sc">$</span>trainable_variables)))</span>
-<span id="cb364-51"><a href="Deep.html#cb364-51" aria-hidden="true" tabindex="-1"></a>    epoch_loss <span class="ot">=</span> <span class="fu">c</span>(epoch_loss, loss<span class="sc">$</span><span class="fu">numpy</span>())</span>
-<span id="cb364-52"><a href="Deep.html#cb364-52" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb364-53"><a href="Deep.html#cb364-53" aria-hidden="true" tabindex="-1"></a>  epoch_losses <span class="ot">=</span> <span class="fu">c</span>(epoch_losses, epoch_loss)</span>
-<span id="cb364-54"><a href="Deep.html#cb364-54" aria-hidden="true" tabindex="-1"></a>  <span class="do">## test loss ##</span></span>
-<span id="cb364-55"><a href="Deep.html#cb364-55" aria-hidden="true" tabindex="-1"></a>  preds <span class="ot">=</span> model <span class="sc">%&gt;%</span> <span class="fu">predict</span>(test)</span>
-<span id="cb364-56"><a href="Deep.html#cb364-56" aria-hidden="true" tabindex="-1"></a>  val_losses <span class="ot">=</span> <span class="fu">c</span>(val_losses, tf<span class="sc">$</span><span class="fu">reduce_mean</span>( keras<span class="sc">::</span><span class="fu">loss_categorical_crossentropy</span>(test_labels, preds) )<span class="sc">$</span><span class="fu">numpy</span>())</span>
-<span id="cb364-57"><a href="Deep.html#cb364-57" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb364-58"><a href="Deep.html#cb364-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Epoch: &quot;</span>, e, <span class="st">&quot; Train Loss: &quot;</span>, <span class="fu">mean</span>(epoch_losses),<span class="st">&quot; Val Loss: &quot;</span>, val_losses[e],  <span class="st">&quot; </span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb364-59"><a href="Deep.html#cb364-59" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb364-60"><a href="Deep.html#cb364-60" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(val_losses[e] <span class="sc">&lt;</span> min_val_loss) {</span>
-<span id="cb364-61"><a href="Deep.html#cb364-61" aria-hidden="true" tabindex="-1"></a>    min_val_loss <span class="ot">=</span> val_losses[e]</span>
-<span id="cb364-62"><a href="Deep.html#cb364-62" aria-hidden="true" tabindex="-1"></a>    patience <span class="ot">=</span> <span class="dv">1</span></span>
-<span id="cb364-63"><a href="Deep.html#cb364-63" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> { patience <span class="ot">=</span> patience<span class="sc">+</span><span class="dv">1</span> }</span>
-<span id="cb364-64"><a href="Deep.html#cb364-64" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(patience <span class="sc">==</span> max_patience) <span class="cf">break</span></span>
-<span id="cb364-65"><a href="Deep.html#cb364-65" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb364-66"><a href="Deep.html#cb364-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb364-67"><a href="Deep.html#cb364-67" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">imagenet_preprocess_input</span>(data<span class="sc">$</span>test))</span></code></pre></div>
+<span id="cb364-20"><a href="Deep.html#cb364-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-21"><a href="Deep.html#cb364-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Data augmentation</span></span>
+<span id="cb364-22"><a href="Deep.html#cb364-22" aria-hidden="true" tabindex="-1"></a>aug <span class="ot">=</span> <span class="fu">image_data_generator</span>(<span class="at">rotation_range =</span> <span class="dv">180</span>,<span class="at">zoom_range =</span> <span class="fl">0.4</span>,<span class="at">width_shift_range =</span> <span class="fl">0.2</span>, <span class="at">height_shift_range =</span> <span class="fl">0.2</span>, <span class="at">vertical_flip =</span> <span class="cn">TRUE</span>, <span class="at">horizontal_flip =</span> <span class="cn">TRUE</span>,<span class="at">preprocessing_function =</span> imagenet_preprocess_input)</span>
+<span id="cb364-23"><a href="Deep.html#cb364-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-24"><a href="Deep.html#cb364-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Data preparation / splitting</span></span>
+<span id="cb364-25"><a href="Deep.html#cb364-25" aria-hidden="true" tabindex="-1"></a>indices <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="fu">nrow</span>(train), <span class="fl">0.1</span><span class="sc">*</span><span class="fu">nrow</span>(train))</span>
+<span id="cb364-26"><a href="Deep.html#cb364-26" aria-hidden="true" tabindex="-1"></a>generator <span class="ot">=</span> <span class="fu">flow_images_from_data</span>(train[<span class="sc">-</span>indices,,,], <span class="fu">k_one_hot</span>(labels[<span class="sc">-</span>indices], <span class="at">num_classes =</span> 5L), <span class="at">batch_size =</span> 25L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb364-27"><a href="Deep.html#cb364-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-28"><a href="Deep.html#cb364-28" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> <span class="fu">imagenet_preprocess_input</span>(train[indices,,,])</span>
+<span id="cb364-29"><a href="Deep.html#cb364-29" aria-hidden="true" tabindex="-1"></a>test_labels <span class="ot">=</span> <span class="fu">k_one_hot</span>(labels[indices], <span class="at">num_classes =</span> 5L)</span>
+<span id="cb364-30"><a href="Deep.html#cb364-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-31"><a href="Deep.html#cb364-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Our own training loop with early stopping:</span></span>
+<span id="cb364-32"><a href="Deep.html#cb364-32" aria-hidden="true" tabindex="-1"></a>epochs <span class="ot">=</span> 1L</span>
+<span id="cb364-33"><a href="Deep.html#cb364-33" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> 45L</span>
+<span id="cb364-34"><a href="Deep.html#cb364-34" aria-hidden="true" tabindex="-1"></a>steps <span class="ot">=</span> <span class="fu">floor</span>(<span class="fu">dim</span>(train)[<span class="dv">1</span>]<span class="sc">/</span>batch_size)</span>
+<span id="cb364-35"><a href="Deep.html#cb364-35" aria-hidden="true" tabindex="-1"></a>optim <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">optimizer_rmsprop</span>(<span class="at">lr =</span> <span class="fl">0.0005</span>)</span>
+<span id="cb364-36"><a href="Deep.html#cb364-36" aria-hidden="true" tabindex="-1"></a>max_patience <span class="ot">=</span> 10L</span>
+<span id="cb364-37"><a href="Deep.html#cb364-37" aria-hidden="true" tabindex="-1"></a>patience <span class="ot">=</span> 1L</span>
+<span id="cb364-38"><a href="Deep.html#cb364-38" aria-hidden="true" tabindex="-1"></a>min_val_loss <span class="ot">=</span> <span class="cn">Inf</span></span>
+<span id="cb364-39"><a href="Deep.html#cb364-39" aria-hidden="true" tabindex="-1"></a>val_losses <span class="ot">=</span> <span class="fu">c</span>()</span>
+<span id="cb364-40"><a href="Deep.html#cb364-40" aria-hidden="true" tabindex="-1"></a>epoch_losses <span class="ot">=</span> <span class="fu">c</span>()</span>
+<span id="cb364-41"><a href="Deep.html#cb364-41" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>epochs) {</span>
+<span id="cb364-42"><a href="Deep.html#cb364-42" aria-hidden="true" tabindex="-1"></a>  epoch_loss <span class="ot">=</span> <span class="fu">c</span>()</span>
+<span id="cb364-43"><a href="Deep.html#cb364-43" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(s <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>steps) {</span>
+<span id="cb364-44"><a href="Deep.html#cb364-44" aria-hidden="true" tabindex="-1"></a>    batch <span class="ot">=</span> reticulate<span class="sc">::</span><span class="fu">iter_next</span>(generator)</span>
+<span id="cb364-45"><a href="Deep.html#cb364-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">with</span>(tf<span class="sc">$</span><span class="fu">GradientTape</span>() <span class="sc">%as%</span> tape, {</span>
+<span id="cb364-46"><a href="Deep.html#cb364-46" aria-hidden="true" tabindex="-1"></a>        pred <span class="ot">=</span> <span class="fu">model</span>(batch[[<span class="dv">1</span>]], <span class="at">training =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb364-47"><a href="Deep.html#cb364-47" aria-hidden="true" tabindex="-1"></a>        loss <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">loss_categorical_crossentropy</span>(batch[[<span class="dv">2</span>]], pred)</span>
+<span id="cb364-48"><a href="Deep.html#cb364-48" aria-hidden="true" tabindex="-1"></a>        loss <span class="ot">=</span> tf<span class="sc">$</span><span class="fu">reduce_mean</span>(loss)</span>
+<span id="cb364-49"><a href="Deep.html#cb364-49" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb364-50"><a href="Deep.html#cb364-50" aria-hidden="true" tabindex="-1"></a>    gradients <span class="ot">=</span> tape<span class="sc">$</span><span class="fu">gradient</span>(<span class="at">target =</span> loss, <span class="at">sources =</span> model<span class="sc">$</span>trainable_variables)</span>
+<span id="cb364-51"><a href="Deep.html#cb364-51" aria-hidden="true" tabindex="-1"></a>    optim<span class="sc">$</span><span class="fu">apply_gradients</span>(purrr<span class="sc">::</span><span class="fu">transpose</span>(<span class="fu">list</span>(gradients, model<span class="sc">$</span>trainable_variables)))</span>
+<span id="cb364-52"><a href="Deep.html#cb364-52" aria-hidden="true" tabindex="-1"></a>    epoch_loss <span class="ot">=</span> <span class="fu">c</span>(epoch_loss, loss<span class="sc">$</span><span class="fu">numpy</span>())</span>
+<span id="cb364-53"><a href="Deep.html#cb364-53" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb364-54"><a href="Deep.html#cb364-54" aria-hidden="true" tabindex="-1"></a>  epoch_losses <span class="ot">=</span> <span class="fu">c</span>(epoch_losses, epoch_loss)</span>
+<span id="cb364-55"><a href="Deep.html#cb364-55" aria-hidden="true" tabindex="-1"></a>  <span class="do">## test loss ##</span></span>
+<span id="cb364-56"><a href="Deep.html#cb364-56" aria-hidden="true" tabindex="-1"></a>  preds <span class="ot">=</span> model <span class="sc">%&gt;%</span> <span class="fu">predict</span>(test)</span>
+<span id="cb364-57"><a href="Deep.html#cb364-57" aria-hidden="true" tabindex="-1"></a>  val_losses <span class="ot">=</span> <span class="fu">c</span>(val_losses, tf<span class="sc">$</span><span class="fu">reduce_mean</span>( keras<span class="sc">::</span><span class="fu">loss_categorical_crossentropy</span>(test_labels, preds) )<span class="sc">$</span><span class="fu">numpy</span>())</span>
+<span id="cb364-58"><a href="Deep.html#cb364-58" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb364-59"><a href="Deep.html#cb364-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Epoch: &quot;</span>, e, <span class="st">&quot; Train Loss: &quot;</span>, <span class="fu">mean</span>(epoch_losses),<span class="st">&quot; Val Loss: &quot;</span>, val_losses[e],  <span class="st">&quot; </span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb364-60"><a href="Deep.html#cb364-60" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb364-61"><a href="Deep.html#cb364-61" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(val_losses[e] <span class="sc">&lt;</span> min_val_loss) {</span>
+<span id="cb364-62"><a href="Deep.html#cb364-62" aria-hidden="true" tabindex="-1"></a>    min_val_loss <span class="ot">=</span> val_losses[e]</span>
+<span id="cb364-63"><a href="Deep.html#cb364-63" aria-hidden="true" tabindex="-1"></a>    patience <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb364-64"><a href="Deep.html#cb364-64" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> { patience <span class="ot">=</span> patience<span class="sc">+</span><span class="dv">1</span> }</span>
+<span id="cb364-65"><a href="Deep.html#cb364-65" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(patience <span class="sc">==</span> max_patience) <span class="cf">break</span></span>
+<span id="cb364-66"><a href="Deep.html#cb364-66" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb364-67"><a href="Deep.html#cb364-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-68"><a href="Deep.html#cb364-68" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">imagenet_preprocess_input</span>(data<span class="sc">$</span>test))</span></code></pre></div>
 
 </div>
 </div>

@@ -53,6 +53,10 @@
 
 <link href="libs/anchor-sections-1.0.1/anchor-sections.css" rel="stylesheet" />
 <script src="libs/anchor-sections-1.0.1/anchor-sections.js"></script>
+<script src="libs/htmlwidgets-1.5.1/htmlwidgets.js"></script>
+<script src="libs/viz-1.8.2/viz.js"></script>
+<link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
+<script src="libs/grViz-binding-1.0.6.1/grViz.js"></script>
 
 
 <style type="text/css">
@@ -390,7 +394,7 @@ When we want to use them, we first have to create a Predictor object, that holds
 <p>In statistical courses (in particular course: advanced biostatistics), we discuss the issue of causality at length. Here, we don’t want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what’s going on in the algorithm, not about what’s going on in reality.</p>
 <div id="causal-inference-on-static-data" class="section level3" number="5.2.1">
 <h3><span class="header-section-number">5.2.1</span> Causal inference on static data</h3>
-<p>Methods for causal inference depend on whether we have dynamic or static data. The latter is the more common case. With static data, the problem is confounding - if you have several predictors that are correlated, you can get spurious correlations between a given predictor and the response.</p>
+<p>Methods for causal inference depend on whether we have dynamic or static data. The latter is the more common case. With static data, the problem is confounding - if you have several predictors that are correlated, you can get spurious correlations between a given predictor and the response, although there are no in general.</p>
 <p>A multiple regression, and a few other methods are able to correct for other predictors, and thus isolate the causal effect. The same is not necessarily true for ML algorithms and xAI methods. This is not a bug, but a feature - for making good predictions, it is often no problem, but rather an advantage to also use non-causal predictors.</p>
 <p>Here an example for the variable importance indicators in the RF algorithm. The purpose of this script is to show that RF variable importance will split importance values for collinear variables evenly, even if collinearity is low enough so that variables are separable and would be correctly separated by an lm / ANOVA</p>
 <p>We first simulate a dataset with 2 predictors that are strongly correlated, but only one of them has an effect on the response.</p>
@@ -427,54 +431,168 @@ Variable importance is now split nearly evenly.</p>
 </div>
 <div id="structural-equation-models" class="section level3" number="5.2.2">
 <h3><span class="header-section-number">5.2.2</span> Structural equation models</h3>
-<p>If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). SEMs are are designed to estimate entire causal diagrams. There are two main SEM packages in R: for anything that is non-normal, you will currently have to estimate the DAG piece-wise with CRAN package piecewiseSEM. Example for a vegetation dataset:</p>
+<p>If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). SEMs are designed to estimate entire causal diagrams. There are two main SEM packages in R: for anything that is non-normal, you will currently have to estimate the DAG piece-wise with CRAN package piecewiseSEM. Example for a vegetation dataset:</p>
 <div class="sourceCode" id="cb381"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb381-1"><a href="interpretation-and-causality-with-machine-learning.html#cb381-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(piecewiseSEM)</span>
 <span id="cb381-2"><a href="interpretation-and-causality-with-machine-learning.html#cb381-2" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">=</span> <span class="fu">psem</span>(</span>
 <span id="cb381-3"><a href="interpretation-and-causality-with-machine-learning.html#cb381-3" aria-hidden="true" tabindex="-1"></a> <span class="fu">lm</span>(rich <span class="sc">~</span> distance <span class="sc">+</span> elev <span class="sc">+</span> abiotic <span class="sc">+</span> age <span class="sc">+</span> hetero <span class="sc">+</span> firesev <span class="sc">+</span> cover, <span class="at">data =</span> keeley),</span>
 <span id="cb381-4"><a href="interpretation-and-causality-with-machine-learning.html#cb381-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">lm</span>(firesev <span class="sc">~</span> elev <span class="sc">+</span> age <span class="sc">+</span> cover, <span class="at">data =</span> keeley),</span>
 <span id="cb381-5"><a href="interpretation-and-causality-with-machine-learning.html#cb381-5" aria-hidden="true" tabindex="-1"></a> <span class="fu">lm</span>(cover <span class="sc">~</span> age <span class="sc">+</span> elev <span class="sc">+</span> hetero <span class="sc">+</span> abiotic, <span class="at">data =</span> keeley)</span>
 <span id="cb381-6"><a href="interpretation-and-causality-with-machine-learning.html#cb381-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb381-7"><a href="interpretation-and-causality-with-machine-learning.html#cb381-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod)</span>
-<span id="cb381-8"><a href="interpretation-and-causality-with-machine-learning.html#cb381-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mod)</span></code></pre></div>
+<span id="cb381-7"><a href="interpretation-and-causality-with-machine-learning.html#cb381-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod)</span></code></pre></div>
+<pre><code>## 
+  |                                                                                                                                                    
+  |                                                                                                                                              |   0%
+  |                                                                                                                                                    
+  |====================================                                                                                                          |  25%
+  |                                                                                                                                                    
+  |=======================================================================                                                                       |  50%
+  |                                                                                                                                                    
+  |==========================================================================================================                                    |  75%
+  |                                                                                                                                                    
+  |==============================================================================================================================================| 100%</code></pre>
+<pre><code>## 
+## Structural Equation Model of mod 
+## 
+## Call:
+##   rich ~ distance + elev + abiotic + age + hetero + firesev + cover
+##   firesev ~ elev + age + cover
+##   cover ~ age + elev + hetero + abiotic
+## 
+##     AIC      BIC
+##  46.543   96.539
+## 
+## ---
+## Tests of directed separation:
+## 
+##               Independ.Claim Estimate Std.Error DF Crit.Value P.Value 
+##     cover  ~  distance + ...   0.0021    0.0050 84     0.4201  0.6755 
+##   firesev  ~  distance + ...  -0.0194    0.0234 85    -0.8264  0.4109 
+##    firesev  ~  abiotic + ...  -0.0245    0.0208 85    -1.1799  0.2413 
+##     firesev  ~  hetero + ...  -0.8093    1.4061 85    -0.5755  0.5665 
+## 
+## Global goodness-of-fit:
+## 
+##   Fisher&#39;s C = 6.543 with P-value = 0.587 and on 8 degrees of freedom
+## 
+## ---
+## Coefficients:
+## 
+##   Response Predictor Estimate Std.Error DF Crit.Value P.Value Std.Estimate    
+##       rich  distance   0.6157    0.1855 82     3.3195  0.0013       0.3599  **
+##       rich      elev  -0.0092    0.0059 82    -1.5663  0.1211      -0.1569    
+##       rich   abiotic   0.4881    0.1641 82     2.9741  0.0039       0.2482  **
+##       rich       age   0.0241    0.1097 82     0.2199  0.8265       0.0201    
+##       rich    hetero  44.4135   10.8093 82     4.1088  0.0001       0.3376 ***
+##       rich   firesev  -1.0181    0.8031 82    -1.2677  0.2085      -0.1114    
+##       rich     cover  12.3998    4.2206 82     2.9379  0.0043       0.2604  **
+##    firesev      elev  -0.0006    0.0006 86    -0.9298  0.3551      -0.0874    
+##    firesev       age   0.0473    0.0129 86     3.6722  0.0004       0.3597 ***
+##    firesev     cover  -1.5214    0.5204 86    -2.9236  0.0044      -0.2921  **
+##      cover       age  -0.0101    0.0024 85    -4.1757  0.0001      -0.3991 ***
+##      cover      elev   0.0004    0.0001 85     2.9688  0.0039       0.2999  **
+##      cover    hetero  -0.7875    0.2719 85    -2.8960  0.0048      -0.2850  **
+##      cover   abiotic   0.0021    0.0042 85     0.4855  0.6286       0.0498    
+## 
+##   Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05
+## 
+## Individual R-squared:
+## 
+##   Response method R.squared
+##       rich   none      0.57
+##    firesev   none      0.30
+##      cover   none      0.26</code></pre>
+<div class="sourceCode" id="cb384"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb384-1"><a href="interpretation-and-causality-with-machine-learning.html#cb384-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot(mod)</span></span></code></pre></div>
 <p>For linear SEMs, we can estimate the entire DAG in one go. This also allows to have unobserved variables in the DAG. One of the most popular packages for this is lavaan</p>
-<div class="sourceCode" id="cb382"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb382-1"><a href="interpretation-and-causality-with-machine-learning.html#cb382-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lavaan)</span>
-<span id="cb382-2"><a href="interpretation-and-causality-with-machine-learning.html#cb382-2" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">&lt;-</span> <span class="st">&quot;</span></span>
-<span id="cb382-3"><a href="interpretation-and-causality-with-machine-learning.html#cb382-3" aria-hidden="true" tabindex="-1"></a><span class="st"> rich ~ distance + elev + abiotic + age + hetero + firesev + cover</span></span>
-<span id="cb382-4"><a href="interpretation-and-causality-with-machine-learning.html#cb382-4" aria-hidden="true" tabindex="-1"></a><span class="st"> firesev ~ elev + age + cover</span></span>
-<span id="cb382-5"><a href="interpretation-and-causality-with-machine-learning.html#cb382-5" aria-hidden="true" tabindex="-1"></a><span class="st"> cover ~ age + elev + abiotic</span></span>
-<span id="cb382-6"><a href="interpretation-and-causality-with-machine-learning.html#cb382-6" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span></span>
-<span id="cb382-7"><a href="interpretation-and-causality-with-machine-learning.html#cb382-7" aria-hidden="true" tabindex="-1"></a>fit<span class="ot">&lt;-</span><span class="fu">sem</span>(mod,<span class="at">data=</span>keeley)</span>
-<span id="cb382-8"><a href="interpretation-and-causality-with-machine-learning.html#cb382-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit)</span></code></pre></div>
-<p>Plot options … not so nice as before</p>
-<div class="sourceCode" id="cb383"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb383-1"><a href="interpretation-and-causality-with-machine-learning.html#cb383-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lavaanPlot)</span>
-<span id="cb383-2"><a href="interpretation-and-causality-with-machine-learning.html#cb383-2" aria-hidden="true" tabindex="-1"></a><span class="fu">lavaanPlot</span>(<span class="at">model =</span> fit)</span></code></pre></div>
-<p>Another plotting option</p>
-<div class="sourceCode" id="cb384"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb384-1"><a href="interpretation-and-causality-with-machine-learning.html#cb384-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(semPlot)</span>
-<span id="cb384-2"><a href="interpretation-and-causality-with-machine-learning.html#cb384-2" aria-hidden="true" tabindex="-1"></a><span class="fu">semPaths</span>(fit)</span></code></pre></div>
+<div class="sourceCode" id="cb385"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb385-1"><a href="interpretation-and-causality-with-machine-learning.html#cb385-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lavaan)</span>
+<span id="cb385-2"><a href="interpretation-and-causality-with-machine-learning.html#cb385-2" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">&lt;-</span> <span class="st">&quot;</span></span>
+<span id="cb385-3"><a href="interpretation-and-causality-with-machine-learning.html#cb385-3" aria-hidden="true" tabindex="-1"></a><span class="st"> rich ~ distance + elev + abiotic + age + hetero + firesev + cover</span></span>
+<span id="cb385-4"><a href="interpretation-and-causality-with-machine-learning.html#cb385-4" aria-hidden="true" tabindex="-1"></a><span class="st"> firesev ~ elev + age + cover</span></span>
+<span id="cb385-5"><a href="interpretation-and-causality-with-machine-learning.html#cb385-5" aria-hidden="true" tabindex="-1"></a><span class="st"> cover ~ age + elev + abiotic</span></span>
+<span id="cb385-6"><a href="interpretation-and-causality-with-machine-learning.html#cb385-6" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span></span>
+<span id="cb385-7"><a href="interpretation-and-causality-with-machine-learning.html#cb385-7" aria-hidden="true" tabindex="-1"></a>fit<span class="ot">&lt;-</span><span class="fu">sem</span>(mod,<span class="at">data=</span>keeley)</span></code></pre></div>
+<pre><code>## Warning in lav_data_full(data = data, group = group, cluster = cluster, : lavaan WARNING: some observed variances are (at least) a factor 1000 times
+## larger than others; use varTable(fit) to investigate</code></pre>
+<div class="sourceCode" id="cb387"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb387-1"><a href="interpretation-and-causality-with-machine-learning.html#cb387-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit)</span></code></pre></div>
+<pre><code>## lavaan 0.6-8 ended normally after 77 iterations
+## 
+##   Estimator                                         ML
+##   Optimization method                           NLMINB
+##   Number of model parameters                        16
+##                                                       
+##   Number of observations                            90
+##                                                       
+## Model Test User Model:
+##                                                       
+##   Test statistic                                10.437
+##   Degrees of freedom                                 5
+##   P-value (Chi-square)                           0.064
+## 
+## Parameter Estimates:
+## 
+##   Standard errors                             Standard
+##   Information                                 Expected
+##   Information saturated (h1) model          Structured
+## 
+## Regressions:
+##                    Estimate   Std.Err  z-value  P(&gt;|z|)
+##   rich ~                                               
+##     distance           0.616    0.177    3.485    0.000
+##     elev              -0.009    0.006   -1.644    0.100
+##     abiotic            0.488    0.156    3.134    0.002
+##     age                0.024    0.105    0.229    0.819
+##     hetero            44.414    9.831    4.517    0.000
+##     firesev           -1.018    0.759   -1.341    0.180
+##     cover             12.400    3.841    3.228    0.001
+##   firesev ~                                            
+##     elev              -0.001    0.001   -0.951    0.342
+##     age                0.047    0.013    3.757    0.000
+##     cover             -1.521    0.509   -2.991    0.003
+##   cover ~                                              
+##     age               -0.009    0.002   -3.875    0.000
+##     elev               0.000    0.000    2.520    0.012
+##     abiotic           -0.000    0.004   -0.115    0.909
+## 
+## Variances:
+##                    Estimate   Std.Err  z-value  P(&gt;|z|)
+##    .rich              97.844   14.586    6.708    0.000
+##    .firesev            1.887    0.281    6.708    0.000
+##    .cover              0.081    0.012    6.708    0.000</code></pre>
+<p>The default Plot options are not so nice as before</p>
+<div class="sourceCode" id="cb389"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb389-1"><a href="interpretation-and-causality-with-machine-learning.html#cb389-1" aria-hidden="true" tabindex="-1"></a><span class="co"># devtools::install_version(&quot;lavaanPlot&quot;, version = &quot;0.6.0&quot;)</span></span>
+<span id="cb389-2"><a href="interpretation-and-causality-with-machine-learning.html#cb389-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lavaanPlot)</span>
+<span id="cb389-3"><a href="interpretation-and-causality-with-machine-learning.html#cb389-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lavaanPlot</span>(<span class="at">model =</span> fit)</span></code></pre></div>
+<div id="htmlwidget-5ba082e61f9a265b5ec0" style="width:672px;height:480px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-5ba082e61f9a265b5ec0">{"x":{"diagram":" digraph plot { \n graph [ overlap = true, fontsize = 10 ] \n node [ shape = box ] \n node [shape = box] \n distance; elev; abiotic; age; hetero; firesev; cover; rich \n node [shape = oval] \n  \n \n edge [ color = black ] \n distance->rich elev->rich abiotic->rich age->rich hetero->rich firesev->rich cover->rich elev->firesev age->firesev cover->firesev age->cover elev->cover abiotic->cover  \n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<p>Another plotting option is to use semPlot</p>
+<div class="sourceCode" id="cb390"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb390-1"><a href="interpretation-and-causality-with-machine-learning.html#cb390-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(semPlot)</span>
+<span id="cb390-2"><a href="interpretation-and-causality-with-machine-learning.html#cb390-2" aria-hidden="true" tabindex="-1"></a><span class="fu">semPaths</span>(fit)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-189-1.png" width="672" /></p>
 </div>
 <div id="automatic-causal-discovery" class="section level3" number="5.2.3">
 <h3><span class="header-section-number">5.2.3</span> Automatic causal discovery</h3>
-<p>But how to we get the causal graph? In statistics, it common to “guess” it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithsm, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the PC algorithm. Here an example using the pcalg package:</p>
-<div class="sourceCode" id="cb385"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb385-1"><a href="interpretation-and-causality-with-machine-learning.html#cb385-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Bioconductor dependencies have to installed by hand, e.g. </span></span>
-<span id="cb385-2"><a href="interpretation-and-causality-with-machine-learning.html#cb385-2" aria-hidden="true" tabindex="-1"></a><span class="co"># BiocManager::install(c(&quot;Rgraphviz&quot;, &quot;graph&quot;, &quot;RBGL&quot;)</span></span>
-<span id="cb385-3"><a href="interpretation-and-causality-with-machine-learning.html#cb385-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pcalg)</span></code></pre></div>
+<p>But how to get the causal graph? In statistics, it is common to “guess” it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the PC algorithm. Here an example using the pcalg package:</p>
+<div class="sourceCode" id="cb391"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb391-1"><a href="interpretation-and-causality-with-machine-learning.html#cb391-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Bioconductor dependencies have to installed by hand, e.g. </span></span>
+<span id="cb391-2"><a href="interpretation-and-causality-with-machine-learning.html#cb391-2" aria-hidden="true" tabindex="-1"></a><span class="co"># BiocManager::install(c(&quot;Rgraphviz&quot;, &quot;graph&quot;, &quot;RBGL&quot;)</span></span>
+<span id="cb391-3"><a href="interpretation-and-causality-with-machine-learning.html#cb391-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pcalg)</span></code></pre></div>
 <p>Loading the data</p>
-<div class="sourceCode" id="cb386"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb386-1"><a href="interpretation-and-causality-with-machine-learning.html#cb386-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;gmG&quot;</span>, <span class="at">package =</span> <span class="st">&quot;pcalg&quot;</span>) <span class="do">## loads data sets gmG and gmG8</span></span>
-<span id="cb386-2"><a href="interpretation-and-causality-with-machine-learning.html#cb386-2" aria-hidden="true" tabindex="-1"></a>suffStat <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">C =</span> <span class="fu">cor</span>(gmG8<span class="sc">$</span>x), <span class="at">n =</span> <span class="fu">nrow</span>(gmG8<span class="sc">$</span>x))</span>
-<span id="cb386-3"><a href="interpretation-and-causality-with-machine-learning.html#cb386-3" aria-hidden="true" tabindex="-1"></a>varNames <span class="ot">&lt;-</span> gmG8<span class="sc">$</span>g<span class="sc">@</span>nodes</span></code></pre></div>
-<p>First, the kkeleton algorithm creates a basic graph without connections</p>
-<div class="sourceCode" id="cb387"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb387-1"><a href="interpretation-and-causality-with-machine-learning.html#cb387-1" aria-hidden="true" tabindex="-1"></a>skel.gmG8 <span class="ot">&lt;-</span> <span class="fu">skeleton</span>(suffStat, <span class="at">indepTest =</span> gaussCItest,</span>
-<span id="cb387-2"><a href="interpretation-and-causality-with-machine-learning.html#cb387-2" aria-hidden="true" tabindex="-1"></a><span class="at">labels =</span> varNames, <span class="at">alpha =</span> <span class="fl">0.01</span>)</span>
-<span id="cb387-3"><a href="interpretation-and-causality-with-machine-learning.html#cb387-3" aria-hidden="true" tabindex="-1"></a>Rgraphviz<span class="sc">::</span><span class="fu">plot</span>(skel.gmG8)</span></code></pre></div>
-<p>What is missing here is the direction of the errors. The PC algorith now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.</p>
-<div class="sourceCode" id="cb388"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb388-1"><a href="interpretation-and-causality-with-machine-learning.html#cb388-1" aria-hidden="true" tabindex="-1"></a>pc.gmG8 <span class="ot">&lt;-</span> <span class="fu">pc</span>(suffStat, <span class="at">indepTest =</span> gaussCItest,</span>
-<span id="cb388-2"><a href="interpretation-and-causality-with-machine-learning.html#cb388-2" aria-hidden="true" tabindex="-1"></a><span class="at">labels =</span> varNames, <span class="at">alpha =</span> <span class="fl">0.01</span>)</span>
-<span id="cb388-3"><a href="interpretation-and-causality-with-machine-learning.html#cb388-3" aria-hidden="true" tabindex="-1"></a>Rgraphviz<span class="sc">::</span><span class="fu">plot</span>(pc.gmG8 )</span></code></pre></div>
+<div class="sourceCode" id="cb392"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb392-1"><a href="interpretation-and-causality-with-machine-learning.html#cb392-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;gmG&quot;</span>, <span class="at">package =</span> <span class="st">&quot;pcalg&quot;</span>) <span class="do">## loads data sets gmG and gmG8</span></span>
+<span id="cb392-2"><a href="interpretation-and-causality-with-machine-learning.html#cb392-2" aria-hidden="true" tabindex="-1"></a>suffStat <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">C =</span> <span class="fu">cor</span>(gmG8<span class="sc">$</span>x), <span class="at">n =</span> <span class="fu">nrow</span>(gmG8<span class="sc">$</span>x))</span>
+<span id="cb392-3"><a href="interpretation-and-causality-with-machine-learning.html#cb392-3" aria-hidden="true" tabindex="-1"></a>varNames <span class="ot">&lt;-</span> gmG8<span class="sc">$</span>g<span class="sc">@</span>nodes</span></code></pre></div>
+<p>First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph)</p>
+<div class="sourceCode" id="cb393"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb393-1"><a href="interpretation-and-causality-with-machine-learning.html#cb393-1" aria-hidden="true" tabindex="-1"></a>skel.gmG8 <span class="ot">&lt;-</span> <span class="fu">skeleton</span>(suffStat, <span class="at">indepTest =</span> gaussCItest,</span>
+<span id="cb393-2"><a href="interpretation-and-causality-with-machine-learning.html#cb393-2" aria-hidden="true" tabindex="-1"></a><span class="at">labels =</span> varNames, <span class="at">alpha =</span> <span class="fl">0.01</span>)</span>
+<span id="cb393-3"><a href="interpretation-and-causality-with-machine-learning.html#cb393-3" aria-hidden="true" tabindex="-1"></a>Rgraphviz<span class="sc">::</span><span class="fu">plot</span>(skel.gmG8)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-192-1.png" width="672" /></p>
+<p>What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.</p>
+<div class="sourceCode" id="cb394"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb394-1"><a href="interpretation-and-causality-with-machine-learning.html#cb394-1" aria-hidden="true" tabindex="-1"></a>pc.gmG8 <span class="ot">&lt;-</span> <span class="fu">pc</span>(suffStat, <span class="at">indepTest =</span> gaussCItest,</span>
+<span id="cb394-2"><a href="interpretation-and-causality-with-machine-learning.html#cb394-2" aria-hidden="true" tabindex="-1"></a><span class="at">labels =</span> varNames, <span class="at">alpha =</span> <span class="fl">0.01</span>)</span>
+<span id="cb394-3"><a href="interpretation-and-causality-with-machine-learning.html#cb394-3" aria-hidden="true" tabindex="-1"></a>Rgraphviz<span class="sc">::</span><span class="fu">plot</span>(pc.gmG8 )</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-193-1.png" width="672" /></p>
 </div>
 <div id="causal-inference-on-dynamic-data" class="section level3" number="5.2.4">
 <h3><span class="header-section-number">5.2.4</span> Causal inference on dynamic data</h3>
-<p>When working with dynamic data, we can use an additional piece of information - the effect usually preceeds the cause, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as Granger causality, or Granger methods. Here an example:</p>
-<div class="sourceCode" id="cb389"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb389-1"><a href="interpretation-and-causality-with-machine-learning.html#cb389-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span></code></pre></div>
+<p>When working with dynamic data, we can use an additional piece of information - the effect usually precedes the cause, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as Granger causality, or Granger methods. Here an example:</p>
+<div class="sourceCode" id="cb395"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb395-1"><a href="interpretation-and-causality-with-machine-learning.html#cb395-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span></code></pre></div>
 <pre><code>## Loading required package: zoo</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;zoo&#39;</code></pre>
@@ -486,9 +604,9 @@ Variable importance is now split nearly evenly.</p>
 <pre><code>## The following object is masked from &#39;package:crayon&#39;:
 ## 
 ##     reset</code></pre>
-<div class="sourceCode" id="cb395"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb395-1"><a href="interpretation-and-causality-with-machine-learning.html#cb395-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Which came first: the chicken or the egg?</span></span>
-<span id="cb395-2"><a href="interpretation-and-causality-with-machine-learning.html#cb395-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(ChickEgg)</span>
-<span id="cb395-3"><a href="interpretation-and-causality-with-machine-learning.html#cb395-3" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(egg <span class="sc">~</span> chicken, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code></pre></div>
+<div class="sourceCode" id="cb401"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb401-1"><a href="interpretation-and-causality-with-machine-learning.html#cb401-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Which came first: the chicken or the egg?</span></span>
+<span id="cb401-2"><a href="interpretation-and-causality-with-machine-learning.html#cb401-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(ChickEgg)</span>
+<span id="cb401-3"><a href="interpretation-and-causality-with-machine-learning.html#cb401-3" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(egg <span class="sc">~</span> chicken, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code></pre></div>
 <pre><code>## Granger causality test
 ## 
 ## Model 1: egg ~ Lags(egg, 1:3) + Lags(chicken, 1:3)
@@ -496,7 +614,7 @@ Variable importance is now split nearly evenly.</p>
 ##   Res.Df Df      F Pr(&gt;F)
 ## 1     44                 
 ## 2     47 -3 0.5916 0.6238</code></pre>
-<div class="sourceCode" id="cb397"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb397-1"><a href="interpretation-and-causality-with-machine-learning.html#cb397-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(chicken <span class="sc">~</span> egg, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code></pre></div>
+<div class="sourceCode" id="cb403"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb403-1"><a href="interpretation-and-causality-with-machine-learning.html#cb403-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(chicken <span class="sc">~</span> egg, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code></pre></div>
 <pre><code>## Granger causality test
 ## 
 ## Model 1: chicken ~ Lags(chicken, 1:3) + Lags(egg, 1:3)
