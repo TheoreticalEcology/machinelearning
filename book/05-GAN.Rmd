@@ -1,18 +1,14 @@
 # GANs, VAEs, and Reinforcement learning
 
+We will explore today more machine learning ideas.
+
 ## Generative adversarial network (GANs)
-The idea of generative adversarial network (GAN) is that two neural networks contest with each other in a game. On network is creating data and is trying to "trick" the other into thinking that this data is real. A possible application is to create pictures that look like real photographs. However, the application of GANs today is much wider than just the creation of data. For example, GANs can also be used to "augment" data, i.e. to create new data and thereby improve the fitted model. 
+The idea of generative adversarial network (GAN) is that two neural networks contest with each other in a game. On network is creating data and is trying to "trick" the other network into thinking that the generated data is real. The generator (similar to the decoder in AEs) creates new images from noise and tries to convince the discriminator that this is a real image. The discriminator is getting a mix of true (from the dataset) and artificially generated images from the generator. Thereby, the loss of the generator rises when fakes are identified as fakes by the discriminator (simple binary_crossentropy loss, 0/1...) and the loss of the discriminator rises when fakes are identified as fakes (class 1) and true images as true images (class 0), again simple binary crossentropy.
+
+A possible application is to create pictures that look like real photographs. However, the application of GANs today is much wider than just the creation of data. For example, GANs can also be used to "augment" data, i.e. to create new data and thereby improve the fitted model. 
 
 ### MNIST - GAN based on DNNs
-GANs - two networks are playing against each other. The generator (similar to the decoder in AEs) creates new images from noise and tries to convince the discriminator that this is a real image.
-
-The discriminator is getting a mix of true images (from the dataset) and of artificially generated images from the generator. 
-
-Loss of the generator - when fakes are identified as fakes by the discriminator (simple binary_crossentropy loss, 0/1...)
-
-Loss of the discriminator - when fakes are identified as fakes (class 1) and true images as true images (class 0), again simple binary crossentropy.
-
-MNIST example:
+We will now explore this on the MNIST data set. 
 
 ```{r}
 library(keras)
@@ -24,14 +20,14 @@ imgPlot = function(img, title = ""){
 }
 ```
 
-We don't need the test set:
+We don't need the test set 
 
 ```{r}
 data = dataset_mnist()
 train = data$train
 train_x = array((train$x-127.5)/127.5, c(dim(train$x)[1], 784L))
 ```
-
+We also need a function to sample images for the discriminator.
 ```{r}
 batch_size = 32L
 get_batch = function(){  # Helper function to get batches of images
@@ -44,7 +40,7 @@ dataset$batch(batch_size)
 ```
 
 
-Define and test generator model:
+Define generator model:
 
 ```{r}
 get_generator = function(){
@@ -58,14 +54,14 @@ get_generator = function(){
  return(generator)
 }
 ```
-
+And we also test the generator model:
 ```{r}
 generator = get_generator()
 sample = tf$random$normal(c(1L, 100L))
 imgPlot(array(generator(sample)$numpy(), c(28L, 28L)))
 ```
 
-The noise of size = [100] (random vector with 100 values) is passed through the network and the output correspond to the number of pixels of one MNIST image (784)
+The noise (random vector with 100 values) is passed through the network and the output correspond to the number of pixels of one MNIST image (784). We therefore now define the discriminator function
 
 ```{r}
 get_discriminator = function(){
@@ -79,7 +75,7 @@ get_discriminator = function(){
  return(discriminator)
 }
 ```
-
+And also the discriminator function
 ```{r}
 discriminator = get_discriminator()
 discriminator(generator(tf$random$normal(c(1L, 100L))))
@@ -87,7 +83,11 @@ discriminator(generator(tf$random$normal(c(1L, 100L))))
 
 The normal architecture of a binary classifier (will get images as input)
 
-Loss:
+We also have to define the loss functions for both networks, the binary crossentropy. However, we have to encode the true and predicted values for the two networks individually.
+
+The discriminator will get two losses - one for identifying fake images as fake, and one for identifying real MNIST images as real images.
+
+The generator will just get one loss - was it able to deceive the discriminator?
 
 ```{r}
 ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE)
@@ -101,22 +101,26 @@ loss_generator = function(fake){
 }
 ```
 
-Binary crossentropy as loss function.
 
-However, we have to encode the true and predicted values for the two networks individually.
-
-The discriminator will get two losses - one for identifying fake images as fake, and one for identifying real MNIST images as real images.
-
-The generator will just get one loss - was it able to deceive the discriminator?
-
-Each network will get its own optimizer (while a AE will be treated as one network, in a GAN the networks will be treated independently)
+Each network will get its own optimizer (in a GAN the networks are treated independently)
 
 ```{r}
 gen_opt = tf$keras$optimizers$RMSprop(1e-4)
 disc_opt = tf$keras$optimizers$RMSprop(1e-4)
 ```
 
-We have to write here our own training loop (we cannot use the fit function). Let's define a training function:
+We have to write here our own training loop (we cannot use the fit function). 
+In each iteration (for each batch) we will do the following (the GradientTape records computations to do automatic differenation):
+
+1. sample noise
+2. Generator creates images from the noise
+3. Discriminator will make predictions for fake images and real images (response is a probability between [0,1])
+4. Calculate loss for generator
+5. Calculate loss for discriminator
+6. Calculate gradients for weights and the loss
+7. Update weights of generator
+8. Update weights of discriminator
+9. return losses
 
 ```{r}
 train_step = function(images){
@@ -137,18 +141,14 @@ train_step = function(images){
 }
 train_step = tf$`function`(reticulate::py_func(train_step))
 ```
+Now we can finally train our networks in a traings loop:
 
-In each iteration (for each batch) we will do the following (the GradientTape records computations to do automatic differenation):
+1. Create networks
+2. get batch of images
+3. run train_step function
+4. print losses
+5. repeat step 2-4 for number of epochs
 
-1. sample noise
-2. Generator creates images from the noise
-3. Discriminator will make predictions for fake images and real images (response is a probability between [0,1])
-4. Calculate loss for generator
-5. Calculate loss for discriminator
-6. Calculate gradients for weights and the loss
-7. Update weights of generator
-8. Update weights of discriminator
-9. return losses
 
 ```{r, eval=FALSE}
 generator = get_generator()
@@ -192,16 +192,12 @@ for(e in 1:epochs) {
 # }
 ```
 
-The actual training loop:
-
-1. Create networks
-2. get batch of images
-3. run train_step function
-4. print losses
-5. repeat step 2-4 for number of epochs
 
 
 ### Flower - GAN
+We can now also do the same for the flower dataset, we will write this now compleltly in our own following the steps also done for the MNIST data set.
+
+
 ```{r,eval=FALSE}
 library(keras)
 library(tidyverse)
@@ -212,6 +208,9 @@ train = lapply(train, readRDS)
 train = abind::abind(train, along = 1L)
 train = tf$concat(list(train, test), axis = 0L)$numpy()
 train_x = array((train-127.5)/127.5, c(dim(train)))
+```
+Define the generator models and test it 
+```{r}
 get_generator = function(){
   generator = keras_model_sequential()
   generator %>% 
@@ -239,6 +238,9 @@ image %>%
   `/`(., 255) %>%
   as.raster() %>%
   plot()
+```
+Define the discriminator and test it 
+```{r}
 get_discriminator = function(){
   discriminator = keras_model_sequential()
   discriminator %>% 
@@ -259,6 +261,9 @@ discriminator = get_discriminator()
 discriminator
 discriminator(generator(tf$random$normal(c(1L, 100L))))
 ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE,label_smoothing = 0.1)
+```
+Defin the loss functions 
+```{r}
 loss_discriminator = function(real, fake){
   real_loss = ce(tf$ones_like(real), real)
   fake_loss = ce(tf$zeros_like(fake), fake)
@@ -267,6 +272,9 @@ loss_discriminator = function(real, fake){
 loss_generator = function(fake){
   return(ce(tf$ones_like(fake), fake))
 }
+```
+Define the optimizers and the batch function
+```{r}
 gen_opt = tf$keras$optimizers$RMSprop(1e-4)
 disc_opt = tf$keras$optimizers$RMSprop(1e-4)
 batch_size = 32L
@@ -274,6 +282,9 @@ get_batch = function(){
   indices = sample.int(nrow(train_x), batch_size)
   return(tf$constant(train_x[indices,,,,drop=FALSE], "float32"))
 }
+```
+Finally do the training 
+```{r}
 train_step = function(images){
   noise = tf$random$normal(c(32L, 100L))
   
@@ -352,12 +363,11 @@ knitr::include_graphics(c("images/flower2.png", "images/flower3.png", "images/fl
 
 
 ## Autoencoder
-An autoencoder is a type of artificial neural network used to learn efficient data codings in an unsupervised manner. The aim of an autoencoder is to learn a representation (encoding) for a set of data, typically for dimensionality reduction, by training the network to ignore signal “noise”. 
+An autoencoder is a type of artificial neural network used to learn efficient data encoding in an unsupervised manner. The aim of an autoencoder is to learn a representation (encoding) for a set of data, typically for dimensionality reduction, by training the network to ignore signal “noise”. Autoencoders consist of Encoder and a Decoder Networks. The encoder will compress the data into 2 dimensions and the decoder will reconstruct the original data
 ### Autoencoder - DNN MNIST
-Autoencoders consist of Encoder and a Decoder Networks. 
+We will now write an autoencoder for the MNIST data set.
 
-The encoder will compress the data into 2 dimensions and the decoder will reconstruct the original data:
-
+First we will split the data again
 ```{r}
 library(keras)
 library(tensorflow)
@@ -370,30 +380,39 @@ data = tf$keras$datasets$mnist$load_data()
 train = data[[1]]
 train_x = array(train[[1]]/255, c(dim(train[[1]])[1], 784L))
 test_x = array(test[[1]]/255, c(dim(test[[1]])[1], 784L))
-## Dense autoencoder
-### Inputs will be compromized to two dimensions
+```
+
+Then we will define a dense autoencoder and inputs will be compromized to two dimensions
+```{r}
 down_size_model = keras_model_sequential()
 down_size_model %>% 
  layer_dense(units = 100L, input_shape = c(784L),activation = "relu") %>% 
  layer_dense(units = 20L, activation = "relu") %>% 
  layer_dense(units = 2L, activation = "linear")
-### Reconstruction of the images
+```
+We will also need a network for the reconstruction of the images
+```{r}
 up_size_model = keras_model_sequential()
 up_size_model %>% 
  layer_dense(units = 20L, input_shape = c(2L), activation = "relu") %>% 
  layer_dense(units = 100L, activation = "relu") %>% 
  layer_dense(units = 784L, activation = "sigmoid")
-### Combine models into one
+```
+Now, we can combine the two models into one autoencoder and test it
+```{r}
 autoencoder = tf$keras$models$Model(inputs=down_size_model$input,  outputs=up_size_model(down_size_model$output))
 autoencoder$compile(loss = loss_binary_crossentropy, optimizer = optimizer_adamax(0.01))
 image = autoencoder(train_x[1,,drop = FALSE])$numpy()
 par(mfrow = c(1,2))
 imgPlot(array(train_x[1,,drop = FALSE], c(28, 28)))
 imgPlot(array(image, c(28, 28)))
+```
+And finally we can train the autoencoder
+```{r}
 autoencoder$fit(x = tf$constant(train_x), y = tf$constant(train_x), epochs = 5L, batch_size = 32L)
 ```
 
-After training:
+After training, we can now see how the network works
 ```{r}
 pred_dim = down_size_model(test_x)
 reconstr_pred = autoencoder(test_x)
@@ -405,11 +424,15 @@ plot(pred_dim$numpy()[,1], pred_dim$numpy()[,2], col = test[[2]]+1L)
 ### Autoencoder - MNIST CNN
 We can also use CNNs isntead of DNNs. There is also an inverse convolutional layer:
 
+First a split of the data again 
 ```{r,eval=FALSE}
 data = tf$keras$datasets$mnist$load_data()
 train = data[[1]]
 train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L))
 test_x = array(data[[2]][[1/255/255, c(dim(data[[2]][[1/255), 1L))
+```
+Then defining the downsize model 
+```{r}
 down_size_model = keras_model_sequential()
 down_size_model %>% 
  layer_conv_2d(filters = 32L, activation = "relu", kernel_size = c(2L,2L), 
@@ -418,6 +441,9 @@ down_size_model %>%
                            kernel_size = c(7L,7L), strides = c(1L, 1L)) %>% 
  layer_flatten() %>% 
  layer_dense(units = 2L, activation = "linear")
+```
+Define the upsize model 
+```{r}
 up_size_model = keras_model_sequential()
 up_size_model %>% 
  layer_dense(units = 8L, activation = "relu", input_shape = c(2L)) %>% 
@@ -425,10 +451,15 @@ up_size_model %>%
  layer_conv_2d_transpose(filters = 16L, kernel_size = c(7,7), activation = "relu", strides = c(1L,1L)) %>% 
  layer_conv_2d_transpose(filters = 32L, activation = "relu", kernel_size = c(2,2), strides = c(4L,4L)) %>% 
  layer_conv_2d(filters = 1, kernel_size = c(1L, 1L), strides = c(1L, 1L), activation = "sigmoid")
-
+```
+Combine the two models and fit it
+```{r}
 autoencoder = tf$keras$models$Model(inputs = down_size_model$input, outputs = up_size_model(down_size_model$output))
 autoencoder$compile(loss = loss_binary_crossentropy, optimizer = optimizer_rmsprop(0.001))
 autoencoder$fit(x = tf$constant(train_x), y = tf$constant(train_x), epochs = 1L, batch_size = 64L)
+```
+And finally, we can test it 
+```{r}
 pred_dim = down_size_model(tf$constant(test_x, "float32"))
 reconstr_pred = autoencoder(tf$constant(test_x, "float32"))
 imgPlot(reconstr_pred[10,,,]$numpy()[,,1])
@@ -442,16 +473,23 @@ imgPlot(array(up_size_model(new)$numpy(), c(28L, 28L)))
 
 
 ## Varational Autoencoder
-The difference to normal autoencoder is that we here try to fit latent variables which encode the images:
+The difference between a variational and a normal autoencoder is that the variational autoencoders tries to fit latent variables and their distributions which encode the images
 
+To do so we will use the tensorflow probability, first need to split the data again 
 ```{r, eval=FALSE}
 library(tensorflow_probability)
 data = tf$keras$datasets$mnist$load_data()
 train = data[[1]]
 train_x = array(train[[1]]/255, c(dim(train[[1]])[1], 784L))
+```
+Then, we will use tensorflow probability to define priors (the a priori knowledge about the latent variables)
+```{r}
 tfp = reticulate::import("tensorflow_probability")
 prior = tfp$distributions$Independent(tfp$distributions$Normal(loc=tf$zeros(shape(10L,4L)), scale=1.0),
  reinterpreted_batch_ndims=1L)
+```
+Then, we define the two networks again 
+```{r}
 down_size_model = keras_model_sequential()
 down_size_model %>% 
  layer_dense(units = 100L, input_shape = c(784L),activation = "relu") %>% 
@@ -463,17 +501,25 @@ up_size_model %>%
  layer_dense(units = 20L, input_shape = c(2L), activation = "relu") %>% 
  layer_dense(units = 100L, activation = "relu") %>% 
  layer_dense(units = 784L, activation = "sigmoid")
-### Combine models into one
+```
+We again combine the two networks into one abd define a optimizer
+```{r}
 batch_size = 32L
 epochs = 10L
 steps = as.integer(nrow(train_x)/32L * epochs)
 prior = tfp$distributions$MultivariateNormalDiag(loc = tf$zeros(shape(batch_size, 2L), "float32"), scale_diag = tf$ones(2L, "float32"))
 optimizer = tf$keras$optimizers$RMSprop(0.0001)
 weights = c(down_size_model$weights, up_size_model$weights)
+```
+Now we can again define a batch function 
+```{r}
 get_batch = function(){
  indices = sample.int(nrow(train_x), batch_size)
  return(train_x[indices,])
 }
+``` 
+And finally do the training 
+```{r}
 for(i in 1:steps){
  tmp_X = get_batch()
  with(tf$GradientTape() %as% tape, {
