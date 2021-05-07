@@ -24,7 +24,7 @@
 <meta name="author" content="Maximilian Pichler and Florian Hartig" />
 
 
-<meta name="date" content="2021-05-06" />
+<meta name="date" content="2021-05-07" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -310,8 +310,8 @@ div.csl-indent {
 <div id="datasets" class="section level1" number="7">
 <h1><span class="header-section-number">7</span> Datasets</h1>
 <p>You can download the datasets we use in the course <a href="http://rhsbio7.uni-regensburg.de:8500">here</a> (ignore browser warnings) or by installing the EcoData package:</p>
-<div class="sourceCode" id="cb500"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb500-1"><a href="datasets.html#cb500-1" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="at">repo =</span> <span class="st">&quot;florianhartig/EcoData&quot;</span>, <span class="at">subdir =</span> <span class="st">&quot;EcoData&quot;</span>, </span>
-<span id="cb500-2"><a href="datasets.html#cb500-2" aria-hidden="true" tabindex="-1"></a><span class="at">dependencies =</span> <span class="cn">TRUE</span>, <span class="at">build_vignettes =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb501"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb501-1"><a href="datasets.html#cb501-1" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="at">repo =</span> <span class="st">&quot;florianhartig/EcoData&quot;</span>, <span class="at">subdir =</span> <span class="st">&quot;EcoData&quot;</span>, </span>
+<span id="cb501-2"><a href="datasets.html#cb501-2" aria-hidden="true" tabindex="-1"></a><span class="at">dependencies =</span> <span class="cn">TRUE</span>, <span class="at">build_vignettes =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 <div id="titanic" class="section level2" number="7.1">
 <h2><span class="header-section-number">7.1</span> Titanic</h2>
 <p>The dataset is a collection of titanic passengers with information about their age, class, sex, and their survival status. The competition here is simple: train a ML model and predict the survival probability.</p>
@@ -321,11 +321,11 @@ div.csl-indent {
 <ol style="list-style-type: decimal">
 <li>Load dataset</li>
 </ol>
-<div class="sourceCode" id="cb501"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb501-1"><a href="datasets.html#cb501-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load(&quot;datasets.RData&quot;)</span></span>
-<span id="cb501-2"><a href="datasets.html#cb501-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
-<span id="cb501-3"><a href="datasets.html#cb501-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(titanic_ml)</span>
-<span id="cb501-4"><a href="datasets.html#cb501-4" aria-hidden="true" tabindex="-1"></a>titanic <span class="ot">=</span> titanic_ml</span>
-<span id="cb501-5"><a href="datasets.html#cb501-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(titanic)</span></code></pre></div>
+<div class="sourceCode" id="cb502"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb502-1"><a href="datasets.html#cb502-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load(&quot;datasets.RData&quot;)</span></span>
+<span id="cb502-2"><a href="datasets.html#cb502-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
+<span id="cb502-3"><a href="datasets.html#cb502-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(titanic_ml)</span>
+<span id="cb502-4"><a href="datasets.html#cb502-4" aria-hidden="true" tabindex="-1"></a>titanic <span class="ot">=</span> titanic_ml</span>
+<span id="cb502-5"><a href="datasets.html#cb502-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(titanic)</span></code></pre></div>
 <pre><code>##      pclass         survived          name               sex           age              sibsp            parch            ticket          fare        
 ##  Min.   :1.000   Min.   :0.0000   Length:1309        female:466   Min.   : 0.1667   Min.   :0.0000   Min.   :0.000   CA. 2343:  11   Min.   :  0.000  
 ##  1st Qu.:2.000   1st Qu.:0.0000   Class :character   male  :843   1st Qu.:21.0000   1st Qu.:0.0000   1st Qu.:0.000   1601    :   8   1st Qu.:  7.896  
@@ -345,10 +345,10 @@ div.csl-indent {
 <ol start="2" style="list-style-type: decimal">
 <li>Impute missing values (not our response variable!)</li>
 </ol>
-<div class="sourceCode" id="cb503"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb503-1"><a href="datasets.html#cb503-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
-<span id="cb503-2"><a href="datasets.html#cb503-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb503-3"><a href="datasets.html#cb503-3" aria-hidden="true" tabindex="-1"></a>titanic_imputed <span class="ot">=</span> titanic <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>name, <span class="sc">-</span>ticket, <span class="sc">-</span>cabin, <span class="sc">-</span>boat, <span class="sc">-</span>home.dest)</span>
-<span id="cb503-4"><a href="datasets.html#cb503-4" aria-hidden="true" tabindex="-1"></a>titanic_imputed <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(<span class="at">data =</span> titanic_imputed <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>survived))</span></code></pre></div>
+<div class="sourceCode" id="cb504"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb504-1"><a href="datasets.html#cb504-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
+<span id="cb504-2"><a href="datasets.html#cb504-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb504-3"><a href="datasets.html#cb504-3" aria-hidden="true" tabindex="-1"></a>titanic_imputed <span class="ot">=</span> titanic <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>name, <span class="sc">-</span>ticket, <span class="sc">-</span>cabin, <span class="sc">-</span>boat, <span class="sc">-</span>home.dest)</span>
+<span id="cb504-4"><a href="datasets.html#cb504-4" aria-hidden="true" tabindex="-1"></a>titanic_imputed <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(<span class="at">data =</span> titanic_imputed <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>survived))</span></code></pre></div>
 <pre><code>## 
 ## Missing value imputation by random forests
 ## 
@@ -357,27 +357,27 @@ div.csl-indent {
 ## iter 1:  ...
 ## iter 2:  ...
 ## iter 3:  ...</code></pre>
-<div class="sourceCode" id="cb505"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb505-1"><a href="datasets.html#cb505-1" aria-hidden="true" tabindex="-1"></a>titanic_imputed<span class="sc">$</span>survived <span class="ot">=</span> titanic<span class="sc">$</span>survived</span></code></pre></div>
+<div class="sourceCode" id="cb506"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb506-1"><a href="datasets.html#cb506-1" aria-hidden="true" tabindex="-1"></a>titanic_imputed<span class="sc">$</span>survived <span class="ot">=</span> titanic<span class="sc">$</span>survived</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Split into training and testing</li>
 </ol>
-<div class="sourceCode" id="cb506"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb506-1"><a href="datasets.html#cb506-1" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> titanic_imputed[<span class="sc">!</span><span class="fu">is.na</span>(titanic<span class="sc">$</span>survived), ]</span>
-<span id="cb506-2"><a href="datasets.html#cb506-2" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> titanic_imputed[<span class="fu">is.na</span>(titanic<span class="sc">$</span>survived), ]</span></code></pre></div>
+<div class="sourceCode" id="cb507"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb507-1"><a href="datasets.html#cb507-1" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> titanic_imputed[<span class="sc">!</span><span class="fu">is.na</span>(titanic<span class="sc">$</span>survived), ]</span>
+<span id="cb507-2"><a href="datasets.html#cb507-2" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> titanic_imputed[<span class="fu">is.na</span>(titanic<span class="sc">$</span>survived), ]</span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li>Train model</li>
 </ol>
-<div class="sourceCode" id="cb507"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb507-1"><a href="datasets.html#cb507-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">glm</span>(survived<span class="sc">~</span>., <span class="at">data=</span>train, <span class="at">family =</span> <span class="fu">binomial</span>())</span></code></pre></div>
+<div class="sourceCode" id="cb508"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb508-1"><a href="datasets.html#cb508-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">glm</span>(survived<span class="sc">~</span>., <span class="at">data=</span>train, <span class="at">family =</span> <span class="fu">binomial</span>())</span></code></pre></div>
 <ol start="5" style="list-style-type: decimal">
 <li>Predictions</li>
 </ol>
-<div class="sourceCode" id="cb508"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb508-1"><a href="datasets.html#cb508-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">data =</span> test, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
-<span id="cb508-2"><a href="datasets.html#cb508-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(preds)</span></code></pre></div>
+<div class="sourceCode" id="cb509"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb509-1"><a href="datasets.html#cb509-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">data =</span> test, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
+<span id="cb509-2"><a href="datasets.html#cb509-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(preds)</span></code></pre></div>
 <pre><code>##        561        321       1177       1098       1252       1170 
 ## 0.79350595 0.30982388 0.01400816 0.12405376 0.14107743 0.11799810</code></pre>
 <ol start="6" style="list-style-type: decimal">
 <li>Create submission csv</li>
 </ol>
-<div class="sourceCode" id="cb510"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb510-1"><a href="datasets.html#cb510-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y=</span>preds), <span class="at">file =</span> <span class="st">&quot;glm.csv&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb511"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb511-1"><a href="datasets.html#cb511-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y=</span>preds), <span class="at">file =</span> <span class="st">&quot;glm.csv&quot;</span>)</span></code></pre></div>
 <p>And submit the csv on <a href="http://rhsbio7.uni-regensburg.de:8500"></a></p>
 </div>
 <div id="plant-pollinator-database" class="section level2" number="7.2">
@@ -390,11 +390,11 @@ We explored the advantage of ML algorithms over traditional statistical models i
 <ol style="list-style-type: decimal">
 <li>Load dataset</li>
 </ol>
-<div class="sourceCode" id="cb511"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb511-1"><a href="datasets.html#cb511-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&quot;datasets.RData&quot;</span>)</span>
-<span id="cb511-2"><a href="datasets.html#cb511-2" aria-hidden="true" tabindex="-1"></a><span class="co"># library(EcoData)</span></span>
-<span id="cb511-3"><a href="datasets.html#cb511-3" aria-hidden="true" tabindex="-1"></a><span class="co"># data(plantPollinator_df)</span></span>
-<span id="cb511-4"><a href="datasets.html#cb511-4" aria-hidden="true" tabindex="-1"></a><span class="co"># plant_poll = plantPollinator_df</span></span>
-<span id="cb511-5"><a href="datasets.html#cb511-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(plant_poll)</span></code></pre></div>
+<div class="sourceCode" id="cb512"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb512-1"><a href="datasets.html#cb512-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&quot;datasets.RData&quot;</span>)</span>
+<span id="cb512-2"><a href="datasets.html#cb512-2" aria-hidden="true" tabindex="-1"></a><span class="co"># library(EcoData)</span></span>
+<span id="cb512-3"><a href="datasets.html#cb512-3" aria-hidden="true" tabindex="-1"></a><span class="co"># data(plantPollinator_df)</span></span>
+<span id="cb512-4"><a href="datasets.html#cb512-4" aria-hidden="true" tabindex="-1"></a><span class="co"># plant_poll = plantPollinator_df</span></span>
+<span id="cb512-5"><a href="datasets.html#cb512-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(plant_poll)</span></code></pre></div>
 <pre><code>##                     X                           Y             type              season             diameter        corolla             colour         
 ##  Vaccinium_corymbosum:  256   Andrena_wilkella   :   80   Length:20480       Length:20480       Min.   :  2.00   Length:20480       Length:20480      
 ##  Brassica_napus      :  256   Andrena_barbilabris:   80   Class :character   Class :character   1st Qu.:  5.00   Class :character   Class :character  
@@ -403,30 +403,30 @@ We explored the advantage of ML algorithms over traditional statistical models i
 ##  Daucus_carota       :  256   Andrena_gravida    :   80                                         3rd Qu.: 25.00                                        
 ##  Malus_domestica     :  256   Andrena_haemorrhoa :   80                                         Max.   :150.00                                        
 ##  (Other)             :18944   (Other)            :20000                                         NA&#39;s   :9472                                          
-##     nectar            b.system         s.pollination      inflorescence       composite            guild               tongue            body      
-##  Length:20480       Length:20480       Length:20480       Length:20480       Length:20480       Length:20480       Min.   : 2.000   Min.   : 2.00  
-##  Class :character   Class :character   Class :character   Class :character   Class :character   Class :character   1st Qu.: 4.800   1st Qu.: 8.00  
-##  Mode  :character   Mode  :character   Mode  :character   Mode  :character   Mode  :character   Mode  :character   Median : 6.600   Median :10.50  
-##                                                                                                                    Mean   : 8.104   Mean   :10.66  
-##                                                                                                                    3rd Qu.:10.500   3rd Qu.:13.00  
-##                                                                                                                    Max.   :26.400   Max.   :25.00  
-##                                                                                                                    NA&#39;s   :17040    NA&#39;s   :6160   
-##   sociality           feeding          interaction 
-##  Length:20480       Length:20480       0   :14095  
-##  Class :character   Class :character   1   :  595  
-##  Mode  :character   Mode  :character   NA&#39;s: 5790  
-##                                                    
-##                                                    
-##                                                    
+##     nectar            b.system         s.pollination      inflorescence       composite            guild               tongue            body        sociality        
+##  Length:20480       Length:20480       Length:20480       Length:20480       Length:20480       Length:20480       Min.   : 2.000   Min.   : 2.00   Length:20480      
+##  Class :character   Class :character   Class :character   Class :character   Class :character   Class :character   1st Qu.: 4.800   1st Qu.: 8.00   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character   Mode  :character   Mode  :character   Median : 6.600   Median :10.50   Mode  :character  
+##                                                                                                                    Mean   : 8.104   Mean   :10.66                     
+##                                                                                                                    3rd Qu.:10.500   3rd Qu.:13.00                     
+##                                                                                                                    Max.   :26.400   Max.   :25.00                     
+##                                                                                                                    NA&#39;s   :17040    NA&#39;s   :6160                      
+##    feeding          interaction 
+##  Length:20480       0   :14095  
+##  Class :character   1   :  595  
+##  Mode  :character   NA&#39;s: 5790  
+##                                 
+##                                 
+##                                 
 ## </code></pre>
 <ol start="2" style="list-style-type: decimal">
 <li>Impute missing values (not our response variable!)
 We will select only a few predictors here (you can work with all predictors ofc).</li>
 </ol>
-<div class="sourceCode" id="cb513"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb513-1"><a href="datasets.html#cb513-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
-<span id="cb513-2"><a href="datasets.html#cb513-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb513-3"><a href="datasets.html#cb513-3" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed <span class="ot">=</span> plant_poll <span class="sc">%&gt;%</span> <span class="fu">select</span>(diameter, corolla, tongue, body, interaction)</span>
-<span id="cb513-4"><a href="datasets.html#cb513-4" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(<span class="at">data =</span> plant_poll_imputed <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>interaction))</span></code></pre></div>
+<div class="sourceCode" id="cb514"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb514-1"><a href="datasets.html#cb514-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
+<span id="cb514-2"><a href="datasets.html#cb514-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb514-3"><a href="datasets.html#cb514-3" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed <span class="ot">=</span> plant_poll <span class="sc">%&gt;%</span> <span class="fu">select</span>(diameter, corolla, tongue, body, interaction)</span>
+<span id="cb514-4"><a href="datasets.html#cb514-4" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(<span class="at">data =</span> plant_poll_imputed <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>interaction))</span></code></pre></div>
 <pre><code>## 
 ## Missing value imputation by random forests
 ## 
@@ -436,27 +436,27 @@ We will select only a few predictors here (you can work with all predictors ofc)
 ## iter 2:  ....
 ## iter 3:  ....
 ## iter 4:  ....</code></pre>
-<div class="sourceCode" id="cb515"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb515-1"><a href="datasets.html#cb515-1" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed<span class="sc">$</span>interaction <span class="ot">=</span> plant_poll<span class="sc">$</span>interaction</span></code></pre></div>
+<div class="sourceCode" id="cb516"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb516-1"><a href="datasets.html#cb516-1" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed<span class="sc">$</span>interaction <span class="ot">=</span> plant_poll<span class="sc">$</span>interaction</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Split into training and testing</li>
 </ol>
-<div class="sourceCode" id="cb516"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb516-1"><a href="datasets.html#cb516-1" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> plant_poll_imputed[<span class="sc">!</span><span class="fu">is.na</span>(plant_poll_imputed<span class="sc">$</span>interaction), ]</span>
-<span id="cb516-2"><a href="datasets.html#cb516-2" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> plant_poll_imputed[<span class="fu">is.na</span>(plant_poll_imputed<span class="sc">$</span>interaction), ]</span></code></pre></div>
+<div class="sourceCode" id="cb517"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb517-1"><a href="datasets.html#cb517-1" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> plant_poll_imputed[<span class="sc">!</span><span class="fu">is.na</span>(plant_poll_imputed<span class="sc">$</span>interaction), ]</span>
+<span id="cb517-2"><a href="datasets.html#cb517-2" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> plant_poll_imputed[<span class="fu">is.na</span>(plant_poll_imputed<span class="sc">$</span>interaction), ]</span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li>Train model</li>
 </ol>
-<div class="sourceCode" id="cb517"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb517-1"><a href="datasets.html#cb517-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">glm</span>(interaction<span class="sc">~</span>., <span class="at">data=</span>train, <span class="at">family =</span> <span class="fu">binomial</span>())</span></code></pre></div>
+<div class="sourceCode" id="cb518"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb518-1"><a href="datasets.html#cb518-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">glm</span>(interaction<span class="sc">~</span>., <span class="at">data=</span>train, <span class="at">family =</span> <span class="fu">binomial</span>())</span></code></pre></div>
 <ol start="5" style="list-style-type: decimal">
 <li>Predictions</li>
 </ol>
-<div class="sourceCode" id="cb518"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb518-1"><a href="datasets.html#cb518-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">data =</span> test, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
-<span id="cb518-2"><a href="datasets.html#cb518-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(preds)</span></code></pre></div>
+<div class="sourceCode" id="cb519"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb519-1"><a href="datasets.html#cb519-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">data =</span> test, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
+<span id="cb519-2"><a href="datasets.html#cb519-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(preds)</span></code></pre></div>
 <pre><code>##       3871       3872       3873       3874       3875       3876 
 ## 0.03850223 0.03726134 0.03917270 0.04460708 0.04456360 0.03910827</code></pre>
 <ol start="6" style="list-style-type: decimal">
 <li>Create submission csv</li>
 </ol>
-<div class="sourceCode" id="cb520"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb520-1"><a href="datasets.html#cb520-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y=</span>preds), <span class="at">file =</span> <span class="st">&quot;glm.csv&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb521"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb521-1"><a href="datasets.html#cb521-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y=</span>preds), <span class="at">file =</span> <span class="st">&quot;glm.csv&quot;</span>)</span></code></pre></div>
 </div>
 <div id="wine" class="section level2" number="7.3">
 <h2><span class="header-section-number">7.3</span> Wine</h2>
@@ -469,33 +469,33 @@ For instance, check out this very nice <a href="https://www.kaggle.com/aditimuly
 <ol style="list-style-type: decimal">
 <li>Load dataset</li>
 </ol>
-<div class="sourceCode" id="cb521"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb521-1"><a href="datasets.html#cb521-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&quot;datasets.RData&quot;</span>)</span>
-<span id="cb521-2"><a href="datasets.html#cb521-2" aria-hidden="true" tabindex="-1"></a><span class="co"># library(EcoData)</span></span>
-<span id="cb521-3"><a href="datasets.html#cb521-3" aria-hidden="true" tabindex="-1"></a><span class="co"># data(wine)</span></span>
-<span id="cb521-4"><a href="datasets.html#cb521-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wine)</span></code></pre></div>
-<pre><code>##  fixed.acidity    volatile.acidity  citric.acid     residual.sugar     chlorides       free.sulfur.dioxide total.sulfur.dioxide    density      
-##  Min.   : 4.600   Min.   :0.1200   Min.   :0.0000   Min.   : 0.900   Min.   :0.01200   Min.   : 1.00       Min.   :  6.00       Min.   :0.9901  
-##  1st Qu.: 7.100   1st Qu.:0.3900   1st Qu.:0.0900   1st Qu.: 1.900   1st Qu.:0.07000   1st Qu.: 7.00       1st Qu.: 22.00       1st Qu.:0.9956  
-##  Median : 7.900   Median :0.5200   Median :0.2600   Median : 2.200   Median :0.07900   Median :14.00       Median : 38.00       Median :0.9968  
-##  Mean   : 8.335   Mean   :0.5284   Mean   :0.2705   Mean   : 2.533   Mean   :0.08747   Mean   :15.83       Mean   : 46.23       Mean   :0.9968  
-##  3rd Qu.: 9.300   3rd Qu.:0.6400   3rd Qu.:0.4200   3rd Qu.: 2.600   3rd Qu.:0.09000   3rd Qu.:21.00       3rd Qu.: 62.00       3rd Qu.:0.9979  
-##  Max.   :15.900   Max.   :1.5800   Max.   :1.0000   Max.   :15.500   Max.   :0.61100   Max.   :72.00       Max.   :289.00       Max.   :1.0037  
-##  NA&#39;s   :70       NA&#39;s   :48       NA&#39;s   :41       NA&#39;s   :60       NA&#39;s   :37        NA&#39;s   :78          NA&#39;s   :78           NA&#39;s   :78      
-##        pH          sulphates         alcohol         quality     
-##  Min.   :2.740   Min.   :0.3300   Min.   : 8.40   Min.   :3.000  
-##  1st Qu.:3.210   1st Qu.:0.5500   1st Qu.: 9.50   1st Qu.:5.000  
-##  Median :3.310   Median :0.6200   Median :10.20   Median :6.000  
-##  Mean   :3.311   Mean   :0.6572   Mean   :10.42   Mean   :5.596  
-##  3rd Qu.:3.400   3rd Qu.:0.7300   3rd Qu.:11.10   3rd Qu.:6.000  
-##  Max.   :4.010   Max.   :2.0000   Max.   :14.90   Max.   :8.000  
-##  NA&#39;s   :25      NA&#39;s   :51                       NA&#39;s   :905</code></pre>
+<div class="sourceCode" id="cb522"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb522-1"><a href="datasets.html#cb522-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&quot;datasets.RData&quot;</span>)</span>
+<span id="cb522-2"><a href="datasets.html#cb522-2" aria-hidden="true" tabindex="-1"></a><span class="co"># library(EcoData)</span></span>
+<span id="cb522-3"><a href="datasets.html#cb522-3" aria-hidden="true" tabindex="-1"></a><span class="co"># data(wine)</span></span>
+<span id="cb522-4"><a href="datasets.html#cb522-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wine)</span></code></pre></div>
+<pre><code>##  fixed.acidity    volatile.acidity  citric.acid     residual.sugar     chlorides       free.sulfur.dioxide total.sulfur.dioxide    density             pH       
+##  Min.   : 4.600   Min.   :0.1200   Min.   :0.0000   Min.   : 0.900   Min.   :0.01200   Min.   : 1.00       Min.   :  6.00       Min.   :0.9901   Min.   :2.740  
+##  1st Qu.: 7.100   1st Qu.:0.3900   1st Qu.:0.0900   1st Qu.: 1.900   1st Qu.:0.07000   1st Qu.: 7.00       1st Qu.: 22.00       1st Qu.:0.9956   1st Qu.:3.210  
+##  Median : 7.900   Median :0.5200   Median :0.2600   Median : 2.200   Median :0.07900   Median :14.00       Median : 38.00       Median :0.9968   Median :3.310  
+##  Mean   : 8.335   Mean   :0.5284   Mean   :0.2705   Mean   : 2.533   Mean   :0.08747   Mean   :15.83       Mean   : 46.23       Mean   :0.9968   Mean   :3.311  
+##  3rd Qu.: 9.300   3rd Qu.:0.6400   3rd Qu.:0.4200   3rd Qu.: 2.600   3rd Qu.:0.09000   3rd Qu.:21.00       3rd Qu.: 62.00       3rd Qu.:0.9979   3rd Qu.:3.400  
+##  Max.   :15.900   Max.   :1.5800   Max.   :1.0000   Max.   :15.500   Max.   :0.61100   Max.   :72.00       Max.   :289.00       Max.   :1.0037   Max.   :4.010  
+##  NA&#39;s   :70       NA&#39;s   :48       NA&#39;s   :41       NA&#39;s   :60       NA&#39;s   :37        NA&#39;s   :78          NA&#39;s   :78           NA&#39;s   :78       NA&#39;s   :25     
+##    sulphates         alcohol         quality     
+##  Min.   :0.3300   Min.   : 8.40   Min.   :3.000  
+##  1st Qu.:0.5500   1st Qu.: 9.50   1st Qu.:5.000  
+##  Median :0.6200   Median :10.20   Median :6.000  
+##  Mean   :0.6572   Mean   :10.42   Mean   :5.596  
+##  3rd Qu.:0.7300   3rd Qu.:11.10   3rd Qu.:6.000  
+##  Max.   :2.0000   Max.   :14.90   Max.   :8.000  
+##  NA&#39;s   :51                       NA&#39;s   :905</code></pre>
 <ol start="2" style="list-style-type: decimal">
 <li>Impute missing values (not our response variable!)</li>
 </ol>
-<div class="sourceCode" id="cb523"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb523-1"><a href="datasets.html#cb523-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
-<span id="cb523-2"><a href="datasets.html#cb523-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb523-3"><a href="datasets.html#cb523-3" aria-hidden="true" tabindex="-1"></a><span class="co">#wine_imputed = titanic %&gt;% select(-name, -ticket, -cabin, -boat, -home.dest)</span></span>
-<span id="cb523-4"><a href="datasets.html#cb523-4" aria-hidden="true" tabindex="-1"></a>wine_imputed <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(<span class="at">data =</span> wine <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>quality))</span></code></pre></div>
+<div class="sourceCode" id="cb524"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb524-1"><a href="datasets.html#cb524-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
+<span id="cb524-2"><a href="datasets.html#cb524-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb524-3"><a href="datasets.html#cb524-3" aria-hidden="true" tabindex="-1"></a><span class="co">#wine_imputed = titanic %&gt;% select(-name, -ticket, -cabin, -boat, -home.dest)</span></span>
+<span id="cb524-4"><a href="datasets.html#cb524-4" aria-hidden="true" tabindex="-1"></a>wine_imputed <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(<span class="at">data =</span> wine <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>quality))</span></code></pre></div>
 <pre><code>## 
 ## Missing value imputation by random forests
 ## 
@@ -506,27 +506,27 @@ For instance, check out this very nice <a href="https://www.kaggle.com/aditimuly
 ## iter 3:  ..........
 ## iter 4:  ..........
 ## iter 5:  ..........</code></pre>
-<div class="sourceCode" id="cb525"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb525-1"><a href="datasets.html#cb525-1" aria-hidden="true" tabindex="-1"></a>wine_imputed<span class="sc">$</span>quality <span class="ot">=</span> wine<span class="sc">$</span>quality</span></code></pre></div>
+<div class="sourceCode" id="cb526"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb526-1"><a href="datasets.html#cb526-1" aria-hidden="true" tabindex="-1"></a>wine_imputed<span class="sc">$</span>quality <span class="ot">=</span> wine<span class="sc">$</span>quality</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Split into training and testing</li>
 </ol>
-<div class="sourceCode" id="cb526"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb526-1"><a href="datasets.html#cb526-1" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> wine_imputed[<span class="sc">!</span><span class="fu">is.na</span>(wine<span class="sc">$</span>quality), ]</span>
-<span id="cb526-2"><a href="datasets.html#cb526-2" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> wine_imputed[<span class="fu">is.na</span>(wine<span class="sc">$</span>quality), ]</span></code></pre></div>
+<div class="sourceCode" id="cb527"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb527-1"><a href="datasets.html#cb527-1" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> wine_imputed[<span class="sc">!</span><span class="fu">is.na</span>(wine<span class="sc">$</span>quality), ]</span>
+<span id="cb527-2"><a href="datasets.html#cb527-2" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> wine_imputed[<span class="fu">is.na</span>(wine<span class="sc">$</span>quality), ]</span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li>Train model</li>
 </ol>
-<div class="sourceCode" id="cb527"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb527-1"><a href="datasets.html#cb527-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span>
-<span id="cb527-2"><a href="datasets.html#cb527-2" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">ranger</span>(quality<span class="sc">~</span>., <span class="at">data =</span> train, <span class="at">classification =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb528"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb528-1"><a href="datasets.html#cb528-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span>
+<span id="cb528-2"><a href="datasets.html#cb528-2" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">ranger</span>(quality<span class="sc">~</span>., <span class="at">data =</span> train, <span class="at">classification =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <ol start="5" style="list-style-type: decimal">
 <li>Predictions</li>
 </ol>
-<div class="sourceCode" id="cb528"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb528-1"><a href="datasets.html#cb528-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">predict</span>(rf, <span class="at">data =</span> test)<span class="sc">$</span>predictions</span>
-<span id="cb528-2"><a href="datasets.html#cb528-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(preds)</span></code></pre></div>
+<div class="sourceCode" id="cb529"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb529-1"><a href="datasets.html#cb529-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">predict</span>(rf, <span class="at">data =</span> test)<span class="sc">$</span>predictions</span>
+<span id="cb529-2"><a href="datasets.html#cb529-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(preds)</span></code></pre></div>
 <pre><code>## [1] 6 5 5 7 6 6</code></pre>
 <ol start="6" style="list-style-type: decimal">
 <li>Create submission csv</li>
 </ol>
-<div class="sourceCode" id="cb530"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb530-1"><a href="datasets.html#cb530-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y=</span>preds), <span class="at">file =</span> <span class="st">&quot;rf.csv&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb531"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb531-1"><a href="datasets.html#cb531-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y=</span>preds), <span class="at">file =</span> <span class="st">&quot;rf.csv&quot;</span>)</span></code></pre></div>
 </div>
 <div id="nasa" class="section level2" number="7.4">
 <h2><span class="header-section-number">7.4</span> Nasa</h2>
@@ -534,65 +534,65 @@ For instance, check out this very nice <a href="https://www.kaggle.com/aditimuly
 For inspiration and data exploration notebooks, check out the kaggle competition: <a href="https://www.kaggle.com/shrutimehta/nasa-asteroids-classification"></a></p>
 <p><strong>Response variable:</strong> ‘Hazardous’
 1. Load dataset</p>
-<div class="sourceCode" id="cb531"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb531-1"><a href="datasets.html#cb531-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&quot;datasets.RData&quot;</span>)</span>
-<span id="cb531-2"><a href="datasets.html#cb531-2" aria-hidden="true" tabindex="-1"></a><span class="co"># library(EcoData)</span></span>
-<span id="cb531-3"><a href="datasets.html#cb531-3" aria-hidden="true" tabindex="-1"></a><span class="co"># data(nasa)</span></span>
-<span id="cb531-4"><a href="datasets.html#cb531-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nasa)</span></code></pre></div>
-<pre><code>##  Neo.Reference.ID       Name         Absolute.Magnitude Est.Dia.in.KM.min. Est.Dia.in.KM.max. Est.Dia.in.M.min.   Est.Dia.in.M.max. 
-##  Min.   :2000433   Min.   :2000433   Min.   :11.16      Min.   : 0.00101   Min.   : 0.00226   Min.   :    1.011   Min.   :    2.26  
-##  1st Qu.:3102682   1st Qu.:3102683   1st Qu.:20.10      1st Qu.: 0.03346   1st Qu.: 0.07482   1st Qu.:   33.462   1st Qu.:   74.82  
-##  Median :3514800   Median :3514800   Median :21.90      Median : 0.11080   Median : 0.24777   Median :  110.804   Median :  247.77  
-##  Mean   :3272675   Mean   :3273113   Mean   :22.27      Mean   : 0.20523   Mean   : 0.45754   Mean   :  204.649   Mean   :  458.45  
-##  3rd Qu.:3690987   3rd Qu.:3690385   3rd Qu.:24.50      3rd Qu.: 0.25384   3rd Qu.: 0.56760   3rd Qu.:  253.837   3rd Qu.:  567.60  
-##  Max.   :3781897   Max.   :3781897   Max.   :32.10      Max.   :15.57955   Max.   :34.83694   Max.   :15579.552   Max.   :34836.94  
-##  NA&#39;s   :53        NA&#39;s   :57        NA&#39;s   :36         NA&#39;s   :60         NA&#39;s   :23         NA&#39;s   :29          NA&#39;s   :46        
-##  Est.Dia.in.Miles.min. Est.Dia.in.Miles.max. Est.Dia.in.Feet.min. Est.Dia.in.Feet.max. Close.Approach.Date Epoch.Date.Close.Approach
-##  Min.   :0.00063       Min.   : 0.00140      Min.   :    3.32     Min.   :     7.41    2016-07-22:  18     Min.   :7.889e+11        
-##  1st Qu.:0.02079       1st Qu.: 0.04649      1st Qu.:  109.78     1st Qu.:   245.49    2015-01-15:  17     1st Qu.:1.016e+12        
-##  Median :0.06885       Median : 0.15395      Median :  363.53     Median :   812.88    2015-02-15:  16     Median :1.203e+12        
-##  Mean   :0.12734       Mean   : 0.28486      Mean   :  670.44     Mean   :  1500.77    2007-11-08:  15     Mean   :1.180e+12        
-##  3rd Qu.:0.15773       3rd Qu.: 0.35269      3rd Qu.:  832.80     3rd Qu.:  1862.19    2012-01-15:  15     3rd Qu.:1.356e+12        
-##  Max.   :9.68068       Max.   :21.64666      Max.   :51114.02     Max.   :114294.42    (Other)   :4577     Max.   :1.473e+12        
-##  NA&#39;s   :42            NA&#39;s   :50            NA&#39;s   :21           NA&#39;s   :46           NA&#39;s      :  29     NA&#39;s   :43               
-##  Relative.Velocity.km.per.sec Relative.Velocity.km.per.hr Miles.per.hour    Miss.Dist..Astronomical. Miss.Dist..lunar.   Miss.Dist..kilometers.
-##  Min.   : 0.3355              Min.   :  1208              Min.   :  750.5   Min.   :0.00018          Min.   :  0.06919   Min.   :   26610      
-##  1st Qu.: 8.4497              1st Qu.: 30399              1st Qu.:18846.7   1st Qu.:0.13341          1st Qu.: 51.89874   1st Qu.:19964907      
-##  Median :12.9370              Median : 46532              Median :28893.7   Median :0.26497          Median :103.19415   Median :39685408      
-##  Mean   :13.9848              Mean   : 50298              Mean   :31228.0   Mean   :0.25690          Mean   : 99.91366   Mean   :38436154      
-##  3rd Qu.:18.0774              3rd Qu.: 65068              3rd Qu.:40436.9   3rd Qu.:0.38506          3rd Qu.:149.59244   3rd Qu.:57540318      
-##  Max.   :44.6337              Max.   :160681              Max.   :99841.2   Max.   :0.49988          Max.   :194.45491   Max.   :74781600      
-##  NA&#39;s   :27                   NA&#39;s   :28                  NA&#39;s   :38        NA&#39;s   :60               NA&#39;s   :30          NA&#39;s   :56            
-##  Miss.Dist..miles.  Orbiting.Body    Orbit.ID             Orbit.Determination.Date Orbit.Uncertainity Minimum.Orbit.Intersection
-##  Min.   :   16535   Earth:4665    Min.   :  1.00   2017-06-21 06:17:20:   9        Min.   :0.000      Min.   :0.00000           
-##  1st Qu.:12454813   NA&#39;s :  22    1st Qu.:  9.00   2017-04-06 08:57:13:   8        1st Qu.:0.000      1st Qu.:0.01435           
-##  Median :24662435                 Median : 16.00   2017-04-06 09:24:24:   8        Median :3.000      Median :0.04653           
-##  Mean   :23885560                 Mean   : 28.34   2017-04-06 08:24:13:   7        Mean   :3.521      Mean   :0.08191           
-##  3rd Qu.:35714721                 3rd Qu.: 31.00   2017-04-06 08:26:19:   7        3rd Qu.:6.000      3rd Qu.:0.12150           
-##  Max.   :46467132                 Max.   :611.00   (Other)            :4622        Max.   :9.000      Max.   :0.47789           
-##  NA&#39;s   :27                       NA&#39;s   :33       NA&#39;s               :  26        NA&#39;s   :49         NA&#39;s   :137               
-##  Jupiter.Tisserand.Invariant Epoch.Osculation   Eccentricity     Semi.Major.Axis   Inclination       Asc.Node.Longitude Orbital.Period  
-##  Min.   :2.196               Min.   :2450164   Min.   :0.00752   Min.   :0.6159   Min.   : 0.01451   Min.   :  0.0019   Min.   : 176.6  
-##  1st Qu.:4.047               1st Qu.:2458000   1st Qu.:0.24086   1st Qu.:1.0012   1st Qu.: 4.93290   1st Qu.: 83.1849   1st Qu.: 365.9  
-##  Median :5.071               Median :2458000   Median :0.37251   Median :1.2422   Median :10.27694   Median :172.6347   Median : 504.9  
-##  Mean   :5.056               Mean   :2457723   Mean   :0.38267   Mean   :1.4009   Mean   :13.36159   Mean   :172.1717   Mean   : 635.5  
-##  3rd Qu.:6.017               3rd Qu.:2458000   3rd Qu.:0.51256   3rd Qu.:1.6782   3rd Qu.:19.47848   3rd Qu.:254.8804   3rd Qu.: 793.1  
-##  Max.   :9.025               Max.   :2458020   Max.   :0.96026   Max.   :5.0720   Max.   :75.40667   Max.   :359.9059   Max.   :4172.2  
-##  NA&#39;s   :56                  NA&#39;s   :60        NA&#39;s   :39        NA&#39;s   :53       NA&#39;s   :42         NA&#39;s   :60         NA&#39;s   :46      
-##  Perihelion.Distance Perihelion.Arg     Aphelion.Dist    Perihelion.Time    Mean.Anomaly       Mean.Motion       Equinox       Hazardous    
-##  Min.   :0.08074     Min.   :  0.0069   Min.   :0.8038   Min.   :2450100   Min.   :  0.0032   Min.   :0.08628   J2000:4663   Min.   :0.000  
-##  1st Qu.:0.63038     1st Qu.: 95.6430   1st Qu.:1.2661   1st Qu.:2457815   1st Qu.: 87.0069   1st Qu.:0.45147   NA&#39;s :  24   1st Qu.:0.000  
-##  Median :0.83288     Median :189.7729   Median :1.6182   Median :2457972   Median :186.0219   Median :0.71137                Median :0.000  
-##  Mean   :0.81316     Mean   :184.0185   Mean   :1.9864   Mean   :2457726   Mean   :181.2882   Mean   :0.73732                Mean   :0.176  
-##  3rd Qu.:0.99718     3rd Qu.:271.9535   3rd Qu.:2.4497   3rd Qu.:2458108   3rd Qu.:276.6418   3rd Qu.:0.98379                3rd Qu.:0.000  
-##  Max.   :1.29983     Max.   :359.9931   Max.   :8.9839   Max.   :2458839   Max.   :359.9180   Max.   :2.03900                Max.   :1.000  
-##  NA&#39;s   :22          NA&#39;s   :48         NA&#39;s   :38       NA&#39;s   :59        NA&#39;s   :40         NA&#39;s   :48                     NA&#39;s   :4187</code></pre>
+<div class="sourceCode" id="cb532"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb532-1"><a href="datasets.html#cb532-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&quot;datasets.RData&quot;</span>)</span>
+<span id="cb532-2"><a href="datasets.html#cb532-2" aria-hidden="true" tabindex="-1"></a><span class="co"># library(EcoData)</span></span>
+<span id="cb532-3"><a href="datasets.html#cb532-3" aria-hidden="true" tabindex="-1"></a><span class="co"># data(nasa)</span></span>
+<span id="cb532-4"><a href="datasets.html#cb532-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nasa)</span></code></pre></div>
+<pre><code>##  Neo.Reference.ID       Name         Absolute.Magnitude Est.Dia.in.KM.min. Est.Dia.in.KM.max. Est.Dia.in.M.min.   Est.Dia.in.M.max.  Est.Dia.in.Miles.min.
+##  Min.   :2000433   Min.   :2000433   Min.   :11.16      Min.   : 0.00101   Min.   : 0.00226   Min.   :    1.011   Min.   :    2.26   Min.   :0.00063      
+##  1st Qu.:3102682   1st Qu.:3102683   1st Qu.:20.10      1st Qu.: 0.03346   1st Qu.: 0.07482   1st Qu.:   33.462   1st Qu.:   74.82   1st Qu.:0.02079      
+##  Median :3514800   Median :3514800   Median :21.90      Median : 0.11080   Median : 0.24777   Median :  110.804   Median :  247.77   Median :0.06885      
+##  Mean   :3272675   Mean   :3273113   Mean   :22.27      Mean   : 0.20523   Mean   : 0.45754   Mean   :  204.649   Mean   :  458.45   Mean   :0.12734      
+##  3rd Qu.:3690987   3rd Qu.:3690385   3rd Qu.:24.50      3rd Qu.: 0.25384   3rd Qu.: 0.56760   3rd Qu.:  253.837   3rd Qu.:  567.60   3rd Qu.:0.15773      
+##  Max.   :3781897   Max.   :3781897   Max.   :32.10      Max.   :15.57955   Max.   :34.83694   Max.   :15579.552   Max.   :34836.94   Max.   :9.68068      
+##  NA&#39;s   :53        NA&#39;s   :57        NA&#39;s   :36         NA&#39;s   :60         NA&#39;s   :23         NA&#39;s   :29          NA&#39;s   :46         NA&#39;s   :42           
+##  Est.Dia.in.Miles.max. Est.Dia.in.Feet.min. Est.Dia.in.Feet.max. Close.Approach.Date Epoch.Date.Close.Approach Relative.Velocity.km.per.sec Relative.Velocity.km.per.hr
+##  Min.   : 0.00140      Min.   :    3.32     Min.   :     7.41    2016-07-22:  18     Min.   :7.889e+11         Min.   : 0.3355              Min.   :  1208             
+##  1st Qu.: 0.04649      1st Qu.:  109.78     1st Qu.:   245.49    2015-01-15:  17     1st Qu.:1.016e+12         1st Qu.: 8.4497              1st Qu.: 30399             
+##  Median : 0.15395      Median :  363.53     Median :   812.88    2015-02-15:  16     Median :1.203e+12         Median :12.9370              Median : 46532             
+##  Mean   : 0.28486      Mean   :  670.44     Mean   :  1500.77    2007-11-08:  15     Mean   :1.180e+12         Mean   :13.9848              Mean   : 50298             
+##  3rd Qu.: 0.35269      3rd Qu.:  832.80     3rd Qu.:  1862.19    2012-01-15:  15     3rd Qu.:1.356e+12         3rd Qu.:18.0774              3rd Qu.: 65068             
+##  Max.   :21.64666      Max.   :51114.02     Max.   :114294.42    (Other)   :4577     Max.   :1.473e+12         Max.   :44.6337              Max.   :160681             
+##  NA&#39;s   :50            NA&#39;s   :21           NA&#39;s   :46           NA&#39;s      :  29     NA&#39;s   :43                NA&#39;s   :27                   NA&#39;s   :28                 
+##  Miles.per.hour    Miss.Dist..Astronomical. Miss.Dist..lunar.   Miss.Dist..kilometers. Miss.Dist..miles.  Orbiting.Body    Orbit.ID     
+##  Min.   :  750.5   Min.   :0.00018          Min.   :  0.06919   Min.   :   26610       Min.   :   16535   Earth:4665    Min.   :  1.00  
+##  1st Qu.:18846.7   1st Qu.:0.13341          1st Qu.: 51.89874   1st Qu.:19964907       1st Qu.:12454813   NA&#39;s :  22    1st Qu.:  9.00  
+##  Median :28893.7   Median :0.26497          Median :103.19415   Median :39685408       Median :24662435                 Median : 16.00  
+##  Mean   :31228.0   Mean   :0.25690          Mean   : 99.91366   Mean   :38436154       Mean   :23885560                 Mean   : 28.34  
+##  3rd Qu.:40436.9   3rd Qu.:0.38506          3rd Qu.:149.59244   3rd Qu.:57540318       3rd Qu.:35714721                 3rd Qu.: 31.00  
+##  Max.   :99841.2   Max.   :0.49988          Max.   :194.45491   Max.   :74781600       Max.   :46467132                 Max.   :611.00  
+##  NA&#39;s   :38        NA&#39;s   :60               NA&#39;s   :30          NA&#39;s   :56             NA&#39;s   :27                       NA&#39;s   :33      
+##         Orbit.Determination.Date Orbit.Uncertainity Minimum.Orbit.Intersection Jupiter.Tisserand.Invariant Epoch.Osculation   Eccentricity     Semi.Major.Axis 
+##  2017-06-21 06:17:20:   9        Min.   :0.000      Min.   :0.00000            Min.   :2.196               Min.   :2450164   Min.   :0.00752   Min.   :0.6159  
+##  2017-04-06 08:57:13:   8        1st Qu.:0.000      1st Qu.:0.01435            1st Qu.:4.047               1st Qu.:2458000   1st Qu.:0.24086   1st Qu.:1.0012  
+##  2017-04-06 09:24:24:   8        Median :3.000      Median :0.04653            Median :5.071               Median :2458000   Median :0.37251   Median :1.2422  
+##  2017-04-06 08:24:13:   7        Mean   :3.521      Mean   :0.08191            Mean   :5.056               Mean   :2457723   Mean   :0.38267   Mean   :1.4009  
+##  2017-04-06 08:26:19:   7        3rd Qu.:6.000      3rd Qu.:0.12150            3rd Qu.:6.017               3rd Qu.:2458000   3rd Qu.:0.51256   3rd Qu.:1.6782  
+##  (Other)            :4622        Max.   :9.000      Max.   :0.47789            Max.   :9.025               Max.   :2458020   Max.   :0.96026   Max.   :5.0720  
+##  NA&#39;s               :  26        NA&#39;s   :49         NA&#39;s   :137                NA&#39;s   :56                  NA&#39;s   :60        NA&#39;s   :39        NA&#39;s   :53      
+##   Inclination       Asc.Node.Longitude Orbital.Period   Perihelion.Distance Perihelion.Arg     Aphelion.Dist    Perihelion.Time    Mean.Anomaly       Mean.Motion     
+##  Min.   : 0.01451   Min.   :  0.0019   Min.   : 176.6   Min.   :0.08074     Min.   :  0.0069   Min.   :0.8038   Min.   :2450100   Min.   :  0.0032   Min.   :0.08628  
+##  1st Qu.: 4.93290   1st Qu.: 83.1849   1st Qu.: 365.9   1st Qu.:0.63038     1st Qu.: 95.6430   1st Qu.:1.2661   1st Qu.:2457815   1st Qu.: 87.0069   1st Qu.:0.45147  
+##  Median :10.27694   Median :172.6347   Median : 504.9   Median :0.83288     Median :189.7729   Median :1.6182   Median :2457972   Median :186.0219   Median :0.71137  
+##  Mean   :13.36159   Mean   :172.1717   Mean   : 635.5   Mean   :0.81316     Mean   :184.0185   Mean   :1.9864   Mean   :2457726   Mean   :181.2882   Mean   :0.73732  
+##  3rd Qu.:19.47848   3rd Qu.:254.8804   3rd Qu.: 793.1   3rd Qu.:0.99718     3rd Qu.:271.9535   3rd Qu.:2.4497   3rd Qu.:2458108   3rd Qu.:276.6418   3rd Qu.:0.98379  
+##  Max.   :75.40667   Max.   :359.9059   Max.   :4172.2   Max.   :1.29983     Max.   :359.9931   Max.   :8.9839   Max.   :2458839   Max.   :359.9180   Max.   :2.03900  
+##  NA&#39;s   :42         NA&#39;s   :60         NA&#39;s   :46       NA&#39;s   :22          NA&#39;s   :48         NA&#39;s   :38       NA&#39;s   :59        NA&#39;s   :40         NA&#39;s   :48       
+##   Equinox       Hazardous    
+##  J2000:4663   Min.   :0.000  
+##  NA&#39;s :  24   1st Qu.:0.000  
+##               Median :0.000  
+##               Mean   :0.176  
+##               3rd Qu.:0.000  
+##               Max.   :1.000  
+##               NA&#39;s   :4187</code></pre>
 <ol start="2" style="list-style-type: decimal">
 <li>Impute missing values (not our response variable!)</li>
 </ol>
-<div class="sourceCode" id="cb533"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb533-1"><a href="datasets.html#cb533-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
-<span id="cb533-2"><a href="datasets.html#cb533-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb533-3"><a href="datasets.html#cb533-3" aria-hidden="true" tabindex="-1"></a><span class="co">#wine_imputed = titanic %&gt;% select(-name, -ticket, -cabin, -boat, -home.dest)</span></span>
-<span id="cb533-4"><a href="datasets.html#cb533-4" aria-hidden="true" tabindex="-1"></a>nasa_imputed <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(<span class="at">data =</span> nasa <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>Hazardous), <span class="at">maxiter =</span> <span class="dv">1</span>, <span class="at">num.trees=</span>5L)</span></code></pre></div>
+<div class="sourceCode" id="cb534"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb534-1"><a href="datasets.html#cb534-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
+<span id="cb534-2"><a href="datasets.html#cb534-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb534-3"><a href="datasets.html#cb534-3" aria-hidden="true" tabindex="-1"></a><span class="co">#wine_imputed = titanic %&gt;% select(-name, -ticket, -cabin, -boat, -home.dest)</span></span>
+<span id="cb534-4"><a href="datasets.html#cb534-4" aria-hidden="true" tabindex="-1"></a>nasa_imputed <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(<span class="at">data =</span> nasa <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>Hazardous), <span class="at">maxiter =</span> <span class="dv">1</span>, <span class="at">num.trees=</span>5L)</span></code></pre></div>
 <pre><code>## 
 ## Missing value imputation by random forests
 ## 
@@ -601,27 +601,27 @@ For inspiration and data exploration notebooks, check out the kaggle competition
 ## iter 1:  .....</code></pre>
 <pre><code>## Warning: Dropped unused factor level(s) in dependent variable: 2017-04-06 08:35:59, 2017-04-06 09:06:29, 2017-04-06 09:10:05.</code></pre>
 <pre><code>## ..................................</code></pre>
-<div class="sourceCode" id="cb537"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb537-1"><a href="datasets.html#cb537-1" aria-hidden="true" tabindex="-1"></a>nasa_imputed<span class="sc">$</span>Hazardous <span class="ot">=</span> nasa<span class="sc">$</span>Hazardous</span></code></pre></div>
+<div class="sourceCode" id="cb538"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb538-1"><a href="datasets.html#cb538-1" aria-hidden="true" tabindex="-1"></a>nasa_imputed<span class="sc">$</span>Hazardous <span class="ot">=</span> nasa<span class="sc">$</span>Hazardous</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Split into training and testing</li>
 </ol>
-<div class="sourceCode" id="cb538"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb538-1"><a href="datasets.html#cb538-1" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> nasa_imputed[<span class="sc">!</span><span class="fu">is.na</span>(nasa<span class="sc">$</span>Hazardous), ]</span>
-<span id="cb538-2"><a href="datasets.html#cb538-2" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> nasa_imputed[<span class="fu">is.na</span>(nasa<span class="sc">$</span>Hazardous), ]</span></code></pre></div>
+<div class="sourceCode" id="cb539"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb539-1"><a href="datasets.html#cb539-1" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> nasa_imputed[<span class="sc">!</span><span class="fu">is.na</span>(nasa<span class="sc">$</span>Hazardous), ]</span>
+<span id="cb539-2"><a href="datasets.html#cb539-2" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> nasa_imputed[<span class="fu">is.na</span>(nasa<span class="sc">$</span>Hazardous), ]</span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li>Train model</li>
 </ol>
-<div class="sourceCode" id="cb539"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb539-1"><a href="datasets.html#cb539-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span>
-<span id="cb539-2"><a href="datasets.html#cb539-2" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">ranger</span>(Hazardous<span class="sc">~</span>., <span class="at">data =</span> train, <span class="at">classification =</span> <span class="cn">TRUE</span>, <span class="at">probability =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb540"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb540-1"><a href="datasets.html#cb540-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span>
+<span id="cb540-2"><a href="datasets.html#cb540-2" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">ranger</span>(Hazardous<span class="sc">~</span>., <span class="at">data =</span> train, <span class="at">classification =</span> <span class="cn">TRUE</span>, <span class="at">probability =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <ol start="5" style="list-style-type: decimal">
 <li>Predictions</li>
 </ol>
-<div class="sourceCode" id="cb540"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb540-1"><a href="datasets.html#cb540-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">predict</span>(rf, <span class="at">data =</span> test)<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
-<span id="cb540-2"><a href="datasets.html#cb540-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(preds)</span></code></pre></div>
+<div class="sourceCode" id="cb541"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb541-1"><a href="datasets.html#cb541-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">predict</span>(rf, <span class="at">data =</span> test)<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
+<span id="cb541-2"><a href="datasets.html#cb541-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(preds)</span></code></pre></div>
 <pre><code>## [1] 0.7266984 0.7744373 0.0015000 0.8139786 0.1496508 0.1784167</code></pre>
 <ol start="6" style="list-style-type: decimal">
 <li>Create submission csv</li>
 </ol>
-<div class="sourceCode" id="cb542"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb542-1"><a href="datasets.html#cb542-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y=</span>preds), <span class="at">file =</span> <span class="st">&quot;rf.csv&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb543"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb543-1"><a href="datasets.html#cb543-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y=</span>preds), <span class="at">file =</span> <span class="st">&quot;rf.csv&quot;</span>)</span></code></pre></div>
 </div>
 <div id="flower" class="section level2" number="7.5">
 <h2><span class="header-section-number">7.5</span> Flower</h2>
@@ -637,75 +637,75 @@ You can download the dataset <a href="http://rhsbio7.uni-regensburg.de:8500">her
 <li>Load dataset
 The dataset requires pre-processing (we have to concatenate the train and test images):</li>
 </ol>
-<div class="sourceCode" id="cb543"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb543-1"><a href="datasets.html#cb543-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb543-2"><a href="datasets.html#cb543-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
-<span id="cb543-3"><a href="datasets.html#cb543-3" aria-hidden="true" tabindex="-1"></a>data_files <span class="ot">=</span> <span class="fu">list.files</span>(<span class="st">&quot;flower/&quot;</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb543-4"><a href="datasets.html#cb543-4" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data_files[<span class="fu">str_detect</span>(data_files, <span class="st">&quot;train&quot;</span>)]</span>
-<span id="cb543-5"><a href="datasets.html#cb543-5" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> <span class="fu">readRDS</span>(<span class="at">file =</span> <span class="st">&quot;flower/test.RDS&quot;</span>)</span>
-<span id="cb543-6"><a href="datasets.html#cb543-6" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> <span class="fu">lapply</span>(train, readRDS)</span>
-<span id="cb543-7"><a href="datasets.html#cb543-7" aria-hidden="true" tabindex="-1"></a>train_classes <span class="ot">=</span> <span class="fu">lapply</span>(train, <span class="cf">function</span>(d) <span class="fu">dim</span>(d)[<span class="dv">1</span>])</span>
-<span id="cb543-8"><a href="datasets.html#cb543-8" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> abind<span class="sc">::</span><span class="fu">abind</span>(train, <span class="at">along =</span> 1L)</span>
-<span id="cb543-9"><a href="datasets.html#cb543-9" aria-hidden="true" tabindex="-1"></a>labels_train <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">4</span>, <span class="fu">unlist</span>(train_classes))</span>
-<span id="cb543-10"><a href="datasets.html#cb543-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb543-11"><a href="datasets.html#cb543-11" aria-hidden="true" tabindex="-1"></a>flower <span class="ot">=</span> EcoData<span class="sc">::</span><span class="fu">dataset_flower</span>()</span>
-<span id="cb543-12"><a href="datasets.html#cb543-12" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> flower<span class="sc">$</span>train</span>
-<span id="cb543-13"><a href="datasets.html#cb543-13" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> flower<span class="sc">$</span>test</span>
-<span id="cb543-14"><a href="datasets.html#cb543-14" aria-hidden="true" tabindex="-1"></a>train_classes <span class="ot">=</span> flower<span class="sc">$</span>labels</span></code></pre></div>
+<div class="sourceCode" id="cb544"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb544-1"><a href="datasets.html#cb544-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
+<span id="cb544-2"><a href="datasets.html#cb544-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb544-3"><a href="datasets.html#cb544-3" aria-hidden="true" tabindex="-1"></a>data_files <span class="ot">=</span> <span class="fu">list.files</span>(<span class="st">&quot;flower/&quot;</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb544-4"><a href="datasets.html#cb544-4" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data_files[<span class="fu">str_detect</span>(data_files, <span class="st">&quot;train&quot;</span>)]</span>
+<span id="cb544-5"><a href="datasets.html#cb544-5" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> <span class="fu">readRDS</span>(<span class="at">file =</span> <span class="st">&quot;flower/test.RDS&quot;</span>)</span>
+<span id="cb544-6"><a href="datasets.html#cb544-6" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> <span class="fu">lapply</span>(train, readRDS)</span>
+<span id="cb544-7"><a href="datasets.html#cb544-7" aria-hidden="true" tabindex="-1"></a>train_classes <span class="ot">=</span> <span class="fu">lapply</span>(train, <span class="cf">function</span>(d) <span class="fu">dim</span>(d)[<span class="dv">1</span>])</span>
+<span id="cb544-8"><a href="datasets.html#cb544-8" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> abind<span class="sc">::</span><span class="fu">abind</span>(train, <span class="at">along =</span> 1L)</span>
+<span id="cb544-9"><a href="datasets.html#cb544-9" aria-hidden="true" tabindex="-1"></a>labels_train <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">4</span>, <span class="fu">unlist</span>(train_classes))</span>
+<span id="cb544-10"><a href="datasets.html#cb544-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb544-11"><a href="datasets.html#cb544-11" aria-hidden="true" tabindex="-1"></a>flower <span class="ot">=</span> EcoData<span class="sc">::</span><span class="fu">dataset_flower</span>()</span>
+<span id="cb544-12"><a href="datasets.html#cb544-12" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> flower<span class="sc">$</span>train</span>
+<span id="cb544-13"><a href="datasets.html#cb544-13" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> flower<span class="sc">$</span>test</span>
+<span id="cb544-14"><a href="datasets.html#cb544-14" aria-hidden="true" tabindex="-1"></a>train_classes <span class="ot">=</span> flower<span class="sc">$</span>labels</span></code></pre></div>
 <p>Let’s visualize a flower:</p>
-<div class="sourceCode" id="cb544"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb544-1"><a href="datasets.html#cb544-1" aria-hidden="true" tabindex="-1"></a>train[<span class="dv">100</span>,,,] <span class="sc">%&gt;%</span> </span>
-<span id="cb544-2"><a href="datasets.html#cb544-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb544-3"><a href="datasets.html#cb544-3" aria-hidden="true" tabindex="-1"></a> <span class="st">`</span><span class="at">/</span><span class="st">`</span>(., <span class="dv">255</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb544-4"><a href="datasets.html#cb544-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb544-5"><a href="datasets.html#cb544-5" aria-hidden="true" tabindex="-1"></a> <span class="fu">plot</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb545"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb545-1"><a href="datasets.html#cb545-1" aria-hidden="true" tabindex="-1"></a>train[<span class="dv">100</span>,,,] <span class="sc">%&gt;%</span> </span>
+<span id="cb545-2"><a href="datasets.html#cb545-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb545-3"><a href="datasets.html#cb545-3" aria-hidden="true" tabindex="-1"></a> <span class="st">`</span><span class="at">/</span><span class="st">`</span>(., <span class="dv">255</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb545-4"><a href="datasets.html#cb545-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb545-5"><a href="datasets.html#cb545-5" aria-hidden="true" tabindex="-1"></a> <span class="fu">plot</span>()</span></code></pre></div>
 <p><img src="_main_files/figure-html/unnamed-chunk-256-1.png" width="672" /></p>
 <ol start="2" style="list-style-type: decimal">
 <li>Build &amp; train model:</li>
 </ol>
-<div class="sourceCode" id="cb545"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb545-1"><a href="datasets.html#cb545-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb545-2"><a href="datasets.html#cb545-2" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
-<span id="cb545-3"><a href="datasets.html#cb545-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 4L, <span class="at">kernel_size =</span> 2L, <span class="at">input_shape =</span> <span class="fu">list</span>( 80L, 80L, 3L)) <span class="sc">%&gt;%</span> </span>
-<span id="cb545-4"><a href="datasets.html#cb545-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_max_pooling_2d</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb545-5"><a href="datasets.html#cb545-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_flatten</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb545-6"><a href="datasets.html#cb545-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 5L, <span class="at">activation =</span> <span class="st">&quot;softmax&quot;</span>)</span>
-<span id="cb545-7"><a href="datasets.html#cb545-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb545-8"><a href="datasets.html#cb545-8" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
-<span id="cb545-9"><a href="datasets.html#cb545-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">compile</span>(<span class="at">optimizer =</span> keras<span class="sc">::</span><span class="fu">optimizer_adamax</span>(<span class="fl">0.01</span>), <span class="at">loss =</span> keras<span class="sc">::</span>loss_categorical_crossentropy)</span>
-<span id="cb545-10"><a href="datasets.html#cb545-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb545-11"><a href="datasets.html#cb545-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb545-12"><a href="datasets.html#cb545-12" aria-hidden="true" tabindex="-1"></a><span class="do">### Model fitting </span><span class="al">###</span></span>
-<span id="cb545-13"><a href="datasets.html#cb545-13" aria-hidden="true" tabindex="-1"></a>epochs <span class="ot">=</span> 50L</span>
-<span id="cb545-14"><a href="datasets.html#cb545-14" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> 25L</span>
-<span id="cb545-15"><a href="datasets.html#cb545-15" aria-hidden="true" tabindex="-1"></a>steps <span class="ot">=</span> <span class="fu">floor</span>(<span class="fu">dim</span>(train)[<span class="dv">1</span>]<span class="sc">/</span>batch_size)</span>
-<span id="cb545-16"><a href="datasets.html#cb545-16" aria-hidden="true" tabindex="-1"></a>generator <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">flow_images_from_data</span>(<span class="at">x =</span> train<span class="sc">/</span><span class="dv">255</span> , <span class="at">y =</span> keras<span class="sc">::</span><span class="fu">k_one_hot</span>(labels_train, 5L), <span class="at">batch_size =</span> batch_size)</span>
-<span id="cb545-17"><a href="datasets.html#cb545-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb545-18"><a href="datasets.html#cb545-18" aria-hidden="true" tabindex="-1"></a>optim <span class="ot">=</span> <span class="fu">optimizer_adamax</span>(<span class="fl">0.01</span>)</span>
-<span id="cb545-19"><a href="datasets.html#cb545-19" aria-hidden="true" tabindex="-1"></a>epoch_losses <span class="ot">=</span> <span class="fu">c</span>()</span>
-<span id="cb545-20"><a href="datasets.html#cb545-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>epochs) {</span>
-<span id="cb545-21"><a href="datasets.html#cb545-21" aria-hidden="true" tabindex="-1"></a>  epoch_loss <span class="ot">=</span> <span class="fu">c</span>()</span>
-<span id="cb545-22"><a href="datasets.html#cb545-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(s <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>steps) {</span>
-<span id="cb545-23"><a href="datasets.html#cb545-23" aria-hidden="true" tabindex="-1"></a>    batch <span class="ot">=</span> reticulate<span class="sc">::</span><span class="fu">iter_next</span>(generator)</span>
-<span id="cb545-24"><a href="datasets.html#cb545-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">with</span>(tf<span class="sc">$</span><span class="fu">GradientTape</span>() <span class="sc">%as%</span> tape, {</span>
-<span id="cb545-25"><a href="datasets.html#cb545-25" aria-hidden="true" tabindex="-1"></a>        pred <span class="ot">=</span> <span class="fu">model</span>(batch[[<span class="dv">1</span>]])</span>
-<span id="cb545-26"><a href="datasets.html#cb545-26" aria-hidden="true" tabindex="-1"></a>        loss <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">loss_categorical_crossentropy</span>(batch[[<span class="dv">2</span>]], pred)</span>
-<span id="cb545-27"><a href="datasets.html#cb545-27" aria-hidden="true" tabindex="-1"></a>        loss <span class="ot">=</span> tf<span class="sc">$</span><span class="fu">reduce_mean</span>(loss)</span>
-<span id="cb545-28"><a href="datasets.html#cb545-28" aria-hidden="true" tabindex="-1"></a>      })</span>
-<span id="cb545-29"><a href="datasets.html#cb545-29" aria-hidden="true" tabindex="-1"></a>    gradients <span class="ot">=</span> tape<span class="sc">$</span><span class="fu">gradient</span>(<span class="at">target =</span> loss, <span class="at">sources =</span> model<span class="sc">$</span>weights)</span>
-<span id="cb545-30"><a href="datasets.html#cb545-30" aria-hidden="true" tabindex="-1"></a>    optim<span class="sc">$</span><span class="fu">apply_gradients</span>(purrr<span class="sc">::</span><span class="fu">transpose</span>(<span class="fu">list</span>(gradients, model<span class="sc">$</span>weights)))</span>
-<span id="cb545-31"><a href="datasets.html#cb545-31" aria-hidden="true" tabindex="-1"></a>    epoch_loss <span class="ot">=</span> <span class="fu">c</span>(epoch_loss, loss<span class="sc">$</span><span class="fu">numpy</span>())</span>
-<span id="cb545-32"><a href="datasets.html#cb545-32" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb545-33"><a href="datasets.html#cb545-33" aria-hidden="true" tabindex="-1"></a>  epoch_losses <span class="ot">=</span> <span class="fu">c</span>(epoch_losses, epoch_loss)</span>
-<span id="cb545-34"><a href="datasets.html#cb545-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Epoch: &quot;</span>, e, <span class="st">&quot; Loss: &quot;</span>, <span class="fu">mean</span>(epoch_losses), <span class="st">&quot; </span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb545-35"><a href="datasets.html#cb545-35" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb546"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb546-1"><a href="datasets.html#cb546-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
+<span id="cb546-2"><a href="datasets.html#cb546-2" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
+<span id="cb546-3"><a href="datasets.html#cb546-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 4L, <span class="at">kernel_size =</span> 2L, <span class="at">input_shape =</span> <span class="fu">list</span>( 80L, 80L, 3L)) <span class="sc">%&gt;%</span> </span>
+<span id="cb546-4"><a href="datasets.html#cb546-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_max_pooling_2d</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb546-5"><a href="datasets.html#cb546-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_flatten</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb546-6"><a href="datasets.html#cb546-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 5L, <span class="at">activation =</span> <span class="st">&quot;softmax&quot;</span>)</span>
+<span id="cb546-7"><a href="datasets.html#cb546-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb546-8"><a href="datasets.html#cb546-8" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
+<span id="cb546-9"><a href="datasets.html#cb546-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">compile</span>(<span class="at">optimizer =</span> keras<span class="sc">::</span><span class="fu">optimizer_adamax</span>(<span class="fl">0.01</span>), <span class="at">loss =</span> keras<span class="sc">::</span>loss_categorical_crossentropy)</span>
+<span id="cb546-10"><a href="datasets.html#cb546-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb546-11"><a href="datasets.html#cb546-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb546-12"><a href="datasets.html#cb546-12" aria-hidden="true" tabindex="-1"></a><span class="do">### Model fitting </span><span class="al">###</span></span>
+<span id="cb546-13"><a href="datasets.html#cb546-13" aria-hidden="true" tabindex="-1"></a>epochs <span class="ot">=</span> 50L</span>
+<span id="cb546-14"><a href="datasets.html#cb546-14" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> 25L</span>
+<span id="cb546-15"><a href="datasets.html#cb546-15" aria-hidden="true" tabindex="-1"></a>steps <span class="ot">=</span> <span class="fu">floor</span>(<span class="fu">dim</span>(train)[<span class="dv">1</span>]<span class="sc">/</span>batch_size)</span>
+<span id="cb546-16"><a href="datasets.html#cb546-16" aria-hidden="true" tabindex="-1"></a>generator <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">flow_images_from_data</span>(<span class="at">x =</span> train<span class="sc">/</span><span class="dv">255</span> , <span class="at">y =</span> keras<span class="sc">::</span><span class="fu">k_one_hot</span>(labels_train, 5L), <span class="at">batch_size =</span> batch_size)</span>
+<span id="cb546-17"><a href="datasets.html#cb546-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb546-18"><a href="datasets.html#cb546-18" aria-hidden="true" tabindex="-1"></a>optim <span class="ot">=</span> <span class="fu">optimizer_adamax</span>(<span class="fl">0.01</span>)</span>
+<span id="cb546-19"><a href="datasets.html#cb546-19" aria-hidden="true" tabindex="-1"></a>epoch_losses <span class="ot">=</span> <span class="fu">c</span>()</span>
+<span id="cb546-20"><a href="datasets.html#cb546-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>epochs) {</span>
+<span id="cb546-21"><a href="datasets.html#cb546-21" aria-hidden="true" tabindex="-1"></a>  epoch_loss <span class="ot">=</span> <span class="fu">c</span>()</span>
+<span id="cb546-22"><a href="datasets.html#cb546-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(s <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>steps) {</span>
+<span id="cb546-23"><a href="datasets.html#cb546-23" aria-hidden="true" tabindex="-1"></a>    batch <span class="ot">=</span> reticulate<span class="sc">::</span><span class="fu">iter_next</span>(generator)</span>
+<span id="cb546-24"><a href="datasets.html#cb546-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">with</span>(tf<span class="sc">$</span><span class="fu">GradientTape</span>() <span class="sc">%as%</span> tape, {</span>
+<span id="cb546-25"><a href="datasets.html#cb546-25" aria-hidden="true" tabindex="-1"></a>        pred <span class="ot">=</span> <span class="fu">model</span>(batch[[<span class="dv">1</span>]])</span>
+<span id="cb546-26"><a href="datasets.html#cb546-26" aria-hidden="true" tabindex="-1"></a>        loss <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">loss_categorical_crossentropy</span>(batch[[<span class="dv">2</span>]], pred)</span>
+<span id="cb546-27"><a href="datasets.html#cb546-27" aria-hidden="true" tabindex="-1"></a>        loss <span class="ot">=</span> tf<span class="sc">$</span><span class="fu">reduce_mean</span>(loss)</span>
+<span id="cb546-28"><a href="datasets.html#cb546-28" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb546-29"><a href="datasets.html#cb546-29" aria-hidden="true" tabindex="-1"></a>    gradients <span class="ot">=</span> tape<span class="sc">$</span><span class="fu">gradient</span>(<span class="at">target =</span> loss, <span class="at">sources =</span> model<span class="sc">$</span>weights)</span>
+<span id="cb546-30"><a href="datasets.html#cb546-30" aria-hidden="true" tabindex="-1"></a>    optim<span class="sc">$</span><span class="fu">apply_gradients</span>(purrr<span class="sc">::</span><span class="fu">transpose</span>(<span class="fu">list</span>(gradients, model<span class="sc">$</span>weights)))</span>
+<span id="cb546-31"><a href="datasets.html#cb546-31" aria-hidden="true" tabindex="-1"></a>    epoch_loss <span class="ot">=</span> <span class="fu">c</span>(epoch_loss, loss<span class="sc">$</span><span class="fu">numpy</span>())</span>
+<span id="cb546-32"><a href="datasets.html#cb546-32" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb546-33"><a href="datasets.html#cb546-33" aria-hidden="true" tabindex="-1"></a>  epoch_losses <span class="ot">=</span> <span class="fu">c</span>(epoch_losses, epoch_loss)</span>
+<span id="cb546-34"><a href="datasets.html#cb546-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Epoch: &quot;</span>, e, <span class="st">&quot; Loss: &quot;</span>, <span class="fu">mean</span>(epoch_losses), <span class="st">&quot; </span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb546-35"><a href="datasets.html#cb546-35" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Predictions</li>
 </ol>
-<div class="sourceCode" id="cb546"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb546-1"><a href="datasets.html#cb546-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> model <span class="sc">%&gt;%</span> <span class="fu">predict</span>(test<span class="sc">/</span><span class="dv">255</span>)</span>
-<span id="cb546-2"><a href="datasets.html#cb546-2" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">apply</span>(preds, <span class="dv">1</span>, which.max)<span class="sc">-</span><span class="dv">1</span></span>
-<span id="cb546-3"><a href="datasets.html#cb546-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(preds)</span></code></pre></div>
+<div class="sourceCode" id="cb547"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb547-1"><a href="datasets.html#cb547-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> model <span class="sc">%&gt;%</span> <span class="fu">predict</span>(test<span class="sc">/</span><span class="dv">255</span>)</span>
+<span id="cb547-2"><a href="datasets.html#cb547-2" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">apply</span>(preds, <span class="dv">1</span>, which.max)<span class="sc">-</span><span class="dv">1</span></span>
+<span id="cb547-3"><a href="datasets.html#cb547-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(preds)</span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li>Create submission csv</li>
 </ol>
-<div class="sourceCode" id="cb547"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb547-1"><a href="datasets.html#cb547-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y=</span>preds), <span class="at">file =</span> <span class="st">&quot;cnn.csv&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb548"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb548-1"><a href="datasets.html#cb548-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y=</span>preds), <span class="at">file =</span> <span class="st">&quot;cnn.csv&quot;</span>)</span></code></pre></div>
 
 </div>
 </div>

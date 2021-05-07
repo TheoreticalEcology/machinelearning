@@ -200,16 +200,15 @@ And show that it works
 dist = down_size_model(train_x[1:2000,,,,drop=FALSE])
 images = up_size_model( dist$sample()[1:5,] )
 
-par(mfrow = c(1,3))
-for(i in 1:3) imgPlot(images[i,,,1]$numpy())
 par(mfrow = c(1,1))
+imgPlot(images[1,,,1]$numpy())
 plot(dist$mean()$numpy()[,1], dist$mean()$numpy()[,2], col = train[[2]]+1L)
 ```
 
 
 <details>
 <summary>
-**<span style="color: #CC2FAA">Exercise: Flower VAE</span>**
+**<span style="color: #CC2FAA">Solution for flower VAE exercise</span>**
 </summary>
 <p>
 split the data 
@@ -219,10 +218,11 @@ test = data$test/255
 train = data$train/255
 train = abind::abind(list(train, test), along = 1L)
 ```
-use a VAE to define the overall network
+Build the VAE:
 ```{r VAEflower}
 encoded = 10L
-prior = tfp$distributions$Independent(tfp$distributions$Normal(tf$zeros(encoded),1.0),1L)
+prior = tfp$distributions$Independent(tfp$distributions$Normal(loc=tf$zeros(encoded), scale=1.),
+                        reinterpreted_batch_ndims=1L)
 down_size_model = tf$keras$models$Sequential(list(
   tf$keras$layers$InputLayer(input_shape = c(80L, 80L, 3L)),
   tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu, kernel_size = 5L, strides =1L),
@@ -231,8 +231,8 @@ down_size_model = tf$keras$models$Sequential(list(
   tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu, kernel_size = 5L, strides =2L),
   tf$keras$layers$Conv2D(filters = 128L, activation = tf$nn$leaky_relu, kernel_size = 7L, strides =1L),
   tf$keras$layers$Flatten(),
-  tf$keras$layers$Dense(units = encoded*2L, activation = NULL),
-  tfp$layers$IndependentNormal(encoded, activity_regularizer = tfp$layers$KLDivergenceRegularizer(prior, weight = 0.1))
+  tf$keras$layers$Dense(units = tfp$layers$MultivariateNormalTriL$params_size(encoded), activation = NULL),
+  tfp$layers$MultivariateNormalTriL(encoded, activity_regularizer = tfp$layers$KLDivergenceRegularizer(prior, weight = 0.0002))
 ))
 up_size_model = tf$keras$models$Sequential(list(
   tf$keras$layers$InputLayer(input_shape = encoded),
@@ -315,11 +315,6 @@ train_x = array((train$x-127.5)/127.5, c(dim(train$x)[1], 784L))
 We also need a function to sample images for the discriminator.
 ```{r}
 batch_size = 32L
-get_batch = function(){  # Helper function to get batches of images
- indices = sample.int(nrow(train_x), batch_size)
- return(tf$constant(train_x[indices,], "float32"))
-}
-
 dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
 dataset$batch(batch_size)
 ```
@@ -439,7 +434,7 @@ Now we can finally train our networks in a traings loop:
 
 ```{r}
 batch_size = 128L
-epochs = 15L
+epochs = 20L
 steps = as.integer(nrow(train_x)/batch_size)
 counter = 1
 gen_loss = c()
@@ -459,9 +454,9 @@ for(e in 1:epochs) {
    })
   
    
-  cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
+  if(epochs %% 5 == 0) cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
   noise = tf$random$normal(c(1L, 100L))
-  if(epochs %% 5 == 0) imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
+  if(epochs %% 10 == 0) imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
 }
 
 
@@ -479,13 +474,9 @@ library(tidyverse)
 library(tensorflow)
 library(EcoData)
 data = EcoData::dataset_flower()
-
 train = (data$train-127.5)/127.5
 test = (data$test-127.5)/127.5
-
-
 train_x = abind::abind(list(train, test), along = 1L)
-
 dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
 ```
 Define the generator models and test it 
@@ -539,10 +530,10 @@ get_discriminator = function(){
 discriminator = get_discriminator()
 discriminator
 discriminator(generator(tf$random$normal(c(1L, 100L))))
-ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE,label_smoothing = 0.1)
 ```
 Defin the loss functions 
 ```{r}
+ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE,label_smoothing = 0.1)
 loss_discriminator = function(real, fake){
   real_loss = ce(tf$ones_like(real), real)
   fake_loss = ce(tf$zeros_like(fake), fake)
@@ -556,11 +547,6 @@ Define the optimizers and the batch function
 ```{r}
 gen_opt = tf$keras$optimizers$RMSprop(1e-4)
 disc_opt = tf$keras$optimizers$RMSprop(1e-4)
-batch_size = 32L
-get_batch = function(){
-  indices = sample.int(nrow(train_x), batch_size)
-  return(tf$constant(train_x[indices,,,,drop=FALSE], "float32"))
-}
 ```
 Define functions for the generator and discriminator 
 ```{r}
@@ -603,12 +589,11 @@ counter = 1
 gen_loss = c()
 disc_loss = c()
 
-dataset2 = dataset
-dataset2 = dataset2$prefetch(tf$data$AUTOTUNE)
+dataset = dataset$prefetch(tf$data$AUTOTUNE)
 
 
 for(e in 1:epochs) {
-  dat = reticulate::as_iterator(dataset2$batch(batch_size))
+  dat = reticulate::as_iterator(dataset$batch(batch_size))
   
    coro::loop(for (images in dat) {
       losses = train_step(images)
@@ -619,7 +604,7 @@ for(e in 1:epochs) {
   noise = tf$random$normal(c(1L, 100L))
   image = generator(noise)$numpy()[1,,,]
   image = scales::rescale(image, to = c(0, 255))
-  if(e %% 5 == 0) {
+  if(e %% 10 == 0) {
     image %>% 
       image_to_array() %>%
         `/`(., 255) %>%
@@ -651,6 +636,12 @@ knitr::include_graphics(c("images/flower2.png", "images/flower3.png", "images/fl
 ## Reinforcement learning 
 
 Objective: train a neural network capable of balancing a pole
+
+The environment is run on a local server, please install:
+
+![](https://github.com/openai/gym-http-api)
+
+Or go through this [colab book](https://colab.research.google.com/github/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb)
 
 ```{r,eval=FALSE}
 library(keras)
