@@ -3,15 +3,15 @@
 We will explore today more machine learning ideas.
 
 ## Autoencoder
-An autoencoder is a type of artificial neural network for unsupervised learning. The idea is similar to data compression: the first part of the network compresses (encodes) the data to a low dimensional space (e.g. 2-4 dimensions) and the second part of the network decompresses the encodings and learns to reconstruct the data (think of a hourglass).
+An autoencoder (AE) is a type of artificial neural network for unsupervised learning. The idea is similar to data compression: the first part of the network compresses (encodes) the data to a low dimensional space (e.g. 2-4 dimensions) and the second part of the network decompresses the encoding and learns to reconstruct the data (think of a hourglass).
 
-Why is this useful? The method is similar to a dimension reduction technique (e.g. PCA) but with the advantage that we don't have to make any assumptions (but see PCA). For instance, we could first train a AE on genomic expression data with thousands of features, compress them into 2-4 dimensions, and use them then for clustering. 
+Why is this useful? The method is similar to a dimension reduction technique (e.g. PCA) but with the advantage that we don't have to make any distributional assumptions (but see PCA). For instance, we could first train an AE on genomic expression data with thousands of features, compress them into 2-4 dimensions, and then use them for clustering. 
 
 
 ### Autoencoder - DNN MNIST
-We will now write an autoencoder for the MNIST data set.
+We now will write an autoencoder for the MNIST data set.
 
-Let's start with the (usal) MNIST example:
+Let's start with the (usual) MNIST example:
 
 ```{r, include=FALSE}
 try({ detach("package:torch", unload=TRUE) }, silent = TRUE)
@@ -28,7 +28,7 @@ data = keras::dataset_mnist()
 data = keras::dataset_mnist()
 ```
 
-We don't need here the labels, our images will be the inputs and the outputs of our final autoencoder
+We don't need here the labels, our images will be the inputs and at the same time the outputs of our final autoencoder
 
 ```{r}
 rotate = function(x) t(apply(x, 2, rev))
@@ -42,7 +42,7 @@ train_x = array(train[[1]]/255, c(dim(train[[1]])[1], 784L))
 test_x = array(test[[1]]/255, c(dim(test[[1]])[1], 784L))
 ```
 
-Our encoder: image (784 dimenions) -> 2 dimensions
+Our encoder: image (784 dimensions) -> 2 dimensions
 ```{r AEencoder}
 down_size_model = keras_model_sequential()
 down_size_model %>% 
@@ -69,7 +69,7 @@ autoencoder$compile(loss = loss_binary_crossentropy, optimizer = optimizer_adama
 summary(autoencoder)
 ```
 
-
+WE will now show an example of an image before and after the unfitted autoincoder, so we see that we have to train the autoencoder.
 ```{r AEmnistoutput}
 image = autoencoder(train_x[1,,drop = FALSE])
 par(mfrow = c(1,2))
@@ -147,7 +147,7 @@ imgPlot(array(up_size_model(new)$numpy(), c(28L, 28L)))
 ### Varational Autoencoder
 The difference between a variational and a normal autoencoder is that a variational autoencoder assumes a distribution for the latent variables.
 
-To do so we will use the tensorflow probability, first need to split the data again 
+To do so we will use tensorflow probability, but first need to split the data again 
 ```{r}
 # install.packages("tfprobability")
 library(tfprobability)
@@ -195,7 +195,7 @@ VAE$compile(loss = loss_binary, optimizer = optimizer_adamax())
 VAE$fit(train_x, train_x, epochs = 5L)
 ```
 
-
+And show that it works 
 ```{r VAEmnist}
 dist = down_size_model(train_x[1:2000,,,,drop=FALSE])
 images = up_size_model( dist$sample()[1:5,] )
@@ -212,14 +212,14 @@ plot(dist$mean()$numpy()[,1], dist$mean()$numpy()[,2], col = train[[2]]+1L)
 **<span style="color: #CC2FAA">Exercise: Flower VAE</span>**
 </summary>
 <p>
-
+split the data 
 ```{r}
 data = EcoData::dataset_flower()
 test = data$test/255
 train = data$train/255
 train = abind::abind(list(train, test), along = 1L)
 ```
-
+use a VAE to define the overall network
 ```{r VAEflower}
 encoded = 10L
 prior = tfp$distributions$Independent(tfp$distributions$Normal(tf$zeros(encoded),1.0),1L)
@@ -286,7 +286,7 @@ par(mfrow = c(1,1))
 
 
 ## Generative adversarial network (GANs)
-The idea of generative adversarial network (GAN) is that two neural networks contest with each other in a game. On network is creating data and is trying to "trick" the other network into thinking that the generated data is real. The generator (similar to the decoder in AEs) creates new images from noise and tries to convince the discriminator that this is a real image. The discriminator is getting a mix of true (from the dataset) and artificially generated images from the generator. Thereby, the loss of the generator rises when fakes are identified as fakes by the discriminator (simple binary_crossentropy loss, 0/1...) and the loss of the discriminator rises when fakes are identified as fakes (class 1) and true images as true images (class 0), again simple binary crossentropy.
+The idea of generative adversarial network (GAN) is that two neural networks contest with each other in a game. One network is creating data and is trying to "trick" the other network into thinking that the generated data is real. The generator (similar to the decoder in AEs) creates new images from noise. The discriminator is getting a mix of true (from the dataset) and artificially generated images from the generator. Thereby, the loss of the generator rises when fakes are identified as fakes by the discriminator (simple binary_crossentropy loss, 0/1...) and the loss of the discriminator rises when fakes are identified as fakes (class 1) and true images as true images (class 0), again a simple binary crossentropy.
 
 A possible application is to create pictures that look like real photographs (e.g. ![](https://thispersondoesnotexist.com/) ). However, the application of GANs today is much wider than just the creation of data. For example, GANs can also be used to "augment" data, i.e. to create new data and thereby improve the fitted model. 
 
@@ -346,7 +346,7 @@ sample = tf$random$normal(c(1L, 100L))
 imgPlot(array(generator(sample)$numpy(), c(28L, 28L)))
 ```
 
-The noise (random vector with 100 values) is passed through the network and the output correspond to the number of pixels of one MNIST image (784). We therefore now define the discriminator function
+In the discriminator noise (random vector with 100 values) is passed through the network such that the output correspond to the number of pixels of one MNIST image (784). We therefore now define the discriminator function
 
 ```{r}
 get_discriminator = function(){
@@ -360,7 +360,7 @@ get_discriminator = function(){
  return(discriminator)
 }
 ```
-And also the discriminator function
+And also test the discriminator function
 ```{r}
 discriminator = get_discriminator()
 discriminator(generator(tf$random$normal(c(1L, 100L))))
@@ -470,7 +470,7 @@ for(e in 1:epochs) {
 
 
 ### Flower - GAN
-We can now also do the same for the flower dataset, we will write this now compleltly in our own following the steps also done for the MNIST data set.
+We can now also do the same for the flower dataset, we will write this now completely in our own following the steps also done for the MNIST data set.
 
 
 ```{r}
@@ -562,7 +562,7 @@ get_batch = function(){
   return(tf$constant(train_x[indices,,,,drop=FALSE], "float32"))
 }
 ```
-Finally do the training 
+Define functions for the generator and discriminator 
 ```{r}
 generator = get_generator()
 discriminator = get_discriminator()
@@ -593,7 +593,7 @@ train_step = function(images){
 train_step = tf$`function`(reticulate::py_func(train_step))
 ```
 
-
+and do the training
 ```{r}
 
 batch_size = 32L
