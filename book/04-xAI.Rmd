@@ -111,7 +111,7 @@ In statistical courses (in particular course: advanced biostatistics), we discus
 
 ### Causal inference on static data
 
-Methods for causal inference depend on whether we have dynamic or static data. The latter is the more common case. With static data, the problem is confounding - if you have several predictors that are correlated, you can get spurious correlations between a given predictor and the response.
+Methods for causal inference depend on whether we have dynamic or static data. The latter is the more common case. With static data, the problem is confounding - if you have several predictors that are correlated, you can get spurious correlations between a given predictor and the response, although there are no in general.
 
 A multiple regression, and a few other methods are able to correct for other predictors, and thus isolate the causal effect. The same is not necessarily true for ML algorithms and xAI methods. This is not a bug, but a feature - for making good predictions, it is often no problem, but rather an advantage to also use non-causal predictors.
 
@@ -148,7 +148,7 @@ Task: understand why this is - remember:
 
 ### Structural equation models
 
-If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). SEMs are are designed to estimate entire causal diagrams. There are two main SEM packages in R: for anything that is non-normal, you will currently have to estimate the DAG piece-wise with CRAN package piecewiseSEM. Example for a vegetation dataset:
+If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). SEMs are designed to estimate entire causal diagrams. There are two main SEM packages in R: for anything that is non-normal, you will currently have to estimate the DAG piece-wise with CRAN package piecewiseSEM. Example for a vegetation dataset:
 
 ```{r}
 library(piecewiseSEM)
@@ -158,7 +158,7 @@ mod = psem(
  lm(cover ~ age + elev + hetero + abiotic, data = keeley)
 )
 summary(mod)
-plot(mod)
+# plot(mod)
 ```
 
 For linear SEMs, we can estimate the entire DAG in one go. This also allows to have unobserved variables in the DAG. One of the most popular packages for this is lavaan
@@ -175,13 +175,14 @@ summary(fit)
 ```
 
 
-Plot options ... not so nice as before
+The default Plot options are not so nice as before
 
 ```{r}
+# devtools::install_version("lavaanPlot", version = "0.6.0")
 library(lavaanPlot)
 lavaanPlot(model = fit)
 ```
-Another plotting option
+Another plotting option is to use semPlot
 
 ```{r}
 library(semPlot)
@@ -191,7 +192,7 @@ semPaths(fit)
 
 ### Automatic causal discovery
 
-But how to we get the causal graph? In statistics, it common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithsm, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the PC algorithm. Here an example using the pcalg package:
+But how to get the causal graph? In statistics, it is common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the PC algorithm. Here an example using the pcalg package:
 
 ```{r}
 # Bioconductor dependencies have to installed by hand, e.g. 
@@ -207,7 +208,7 @@ suffStat <- list(C = cor(gmG8$x), n = nrow(gmG8$x))
 varNames <- gmG8$g@nodes
 ```
 
-First, the kkeleton algorithm creates a basic graph without connections
+First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph)
 
 ```{r}
 skel.gmG8 <- skeleton(suffStat, indepTest = gaussCItest,
@@ -215,7 +216,7 @@ labels = varNames, alpha = 0.01)
 Rgraphviz::plot(skel.gmG8)
 ```
 
-What is missing here is the direction of the errors. The PC algorith now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.
+What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.
 
 ```{r}
 pc.gmG8 <- pc(suffStat, indepTest = gaussCItest,
@@ -225,7 +226,7 @@ Rgraphviz::plot(pc.gmG8 )
 
 ### Causal inference on dynamic data
 
-When working with dynamic data, we can use an additional piece of information - the effect usually preceeds the cause, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as Granger causality, or Granger methods. Here an example:
+When working with dynamic data, we can use an additional piece of information - the effect usually precedes the cause, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as Granger causality, or Granger methods. Here an example:
 
 ```{r}
 library(lmtest)

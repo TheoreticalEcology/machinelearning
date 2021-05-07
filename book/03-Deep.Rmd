@@ -535,6 +535,7 @@ test_accuracy
 </details>
 <br/>
 
+## Advanced training techniques 
 ### Data Augmentation
 Having to train a CNN using very little data is a common problem. Data augmentation helps to artificially increase the number of images.
 
@@ -544,14 +545,82 @@ Luckily, it is very easy to use data augmentation in keras.
 
 To show this, we will use again the MNIST dataset. We have to define a generator object (it is a specific object which infinitly draws samples from our dataset). In the generator we can turn on the data augementation. However, now we have to set the step size (steps_per_epoch) because the model does not know the first dimension of the image.
 
-```{r}
-aug = image_data_generator()
-generator = flow_images_from_data(train_x, train_y,generator = aug, batch_size = 100L)
+```{r,eval=FALSE}
+data = EcoData::dataset_flower()
+train = data$train
+test = data$test
+labels = data$labels
+
+model = keras_model_sequential()
 model %>% 
- fit(generator, steps_per_epoch = floor(dim(train_x)[1]/100L),epochs = 1L)
+  layer_conv_2d(filter = 16L, kernel_size = c(5L, 5L), input_shape = c(80L, 80L, 3L), activation = "relu") %>% 
+  layer_max_pooling_2d() %>% 
+  layer_conv_2d(filter = 32L, kernel_size = c(3L, 3L), activation = "relu") %>% 
+  layer_max_pooling_2d() %>% 
+  layer_conv_2d(filter = 64L, kernel_size = c(3L, 3L), strides = c(2L, 2L), activation = "relu") %>% 
+  layer_max_pooling_2d() %>% 
+  layer_flatten() %>% 
+  layer_dropout(0.5) %>% 
+  layer_dense(units = 5L, activation = "softmax")
+
+  
+# Data augmentation
+aug = image_data_generator(rotation_range = 90, 
+                           zoom_range = c(0.3), 
+                           horizontal_flip = TRUE, 
+                           vertical_flip = TRUE)
+
+# Data preparation / splitting
+indices = sample.int(nrow(train), 0.1*nrow(train))
+generator = flow_images_from_data(train[-indices,,,]/255, k_one_hot(labels[-indices], num_classes = 5L),
+                                  generator = aug, batch_size = 25L, shuffle = TRUE)
+
+test = train[indices,,,]/255
+test_labels = k_one_hot(labels[indices], num_classes = 5L)
+
+
+# Our own training loop with early stopping:
+epochs = 50L
+batch_size = 25L
+steps = floor(dim(train)[1]/batch_size)
+optim = keras::optimizer_rmsprop()
+max_patience = 5L
+patience = 1L
+min_val_loss = Inf
+val_losses = c()
+epoch_losses = c()
+for(e in 1:epochs) {
+  epoch_loss = c()
+  for(s in 1:steps) {
+    batch = reticulate::iter_next(generator)
+    with(tf$GradientTape() %as% tape, {
+        pred = model(batch[[1]], training = TRUE)
+        loss = keras::loss_categorical_crossentropy(batch[[2]], pred)
+        loss = tf$reduce_mean(loss)
+      })
+    gradients = tape$gradient(target = loss, sources = model$trainable_variables)
+    optim$apply_gradients(purrr::transpose(list(gradients, model$trainable_variables)))
+    epoch_loss = c(epoch_loss, loss$numpy())
+  }
+  epoch_losses = c(epoch_losses, epoch_loss)
+  ## test loss ##
+  preds = model %>% predict(test)
+  val_losses = c(val_losses, tf$reduce_mean( keras::loss_categorical_crossentropy(test_labels, preds) )$numpy())
+  
+  cat("Epoch: ", e, " Train Loss: ", mean(epoch_losses)," Val Loss: ", val_losses[e],  " \n")
+  
+  if(val_losses[e] < min_val_loss) {
+    min_val_loss = val_losses[e]
+    patience = 1
+  } else { patience = patience+1 }
+  if(patience == max_patience) break
+}
+
+preds = predict(model, data$test/255)
+preds = apply(preds, 1, which.max)-1
 ```
 
-So using data augmentation, we can artificially increase the number of images.
+So using data augmentation we can artificially increase the number of images.
 
 <details>
 <summary>
@@ -678,7 +747,6 @@ model %>%
 
 We have seen, that transfer-learning can easily be done using keras.
 
-
 <details>
 <summary>
 **<span style="color: #CC2FAA">torch</span>**
@@ -740,6 +808,81 @@ print(test_accuracy)
 </details>
 <br/>
 
+**Flower dataset**
 
+Let's do it with our flower dataset:
+
+```{r,eval=FALSE}
+data = EcoData::dataset_flower()
+train = data$train
+test = data$test
+labels = data$labels
+library(keras)
+library(tensorflow)
+
+densenet = keras::application_densenet201(include_top = FALSE, input_shape = list(80L, 80L, 3L))
+
+keras::freeze_weights(densenet)
+
+model = keras_model(inputs = densenet$input, 
+                    outputs = densenet$output %>% 
+                      layer_flatten() %>% 
+                      layer_dropout(0.2) %>% 
+                      layer_dense(units = 200L) %>% 
+                      layer_dropout(0.2) %>% 
+                      layer_dense(units = 5L, activation="softmax"))
+
+
+# Data augmentation
+aug = image_data_generator(rotation_range = 180,zoom_range = 0.4,width_shift_range = 0.2, height_shift_range = 0.2, vertical_flip = TRUE, horizontal_flip = TRUE,preprocessing_function = imagenet_preprocess_input)
+
+# Data preparation / splitting
+indices = sample.int(nrow(train), 0.1*nrow(train))
+generator = flow_images_from_data(train[-indices,,,], k_one_hot(labels[-indices], num_classes = 5L), 
+                                  batch_size = 25L, shuffle = TRUE, generator = aug)
+
+test = imagenet_preprocess_input(train[indices,,,])
+test_labels = k_one_hot(labels[indices], num_classes = 5L)
+
+# Our own training loop with early stopping:
+epochs = 1L
+batch_size = 45L
+steps = floor(dim(train)[1]/batch_size)
+optim = keras::optimizer_rmsprop(lr = 0.0005)
+max_patience = 10L
+patience = 1L
+min_val_loss = Inf
+val_losses = c()
+epoch_losses = c()
+for(e in 1:epochs) {
+  epoch_loss = c()
+  for(s in 1:steps) {
+    batch = reticulate::iter_next(generator)
+    with(tf$GradientTape() %as% tape, {
+        pred = model(batch[[1]], training = TRUE)
+        loss = keras::loss_categorical_crossentropy(batch[[2]], pred)
+        loss = tf$reduce_mean(loss)
+      })
+    gradients = tape$gradient(target = loss, sources = model$trainable_variables)
+    optim$apply_gradients(purrr::transpose(list(gradients, model$trainable_variables)))
+    epoch_loss = c(epoch_loss, loss$numpy())
+  }
+  epoch_losses = c(epoch_losses, epoch_loss)
+  ## test loss ##
+  preds = model %>% predict(test)
+  val_losses = c(val_losses, tf$reduce_mean( keras::loss_categorical_crossentropy(test_labels, preds) )$numpy())
+  
+  cat("Epoch: ", e, " Train Loss: ", mean(epoch_losses)," Val Loss: ", val_losses[e],  " \n")
+  
+  if(val_losses[e] < min_val_loss) {
+    min_val_loss = val_losses[e]
+    patience = 1
+  } else { patience = patience+1 }
+  if(patience == max_patience) break
+}
+
+preds = predict(model, imagenet_preprocess_input(data$test))
+
+```
 
 
