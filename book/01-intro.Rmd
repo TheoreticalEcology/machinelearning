@@ -9,17 +9,17 @@ editor_options:
 
 There are three basic ML tasks
 
-* Unsupervised learning
 * Supervised learning
+* Unsupervised learning
 * Reinforcement learning
 
-**Unsupervised learning** is a technique, where one does not need to supervise the model. Instead, you allow the model to work on its own to discover information.
+In **supervised learning**, you train algorithms using labeled data, which means that you already know the correct answer for a part of the data (the so called _training data_).
 
-In **supervised learning**, you train an algorithm using labeled data, which means that you already know the correct answer for a part of the data (the so called tracings data). 
+**Unsupervised learning** in contrast is a technique, where one does not need to monitor the model or apply labels. Instead, you allow the model to work on its own to discover information.
 
-**Reinforcement learning** is a technique that emulates a game-like situation. The algorithm comes up with a solution by try and error and gets for the actions ether rewards or penalties. As in games, the goal is to maximize the rewards. We will talk on the last day more about this technique.
+**Reinforcement learning** is a technique that emulates a game-like situation. The algorithm finds a solution by trial and error and gets either _rewards_ or _penalties_ for every action. As in games, the goal is to maximize the rewards. We will talk more about this technique on the last day of the course.
 
-For the moment, we will focus on the first two tasks, supervised and unsupervised learning. To do so, we will first start with a small example, but before you start with the code, here a video to remind you of what we talked about in the class:
+For the moment, we will focus on the first two tasks, supervised and unsupervised learning. To do so, we will begin with a small example. But before you start with the code, here is a video to prepare you for what we will do in the class:
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -34,7 +34,7 @@ cat(
 
 ## Unsupervised learning
 
-In unsupervised learning, we  want to identify patterns in data without having any examples (supervision) about what the correct patterns / classes are. As an example, consider our iris dataset. Here, we have 150 observations of 4 floral traits
+In unsupervised learning, we  want to identify patterns in data without having any examples (supervision) about what the correct patterns / classes are. As an example, consider the iris dataset. Here, we have 150 observations of 4 floral traits:
 
 ```{r, fig.width=10, fig.height=4}
 colors = hcl.colors(3)
@@ -42,22 +42,26 @@ traits = as.matrix(iris[,1:4])
 species = iris$Species
 image(y = 1:4, x = 1:length(species) , z = traits, 
       ylab = "Floral trait", xlab = "Individual")
+segments(50.5, 0, 50.5, 5, col = "black", lwd = 2)
+segments(100.5, 0, 100.5, 5, col = "black", lwd = 2)
 ```
 
-The observations are from 3 species, and indeed those species tend to have different traits, meaning that the observations form 3 clusters. 
+The observations are from 3 species and indeed those species tend to have different traits, meaning that the observations form 3 clusters. 
 
 ```{r}
 pairs(traits, pch = as.integer(species), col = colors[as.integer(species)])
 ```
 
-However, imagine we didn't know what species are, which is basically the situation in which people in the antique have been. The people just noted that some plants have different flowers than others, and decided to give them different names. This kind of process is what unsupervised learning does.
+However, imagine we don't know what species are, what is basically the situation in which people in the antique have been. The people just noted that some plants have different flowers than others, and decided to give them different names. This kind of process is what unsupervised learning does.
 
 ### Hierarchical clustering
 
-Build up a hierarchy (tree) between data points
+A cluster refers to a collection of data points aggregated together because of certain similarities.
 
-* Agglomerative: start with each data point in their own cluster, merge them up hierarchically
-* Divisive: start with all data in one cluster, and split hierarchically
+In hierarchical clustering, a hierarchy (tree) between data points is built.
+
+* Agglomerative: Start with each data point in their own cluster, merge them up hierarchically
+* Divisive: Start with all data points in one cluster, and split hierarchically
 
 Merges / splits are done according to linkage criterion, which measures distance between (potential) clusters. Cut the tree at a certain height to get clusters. 
 
@@ -66,11 +70,12 @@ Here an example
 ```{r}
 set.seed(123)
 
+traits = as.matrix(iris[,1:4])
 d = dist(traits)
 hc <- hclust(d, method = "complete")
 
 plot(hc)
-rect.hclust(hc, k = 3)
+rect.hclust(hc, k = 3)  #Draw rectangles around the branches.
 ```
 
 Same plot, but with colors for true species identity
@@ -81,10 +86,10 @@ plot(as.phylo(hc),
      tip.color = colors[as.integer(species)], 
      direction = "downwards")
 
-hcRes3 <- cutree(hc, k = 3)
+hcRes3 <- cutree(hc, k = 3)   #Cut a dendrogram tree into groups.
 ```
 
-Calculate confusion matrix - note we switching labels here so that it fits to the species
+Calculate confusion matrix. Note we are switching labels here so that it fits to the species.
 
 ```{r}
 tmp <- hcRes3
@@ -94,7 +99,7 @@ hcRes3 <- tmp
 table(hcRes3, species)
 ```
 
-Note that results might change if you choose a different agglomeration method, distance metric, or whether you scale your variables. Compare, e.g. to this example
+Note that results might change if you choose a different agglomeration method, distance metric or scale of your variables. Compare, e.g. to this example
 
 ```{r}
 hc <- hclust(d, method = "ward.D2")
@@ -103,62 +108,73 @@ plot(as.phylo(hc),
      tip.color = colors[as.integer(species)], 
      direction = "downwards")
 
-hcRes3 <- cutree(hc, k = 3)
+hcRes3 <- cutree(hc, k = 3)   #Cut a dendrogram tree into groups.
 table(hcRes3, species)
 ```
 
 Which method is best? 
 
-```{r}
+```{r, results='hide', message=FALSE, warning=FALSE}
 library(dendextend)
-methods <- c("ward.D", "single", "complete", "average", "mcquitty", "median", "centroid", "ward.D2")
-out <- dendlist()
+```
+```{r}
+methods <- c("ward.D", "single", "complete", "average",
+             "mcquitty", "median", "centroid", "ward.D2")
+out <- dendlist()   #Create a dendlist object from several dendrograms.
 for(i in seq_along(methods)) {
   res <- hclust(d, method = methods[i])   
   out <- dendlist(out, as.dendrogram(res))
 }
 names(out) <- methods
-out
+print(out)
 
 get_ordered_3_clusters <- function(dend) {
+  #order.dendrogram function returns the order (index)
+  #or the "label" attribute for the leaves.
   cutree(dend, k = 3)[order.dendrogram(dend)]
 }
 dend_3_clusters <- lapply(out, get_ordered_3_clusters)
-compare_clusters_to_iris <- function(clus) {FM_index(clus, rep(1:3, each = 50), assume_sorted_vectors = TRUE)}
+
+compare_clusters_to_iris <- function(clus){
+  FM_index(clus, rep(1:3, each = 50), assume_sorted_vectors = TRUE)
+}
+
 clusters_performance <- sapply(dend_3_clusters, compare_clusters_to_iris)
-dotchart(sort(clusters_performance), xlim = c(0.3,1),
+dotchart(sort(clusters_performance), xlim = c(0.3, 1),
          xlab = "Fowlkes-Mallows index",
-         main = "Performance of linkage methods \n in detecting the 3 species",
+         main = "Performance of linkage methods
+         in detecting the 3 species \n in our example",
          pch = 19)
 ```
 
 
-We might conclude here that ward.D2 works best. However, as we will learn later, optimizing the method without a hold-out for testing means that we may be overfitting. We should check this using cross-validation. 
+We might conclude that ward.D2 works best here. However, as we will learn later, optimizing the method without a hold-out for testing means that our model may be overfitting. We should check this using cross-validation. 
 
-### k-means clustering
+### K-means clustering
 
 Another example for an unsupervised learning algorithm is k-means clustering, one of the simplest and most popular unsupervised machine learning algorithms.
 
-A cluster refers to a collection of data points aggregated together because of certain similarities. In our example from above this similarities could be similar flowers aggregated together to a plant. 
+To start with the algorithm, you first have to specify the number of clusters (for our example the number of species). Each cluster has a centroid, which is the assumed or real location representing the center of the cluster (for our example this would be how an average plant of a specific species would look like). The algorithm starts by randomly putting centroids somewhere. Afterwards each data point is assigned to the respective cluster that raises the overall in-cluster sum of squares (variance) related to the distance to the centroid least of all. After the algorithm has placed all data points into a cluster the centroids get updated. By iterating this procedure until the assignment doesn't change any longer, the algorithm can find the (locally) optimal centroids and the data points belonging to this cluster.
+Note that results might differ according to the initial positions of the centroids. Thus several (locally) optimal solutions might be found.
 
-To start with the algorithm, you first have to specify the number of clusters (for our example the number of species). Each cluster has a centroid, which is the imaginary or real location representing the center of the cluster (for our example this would be how an average plant of a specific species would look like). The algorithm starts by randomly putting centroids somewhere and then adds each new data point to the cluster which minimizes the overall in-cluster sum of squares. After the algorithm has assigned a new data point to a cluster the centroid gets updated. By iterating this procedure for all data points and then starting again, the algorithm can find the optimum centroids and the data-points belonging to this cluster.
+The k in K-means refers to the number of clusters and the ‘means’ refers to averaging the data-points to find the centroids.
 
-The k in K-means refers to the number of clusters and the ‘means’ refers to averaging of the data-points to find the centroids.
-
-A typical pipeline for using kmeans clustering looks the same as for the other algortihms. After having visualized the data, we fit the model, visualize the results and have a look at the performance by use of the confusion matrix.
+A typical pipeline for using k-means clustering looks the same as for other algorithms. After having visualized the data, we fit a model, visualize the results and have a look at the performance by use of the confusion matrix. By setting a fixed seed, we can ensure that results are reproducible.
 
 ```{r}
 set.seed(123)
 
 kc <- kmeans(traits, 3)
-kc
+print(kc)
 ```
 
-Visualizing the results. Color codes true species identity, symbol shows cluster result
+Visualizing the results. Color codes true species identity, symbol shows cluster result.
 
 ```{r}
-plot(iris[c("Sepal.Length", "Sepal.Width")], col =  colors[as.integer(species)], pch = kc$cluster)
-points(kc$centers[, c("Sepal.Length", "Sepal.Width")], col = colors, pch = 1:3, cex = 3)
+plot(iris[c("Sepal.Length", "Sepal.Width")],
+     col =  colors[as.integer(species)], pch = kc$cluster)
+points(kc$centers[, c("Sepal.Length", "Sepal.Width")],
+       col = colors, pch = 1:3, cex = 3)
 ```
 
 We see that there are are some discrepancies. Confusion matrix:
@@ -166,26 +182,32 @@ We see that there are are some discrepancies. Confusion matrix:
 table(iris$Species, kc$cluster)
 ```
 
-If you want to animate the clustering process, you could run 
+If you want to animate the clustering process, you could run
 
 ```{r, eval = F}
 library(animation)
-saveGIF(kmeans.ani(x = traits[,1:2], col = colors), interval = 1, ani.width = 800, ani.height = 800)
+saveGIF(kmeans.ani(x = traits[,1:2], col = colors),
+        interval = 1, ani.width = 800, ani.height = 800)
 ```
 
-Ellbow technique to determine the number of clusters
+**Elbow technique** to determine the probably best suited number of clusters:
 
 ```{r}
+#tot.withinss: Total within-cluster sum of squares
 getSumSq <- function(k){kmeans(traits, k, nstart=25)$tot.withinss}
+#Perform algorith for different cluster sizes
 iris.kmeans1to10 <- sapply(1:10, getSumSq)
 plot(1:10, iris.kmeans1to10, type="b", pch = 19, frame = FALSE, 
      xlab="Number of clusters K",
-     ylab="Total within-clusters sum of squares")
+     ylab="Total within-clusters sum of squares",
+     col = c("black", "red", rep("black", 8)))
 ```
+
+Higher k than necessary tends to overfitting. At the kink in the picture, the sum of squares dropped enough and k is still low enough.
+But keep in mind, this is only a rule of thumb and might be wrong in some special cases.
 
 
 ### Density-based clustering
-
 
 ```{r}
 set.seed(123)
@@ -212,190 +234,190 @@ mb = Mclust(traits)
 ```
 
 Mclust automatically compares a number of candidate models (#clusters, shape) according to BIC. We can look at the selected model via
-
-```{r}
-mb$G # two clusters
-mb$modelName # > ellipsoidal, equal shape
-```
-
-We see that the algorithm prefers to have 2 clusters. For better comparability to the other 2 methods, we will overrule this by setting:
-
-```{r}
-mb3 = Mclust(traits, 3)
-```
-
-Result in terms of the predicted densities for the 3 clusters
-
-```{r}
-plot(mb3, "density")
-```
-
-Predicted clusters
-
-
-```{r}
-plot(mb3, what=c("classification"), add = T)
-```
-
-Confusion matrix
-
-```{r}
-table(iris$Species, mb3$classification)
-```
-
-### Ordination 
-
-Note the relationship between clustering and ordination. Here a PCA ordination on on the 
-
-```{r}
-pcTraits <- prcomp(traits, center = TRUE,scale. = TRUE)
-biplot(pcTraits, xlim = c(-0.25,0.25), ylim = c(-0.25,0.25))
-```
-
-You can cluster the results of this ordination, ordinate before clustering, or superimpose one on the other. 
-
-
-## Supervised learning: regression and classification
-The two most prominent branches of supervised learning are regression and classification. Fundamentally, classification is about predicting a label and regression is about predicting a quantity. The following video explains that in more depth:
-
-```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-'<iframe width="560" height="315" 
+  
+  ```{r}
+  mb$G # two clusters
+  mb$modelName # > ellipsoidal, equal shape
+  ```
+  
+  We see that the algorithm prefers to have 2 clusters. For better comparability to the other 2 methods, we will overrule this by setting:
+    
+    ```{r}
+  mb3 = Mclust(traits, 3)
+  ```
+  
+  Result in terms of the predicted densities for the 3 clusters
+  
+  ```{r}
+  plot(mb3, "density")
+  ```
+  
+  Predicted clusters
+  
+  
+  ```{r}
+  plot(mb3, what=c("classification"), add = T)
+  ```
+  
+  Confusion matrix
+  
+  ```{r}
+  table(iris$Species, mb3$classification)
+  ```
+  
+  ### Ordination 
+  
+  Note the relationship between clustering and ordination. Here a PCA ordination on on the 
+  
+  ```{r}
+  pcTraits <- prcomp(traits, center = TRUE,scale. = TRUE)
+  biplot(pcTraits, xlim = c(-0.25,0.25), ylim = c(-0.25,0.25))
+  ```
+  
+  You can cluster the results of this ordination, ordinate before clustering, or superimpose one on the other. 
+  
+  
+  ## Supervised learning: regression and classification
+  The two most prominent branches of supervised learning are regression and classification. Fundamentally, classification is about predicting a label and regression is about predicting a quantity. The following video explains that in more depth:
+    
+    ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+  cat(
+    '<iframe width="560" height="315" 
   src="https://www.youtube.com/embed/i04Pfrb71vk"
   frameborder="0" allow="accelerometer; autoplay; encrypted-media;
   gyroscope; picture-in-picture" allowfullscreen>
   </iframe>'
-)
-```
-
-
-### Supervised regression using Random Forest
-
-The random forest (RF) algorithm is possibly the most widely used ML algorithm and can be used for regression and classification. We will talk more about the algorithm on Day 2. 
-
-For the moment, we want to go through typical workflow for a supervised regression: First, we visualize the data. Next, we fit the model and lastly we visualize the results. We will again use the iris dataset that we used before. The goal is now to predict Sepal.Length based on the infomration about the other variables (including species). 
-
-Fitting the model
-```{r}
-library(randomForest)
-m1 <- randomForest(Sepal.Length ~ ., data = iris)
-# str(m1)
-# m1$type
-# predict(m1)
-print(m1)
-```
-
-Visualization of the results
-```{r}
-par(mfrow = c(1,2))
-plot(predict(m1), iris$Sepal.Length, xlab = "predicted", ylab = "observed")
-abline(0,1)
-varImpPlot(m1)
-```
-To understand, the structure of a RF in more detail, we can use a package from GitHub
-
-```{r}
-# devtools::install_github('araastat/reprtree')
-reprtree:::plot.getTree(m1, iris)
-```
-
-### Supervised classification using Random Forest
-
-With the RF, we can also do classification. The steps are the same as for regression tasks, but we can additionally, see how well it performed by looking at the so called confusion matrix. Each row of this matrix contains the instances in a predicted class and each column represent the instances in an actual class. Thus the diagonals are the correctly predicted classes and the off-diagnoal elements are the falsly classified elements.
-
-Fitting the model:
-```{r}
-set.seed(123)
-m1 <- randomForest(Species ~ ., data = iris)
-# str(m1)
-# m1$type
-# predict(m1)
-print(m1)
-```
-Visualizing the fitted model:
-
-```{r}
-par(mfrow = c(1,2))
-reprtree:::plot.getTree(m1, iris)
-```
-
-Visualizing results ecologically:
-```{r}
-oldpar <- par(mfrow = c(1,2))
-plot(iris$Petal.Width, iris$Petal.Length, col = iris$Species, main = "observed")
-plot(iris$Petal.Width, iris$Petal.Length, col = predict(m1), main = "predicted")
-```
-
-```{r,echo=FALSE}
-par(oldpar)
-```
-
-
-Confusion matrix:
-```{r}
-table(predict(m1),iris$Species)
-```
-
-
-## Introduction to Tensorflow
-
-All operations in TF are written in C++ and are highly optimized. But dont worry, we don’t have to use C++ to use TF because there are several bindings for other languages. TensorFlow officialy supports a Python API, but meanwhile there are several community carried APIs for other languages:
-
-* R
-* Go
-* Rust
-* Swift
-* JavaScript
-
-In this course we will use TF with the https://tensorflow.rstudio.com/ binding, that was developed and published 2017 by the RStudio
-Team. They developed first a R package (reticulate) to call python in R. Actually, we are using in R the python TF module (more about this later).
-TF offers different levels of API. We could implement a neural network completly by ourselves, or we could use Keras which is provided by TF as a submodule. Keras is a powerful module for building and training neural networks. It allows us to build and train neural networks in a few lines of codes. Since the end of 2018, Keras and TF are completly interoperable, allowing us to utilize the best of both. In this course, we will show how we can use Keras
-for neural networks but also how we can use the TF’s automatic differenation for using complex objective functions.
-
-One of the most commonly used frameworks for machine learning is TensorFlow. TensorFlow is a open source linear algebra library with a focus on neural networks, published by Google in 2015. TF supports several interesting features, im particular automatic differentiation, several gradient optimizers and CPU and GPU parallelization. 
-
-These advantages are nicely explained in the following video: 
-
-```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-'<iframe width="560" height="315" 
+  )
+  ```
+  
+  
+  ### Supervised regression using Random Forest
+  
+  The random forest (RF) algorithm is possibly the most widely used ML algorithm and can be used for regression and classification. We will talk more about the algorithm on Day 2. 
+  
+  For the moment, we want to go through typical workflow for a supervised regression: First, we visualize the data. Next, we fit the model and lastly we visualize the results. We will again use the iris dataset that we used before. The goal is now to predict Sepal.Length based on the infomration about the other variables (including species). 
+  
+  Fitting the model
+  ```{r}
+  library(randomForest)
+  m1 <- randomForest(Sepal.Length ~ ., data = iris)
+  # str(m1)
+  # m1$type
+  # predict(m1)
+  print(m1)
+  ```
+  
+  Visualization of the results
+  ```{r}
+  par(mfrow = c(1,2))
+  plot(predict(m1), iris$Sepal.Length, xlab = "predicted", ylab = "observed")
+  abline(0,1)
+  varImpPlot(m1)
+  ```
+  To understand, the structure of a RF in more detail, we can use a package from GitHub
+  
+  ```{r}
+  # devtools::install_github('araastat/reprtree')
+  reprtree:::plot.getTree(m1, iris)
+  ```
+  
+  ### Supervised classification using Random Forest
+  
+  With the RF, we can also do classification. The steps are the same as for regression tasks, but we can additionally, see how well it performed by looking at the so called confusion matrix. Each row of this matrix contains the instances in a predicted class and each column represent the instances in an actual class. Thus the diagonals are the correctly predicted classes and the off-diagnoal elements are the falsly classified elements.
+  
+  Fitting the model:
+    ```{r}
+  set.seed(123)
+  m1 <- randomForest(Species ~ ., data = iris)
+  # str(m1)
+  # m1$type
+  # predict(m1)
+  print(m1)
+  ```
+  Visualizing the fitted model:
+    
+    ```{r}
+  par(mfrow = c(1,2))
+  reprtree:::plot.getTree(m1, iris)
+  ```
+  
+  Visualizing results ecologically:
+    ```{r}
+  oldpar <- par(mfrow = c(1,2))
+  plot(iris$Petal.Width, iris$Petal.Length, col = iris$Species, main = "observed")
+  plot(iris$Petal.Width, iris$Petal.Length, col = predict(m1), main = "predicted")
+  ```
+  
+  ```{r,echo=FALSE}
+  par(oldpar)
+  ```
+  
+  
+  Confusion matrix:
+    ```{r}
+  table(predict(m1),iris$Species)
+  ```
+  
+  
+  ## Introduction to Tensorflow
+  
+  All operations in TF are written in C++ and are highly optimized. But dont worry, we don’t have to use C++ to use TF because there are several bindings for other languages. TensorFlow officialy supports a Python API, but meanwhile there are several community carried APIs for other languages:
+    
+    * R
+  * Go
+  * Rust
+  * Swift
+  * JavaScript
+  
+  In this course we will use TF with the https://tensorflow.rstudio.com/ binding, that was developed and published 2017 by the RStudio
+  Team. They developed first a R package (reticulate) to call python in R. Actually, we are using in R the python TF module (more about this later).
+  TF offers different levels of API. We could implement a neural network completly by ourselves, or we could use Keras which is provided by TF as a submodule. Keras is a powerful module for building and training neural networks. It allows us to build and train neural networks in a few lines of codes. Since the end of 2018, Keras and TF are completly interoperable, allowing us to utilize the best of both. In this course, we will show how we can use Keras
+  for neural networks but also how we can use the TF’s automatic differenation for using complex objective functions.
+  
+  One of the most commonly used frameworks for machine learning is TensorFlow. TensorFlow is a open source linear algebra library with a focus on neural networks, published by Google in 2015. TF supports several interesting features, im particular automatic differentiation, several gradient optimizers and CPU and GPU parallelization. 
+  
+  These advantages are nicely explained in the following video: 
+    
+    ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+  cat(
+    '<iframe width="560" height="315" 
   src="https://www.youtube.com/embed/MotG3XI2qSs"
   frameborder="0" allow="accelerometer; autoplay; encrypted-media;
   gyroscope; picture-in-picture" allowfullscreen>
   </iframe>'
-)
-```
-
-To sum the most important points of the video up: 
-
-* TF is a math library which is highly optimized for neural networks
-* If a GPU is available, computations can be easily run on the GPU but even on a CPU is TF still very fast
-* The "backend" (i.e. all the functions and all computations) are written in C++ and CUDA (CUDA is a programming language for the GPU)
-* The interface (the part of TF that we use) is written in python and is also available in R, which means, we can write the code in R/Python but it will be executed by the (compiled) C++ backend. 
-
-All operations in TF are written in C++ and are highly optimized. But dont worry, we don’t have to use C++ to use TF, because there are several bindings for other languages. Officially, TensorFlow only supports a Python API, but meanwhile there are several community carried APIs for other languages, including R, Go, Rust, Swift or JavaScript. In this book, we will use TF with the https://tensorflow.rstudio.com/ binding that was developed and published 2017 by the RStudio Team. They developed first a R package (reticulate) to call python in R. Actually, we are using in R the python TF module (more about this later).
-
-Useful links:
-
-* [TensorFlow documentation](https://www.tensorflow.org/api_docs/python/tf) (which is for the python API, but just replace the '.' with '$')
-* [Rstudio tensorflow website](https://tensorflow.rstudio.com/)
-
-
-### Tensorflow data containers
-TF has two data containers (structures):
-
-* constant (tf$constant) :creates a constant (immutable) value in the computation graph
-* variable (tf$Variable): creates a mutable value in the computation graph (used as parameter/weight in models)
-
-To get started with tensorflow, we have to load the library and check if the installation worked. 
-
-```{r}
-library(tensorflow)
-# Don't worry about weird messages. TF supports additional optimizations
-exists("tf")
-```
-
-Don't worry about weird messages (they will only appear once at the start of the session).
+  )
+  ```
+  
+  To sum the most important points of the video up: 
+    
+    * TF is a math library which is highly optimized for neural networks
+  * If a GPU is available, computations can be easily run on the GPU but even on a CPU is TF still very fast
+  * The "backend" (i.e. all the functions and all computations) are written in C++ and CUDA (CUDA is a programming language for the GPU)
+  * The interface (the part of TF that we use) is written in python and is also available in R, which means, we can write the code in R/Python but it will be executed by the (compiled) C++ backend. 
+  
+  All operations in TF are written in C++ and are highly optimized. But dont worry, we don’t have to use C++ to use TF, because there are several bindings for other languages. Officially, TensorFlow only supports a Python API, but meanwhile there are several community carried APIs for other languages, including R, Go, Rust, Swift or JavaScript. In this book, we will use TF with the https://tensorflow.rstudio.com/ binding that was developed and published 2017 by the RStudio Team. They developed first a R package (reticulate) to call python in R. Actually, we are using in R the python TF module (more about this later).
+  
+  Useful links:
+    
+    * [TensorFlow documentation](https://www.tensorflow.org/api_docs/python/tf) (which is for the python API, but just replace the '.' with '$')
+  * [Rstudio tensorflow website](https://tensorflow.rstudio.com/)
+  
+  
+  ### Tensorflow data containers
+  TF has two data containers (structures):
+    
+    * constant (tf$constant) :creates a constant (immutable) value in the computation graph
+  * variable (tf$Variable): creates a mutable value in the computation graph (used as parameter/weight in models)
+  
+  To get started with tensorflow, we have to load the library and check if the installation worked. 
+  
+  ```{r}
+  library(tensorflow)
+  # Don't worry about weird messages. TF supports additional optimizations
+  exists("tf")
+  ```
+  
+  Don't worry about weird messages (they will only appear once at the start of the session).
 
 We now can define the variables and do some math with them:
 
@@ -433,7 +455,8 @@ class(d)
 class(d$numpy())
 ```
 
-### Tensorflow data types - good practise with R-TF
+### TensorFlow data types - good practise with R-TensorFlow
+
 R uses dynamic typing, which means you can assign to a variable a number, character, function or whatever, and the the type is automatically infered.
 In other languages you have to state explicitly the type, e.g. in C: int a = 5; float a = 5.0; char a = "a";
 While TF tries to infer dynamically the type, often you must state it explicitly.
@@ -449,60 +472,60 @@ r_matrix = matrix(runif(10*10), 10,10)
 m = tf$constant(r_matrix, dtype = "float32") 
 b = tf$constant(2.0, dtype = "float64")
 c = m / b # doesn't work! we try to divide float32/float64
-```
-
-So what went wrong here: we tried to divide a float32 to a float64 number, but, we can only divide numbers of the same type! 
-```{r, eval=TRUE}
-r_matrix = matrix(runif(10*10), 10,10)
-m = tf$constant(r_matrix, dtype = "float64")
-b = tf$constant(2.0, dtype = "float64")
-c = m / b # now it works
-```
-
-We can also specify the type of the object by providing an object e.g. tf$float64.
-
-```{r}
-r_matrix = matrix(runif(10*10), 10,10)
-m = tf$constant(r_matrix, dtype = tf$float64)
-```
-
-
-Tensorflow arguments often require exact/explicit data types:
-TF often expects for arguments integers. In R however an integer is normally saved as float. 
-Thus, we have to use a "L" after an integer to tell the R interpreter that it should be treated as an integer:
-
-```{r,eval=FALSE}
-is.integer(5)
-is.integer(5L)
-matrix(t(r_matrix), 5, 20, byrow = TRUE)
-tf$reshape(r_matrix, shape = c(5, 20))$numpy()
-tf$reshape(r_matrix, shape = c(5L, 20L))$numpy()
-```
-
-Skipping the "L" is one of the most common errors when using R-TF!
-
-## Introduction to PyTorch
-PyTorch is another famous library for deep learning. As for tensorflow, torch itself is written in c++ but the API in python. Last year, the RStudio team released R-torch, and while r-tensorflow calls the python API in the background, the r-torch API is built directly on the c++ torch library! 
-
-Useful links:
-
-* [PyTorch documentation](https://pytorch.org/docs/stable/index.html) (which is for the python API, bust just replace the '.' with '$')
-* [R-torch website](https://torch.mlverse.org/)
-
-
-### PyTorch data containers
-TF has two data containers (structures):
-
-* constant (tf_tensor(...)) :creates a constant (immutable) value in the computation graph
-* variable (tf_$Variable_tensor(..., requires_grad=TRUE)): creates a mutable value in the computation graph (used as parameter/weight in models)
-
-To get started with torch, we have to load the library and check if the installation worked. 
-
-```{r}
-library(torch)
-```
-
-Don't worry about weird messages (they will only appear once at the start of the session).
+  ```
+  
+  So what went wrong here: we tried to divide a float32 to a float64 number, but, we can only divide numbers of the same type! 
+    ```{r, eval=TRUE}
+  r_matrix = matrix(runif(10*10), 10,10)
+  m = tf$constant(r_matrix, dtype = "float64")
+  b = tf$constant(2.0, dtype = "float64")
+  c = m / b # now it works
+  ```
+  
+  We can also specify the type of the object by providing an object e.g. tf$float64.
+  
+  ```{r}
+  r_matrix = matrix(runif(10*10), 10,10)
+  m = tf$constant(r_matrix, dtype = tf$float64)
+  ```
+  
+  
+  Tensorflow arguments often require exact/explicit data types:
+    TF often expects for arguments integers. In R however an integer is normally saved as float. 
+  Thus, we have to use a "L" after an integer to tell the R interpreter that it should be treated as an integer:
+    
+    ```{r,eval=FALSE}
+  is.integer(5)
+  is.integer(5L)
+  matrix(t(r_matrix), 5, 20, byrow = TRUE)
+  tf$reshape(r_matrix, shape = c(5, 20))$numpy()
+  tf$reshape(r_matrix, shape = c(5L, 20L))$numpy()
+  ```
+  
+  Skipping the "L" is one of the most common errors when using R-TF!
+    
+    ## Introduction to PyTorch
+    PyTorch is another famous library for deep learning. As for tensorflow, torch itself is written in c++ but the API in python. Last year, the RStudio team released R-torch, and while r-tensorflow calls the python API in the background, the r-torch API is built directly on the c++ torch library! 
+    
+    Useful links:
+    
+    * [PyTorch documentation](https://pytorch.org/docs/stable/index.html) (which is for the python API, bust just replace the '.' with '$')
+  * [R-torch website](https://torch.mlverse.org/)
+  
+  
+  ### PyTorch data containers
+  TF has two data containers (structures):
+    
+    * constant (tf_tensor(...)) :creates a constant (immutable) value in the computation graph
+  * variable (tf_$Variable_tensor(..., requires_grad=TRUE)): creates a mutable value in the computation graph (used as parameter/weight in models)
+  
+  To get started with torch, we have to load the library and check if the installation worked. 
+  
+  ```{r}
+  library(torch)
+  ```
+  
+  Don't worry about weird messages (they will only appear once at the start of the session).
 
 We now can define the variables and do some math with them:
 
@@ -550,225 +573,225 @@ b = torch_tensor(2.0, dtype = torch_float64())
 c = m / b 
 ```
 But here's a difference! With tensorfow we would get an error, but with r-torch, m is automatically casted to a double (float64). However, this is still bad practise!
-
-During the course we will try to provide for all keras/tensorflow examples the corresponding pytorch code snippets.
-
-
-## First steps with the keras framework
-
-We have seen that we can use TF directly from R, and we could use this knowledge to implement a neural network in TF directly from R. However, this can be quite cumbersome. For simple problems, it is usually faster to use a higher-level API that helps us with implementing the machine learning models in TF. The most common of those is Keras.
-
-Keras is a powerful framework for building and training neural networks with a few lines of codes. Since the end of 2018, Keras and TF are completely interoperable, allowing us to utilize the best of both. 
-
-The objective of this lesson is to familiarize yourself with keras. If you have TF installed, Keras can be found within TF: tf.keras. However, the RStudio team has built an R package on top of tf.keras, and it is more convenient to use this. To load the keras package, type
-
-```{r}
-library(keras)
-```
-
-### Example workflow in keras
-
-To show how keras works, we will now build a small classifier in keras to predict the three species of the iris dataset. Load the necessary packages and datasets:
-```{r}
-library(keras)
-library(tensorflow)
-data(iris)
-head(iris)
-```
-
-It is beneficial for neural networks to scale the predictors (scaling = centering and standardization, see ?scale)
-We also split our data into the predictors (X) and the response (Y = the three species).
-```{r, cache=TRUE}
-X = scale(iris[,1:4])
-Y = iris[,5]
-```
-
-Additionally, keras/tf cannot handle factors and we have to create contrasts (one-hot encoding):
-To do so, we have to specify the number of categories. This can be tricky for a beginner, because in other programming languages like python and C++ on which TF is built, arrays start at zero. Thus, when we would specify 3 as number of classes for our three species, we would have the classes 0,1,2,3. Therefore, we have to substract it. 
-```{r, cache=TRUE}
-Y = to_categorical(as.integer(Y)-1L, 3)
-head(Y) # 3 colums, one for each level in the response
-```
-After having prepared the data, we will now see a typical workflow to specify a model in keras. 
-
-**1. Initiliaze a sequential model in keras:**
-```{r, cache=TRUE}
-model = keras_model_sequential()
-```
-A sequential keras model is a higher order type of model within keras and consists of one input and one output model. 
-
-
-**2. Add hidden layers to the model (we will learn more about hidden layers during the next days).**
-When specifiying the hidden layers, we also have to specify a so called activation function and their shape. 
-You can think of the activation function as decisive for what is forwarded to the next neuron (but we will learn more about it later). The shape of the input is the number of predictors (here 4) and the shape of the output is the number of classes (here 3).
-```{r, cache=TRUE}
-model %>%
-  layer_dense(units = 20L, activation = "relu", input_shape = list(4L)) %>%
-  layer_dense(units = 20L) %>%
-  layer_dense(units = 20L) %>%
-  layer_dense(units = 3L, activation = "softmax") 
-```
-- softmax scales a potential multidimensional vector to the interval (0,1]
-
-<details>
-<summary>
-**<span style="color: #CC2FAA">torch</span>**
-</summary>
-<p>
-The torch syntax is very similar, we will give a list of layers to 'nn_sequential' function. Here, we have to specify the softmax activation function as an extra layer:
-```{r}
-model_torch = 
-  nn_sequential(
-    nn_linear(4L, 20L),
-    nn_linear(20L, 20L),
-    nn_linear(20L, 20L),
-    nn_linear(20L, 3L),
-    nn_softmax(2)
-  )
-```
-</details>
-<br/>
-
-
-**3. Compile the model with a loss function (here: cross entropy) and an optimizer (here: Adamax).** 
-
-We will leaern about other options later, so for now, do not worry about the "lr" argument, crossentropy or the optimizer.
-```{r, cache=TRUE}
-model %>%
-  compile(loss = loss_categorical_crossentropy, keras::optimizer_adamax(lr = 0.001))
-summary(model)
-```
-
-<details>
-<summary>
-**<span style="color: #CC2FAA">torch</span>**
-</summary>
-<p>
-Specify optimizer and the parameters which will be trained (in our case the parameters of the network)
-```{r}
-optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.01)
-```
-</details>
-<br/>
-
-
-**4. Fit model in 30 iterations(epochs)**
-
-```{r, cache=TRUE}
-model_history =
+    
+    During the course we will try to provide for all keras/tensorflow examples the corresponding pytorch code snippets.
+  
+  
+  ## First steps with the keras framework
+  
+  We have seen that we can use TF directly from R, and we could use this knowledge to implement a neural network in TF directly from R. However, this can be quite cumbersome. For simple problems, it is usually faster to use a higher-level API that helps us with implementing the machine learning models in TF. The most common of those is Keras.
+  
+  Keras is a powerful framework for building and training neural networks with a few lines of codes. Since the end of 2018, Keras and TF are completely interoperable, allowing us to utilize the best of both. 
+  
+  The objective of this lesson is to familiarize yourself with keras. If you have TF installed, Keras can be found within TF: tf.keras. However, the RStudio team has built an R package on top of tf.keras, and it is more convenient to use this. To load the keras package, type
+  
+  ```{r}
+  library(keras)
+  ```
+  
+  ### Example workflow in keras
+  
+  To show how keras works, we will now build a small classifier in keras to predict the three species of the iris dataset. Load the necessary packages and datasets:
+    ```{r}
+  library(keras)
+  library(tensorflow)
+  data(iris)
+  head(iris)
+  ```
+  
+  It is beneficial for neural networks to scale the predictors (scaling = centering and standardization, see ?scale)
+  We also split our data into the predictors (X) and the response (Y = the three species).
+  ```{r, cache=TRUE}
+  X = scale(iris[,1:4])
+  Y = iris[,5]
+  ```
+  
+  Additionally, keras/tf cannot handle factors and we have to create contrasts (one-hot encoding):
+    To do so, we have to specify the number of categories. This can be tricky for a beginner, because in other programming languages like python and C++ on which TF is built, arrays start at zero. Thus, when we would specify 3 as number of classes for our three species, we would have the classes 0,1,2,3. Therefore, we have to substract it. 
+  ```{r, cache=TRUE}
+  Y = to_categorical(as.integer(Y)-1L, 3)
+  head(Y) # 3 colums, one for each level in the response
+  ```
+  After having prepared the data, we will now see a typical workflow to specify a model in keras. 
+  
+  **1. Initiliaze a sequential model in keras:**
+    ```{r, cache=TRUE}
+  model = keras_model_sequential()
+  ```
+  A sequential keras model is a higher order type of model within keras and consists of one input and one output model. 
+  
+  
+  **2. Add hidden layers to the model (we will learn more about hidden layers during the next days).**
+    When specifiying the hidden layers, we also have to specify a so called activation function and their shape. 
+  You can think of the activation function as decisive for what is forwarded to the next neuron (but we will learn more about it later). The shape of the input is the number of predictors (here 4) and the shape of the output is the number of classes (here 3).
+  ```{r, cache=TRUE}
   model %>%
+    layer_dense(units = 20L, activation = "relu", input_shape = list(4L)) %>%
+    layer_dense(units = 20L) %>%
+    layer_dense(units = 20L) %>%
+    layer_dense(units = 3L, activation = "softmax") 
+  ```
+  - softmax scales a potential multidimensional vector to the interval (0,1]
+
+<details>
+  <summary>
+  **<span style="color: #CC2FAA">torch</span>**
+    </summary>
+    <p>
+    The torch syntax is very similar, we will give a list of layers to 'nn_sequential' function. Here, we have to specify the softmax activation function as an extra layer:
+    ```{r}
+  model_torch = 
+    nn_sequential(
+      nn_linear(4L, 20L),
+      nn_linear(20L, 20L),
+      nn_linear(20L, 20L),
+      nn_linear(20L, 3L),
+      nn_softmax(2)
+    )
+  ```
+  </details>
+    <br/>
+    
+    
+    **3. Compile the model with a loss function (here: cross entropy) and an optimizer (here: Adamax).** 
+    
+    We will leaern about other options later, so for now, do not worry about the "lr" argument, crossentropy or the optimizer.
+  ```{r, cache=TRUE}
+  model %>%
+    compile(loss = loss_categorical_crossentropy, keras::optimizer_adamax(lr = 0.001))
+  summary(model)
+  ```
+  
+  <details>
+    <summary>
+    **<span style="color: #CC2FAA">torch</span>**
+    </summary>
+    <p>
+    Specify optimizer and the parameters which will be trained (in our case the parameters of the network)
+  ```{r}
+  optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.01)
+  ```
+  </details>
+    <br/>
+    
+    
+    **4. Fit model in 30 iterations(epochs)**
+    
+    ```{r, cache=TRUE}
+  model_history =
+    model %>%
     fit(x = X, y = apply(Y,2,as.integer), epochs = 30L, batch_size = 20L, shuffle = TRUE)
-```
-
-<details>
-<summary>
-**<span style="color: #CC2FAA">torch</span>**
-</summary>
-<p>
-In torch, we jump directly to the training loop, however, here we have to write our own training loop:
-
-1. get a batch of data
-2. predict on batch
-3. calculate loss between predictions and true labels
-4. backpropagate error
-5. update weights
-6. go to step 1 and repeat
-```{r}
-# Calculate number of training steps
-epochs = 30
-batch_size = 20
-steps = round(nrow(X)/batch_size*30)
-
-X_torch = torch_tensor(X)
-Y_torch = torch_tensor(apply(Y, 1, which.max)) 
-
-# set model into training status
-model_torch$train()
-
-log_losses = NULL
-
-# training loop
-for(i in 1:steps) {
-  # get batch
-  indices = sample.int( nrow(X), batch_size)
+  ```
   
-  # reset backpropagation
-  optimizer_torch$zero_grad()
+  <details>
+    <summary>
+    **<span style="color: #CC2FAA">torch</span>**
+    </summary>
+    <p>
+    In torch, we jump directly to the training loop, however, here we have to write our own training loop:
+    
+    1. get a batch of data
+  2. predict on batch
+  3. calculate loss between predictions and true labels
+  4. backpropagate error
+  5. update weights
+  6. go to step 1 and repeat
+    ```{r}
+  # Calculate number of training steps
+  epochs = 30
+  batch_size = 20
+  steps = round(nrow(X)/batch_size*30)
   
-  # predict and calculate loss
-  pred = model_torch(X_torch[indices, ])
-  loss = nnf_cross_entropy(pred, Y_torch[indices])
+  X_torch = torch_tensor(X)
+  Y_torch = torch_tensor(apply(Y, 1, which.max)) 
   
-  # backprop and weight update
-  loss$backward()
-  optimizer_torch$step()
+  # set model into training status
+  model_torch$train()
   
-  log_losses[i] = as.numeric(loss)
-}
-```
-</details>
-<br/>
-
-**5. Plot training history:**
-```{r, cache=TRUE}
-plot(model_history)
-```
-
-<details>
-<summary>
-**<span style="color: #CC2FAA">torch</span>**
-</summary>
-<p>
-```{r}
-plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
-```
-</details>
-<br/>
-
-**6. Create predictions:**
-```{r, cache=TRUE}
-predictions = predict(model, X) # probabilities for each class
-```
-
-We will get probabilites:
-```{r, cache=TRUE}
-head(predictions) # quasi-probabilities for each species
-```
-
-For each plant, we want to know for which species we got the highest probability:
-```{r, cache=TRUE}
-preds = apply(predictions, 1, which.max) 
-print(preds)
-```
-
-<details>
-<summary>
-**<span style="color: #CC2FAA">torch</span>**
-</summary>
-<p>
-The torch syntax is very similar, we will give a list of layers to 'nn_sequential' function. Here, we have to specify the softmax activation function as an extra layer:
-```{r}
-model_torch$eval()
-preds_torch = model_torch(torch_tensor(X))
-preds_torch = apply(preds_torch, 1, which.max) 
-print(preds_torch)
-mean(preds_torch == as.integer(iris$Species))
-```
-</details>
-<br/>
-
-**7. Calculate Accuracy (how often we have been correct):**
-
-```{r, cache=TRUE}
-mean(preds == as.integer(iris$Species))
-```
-
-**8. Plot predictions, to see if we have done a good job:**
-```{r, cache=TRUE}
-oldpar = par()
-par(mfrow = c(1,2))
-plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species, main = "Observed")
-plot(iris$Sepal.Length, iris$Petal.Length, col = preds, main = "Predicted")
-```
-
-So you see, building a neural network is with keras very easy and you can already do it on your own.
+  log_losses = NULL
+  
+  # training loop
+  for(i in 1:steps) {
+    # get batch
+    indices = sample.int( nrow(X), batch_size)
+    
+    # reset backpropagation
+    optimizer_torch$zero_grad()
+    
+    # predict and calculate loss
+    pred = model_torch(X_torch[indices, ])
+    loss = nnf_cross_entropy(pred, Y_torch[indices])
+    
+    # backprop and weight update
+    loss$backward()
+    optimizer_torch$step()
+    
+    log_losses[i] = as.numeric(loss)
+  }
+  ```
+  </details>
+    <br/>
+    
+    **5. Plot training history:**
+    ```{r, cache=TRUE}
+  plot(model_history)
+  ```
+  
+  <details>
+    <summary>
+    **<span style="color: #CC2FAA">torch</span>**
+    </summary>
+    <p>
+    ```{r}
+  plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
+  ```
+  </details>
+    <br/>
+    
+    **6. Create predictions:**
+    ```{r, cache=TRUE}
+  predictions = predict(model, X) # probabilities for each class
+  ```
+  
+  We will get probabilites:
+    ```{r, cache=TRUE}
+  head(predictions) # quasi-probabilities for each species
+  ```
+  
+  For each plant, we want to know for which species we got the highest probability:
+    ```{r, cache=TRUE}
+  preds = apply(predictions, 1, which.max) 
+  print(preds)
+  ```
+  
+  <details>
+    <summary>
+    **<span style="color: #CC2FAA">torch</span>**
+    </summary>
+    <p>
+    The torch syntax is very similar, we will give a list of layers to 'nn_sequential' function. Here, we have to specify the softmax activation function as an extra layer:
+    ```{r}
+  model_torch$eval()
+  preds_torch = model_torch(torch_tensor(X))
+  preds_torch = apply(preds_torch, 1, which.max) 
+  print(preds_torch)
+  mean(preds_torch == as.integer(iris$Species))
+  ```
+  </details>
+    <br/>
+    
+    **7. Calculate Accuracy (how often we have been correct):**
+    
+    ```{r, cache=TRUE}
+  mean(preds == as.integer(iris$Species))
+  ```
+  
+  **8. Plot predictions, to see if we have done a good job:**
+    ```{r, cache=TRUE}
+  oldpar = par()
+  par(mfrow = c(1,2))
+  plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species, main = "Observed")
+  plot(iris$Sepal.Length, iris$Petal.Length, col = preds, main = "Predicted")
+  ```
+  
+  So you see, building a neural network is very easy with keras and you can already do it on your own.
