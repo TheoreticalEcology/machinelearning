@@ -8,47 +8,46 @@
 	makeMultipleChoiceForm(
 		'How much is the fish?',
 		'text',
-			[
-				{
-					'answer':'123',
-					'correct':true,
-					'explanationIfSelected':'Right guess.',
-					'explanationIfNotSelected':'Wrong guess.',
-					'explanationGeneral':''
-				},
-				{
-					'answer':'321',
-					'correct':false,
-					'explanationIfSelected':'Wrong guess.',
-					'explanationIfNotSelected':'',
-					'explanationGeneral':''
-				}
-			],
+		[
+			{
+				'answer':'123',
+				'correct':true,
+				'explanationIfSelected':'Right guess.',
+				'explanationIfNotSelected':'Wrong guess.',
+				'explanationGeneral':''
+			},
+			{
+				'answer':'321',
+				'correct':false,
+				'explanationIfSelected':'Wrong guess.',
+				'explanationIfNotSelected':'',
+				'explanationGeneral':''
+			}
+		],
 		'comment text'
 	);
-
 </script>
 
 <script>
 	makeMultipleChoiceForm(
 		'How much is the fish?',
 		'radio',
-			[
-				{
-					'answer':'123',
-					'correct':true,
-					'explanationIfSelected':'Right guess.',
-					'explanationIfNotSelected':'This would have been a right number.',
-					'explanationGeneral':''
-				},
-				{
-					'answer':'321',
-					'correct':true,
-					'explanationIfSelected':'2nd right guess.',
-					'explanationIfNotSelected':'This would have been a right number.',
-					'explanationGeneral':''
-				}
-			],
+		[
+			{
+				'answer':'123',
+				'correct':true,
+				'explanationIfSelected':'Right guess.',
+				'explanationIfNotSelected':'This would have been a right number.',
+				'explanationGeneral':''
+			},
+			{
+				'answer':'321',
+				'correct':true,
+				'explanationIfSelected':'2nd right guess.',
+				'explanationIfNotSelected':'This would have been a right number.',
+				'explanationGeneral':''
+			}
+		],
 		'comment radio'
 	);
 </script>
@@ -58,25 +57,25 @@
 	makeMultipleChoiceForm(
 		'How much is the fish?',
 		'checkbox',
-			[
-				{
-					'answer':'123',
-					'correct':true,
-					'explanationIfSelected':'Right guess.',
-					'explanationIfNotSelected':'This would have been the right number.',
+		[
+			{
+				'answer':'123',
+				'correct':true,
+				'explanationIfSelected':'Right guess.',
+				'explanationIfNotSelected':'This would have been the right number.',
 
-					'explanationGeneral':''
-				},
-				{
-					'answer':'321',
-					'correct':false,
+				'explanationGeneral':''
+			},
+			{
+				'answer':'321',
+				'correct':false,
 
-					'explanationIfSelected':'Wrong guess.',
-					'explanationIfNotSelected':'Well done.',
-					'explanationGeneral':''
-				}
+				'explanationIfSelected':'Wrong guess.',
+				'explanationIfNotSelected':'Well done.',
+				'explanationGeneral':''
+			}
 
-			],
+		],
 		'comment checkbox'
 	);
 </script>
