@@ -32,9 +32,9 @@ cat(
 ```
 
 
-## Unsupervised learning
+## Unsupervised Learning
 
-In unsupervised learning, we  want to identify patterns in data without having any examples (supervision) about what the correct patterns / classes are. As an example, consider the iris dataset. Here, we have 150 observations of 4 floral traits:
+In unsupervised learning, we  want to identify patterns in data without having any examples (supervision) about what the correct patterns / classes are. As an example, consider the iris data set. Here, we have 150 observations of 4 floral traits:
 
 ```{r, fig.width=10, fig.height=4}
 colors = hcl.colors(3)
@@ -55,7 +55,7 @@ pairs(traits, pch = as.integer(species), col = colors[as.integer(species)])
 However, imagine we don't know what species are, what is basically the situation in which people in the antique have been. The people just noted that some plants have different flowers than others, and decided to give them different names. This kind of process is what unsupervised learning does.
 
 
-### Hierarchical clustering
+### Hierarchical Clustering
 
 A cluster refers to a collection of data points aggregated together because of certain similarities.
 
@@ -74,7 +74,7 @@ set.seed(123)
 #Reminder: traits = as.matrix(iris[,1:4])
 
 d = dist(traits)
-hc <- hclust(d, method = "complete")
+hc = hclust(d, method = "complete")
 
 plot(hc)
 rect.hclust(hc, k = 3)  #Draw rectangles around the branches.
@@ -88,29 +88,29 @@ plot(as.phylo(hc),
      tip.color = colors[as.integer(species)], 
      direction = "downwards")
 
-hcRes3 <- cutree(hc, k = 3)   #Cut a dendrogram tree into groups.
+hcRes3 = cutree(hc, k = 3)   #Cut a dendrogram tree into groups.
 ```
 
 Calculate confusion matrix. Note we are switching labels here so that it fits to the species.
 
 ```{r}
-tmp <- hcRes3
+tmp = hcRes3
 tmp[hcRes3 == 2] = 3
 tmp[hcRes3 == 3] = 2
-hcRes3 <- tmp
+hcRes3 = tmp
 table(hcRes3, species)
 ```
 
 Note that results might change if you choose a different agglomeration method, distance metric or scale of your variables. Compare, e.g. to this example
 
 ```{r}
-hc <- hclust(d, method = "ward.D2")
+hc = hclust(d, method = "ward.D2")
 
 plot(as.phylo(hc), 
      tip.color = colors[as.integer(species)], 
      direction = "downwards")
 
-hcRes3 <- cutree(hc, k = 3)   #Cut a dendrogram tree into groups.
+hcRes3 = cutree(hc, k = 3)   #Cut a dendrogram tree into groups.
 table(hcRes3, species)
 ```
 
@@ -120,28 +120,28 @@ Which method is best?
 library(dendextend)
 ```
 ```{r}
-methods <- c("ward.D", "single", "complete", "average",
+methods = c("ward.D", "single", "complete", "average",
              "mcquitty", "median", "centroid", "ward.D2")
-out <- dendlist()   #Create a dendlist object from several dendrograms.
+out = dendlist()   #Create a dendlist object from several dendrograms.
 for(i in seq_along(methods)) {
-  res <- hclust(d, method = methods[i])   
-  out <- dendlist(out, as.dendrogram(res))
+  res = hclust(d, method = methods[i])   
+  out = dendlist(out, as.dendrogram(res))
 }
-names(out) <- methods
+names(out) = methods
 print(out)
 
-get_ordered_3_clusters <- function(dend) {
+get_ordered_3_clusters = function(dend) {
   #order.dendrogram function returns the order (index)
   #or the "label" attribute for the leaves.
   cutree(dend, k = 3)[order.dendrogram(dend)]
 }
-dend_3_clusters <- lapply(out, get_ordered_3_clusters)
+dend_3_clusters = lapply(out, get_ordered_3_clusters)
 
-compare_clusters_to_iris <- function(clus){
+compare_clusters_to_iris = function(clus){
   FM_index(clus, rep(1:3, each = 50), assume_sorted_vectors = TRUE)
 }
 
-clusters_performance <- sapply(dend_3_clusters, compare_clusters_to_iris)
+clusters_performance = sapply(dend_3_clusters, compare_clusters_to_iris)
 dotchart(sort(clusters_performance), xlim = c(0.3, 1),
          xlab = "Fowlkes-Mallows index",
          main = "Performance of linkage methods
@@ -153,7 +153,7 @@ dotchart(sort(clusters_performance), xlim = c(0.3, 1),
 We might conclude that ward.D2 works best here. However, as we will learn later, optimizing the method without a hold-out for testing means that our model may be overfitting. We should check this using cross-validation. 
 
 
-### K-means clustering
+### K-means Clustering
 
 Another example for an unsupervised learning algorithm is k-means clustering, one of the simplest and most popular unsupervised machine learning algorithms.
 
@@ -169,7 +169,7 @@ set.seed(123)
 
 #Reminder: traits = as.matrix(iris[,1:4])
 
-kc <- kmeans(traits, 3)
+kc = kmeans(traits, 3)
 print(kc)
 ```
 
@@ -201,9 +201,9 @@ saveGIF(kmeans.ani(x = traits[,1:2], col = colors),
 ```{r}
 set.seed(123)
 
-getSumSq <- function(k){kmeans(traits, k, nstart=25)$tot.withinss}
+getSumSq = function(k){kmeans(traits, k, nstart=25)$tot.withinss}
 #Perform algorithm for different cluster sizes and retrieve variance
-iris.kmeans1to10 <- sapply(1:10, getSumSq)
+iris.kmeans1to10 = sapply(1:10, getSumSq)
 plot(1:10, iris.kmeans1to10, type="b", pch = 19, frame = FALSE, 
      xlab="Number of clusters K",
      ylab="Total within-clusters sum of squares",
@@ -215,7 +215,7 @@ Often, one is interested in sparse models. Furthermore, higher k than necessary 
 But keep in mind, this is only a rule of thumb and might be wrong in some special cases.
 
 
-### Density-based clustering
+### Density-based Clustering
 
 Determine the affinity of a data point according to the affinity of its k nearest neighbors.
 This is a very general description as there are many ways to do so.
@@ -226,10 +226,10 @@ set.seed(123)
 #Reminder: traits = as.matrix(iris[,1:4])
 
 library(dbscan)
-kNNdistplot(traits, k =  4)   #Calculate and Plot k-Nearest Neighbor Distances
+kNNdistplot(traits, k =  4)   #Calculate and plot k-nearest-neighbor distances
 abline(h = 0.4, lty = 2)
 
-dc <- dbscan(traits, eps = 0.4, minPts = 6)
+dc = dbscan(traits, eps = 0.4, minPts = 6)
 print(dc)
 ```
 
@@ -242,7 +242,7 @@ fviz_cluster(dc, traits, geom = "point", ggtheme = theme_light())
 ```
 
 
-### Model-based clustering
+### Model-based Clustering
 
 The last class of methods for unsupervised clustering are so-called model-based clustering methods. 
 
@@ -289,17 +289,17 @@ table(iris$Species, mb3$classification)
 ### Ordination
 
 Ordination is used in explorative analysis and compared to clustering, similar objects are ordered together.
-So there is a relationship between clustering and ordination. Here a PCA ordination on on the iris dataset.
+So there is a relationship between clustering and ordination. Here a PCA ordination on on the iris data set.
 
 ```{r}
-pcTraits <- prcomp(traits, center = TRUE, scale. = TRUE)
+pcTraits = prcomp(traits, center = TRUE, scale. = TRUE)
 biplot(pcTraits, xlim = c(-0.25,0.25), ylim = c(-0.25,0.25))
 ```
 
 You can cluster the results of this ordination, ordinate before clustering, or superimpose one on the other. 
 
 
-## Supervised learning: regression and classification
+## Supervised Learning: Rregression and Classification
 
 The two most prominent branches of supervised learning are regression and classification. Fundamentally, classification is about predicting a label and regression is about predicting a quantity. The following video explains that in more depth:
   
@@ -314,11 +314,11 @@ cat(
 ```
 
 
-### Supervised regression using Random Forest
+### Supervised Regression Using Random Forest
 
 The random forest (RF) algorithm is possibly the most widely used machine learning algorithm and can be used for regression and classification. We will talk more about the algorithm tomorrow. 
 
-For the moment, we want to go through a typical workflow for a supervised regression: First, we visualize the data. Next, we fit the model and lastly we visualize the results. We will again use the iris dataset that we used before. The goal is now to predict Sepal.Length based on the information about the other variables (including species). 
+For the moment, we want to go through a typical workflow for a supervised regression: First, we visualize the data. Next, we fit the model and lastly we visualize the results. We will again use the iris data set that we used before. The goal is now to predict Sepal.Length based on the information about the other variables (including species). 
 
 Fitting the model
 
@@ -327,7 +327,7 @@ library(randomForest)
 ```
 
 ```{r}
-m1 <- randomForest(Sepal.Length ~ ., data = iris)   # ~.: against all others
+m1 = randomForest(Sepal.Length ~ ., data = iris)   # ~.: against all others
 # str(m1)
 # m1$type
 # predict(m1)
@@ -354,14 +354,15 @@ reprtree:::plot.getTree(m1, iris)
 Here, the regression tree is shown.
 
 
-### Supervised classification using Random Forest
+### Supervised Classification Using Random Forest
 
 With the random forest, we can also do classification. The steps are the same as for regression tasks, but we can additionally see how well it performed by looking at the confusion matrix. Each row of this matrix contains the instances in a predicted class and each column represents the instances in the actual class. Thus the diagonals are the correctly predicted classes and the off-diagnoal elements are the falsely classified elements.
 
 Fitting the model:
 ```{r}
 set.seed(123)
-m1 <- randomForest(Species ~ ., data = iris)
+
+m1 = randomForest(Species ~ ., data = iris)
 ```
 
 Visualizing the fitted model:
@@ -375,8 +376,10 @@ Visualizing results ecologically:
 
 ```{r}
 oldpar = par(mfrow = c(1, 2))
-plot(iris$Petal.Width, iris$Petal.Length, col = iris$Species, main = "Observed")
-plot(iris$Petal.Width, iris$Petal.Length, col = predict(m1), main = "Predicted")
+plot(iris$Petal.Width, iris$Petal.Length, col = iris$Species, 
+     main = "Observed")
+plot(iris$Petal.Width, iris$Petal.Length, col = predict(m1),
+     main = "Predicted")
 ```
 
 ```{r}
@@ -390,7 +393,7 @@ table(predict(m1), iris$Species)
 ```
 
 
-## Introduction to Tensorflow
+## Introduction to TensorFlow
 
 One of the most commonly used frameworks for machine learning is TensorFlow. TensorFlow is an open source linear algebra library with focus on neural networks, published by Google in 2015. TensorFlow supports several interesting features, in particular automatic differentiation, several gradient optimizers and CPU and GPU parallelization. 
 
@@ -430,10 +433,10 @@ TensorFlow offers different levels of API. We could implement a neural network c
 Useful links:
   
 * [TensorFlow documentation](https://www.tensorflow.org/api_docs/python/tf) (This is for the Python API, but just replace the '.' with '$'.)
-* [Rstudio tensorflow website](https://tensorflow.rstudio.com/)
+* [Rstudio TensorFlow website](https://tensorflow.rstudio.com/)
 
 
-### Tensorflow data containers
+### TensorFlow Data Containers
 
 TensorFlow has two data containers (structures):
   
@@ -471,7 +474,7 @@ The TensorFlow library (created by the RStudio team) built R methods for all com
 tf$print(a+b)
 ```
 
-Their operators also automatically transfrom R numbers into constant tensors when attempting to add a tensor to an R number:
+Their operators also automatically transform R numbers into constant tensors when attempting to add a tensor to an R number:
 
 ```{r}
 d = c + 5  # 5 is automatically converted to a tensor
@@ -487,7 +490,7 @@ class(d$numpy())
 ```
 
 
-### TensorFlow data types - good practice with R-TensorFlow
+### TensorFlow Data Types - Good Practice With R-TensorFlow
 
 R uses dynamic typing, what means you can assign a number, character, function or whatever to a variable and the the type is automatically inferred.
 In other languages you have to state the type explicitly, e.g. in C:
@@ -553,7 +556,7 @@ Useful links:
 * [R-torch website](https://torch.mlverse.org/)
 
 
-### PyTorch data containers
+### PyTorch Data Containers
 
 To get started with Torch, we have to load the library and check if the installation worked. 
 
@@ -598,7 +601,7 @@ class(d)
 class(as.numeric(d))
 ```
 
-### Torch data types - good practice with R-Torch
+### Torch Data Types - Good Practice With R-Torch
 
 Similar to TensorFlow:
 
@@ -611,10 +614,10 @@ c = m / b
 
 But here's a difference! With TensorFlow we would get an error, but with R-Torch, m is automatically casted to a double (float64). However, this is still bad practice!
   
-During the course we will try to provide the corresponding PyTorch code snippets for all Keras/Tensorflow examples.
+During the course we will try to provide the corresponding PyTorch code snippets for all Keras/TensorFlow examples.
 
 
-## First steps with the Keras framework
+## First Steps With the Keras Framework
 
 We have seen that we can use TensorFlow directly out of R, and we could use this knowledge to implement a neural network in TensorFlow directly in R. However, this can be quite cumbersome. For simple problems, it is usually faster to use a higher-level API that helps us with implementing the machine learning models in TensorFlow. The most common of those is Keras.
 
@@ -627,9 +630,9 @@ library(keras)
 ```
 
 
-### Example workflow in Keras
+### Example Workflow in Keras
 
-To show how Keras works, we will now build a small classifier to predict the three species of the iris dataset. Load the necessary packages and datasets:
+To show how Keras works, we will now build a small classifier to predict the three species of the iris data set. Load the necessary packages and data sets:
 
 ```{r}
 library(keras)
@@ -656,7 +659,7 @@ head(Y) # 3 colums, one for each level of the response
 After having prepared the data, we will now see a typical workflow to specify a model in Keras. 
 
 
-**1. Initiliaze a sequential model in keras:**
+**1. Initiliaze a sequential model in Keras:**
 
 ```{r, cache=TRUE}
 model = keras_model_sequential()
@@ -685,7 +688,9 @@ model %>%
     **<span style="color: #CC2FAA">Torch</span>**
   </summary>
   <p>
-    The torch syntax is very similar, we will give a list of layers to the 'nn_sequential' function. Here, we have to specify the softmax activation function as an extra layer:
+  
+    The Torch syntax is very similar, we will give a list of layers to the 'nn_sequential' function. Here, we have to specify the softmax activation function as an extra layer:
+    
 ```{r}
 model_torch = 
   nn_sequential(
@@ -696,6 +701,7 @@ model_torch =
     nn_softmax(2)
   )
 ```
+
   </p>
 </details>
 <br/>
@@ -706,7 +712,8 @@ model_torch =
 We will learn about other options later, so for now, do not worry about the "lr" argument, crossentropy or the optimizer.
 ```{r, cache=TRUE}
 model %>%
-  compile(loss = loss_categorical_crossentropy, keras::optimizer_adamax(lr = 0.001))
+  compile(loss = loss_categorical_crossentropy,
+          keras::optimizer_adamax(lr = 0.001))
 summary(model)
 ```
   
@@ -715,10 +722,13 @@ summary(model)
     **<span style="color: #CC2FAA">Torch</span>**
   </summary>
   <p>
-    Specify optimizer and the parameters which will be trained (in our case the parameters of the network)
+  
+    Specify optimizer and the parameters which will be trained (in our case the parameters of the network):
+    
 ```{r}
 optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 ```
+
   </p>
 </details>
 <br/>
@@ -729,7 +739,8 @@ optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 ```{r, cache=TRUE}
 model_history =
   model %>%
-    fit(x = X, y = apply(Y, 2, as.integer), epochs = 30L, batch_size = 20L, shuffle = TRUE)
+    fit(x = X, y = apply(Y, 2, as.integer), epochs = 30L,
+        batch_size = 20L, shuffle = TRUE)
 ```
   
 <details>
@@ -737,6 +748,7 @@ model_history =
     **<span style="color: #CC2FAA">Torch</span>**
   </summary>
   <p>
+    
     In Torch, we jump directly to the training loop, however, here we have to write our own training loop:
     
     1. Get a batch of data.
@@ -745,6 +757,7 @@ model_history =
     4. Backpropagate error.
     5. Update weights.
     6. Go to step 1 and repeat.
+    
 ```{r}
 # Calculate number of training steps
 epochs = 30
@@ -778,6 +791,7 @@ for(i in 1:steps){
   log_losses[i] = as.numeric(loss)
 }
 ```
+
   </p>
 </details>
 <br/>
@@ -794,10 +808,12 @@ plot(model_history)
     **<span style="color: #CC2FAA">Torch</span>**
   </summary>
   <p>
+  
 ```{r}
 plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
 ```
-  <p>
+
+  </p>
 </details>
 <br/>
 
@@ -826,13 +842,15 @@ print(preds)
     **<span style="color: #CC2FAA">Torch</span>**
   </summary>
   <p>
+
 ```{r}
 model_torch$eval()
 preds_torch = model_torch(torch_tensor(X))
 preds_torch = apply(preds_torch, 1, which.max) 
 print(preds_torch)
 mean(preds_torch == as.integer(iris$Species))
-    ```
+```
+    
   </p>
 </details>
 <br/>
