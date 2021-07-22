@@ -1,29 +1,31 @@
-# Deep learning {#Deep}
+# Deep Learning {#Deep}
 
-In this section, we will discuss both different (deep) network architectures and different means to regularize and improve those deep architectures. 
-
-## Network architectures
-
-### Deep neural networks (DNNs)
-
-Deep neural networks are basically the same as simple ANN, only that they have more hidden layers.
+In this section, we will discuss both, different (deep) network architectures and different means to regularize and improve those deep architectures. 
 
 
-### Convolutional neural networks (DNNs)
+## Network Architectures
 
-The main purpose of CNNs is image recognition. In a CNN, we have at least one convolution layer, additional to the normal, fully connected DNN layers. 
+### Deep Neural Networks (DNNs)
+
+Deep neural networks are basically the same as simple artificial neural networks, only that they have more hidden layers.
+
+
+### Convolutional Neural Networks (CNNs)
+
+The main purpose of convolutional neural networks is image recognition. In a convolutional neural network, we have at least one convolution layer, additional to the normal, fully connected deep neural network layers. 
 
 Neurons in a convolution layer are connected only to a small spatially contiguous area of the input layer (receptive field). We use this structure (feature map) to scan the entire picture. The weights are optimized, but the same for all nodes of the hidden layer (shared weights). Think of the feature map as a kernel or filter that is used to scan the image. 
 
 We use this kernel to scan the input features / neurons (e.g. picture). The kernel weights are optimized, but we use the same weights across the entire input neurons (shared weights). The resulting hidden layer is called a feature map. You can think of the feature maps as a map that shows you where the “shapes” expressed by the kernel appear in the input. One kernel / feature map will not be enough, we typically have many shapes that we want to recognize. Thus, the input layer is typically connected to several feature maps, which can be aggregated and followed by a second layer of feature maps, and so on. 
 
-### Recurrent neural networks (RNNs)
+
+### Recurrent Neural Networks (RNNs)
 
 Recurrent Neural Networks are used to model sequential data, i.e. temporal sequence that exhibits temporal dynamic behavior. Here is a good introduction to the topic:
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
-'<iframe width="560" height="315" 
+  '<iframe width="560" height="315" 
   src="https://www.youtube.com/embed/SEnXr6v2ifU"
   frameborder="0" allow="accelerometer; autoplay; encrypted-media;
   gyroscope; picture-in-picture" allowfullscreen>
@@ -32,13 +34,13 @@ cat(
 ```
 
 
-### Natural language processing (NLP)
+### Natural Language Processing (NLP)
 
-NLP is actually more of a task than a network structure, but in the area of deep learning for NLP, particular network structures are used. This video should get you an idea about what NLP is about
+Natural language processing is actually more of a task than a network structure, but in the area of deep learning for natural language processing, particular network structures are used. This video should get you an idea about what NLP is about
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
-'<iframe width="560" height="315" 
+  '<iframe width="560" height="315" 
   src="https://www.youtube.com/embed/UFtXy0KRxVI"
   frameborder="0" allow="accelerometer; autoplay; encrypted-media;
   gyroscope; picture-in-picture" allowfullscreen>
@@ -46,30 +48,33 @@ cat(
 )
 ```
 
-See also the blog post linked with the youtube video with accompanying code to the video. Moreover, here is an article that shows now NLP works with keras, however, written in Python. As a challenge, you can take the code and implement it in R https://nlpforhackers.io/keras-intro/
+See also the blog post linked with the Youtube video with accompanying code. Moreover, here is an <a href="https://nlpforhackers.io/keras-intro/" target="_blank" rel="noopener">article</a> that shows now natural language processing works with Keras, however, written in Python. As a challenge, you can take the code and implement it in R.
 
 
-## Case study: dropout and early stopping in a deep neural network 
+## Case Study: Dropout and Early Stopping in a Deep Neural Network 
 
-Regularization in deep neural networks is very important because the problem of overfitting. Standard regularization from statistics like l1 and l2 regularization are often feasy and require a lot of tuning. There are more stable and robust methods:
+Regularization in deep neural networks is very important because of the problem of overfitting. Standard regularization from statistics like l1 and l2 regularization are often fuzzy and require a lot of tuning. There are more stable and robust methods:
 
-* Early stopping: Early stopping allows us to stop the training when for instance the test loss does not increase anymore
-* Dropout: The Dropout layer randomly sets input units to 0 with a frequency of rate at each step during training time, which helps prevent overfitting. Dropout is more robust than l1 and l2, and tuning of the dropout rate can be beneficial but a rate between 0.2-0.5 works often quite well
+* Early stopping: Early stopping allows us to stop the training when for instance the test loss does not increase anymore.
+* Dropout: The Dropout layer randomly sets input units to 0 with a frequency of given rate at each step during training time, which helps prevent overfitting. Dropout is more robust than l1 and l2, and tuning of the dropout rate can be beneficial but a rate between 0.2-0.5 often works quite well.
 
 **Data preparation**
 
 See \ref(mlr) for explanation about the pre-processing pipeline. 
 
-```{r,message=FALSE}
+```{r, message=FALSE}
 library(EcoData)
 library(tidyverse)
 library(mlr3)
 library(mlr3pipelines)
 data(nasa)
 str(nasa)
-data = nasa %>% select(-Orbit.Determination.Date, -Close.Approach.Date, -Name, -Neo.Reference.ID)
+
+data = nasa %>% select(-Orbit.Determination.Date,
+                       -Close.Approach.Date, -Name, -Neo.Reference.ID)
 data$Hazardous = as.factor(data$Hazardous)
-task = TaskClassif$new(id = "nasa", backend = data, target = "Hazardous", positive = "1")
+task = TaskClassif$new(id = "nasa", backend = data,
+                       target = "Hazardous", positive = "1")
 preprocessing = po("imputeoor") %>>% po("scale") %>>% po("encode") 
 data = preprocessing$train(task)[[1]]$data()
 
@@ -80,7 +85,6 @@ X = scale(train %>% select(-Hazardous))
 Y = train %>% select(Hazardous)
 Y = to_categorical(as.matrix(Y), 2)
 ```
-
 
 **Early stopping**
 
@@ -95,7 +99,8 @@ model %>%
   layer_dense(units = ncol(Y), activation = "softmax") 
 
 model %>%
-  compile(loss = loss_categorical_crossentropy, keras::optimizer_adamax(lr = 0.001))
+  compile(loss = loss_categorical_crossentropy,
+          keras::optimizer_adamax(lr = 0.001))
 summary(model)
 
 model_history =
@@ -109,20 +114,25 @@ plot(model_history)
 The validation loss first decreases but then starts to increase again, can you explain this behavior?
 -> Overfitting!
 
-Let's try a l1+l2 regularization:
+Let's try an l1+l2 regularization:
 
 ```{r}
 library(keras)
 
 model = keras_model_sequential()
 model %>%
-  layer_dense(units = 50L, activation = "relu", input_shape = ncol(X), kernel_regularizer = regularizer_l1_l2( 0.001, 0.001)) %>%
-  layer_dense(units = 50L, activation = "relu", kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) %>%
-  layer_dense(units = 50L, activation = "relu", kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) %>%
-  layer_dense(units = ncol(Y), activation = "softmax", kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) 
+  layer_dense(units = 50L, activation = "relu", input_shape = ncol(X),
+              kernel_regularizer = regularizer_l1_l2( 0.001, 0.001)) %>%
+  layer_dense(units = 50L, activation = "relu",
+              kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) %>%
+  layer_dense(units = 50L, activation = "relu",
+              kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) %>%
+  layer_dense(units = ncol(Y), activation = "softmax",
+              kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) 
 
 model %>%
-  compile(loss = loss_categorical_crossentropy, keras::optimizer_adamax(lr = 0.001))
+  compile(loss = loss_categorical_crossentropy,
+          keras::optimizer_adamax(lr = 0.001))
 summary(model)
 
 model_history =
@@ -131,8 +141,8 @@ model_history =
         epochs = 100L, batch_size = 20L, 
         shuffle = TRUE, validation_split=0.4)
 plot(model_history)
-
 ```
+
 Better, but the validation loss still starts to increase after 40 epochs. But we can use early stopping to end the training before the val loss starts to increase again!
 
 ```{r}
@@ -140,13 +150,18 @@ library(keras)
 
 model = keras_model_sequential()
 model %>%
-  layer_dense(units = 50L, activation = "relu", input_shape = ncol(X), kernel_regularizer = regularizer_l1_l2( 0.001, 0.001)) %>%
-  layer_dense(units = 50L, activation = "relu", kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) %>%
-  layer_dense(units = 50L, activation = "relu", kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) %>%
-  layer_dense(units = ncol(Y), activation = "softmax", kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) 
+  layer_dense(units = 50L, activation = "relu", input_shape = ncol(X),
+              kernel_regularizer = regularizer_l1_l2( 0.001, 0.001)) %>%
+  layer_dense(units = 50L, activation = "relu",
+              kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) %>%
+  layer_dense(units = 50L, activation = "relu",
+              kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) %>%
+  layer_dense(units = ncol(Y), activation = "softmax",
+              kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) 
 
 model %>%
-  compile(loss = loss_categorical_crossentropy, keras::optimizer_adamax(lr = 0.001))
+  compile(loss = loss_categorical_crossentropy,
+          keras::optimizer_adamax(lr = 0.001))
 summary(model)
 
 early = keras::callback_early_stopping(patience = 5L)
@@ -155,10 +170,11 @@ model_history =
   model %>%
     fit(x = X, y = Y, 
         epochs = 100L, batch_size = 20L, 
-        shuffle = TRUE, validation_split=0.4, callbacks=c(early))
-plot(model_history)
+        shuffle = TRUE, validation_split = 0.4, callbacks = c(early))
 
+plot(model_history)
 ```
+
 Patience is the number of epochs to wait before aborting the training. 
 
 **Dropout - another type of regularization**
@@ -178,25 +194,28 @@ model %>%
   layer_dense(units = ncol(Y), activation = "softmax") 
 
 model %>%
-  compile(loss = loss_categorical_crossentropy, keras::optimizer_adamax(lr = 0.001))
+  compile(loss = loss_categorical_crossentropy,
+          keras::optimizer_adamax(lr = 0.001))
 
 model_history =
   model %>%
     fit(x = X, y = Y, 
         epochs = 100L, batch_size = 20L, 
-        shuffle = TRUE, validation_split=0.4)
+        shuffle = TRUE, validation_split = 0.4)
 plot(model_history)
-
 ```
-Ofc, you can still combine early stopping and dropout, which is normally a good idea since it improves training efficiency (e.g. you could start with 1000 epochs and you know training will be aborted if it doesn't improve anymore).
+
+Of course, you can still combine early stopping and dropout, which is normally a good idea since it improves training efficiency (e.g. you could start with 1000 epochs and you know training will be aborted if it doesn't improve anymore).
 
 
 <details>
-<summary>
-**<span style="color: #CC2FAA">torch</span>**
-</summary>
-<p>
-Dropout and early stopping with torch:
+  <summary>
+    **<span style="color: #CC2FAA">torch</span>**
+  </summary>
+  <p>
+  
+    Dropout and early stopping with torch:
+
 ```{r}
 model_torch = nn_sequential(
   nn_dropout(0.2),
@@ -231,7 +250,7 @@ dataset_nasa = dataset(
 
 train_dl = dataloader(dataset_nasa(list(X = X[1:400,], Y = YT[1:400])), 
                       batch_size = 32, shuffle = TRUE)
-test_dl = dataloader( dataset_nasa(list(X = X[101:500,], Y = YT[101:500])), 
+test_dl = dataloader(dataset_nasa(list(X = X[101:500,], Y = YT[101:500])), 
                       batch_size = 32)
 
 model_torch$train()
@@ -252,7 +271,7 @@ for(epoch in 1:50) {
   coro::loop(for (batch in train_dl) {
     opt$zero_grad()
     pred = model_torch(batch[[1]]$squeeze())
-    loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(),reduction = "mean")
+    loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(), reduction = "mean")
     loss$backward()
     opt$step()
     train_loss = c(train_loss, loss$item())
@@ -260,7 +279,7 @@ for(epoch in 1:50) {
   
   coro::loop(for (batch in test_dl) {
     pred = model_torch(batch[[1]]$squeeze())
-    loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(),reduction = "mean")
+    loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(), reduction = "mean")
     test_loss = c(test_loss, loss$item())
   })
   
@@ -278,16 +297,20 @@ for(epoch in 1:50) {
   cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
 }
 
-
-matplot(cbind(train_losses, test_losses), type = "o", pch = c(15, 16), col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch", ylab = "Loss", las = 1)
-legend("topright", bty = "n", col = c("darkblue", "darkred"), lty = 1, pch = c(15, 16), legend = c("Train loss", "Val loss") )
-
+matplot(cbind(train_losses, test_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", col = c("darkblue", "darkred"),
+       lty = 1, pch = c(15, 16), legend = c("Train loss", "Val loss") )
 ```
+  </p>
 </details>
 <br/>
 
-## Case study - fitting a Convolutional Neural Networks on MNIST
-We will show the use of convolutinal neural networks with the MNIST dataset.The MNIST dataset is maybe one of the most famous image datasets. It is a dataset of 60,000 handwritten digits from 0-9.
+
+## Case Study - Fitting a Convolutional Neural Network on MNIST
+
+We will show the use of convolutional neural networks with the MNIST data set. This data set is maybe one of the most famous image data sets. It consists of 60,000 handwritten digits from 0-9.
 
 To do so, we define a few helper functions:
 
@@ -296,11 +319,12 @@ library(keras)
 rotate = function(x) t(apply(x, 2, rev))
 imgPlot = function(img, title = ""){
  col=grey.colors(255)
- image(rotate(img), col = col, xlab = "", ylab = "", axes=FALSE, main = paste0("Label: ", as.character(title)))
+ image(rotate(img), col = col, xlab = "", ylab = "", axes = FALSE,
+       main = paste0("Label: ", as.character(title)))
 }
 ```
 
-The dataset is so famous that there is an automatic download function in keras:
+The MNIST data set is so famous that there is an automatic download function in Keras:
 
 ```{r}
 data = dataset_mnist()
@@ -333,9 +357,10 @@ To build our convolutional model, we have to specify a kernel. In our case, we w
 ```{r}
 model = keras_model_sequential()
 model %>% 
- layer_conv_2d(input_shape = c(28L, 28L,1L),filters = 16L, kernel_size = c(2L,2L), activation = "relu") %>% 
+ layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L,
+               kernel_size = c(2L, 2L), activation = "relu") %>% 
  layer_max_pooling_2d() %>% 
- layer_conv_2d(filters = 16L, kernel_size = c(3L,3L), activation = "relu") %>% 
+ layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>% 
  layer_max_pooling_2d() %>% 
  layer_flatten() %>% 
  layer_dense(100L, activation = "relu") %>% 
@@ -347,11 +372,13 @@ We additionally used a pooling layer to downsize the resulting feature maps. Aft
 
 
 <details>
-<summary>
-**<span style="color: #CC2FAA">torch</span>**
-</summary>
-<p>
-Prepare/download data:
+  <summary>
+    **<span style="color: #CC2FAA">torch</span>**
+  </summary>
+  <p>
+  
+    Prepare/download data:
+
 ```{r}
 library(torch)
 library(torchvision)
@@ -372,6 +399,7 @@ test_ds = mnist_dataset(
 ```
 
 Build dataloader:
+
 ```{r}
 train_dl = dataloader(train_ds, batch_size = 32, shuffle = TRUE)
 test_dl = dataloader(test_ds, batch_size = 32)
@@ -381,7 +409,7 @@ df = first_batch$.next()
 df$x$size()
 ```
 
-Build CNN:
+Build convolutional neural network:
 We have here to calculate the shapes of our layers on our own:
 
 **We start with our input of shape (batch_size, 1, 28, 28)**
@@ -392,36 +420,41 @@ sample$size()
 ```
 
 
-**first conv layer has shape (input channel = 1, number of feature maps = 16, kernel size = 2)**
+**First convolutional layer has shape (input channel = 1, number of feature maps = 16, kernel size = 2)**
 
 ```{r}
 conv1 = nn_conv2d(1, 16L, 2L, stride = 1L)
 (sample %>% conv1)$size()
 ```
+
 Output: batch_size = 32,  number of feature maps = 16, dimensions of each feature map = ( 27 , 27 )
 Wit a kernel size of two and stride =1 we wil lose one pixel in each dimension...
 Questions: 
 
-* what does happen if we increase the stride?
-* what does happen if we increase the kernel size?
+* What happens if we increase the stride?
+* What happens if we increase the kernel size?
 
-**pooling layer summarizes each feature map**
+**Pooling layer summarizes each feature map**
 
 ```{r}
 (sample %>% conv1 %>% nnf_max_pool2d(kernel_size = 2L,stride = 2L))$size()
 ```
+
 kernel_size = 2L and stride = 2L halfs the pixel dimensions of our image
 
-**fully connected layer**
+**Fully connected layer**
 
-Now we have to flatten our final output of the CNN model to use a normal fully connected layer, but to do so we have to calulate the number of inputs for the fully connected layer:
+Now we have to flatten our final output of the convolutional neural network model to use a normal fully connected layer, but to do so we have to calculate the number of inputs for the fully connected layer:
+
 ```{r}
-dims = (sample %>% conv1 %>% nnf_max_pool2d(kernel_size = 2L,stride = 2L))$size()
+dims = (sample %>% conv1 %>%
+          nnf_max_pool2d(kernel_size = 2L,stride = 2L))$size()
 # without the batch size ofc
 final = prod(dims[-1]) 
 print(final)
 fc = nn_linear(final, 10L)
-(sample %>% conv1 %>% nnf_max_pool2d(kernel_size = 2L,stride = 2L) %>% torch_flatten(start_dim = 2L) %>% fc)$size()
+(sample %>% conv1 %>% nnf_max_pool2d(kernel_size = 2L,stride = 2L)
+  %>% torch_flatten(start_dim = 2L) %>% fc)$size()
 ```
 
 Build the network:
@@ -451,9 +484,9 @@ net <- nn_module(
 )
 ```
 
+  </p>
 </details>
 <br/>
-
 
 
 The rest is as usual: First we compile the model.
@@ -483,14 +516,14 @@ model %>%
 )
 ```
 
-
 <details>
-<summary>
-**<span style="color: #CC2FAA">torch</span>**
-</summary>
-<p>
+  <summary>
+    **<span style="color: #CC2FAA">torch</span>**
+  </summary>
+  <p>
 
-Train model:
+    Train model:
+
 ```{r}
 model_torch = net()
 opt = optim_adam(params = model_torch$parameters, lr = 0.01)
@@ -509,7 +542,8 @@ for(e in 1:3) {
 }
 ```
 
-Evaluation:
+    Evaluation:
+
 ```{r}
 model_torch$eval()
 
@@ -532,20 +566,24 @@ test_accuracy <-  correct/total
 test_accuracy
 ```
 
+  </p>
 </details>
 <br/>
 
-## Advanced training techniques 
+
+## Advanced Training Techniques 
+
 ### Data Augmentation
-Having to train a CNN using very little data is a common problem. Data augmentation helps to artificially increase the number of images.
 
-The idea is that a CNN learns specific structures such as edges from images. Rotating, adding noise, and zooming in and out will preserve the overall key structure we are interested in, but the model will see new images and has to search once again for the key structures.
+Having to train a convolutional neural network using very little data is a common problem. Data augmentation helps to artificially increase the number of images.
 
-Luckily, it is very easy to use data augmentation in keras.
+The idea is that a convolutional neural network learns specific structures such as edges from images. Rotating, adding noise, and zooming in and out will preserve the overall key structure we are interested in, but the model will see new images and has to search once again for the key structures.
 
-To show this, we will use again the MNIST dataset. We have to define a generator object (it is a specific object which infinitly draws samples from our dataset). In the generator we can turn on the data augementation. However, now we have to set the step size (steps_per_epoch) because the model does not know the first dimension of the image.
+Luckily, it is very easy to use data augmentation in Keras.
 
-```{r,eval=FALSE}
+To show this, we will use again the MNIST data set. We have to define a generator object (it is a specific object which infinitely draws samples from our data set). In the generator we can turn on the data augmentation However, now we have to set the step size (steps_per_epoch) because the model does not know the first dimension of the image.
+
+```{r, eval=FALSE}
 data = EcoData::dataset_flower()
 train = data$train
 test = data$test
@@ -553,11 +591,14 @@ labels = data$labels
 
 model = keras_model_sequential()
 model %>% 
-  layer_conv_2d(filter = 16L, kernel_size = c(5L, 5L), input_shape = c(80L, 80L, 3L), activation = "relu") %>% 
+  layer_conv_2d(filter = 16L, kernel_size = c(5L, 5L),
+                input_shape = c(80L, 80L, 3L), activation = "relu") %>% 
   layer_max_pooling_2d() %>% 
-  layer_conv_2d(filter = 32L, kernel_size = c(3L, 3L), activation = "relu") %>% 
+  layer_conv_2d(filter = 32L, kernel_size = c(3L, 3L),
+                activation = "relu") %>% 
   layer_max_pooling_2d() %>% 
-  layer_conv_2d(filter = 64L, kernel_size = c(3L, 3L), strides = c(2L, 2L), activation = "relu") %>% 
+  layer_conv_2d(filter = 64L, kernel_size = c(3L, 3L),
+                strides = c(2L, 2L), activation = "relu") %>% 
   layer_max_pooling_2d() %>% 
   layer_flatten() %>% 
   layer_dropout(0.5) %>% 
@@ -572,12 +613,14 @@ aug = image_data_generator(rotation_range = 90,
 
 # Data preparation / splitting
 indices = sample.int(nrow(train), 0.1*nrow(train))
-generator = flow_images_from_data(train[-indices,,,]/255, k_one_hot(labels[-indices], num_classes = 5L),
-                                  generator = aug, batch_size = 25L, shuffle = TRUE)
+generator = flow_images_from_data(train[-indices,,,]/255,
+                                  k_one_hot(labels[-indices], num_classes = 5L),
+                                  generator = aug,
+                                  batch_size = 25L,
+                                  shuffle = TRUE)
 
 test = train[indices,,,]/255
 test_labels = k_one_hot(labels[indices], num_classes = 5L)
-
 
 # Our own training loop with early stopping:
 epochs = 50L
@@ -589,6 +632,7 @@ patience = 1L
 min_val_loss = Inf
 val_losses = c()
 epoch_losses = c()
+
 for(e in 1:epochs) {
   epoch_loss = c()
   for(s in 1:steps) {
@@ -598,16 +642,21 @@ for(e in 1:epochs) {
         loss = keras::loss_categorical_crossentropy(batch[[2]], pred)
         loss = tf$reduce_mean(loss)
       })
-    gradients = tape$gradient(target = loss, sources = model$trainable_variables)
-    optim$apply_gradients(purrr::transpose(list(gradients, model$trainable_variables)))
+    gradients = tape$gradient(target = loss,
+                              sources = model$trainable_variables)
+    optim$apply_gradients(purrr::transpose(list(gradients,
+                                                model$trainable_variables)))
     epoch_loss = c(epoch_loss, loss$numpy())
   }
   epoch_losses = c(epoch_losses, epoch_loss)
+  
   ## test loss ##
   preds = model %>% predict(test)
-  val_losses = c(val_losses, tf$reduce_mean( keras::loss_categorical_crossentropy(test_labels, preds) )$numpy())
+  test_loss = keras::loss_categorical_crossentropy(test_labels, preds)
+  val_losses = c(val_losses, tf$reduce_mean(test_loss)$numpy())
   
-  cat("Epoch: ", e, " Train Loss: ", mean(epoch_losses)," Val Loss: ", val_losses[e],  " \n")
+  cat("Epoch: ", e, " Train Loss: ", mean(epoch_losses),
+      " Val Loss: ", val_losses[e],  " \n")
   
   if(val_losses[e] < min_val_loss) {
     min_val_loss = val_losses[e]
@@ -623,12 +672,13 @@ preds = apply(preds, 1, which.max)-1
 So using data augmentation we can artificially increase the number of images.
 
 <details>
-<summary>
-**<span style="color: #CC2FAA">torch</span>**
-</summary>
-<p>
+  <summary>
+    **<span style="color: #CC2FAA">torch</span>**
+  </summary>
+  <p>
 
-In torch, we have to change the transform function (but only for the train dataloader):
+    In torch, we have to change the transform function (but only for the train dataloader):
+
 ```{r}
 train_transforms <- function(img) {
   img %>%
@@ -638,8 +688,10 @@ train_transforms <- function(img) {
     transform_random_vertical_flip(0.3)
 }
 
-train_ds = mnist_dataset(".", download = TRUE, train = TRUE, transform = train_transforms)
-test_ds = mnist_dataset(".", download = TRUE, train = FALSE,transform = transform_to_tensor)
+train_ds = mnist_dataset(".", download = TRUE, train = TRUE,
+                         transform = train_transforms)
+test_ds = mnist_dataset(".", download = TRUE, train = FALSE,
+                        transform = transform_to_tensor)
 
 train_dl = dataloader(train_ds, batch_size = 100L, shuffle = TRUE)
 test_dl = dataloader(test_ds, batch_size = 100L)
@@ -680,19 +732,21 @@ test_accuracy <-  correct/total
 print(test_accuracy)
 ```
 
+  </p>
 </details>
 <br/>
 
 
-### Transfer learning {#transfer}
+### Transfer Learning {#transfer}
 
 Another approach to reduce the necessary number of images or to speed up convergence of the models is the use of transfer learning.
 
-The main idea of transfer learning is that all the convolutional layers have mainly one task - learning to identify highly correlated neighbored features and therefore these learn structures such as edges in the image and only the top layer, the dense layer is the actual classifier of the CNN. Thus, one could think that we could only train the top layer as classifier. To do so, it will be confronted by sets of different edges/structures and has to decide the label based on these.
+The main idea of transfer learning is that all the convolutional layers have mainly one task - learning to identify highly correlated neighbored features and therefore these learn structures such as edges in the image and only the top layer, the dense layer is the actual classifier of the convolutional neural network. Thus, one could think that we could only train the top layer as classifier. To do so, it will be confronted by sets of different edges/structures and has to decide the label based on these.
 
-Again, this sounds very complicating but is again quite easy with keras:
+Again, this sounds very complicating but is again quite easy with Keras.
 
 We will do this now with the CIFAR10 data set, so we have to prepare the data:
+
 ```{r}
 data = keras::dataset_cifar10()
 train = data$train
@@ -709,29 +763,33 @@ train_y = to_categorical(train$y, 10)
 test_y = to_categorical(test$y, 10)
 ```
 
-Keras provides download functions for all famous architectures/CNN models which are already trained on the imagenet dataset (another famous dataset). These trained networks come already without their top layer, so we have to set include_top to false and change the input shape.
+Keras provides download functions for all famous architectures/convolutional neural network models which are already trained on the imagenet data set (another famous data set). These trained networks come already without their top layer, so we have to set include_top to false and change the input shape.
 
-```{r,eval=FALSE}
-densenet = application_densenet201(include_top = FALSE, input_shape  = c(32L, 32L, 3L))
+```{r, eval=FALSE}
+densenet = application_densenet201(include_top = FALSE,
+                                   input_shape  = c(32L, 32L, 3L))
 ```
 
 Now, we will use not a sequential model but just a "keras_model" where we can specify the inputs and outputs. Thereby, the outputs are our own top layer, but the inputs are the densenet inputs, as these are already pre-trained.
-```{r,eval=FALSE}
+
+```{r, eval=FALSE}
 model = keras::keras_model(inputs = densenet$input, outputs = 
- layer_flatten(layer_dense(densenet$output, units = 10L, activation = "softmax"))
+ layer_flatten(layer_dense(densenet$output, units = 10L,
+                           activation = "softmax"))
  )
 ```
 
 
 In the next step we want to freeze all layers except for our own last layer (with freezing I mean that these are not trained: we do not want to train the complete model, we only want to train the last layer). You can check the number of trainable weights via summary(model)
 
-```{r,eval=FALSE}
+```{r, eval=FALSE}
 model %>% freeze_weights(to = length(model$layers)-1)
 summary(model)
 ```
 
 And then the usual training:
-```{r,eval=FALSE}
+
+```{r, eval=FALSE}
 model %>% 
  compile(loss = loss_categorical_crossentropy, optimizer = optimizer_adamax())
 model %>% 
@@ -745,15 +803,16 @@ model %>%
 )
 ```
 
-We have seen, that transfer-learning can easily be done using keras.
+We have seen, that transfer-learning can easily be done using Keras.
 
 <details>
-<summary>
-**<span style="color: #CC2FAA">torch</span>**
-</summary>
-<p>
+  <summary>
+    **<span style="color: #CC2FAA">torch</span>**
+  </summary>
+  <p>
 
-In torch, we have to change the transform function (but only for the train dataloader):
+    In torch, we have to change the transform function (but only for the train dataloader):
+
 ```{r}
 library(torchvision)
 train_ds = cifar10_dataset(".", download = TRUE, train = TRUE, transform = transform_to_tensor)
@@ -805,14 +864,16 @@ coro::loop(for (b in test_dl) {
 test_accuracy <-  correct/total
 print(test_accuracy)
 ```
+
+  </p>
 </details>
 <br/>
 
-**Flower dataset**
+**Flower data set**
 
-Let's do it with our flower dataset:
+Let's do that with our flower data set:
 
-```{r,eval=FALSE}
+```{r, eval=FALSE}
 data = EcoData::dataset_flower()
 train = data$train
 test = data$test
@@ -820,7 +881,8 @@ labels = data$labels
 library(keras)
 library(tensorflow)
 
-densenet = keras::application_densenet201(include_top = FALSE, input_shape = list(80L, 80L, 3L))
+densenet = keras::application_densenet201(include_top = FALSE,
+                                          input_shape = list(80L, 80L, 3L))
 
 keras::freeze_weights(densenet)
 
@@ -830,16 +892,21 @@ model = keras_model(inputs = densenet$input,
                       layer_dropout(0.2) %>% 
                       layer_dense(units = 200L) %>% 
                       layer_dropout(0.2) %>% 
-                      layer_dense(units = 5L, activation="softmax"))
+                      layer_dense(units = 5L, activation = "softmax"))
 
 
 # Data augmentation
-aug = image_data_generator(rotation_range = 180,zoom_range = 0.4,width_shift_range = 0.2, height_shift_range = 0.2, vertical_flip = TRUE, horizontal_flip = TRUE,preprocessing_function = imagenet_preprocess_input)
+aug = image_data_generator(rotation_range = 180,zoom_range = 0.4,
+                           width_shift_range = 0.2, height_shift_range = 0.2,
+                           vertical_flip = TRUE, horizontal_flip = TRUE,
+                           preprocessing_function = imagenet_preprocess_input)
 
 # Data preparation / splitting
 indices = sample.int(nrow(train), 0.1*nrow(train))
-generator = flow_images_from_data(train[-indices,,,], k_one_hot(labels[-indices], num_classes = 5L), 
-                                  batch_size = 25L, shuffle = TRUE, generator = aug)
+generator = flow_images_from_data(train[-indices,,,]
+                                  k_one_hot(labels[-indices], num_classes = 5L), 
+                                  batch_size = 25L, shuffle = TRUE,
+                                  generator = aug)
 
 test = imagenet_preprocess_input(train[indices,,,])
 test_labels = k_one_hot(labels[indices], num_classes = 5L)
@@ -863,16 +930,21 @@ for(e in 1:epochs) {
         loss = keras::loss_categorical_crossentropy(batch[[2]], pred)
         loss = tf$reduce_mean(loss)
       })
-    gradients = tape$gradient(target = loss, sources = model$trainable_variables)
-    optim$apply_gradients(purrr::transpose(list(gradients, model$trainable_variables)))
+    gradients = tape$gradient(target = loss,
+                              sources = model$trainable_variables)
+    optim$apply_gradients(purrr::transpose(list(gradients,
+                                                model$trainable_variables)))
     epoch_loss = c(epoch_loss, loss$numpy())
   }
   epoch_losses = c(epoch_losses, epoch_loss)
+  
   ## test loss ##
   preds = model %>% predict(test)
-  val_losses = c(val_losses, tf$reduce_mean( keras::loss_categorical_crossentropy(test_labels, preds) )$numpy())
+  test_loss = keras::loss_categorical_crossentropy(test_labels, preds)
+  val_losses = c(val_losses, tf$reduce_mean(test_loss)$numpy())
   
-  cat("Epoch: ", e, " Train Loss: ", mean(epoch_losses)," Val Loss: ", val_losses[e],  " \n")
+  cat("Epoch: ", e, " Train Loss: ", mean(epoch_losses),
+      " Val Loss: ", val_losses[e],  " \n")
   
   if(val_losses[e] < min_val_loss) {
     min_val_loss = val_losses[e]
@@ -882,7 +954,6 @@ for(e in 1:epochs) {
 }
 
 preds = predict(model, imagenet_preprocess_input(data$test))
-
 ```
 
 

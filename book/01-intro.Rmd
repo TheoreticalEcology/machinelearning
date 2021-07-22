@@ -4,7 +4,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-
 # Introduction to Machine Learning {#introduction}
 
 There are three basic machine learning tasks
@@ -61,8 +60,8 @@ A cluster refers to a collection of data points aggregated together because of c
 
 In hierarchical clustering, a hierarchy (tree) between data points is built.
 
-* Agglomerative: Start with each data point in their own cluster, merge them up hierarchically
-* Divisive: Start with all data points in one cluster, and split hierarchically
+* Agglomerative: Start with each data point in their own cluster, merge them up hierarchically.
+* Divisive: Start with all data points in one cluster, and split hierarchically.
 
 Merges / splits are done according to linkage criterion, which measures distance between (potential) clusters. Cut the tree at a certain height to get clusters. 
 
@@ -119,6 +118,7 @@ Which method is best?
 ```{r, results='hide', message=FALSE, warning=FALSE}
 library(dendextend)
 ```
+
 ```{r}
 methods = c("ward.D", "single", "complete", "average",
              "mcquitty", "median", "centroid", "ward.D2")
@@ -148,7 +148,6 @@ dotchart(sort(clusters_performance), xlim = c(0.3, 1),
          in detecting the 3 species \n in our example",
          pch = 19)
 ```
-
 
 We might conclude that ward.D2 works best here. However, as we will learn later, optimizing the method without a hold-out for testing means that our model may be overfitting. We should check this using cross-validation. 
 
@@ -184,6 +183,7 @@ points(kc$centers[, c("Sepal.Length", "Sepal.Width")],
 ```
 
 We see that there are are some discrepancies. Confusion matrix:
+
 ```{r}
 table(iris$Species, kc$cluster)
 ```
@@ -209,7 +209,6 @@ plot(1:10, iris.kmeans1to10, type="b", pch = 19, frame = FALSE,
      ylab="Total within-clusters sum of squares",
      col = c("black", "red", rep("black", 8)))
 ```
-
 
 Often, one is interested in sparse models. Furthermore, higher k than necessary tends to overfitting. At the kink in the picture, the sum of squares dropped enough and k is still low enough.
 But keep in mind, this is only a rule of thumb and might be wrong in some special cases.
@@ -334,7 +333,7 @@ m1 = randomForest(Sepal.Length ~ ., data = iris)   # ~.: against all others
 print(m1)
 ```
 
-Visualization of the results
+Visualization of the results:
 
 ```{r}
 par(mfrow = c(1,2))
@@ -344,7 +343,7 @@ abline(0,1)
 varImpPlot(m1)
 ```
 
-To understand the structure of a random forest in more detail, we can use a package from GitHub
+To understand the structure of a random forest in more detail, we can use a package from GitHub.
 
 ```{r, message=FALSE, warning=FALSE}
 # devtools::install_github('araastat/reprtree')
@@ -359,6 +358,7 @@ Here, the regression tree is shown.
 With the random forest, we can also do classification. The steps are the same as for regression tasks, but we can additionally see how well it performed by looking at the confusion matrix. Each row of this matrix contains the instances in a predicted class and each column represents the instances in the actual class. Thus the diagonals are the correctly predicted classes and the off-diagnoal elements are the falsely classified elements.
 
 Fitting the model:
+
 ```{r}
 set.seed(123)
 
@@ -424,16 +424,16 @@ All operations in TensorFlow are written in C++ and are highly optimized. But do
 * Swift
 * JavaScript
 
-In this course we will use TensorFlow with the https://tensorflow.rstudio.com/ binding, that was developed and published 2017 by the RStudio
+In this course we will use TensorFlow with the <a href="https://tensorflow.rstudio.com/" target="_blank" rel="noopener">https://tensorflow.rstudio.com/</a> binding, that was developed and published 2017 by the RStudio
 team. First, they developed an R package (reticulate) for calling Python in R. Actually, we are using the Python TensorFlow module in R (more about this later).
 
 TensorFlow offers different levels of API. We could implement a neural network completely by ourselves or we could use Keras which is provided as a submodule by TensorFlow. Keras is a powerful module for building and training neural networks. It allows us building and training neural networks in a few lines of codes. Since the end of 2018, Keras and TensorFlow are completly interoperable, allowing us to utilize the best of both. In this course, we will show how we can use Keras for neural networks but also how we can use the TensorFlow’s automatic differenation for using complex objective functions.
 
 
 Useful links:
-  
-* [TensorFlow documentation](https://www.tensorflow.org/api_docs/python/tf) (This is for the Python API, but just replace the '.' with '$'.)
-* [Rstudio TensorFlow website](https://tensorflow.rstudio.com/)
+
+* <a href="https://www.tensorflow.org/api_docs/python/tf" target="_blank" rel="noopener">TensorFlow documentation</a> (This is for the Python API, but just replace the '.' with '$'.)
+* <a href="https://tensorflow.rstudio.com/" target="_blank" rel="noopener">Rstudio TensorFlow website</a>
 
 
 ### TensorFlow Data Containers
@@ -509,6 +509,7 @@ Common important types:
 The reason why TensorFlow is so explicit about types is that many GPUs (e.g. the NVIDIA GeForces) can handle only up to 32 bit numbers! (you do not need high precision in graphical modeling)
 
 But let us see in practice what we have to do with these types and how to specifcy them:
+
 ```{r, eval=FALSE}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = "float32") 
@@ -516,7 +517,8 @@ b = tf$constant(2.0, dtype = "float64")
 c = m / b # doesn't work! we try to divide float32/float64
 ```
 
-So what went wrong here: we tried to divide a float32 by a float64 number, but we can only divide numbers of the same type! 
+So what went wrong here: we tried to divide a float32 by a float64 number, but we can only divide numbers of the same type!
+
 ```{r, eval=TRUE}
 r_matrix = matrix(runif(10*10), 10,10)
 m = tf$constant(r_matrix, dtype = "float64")
@@ -545,15 +547,16 @@ tf$reshape(r_matrix, shape = c(5L, 20L))$numpy()
 ```
 
 Skipping the "L" is one of the most common errors when using R-TensorFlow!
-  
+
+
 ## Introduction to PyTorch
   
 PyTorch is another famous library for deep learning. Like TensorFlow, Torch itself is written in C++ with an API in Python. In 2020, the RStudio team released R-Torch, and while R-TensorFlow calls the Python API in the background, the R-Torch API is built directly on the C++ Torch library! 
   
 Useful links:
-  
-* [PyTorch documentation](https://pytorch.org/docs/stable/index.html) (This is for the Python API, bust just replace the '.' with '$'.)
-* [R-torch website](https://torch.mlverse.org/)
+
+* <a href="https://pytorch.org/docs/stable/index.html" target="_blank" rel="noopener">PyTorch documentation</a> (This is for the Python API, bust just replace the '.' with '$'.)
+* <a href="https://torch.mlverse.org/" target="_blank" rel="noopener">R-Torch website</a>
 
 
 ### PyTorch Data Containers
@@ -601,6 +604,7 @@ class(d)
 class(as.numeric(d))
 ```
 
+
 ### Torch Data Types - Good Practice With R-Torch
 
 Similar to TensorFlow:
@@ -637,6 +641,7 @@ To show how Keras works, we will now build a small classifier to predict the thr
 ```{r}
 library(keras)
 library(tensorflow)
+
 data(iris)
 head(iris)
 ```
@@ -651,13 +656,13 @@ Y = iris[,5]
 
 Additionally, Keras/TensorFlow cannot handle factors and we have to create contrasts (one-hot encoding).
 To do so, we have to specify the number of categories. This can be tricky for a beginner, because in other programming languages like Python and C++, arrays start at zero. Thus, when we would specify 3 as number of classes for our three species, we would have the classes 0,1,2,3. Keep this in mind.
+
 ```{r, cache=TRUE}
 Y = to_categorical(as.integer(Y)-1L, 3)
 head(Y) # 3 colums, one for each level of the response
 ```
 
 After having prepared the data, we will now see a typical workflow to specify a model in Keras. 
-
 
 **1. Initiliaze a sequential model in Keras:**
 
@@ -666,7 +671,6 @@ model = keras_model_sequential()
 ```
 
 A sequential Keras model is a higher order type of model within Keras and consists of one input and one output model. 
-
 
 **2. Add hidden layers to the model (we will learn more about hidden layers during the next days).**
 
@@ -706,10 +710,10 @@ model_torch =
 </details>
 <br/>
 
-  
-**3. Compile the model with a loss function (here: cross entropy) and an optimizer (here: Adamax).** 
+**3. Compile the model with a loss function (here: cross entropy) and an optimizer (here: Adamax).**
     
 We will learn about other options later, so for now, do not worry about the "lr" argument, crossentropy or the optimizer.
+
 ```{r, cache=TRUE}
 model %>%
   compile(loss = loss_categorical_crossentropy,
@@ -732,9 +736,8 @@ optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
   </p>
 </details>
 <br/>
-    
-    
-**4. Fit model in 30 iterations(epochs)**
+
+**4. Fit model in 30 iterations (epochs)**
     
 ```{r, cache=TRUE}
 model_history =
@@ -795,9 +798,8 @@ for(i in 1:steps){
   </p>
 </details>
 <br/>
-    
 
- **5. Plot training history:**
+**5. Plot training history:**
  
 ```{r, cache=TRUE}
 plot(model_history)
@@ -854,21 +856,21 @@ mean(preds_torch == as.integer(iris$Species))
   </p>
 </details>
 <br/>
-  
-    
+
 **7. Calculate Accuracy (how often we have been correct):**
 
 ```{r, cache=TRUE}
 mean(preds == as.integer(iris$Species))
 ```
 
-
 **8. Plot predictions, to see if we have done a good job:**
 
 ```{r, cache=TRUE}
 oldpar = par(mfrow = c(1, 2))
-plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species, main = "Observed")
-plot(iris$Sepal.Length, iris$Petal.Length, col = preds, main = "Predicted")
+plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species,
+     main = "Observed")
+plot(iris$Sepal.Length, iris$Petal.Length, col = preds,
+     main = "Predicted")
 par(oldpar)   #Reset par.
 ```
 

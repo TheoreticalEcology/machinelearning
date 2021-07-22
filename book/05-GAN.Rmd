@@ -1,14 +1,17 @@
-# Generative modeling and reinforcement learning
+# Generative Modeling and Reinforcement Learning
 
-We will explore today more machine learning ideas.
+We will explore more machine learning ideas today.
+
 
 ## Autoencoder
+
 An autoencoder (AE) is a type of artificial neural network for unsupervised learning. The idea is similar to data compression: the first part of the network compresses (encodes) the data to a low dimensional space (e.g. 2-4 dimensions) and the second part of the network decompresses the encoding and learns to reconstruct the data (think of a hourglass).
 
-Why is this useful? The method is similar to a dimension reduction technique (e.g. PCA) but with the advantage that we don't have to make any distributional assumptions (but see PCA). For instance, we could first train an AE on genomic expression data with thousands of features, compress them into 2-4 dimensions, and then use them for clustering. 
+Why is this useful? The method is similar to a dimension reduction technique (e.g. PCA) but with the advantage that we don't have to make any distributional assumptions (but see PCA). For instance, we could first train an autoencoder on genomic expression data with thousands of features, compress them into 2-4 dimensions, and then use them for clustering. 
 
 
-### Autoencoder - DNN MNIST
+### Autoencoder - Deep Neural Network MNIST
+
 We now will write an autoencoder for the MNIST data set.
 
 Let's start with the (usual) MNIST example:
@@ -18,7 +21,6 @@ try({ detach("package:torch", unload=TRUE) }, silent = TRUE)
 try({ detach("package:torchvision", unload=TRUE) }, silent = TRUE)
 try({ detach("package:mlr3", unload=TRUE) }, silent = TRUE)
 ```
-
 
 ```{r}
 library(keras)
@@ -34,7 +36,8 @@ We don't need here the labels, our images will be the inputs and at the same tim
 rotate = function(x) t(apply(x, 2, rev))
 imgPlot = function(img, title = ""){
  col=grey.colors(255)
- image(rotate(img), col = col, xlab = "", ylab = "", axes=FALSE, main = paste0("Label: ", as.character(title)))
+ image(rotate(img), col = col, xlab = "", ylab = "", axes=FALSE,
+       main = paste0("Label: ", as.character(title)))
 }
 train = data[[1]]
 test = data[[2]]
@@ -43,10 +46,11 @@ test_x = array(test[[1]]/255, c(dim(test[[1]])[1], 784L))
 ```
 
 Our encoder: image (784 dimensions) -> 2 dimensions
+
 ```{r AEencoder}
 down_size_model = keras_model_sequential()
 down_size_model %>% 
- layer_dense(units = 100L, input_shape = c(784L),activation = "relu") %>% 
+ layer_dense(units = 100L, input_shape = c(784L), activation = "relu") %>% 
  layer_dense(units = 20L, activation = "relu") %>% 
  layer_dense(units = 2L, activation = "linear")
 ```
@@ -64,12 +68,15 @@ up_size_model %>%
 We can use the non-sequential model type to connect the two models! (we did the same in the transfer learning chapter!)
 
 ```{r AEmnist}
-autoencoder = keras_model(inputs=down_size_model$input,  outputs=up_size_model(down_size_model$output))
-autoencoder$compile(loss = loss_binary_crossentropy, optimizer = optimizer_adamax(0.01))
+autoencoder = keras_model(inputs = down_size_model$input, 
+                          outputs = up_size_model(down_size_model$output))
+autoencoder$compile(loss = loss_binary_crossentropy,
+                    optimizer = optimizer_adamax(0.01))
 summary(autoencoder)
 ```
 
-WE will now show an example of an image before and after the unfitted autoincoder, so we see that we have to train the autoencoder.
+WE will now show an example of an image before and after the unfitted autoencoder, so we see that we have to train the autoencoder.
+
 ```{r AEmnistoutput}
 image = autoencoder(train_x[1,,drop = FALSE])
 par(mfrow = c(1,2))
@@ -77,14 +84,15 @@ imgPlot(array(train_x[1,,drop = FALSE], c(28, 28)))
 imgPlot(array(image$numpy(), c(28, 28)))
 ```
 
-Fit the autoencoder (inputs == outputs!!)
+Fit the autoencoder (inputs == outputs!):
 
 ```{r AEmnistfit}
 autoencoder %>% 
   fit(x = train_x, y = train_x, epochs = 5L, batch_size = 128L)
 ```
 
-Visualization of the latent variables
+Visualization of the latent variables:
+
 ```{r AEvisualization}
 pred_dim = down_size_model(test_x)
 reconstr_pred = up_size_model(pred_dim)
@@ -93,44 +101,62 @@ par(mfrow = c(1,1))
 plot(pred_dim$numpy()[,1], pred_dim$numpy()[,2], col = test[[2]]+1L)
 ```
 
-### Autoencoder - MNIST CNN
-We can also use CNNs isntead of DNNs. There is also an inverse convolutional layer:
+
+### Autoencoder - MNIST Convolutional Neural Networks
+
+We can also use convolutional neural networks instead of deep neural networks. There is also an inverse convolutional layer:
 
 Prepare data:
+
 ```{r}
 data = tf$keras$datasets$mnist$load_data()
 train = data[[1]]
 train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L))
 test_x = array(data[[2]][[1]]/255, c(dim(data[[2]][[1]]/255), 1L))
 ```
-Then defining the downsize model 
+
+Then define the downsize model:
+
 ```{r AEmnistCNN}
 down_size_model = keras_model_sequential()
 down_size_model %>% 
  layer_conv_2d(filters = 32L, activation = "relu", kernel_size = c(2L,2L), 
-                          input_shape = c(28L, 28L, 1L), strides = c(4L, 4L)) %>% 
+                          input_shape = c(28L, 28L, 1L),
+               strides = c(4L, 4L)) %>% 
  layer_conv_2d(filters = 16L, activation = "relu", 
-                           kernel_size = c(7L,7L), strides = c(1L, 1L)) %>% 
+                           kernel_size = c(7L, 7L), strides = c(1L, 1L)) %>% 
  layer_flatten() %>% 
  layer_dense(units = 2L, activation = "linear")
 ```
-Define the upsize model 
+
+Define the upsize model:
+
 ```{r}
 up_size_model = keras_model_sequential()
 up_size_model %>% 
  layer_dense(units = 8L, activation = "relu", input_shape = c(2L)) %>% 
  layer_reshape(target_shape = c(1L, 1L, 8L)) %>% 
- layer_conv_2d_transpose(filters = 16L, kernel_size = c(7,7), activation = "relu", strides = c(1L,1L)) %>% 
- layer_conv_2d_transpose(filters = 32L, activation = "relu", kernel_size = c(2,2), strides = c(4L,4L)) %>% 
- layer_conv_2d(filters = 1, kernel_size = c(1L, 1L), strides = c(1L, 1L), activation = "sigmoid")
+ layer_conv_2d_transpose(filters = 16L, kernel_size = c(7,7),
+                         activation = "relu", strides = c(1L,1L)) %>% 
+ layer_conv_2d_transpose(filters = 32L, activation = "relu",
+                         kernel_size = c(2,2), strides = c(4L,4L)) %>% 
+ layer_conv_2d(filters = 1, kernel_size = c(1L, 1L),
+               strides = c(1L, 1L), activation = "sigmoid")
 ```
-Combine the two models and fit it
+
+Combine the two models and fit it:
+
 ```{r}
-autoencoder = tf$keras$models$Model(inputs = down_size_model$input, outputs = up_size_model(down_size_model$output))
-autoencoder$compile(loss = loss_binary_crossentropy, optimizer = optimizer_rmsprop(0.001))
-autoencoder$fit(x = tf$constant(train_x), y = tf$constant(train_x), epochs = 10L, batch_size = 128L)
+autoencoder = tf$keras$models$Model(inputs = down_size_model$input,
+                                    outputs = up_size_model(down_size_model$output))
+autoencoder$compile(loss = loss_binary_crossentropy,
+                    optimizer = optimizer_rmsprop(0.001))
+autoencoder$fit(x = tf$constant(train_x), y = tf$constant(train_x),
+                epochs = 10L, batch_size = 128L)
 ```
-Test it 
+
+Test it:
+
 ```{r}
 pred_dim = down_size_model(tf$constant(test_x, "float32"))
 reconstr_pred = autoencoder(tf$constant(test_x, "float32"))
@@ -139,15 +165,15 @@ plot(pred_dim[,1]$numpy(), pred_dim[,2]$numpy(), col = test[[2]]+1L)
 ## Generate new images!
 new = matrix(c(10,10), 1, 2)
 imgPlot(array(up_size_model(new)$numpy(), c(28L, 28L)))
-
 ```
 
 
-
 ### Varational Autoencoder
+
 The difference between a variational and a normal autoencoder is that a variational autoencoder assumes a distribution for the latent variables.
 
-To do so we will use tensorflow probability, but first need to split the data again 
+To do so we will use TensorFlow probability, but first, weneed to split the data again.
+
 ```{r}
 # install.packages("tfprobability")
 library(tfprobability)
@@ -155,47 +181,62 @@ data = tf$keras$datasets$mnist$load_data()
 train = data[[1]]
 train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L))
 ```
-We will use tensorflow probability to define priors for our latent variables
+
+We will use TensorFlow probability to define priors for our latent variables.
+
 ```{r}
 library(tfprobability)
 tfp = reticulate::import("tensorflow_probability")
 ```
+
 Build the two networks: 
+
 ```{r}
 encoded = 2L
-prior = tfp$distributions$Independent(tfp$distributions$Normal(tf$zeros(2L),1.0),1L)
+prior = tfp$distributions$Independent(tfp$distributions$Normal(tf$zeros(2L), 1.0), 1L)
 prior = tfd_independent(tfd_normal(c(0.0, 0.0), 1.0), 1L)
 down_size_model = keras_model_sequential()
 down_size_model %>% 
- layer_conv_2d(filters = 32L, activation = "relu", kernel_size = c(2L,2L), 
+ layer_conv_2d(filters = 32L, activation = "relu", kernel_size = c(2L, 2L), 
                           input_shape = c(28L, 28L, 1L), strides = c(4L, 4L)) %>% 
  layer_conv_2d(filters = 16L, activation = "relu", 
                            kernel_size = c(7L,7L), strides = c(1L, 1L)) %>% 
  layer_flatten() %>% 
  layer_dense(units = 4L, activation = "linear") %>% 
- tfprobability::layer_independent_normal(2L, activity_regularizer = tfp$layers$KLDivergenceRegularizer(distribution_b = prior))
+ tfprobability::layer_independent_normal(2L, activity_regularizer =
+                                           tfp$layers$KLDivergenceRegularizer(distribution_b = prior))
 
 up_size_model = keras_model_sequential()
 up_size_model %>% 
  layer_dense(units = 8L, activation = "relu", input_shape = c(2L)) %>% 
  layer_reshape(target_shape = c(1L, 1L, 8L)) %>% 
- layer_conv_2d_transpose(filters = 16L, kernel_size = c(7,7), activation = "relu", strides = c(1L,1L),use_bias = FALSE) %>% 
- layer_conv_2d_transpose(filters = 32L, activation = "relu", kernel_size = c(2,2), strides = c(4L,4L),use_bias = FALSE) %>% 
- layer_conv_2d(filters = 1, kernel_size = c(1L, 1L), strides = c(1L, 1L), activation = "sigmoid",use_bias = FALSE)
+ layer_conv_2d_transpose(filters = 16L, kernel_size = c(7,7),
+                         activation = "relu", strides = c(1L,1L),
+                         use_bias = FALSE) %>% 
+ layer_conv_2d_transpose(filters = 32L, activation = "relu",
+                         kernel_size = c(2,2), strides = c(4L,4L),
+                         use_bias = FALSE) %>% 
+ layer_conv_2d(filters = 1, kernel_size = c(1L, 1L),
+               strides = c(1L, 1L), activation = "sigmoid",
+               use_bias = FALSE)
 
 VAE = keras_model(inputs = down_size_model$inputs,
                   outputs = up_size_model(down_size_model$outputs))
-
 ```
-Compile and fit Model:
+
+Compile and fit model:
+
 ```{r}
-loss_binary = function(true, pred) {loss_binary_crossentropy(true, pred)*28.0*28.0}
+loss_binary = function(true, pred){
+  loss_binary_crossentropy(true, pred)*28.0*28.0
+  }
 VAE$compile(loss = loss_binary, optimizer = optimizer_adamax())
 
 VAE$fit(train_x, train_x, epochs = 5L)
 ```
 
-And show that it works 
+And show that it works:
+
 ```{r VAEmnist}
 dist = down_size_model(train_x[1:2000,,,,drop=FALSE])
 images = up_size_model( dist$sample()[1:5,] )
@@ -205,45 +246,69 @@ imgPlot(images[1,,,1]$numpy())
 plot(dist$mean()$numpy()[,1], dist$mean()$numpy()[,2], col = train[[2]]+1L)
 ```
 
-
 <details>
-<summary>
-**<span style="color: #CC2FAA">Solution for flower VAE exercise</span>**
-</summary>
-<p>
-split the data 
+  <summary>
+    **<span style="color: #CC2FAA">Solution for flower VAE exercise</span>**
+  </summary>
+    <p>
+
+    Split the data :
+    
 ```{r}
 data = EcoData::dataset_flower()
 test = data$test/255
 train = data$train/255
 train = abind::abind(list(train, test), along = 1L)
 ```
+
 Build the VAE:
+
 ```{r VAEflower}
 encoded = 10L
-prior = tfp$distributions$Independent(tfp$distributions$Normal(loc=tf$zeros(encoded), scale=1.),
-                        reinterpreted_batch_ndims=1L)
+prior = tfp$distributions$Independent(tfp$distributions$Normal(loc=tf$zeros(encoded),
+                                                               scale=1.),
+                        reinterpreted_batch_ndims = 1L)
+
 down_size_model = tf$keras$models$Sequential(list(
   tf$keras$layers$InputLayer(input_shape = c(80L, 80L, 3L)),
-  tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu, kernel_size = 5L, strides =1L),
-  tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu, kernel_size = 5L, strides =2L),
-  tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu, kernel_size = 5L, strides =1L),
-  tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu, kernel_size = 5L, strides =2L),
-  tf$keras$layers$Conv2D(filters = 128L, activation = tf$nn$leaky_relu, kernel_size = 7L, strides =1L),
+  tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu,
+                         kernel_size = 5L, strides =1L),
+  tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu,
+                         kernel_size = 5L, strides =2L),
+  tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu,
+                         kernel_size = 5L, strides =1L),
+  tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu,
+                         kernel_size = 5L, strides =2L),
+  tf$keras$layers$Conv2D(filters = 128L, activation = tf$nn$leaky_relu,
+                         kernel_size = 7L, strides =1L),
   tf$keras$layers$Flatten(),
-  tf$keras$layers$Dense(units = tfp$layers$MultivariateNormalTriL$params_size(encoded), activation = NULL),
-  tfp$layers$MultivariateNormalTriL(encoded, activity_regularizer = tfp$layers$KLDivergenceRegularizer(prior, weight = 0.0002))
+  tf$keras$layers$Dense(units = tfp$layers$MultivariateNormalTriL$params_size(encoded),
+                        activation = NULL),
+  tfp$layers$MultivariateNormalTriL(encoded, activity_regularizer =
+                                      tfp$layers$KLDivergenceRegularizer(prior, weight = 0.0002))
 ))
 up_size_model = tf$keras$models$Sequential(list(
   tf$keras$layers$InputLayer(input_shape = encoded),
   tf$keras$layers$Dense(units = 8192L, activation = "relu"),
   tf$keras$layers$Reshape(target_shape =  c(8L, 8L, 128L)),
-  tf$keras$layers$Conv2DTranspose(filters = 128L, kernel_size = 7L, activation = tf$nn$leaky_relu, strides = 1L,use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L, activation = tf$nn$leaky_relu, strides = 2L,use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L, activation = tf$nn$leaky_relu, strides = 1L,use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L, activation = tf$nn$leaky_relu, strides = 2L,use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L, activation = tf$nn$leaky_relu, strides = 1L,use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 3L, kernel_size = c(4L,4L), activation = "sigmoid", strides = c(1L, 1L),use_bias = FALSE)
+  tf$keras$layers$Conv2DTranspose(filters = 128L, kernel_size = 7L,
+                                  activation = tf$nn$leaky_relu, strides = 1L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L,
+                                  activation = tf$nn$leaky_relu, strides = 2L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L,
+                                  activation = tf$nn$leaky_relu, strides = 1L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L,
+                                  activation = tf$nn$leaky_relu, strides = 2L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L,
+                                  activation = tf$nn$leaky_relu, strides = 1L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 3L, kernel_size = c(4L,4L),
+                                  activation = "sigmoid", strides = c(1L, 1L),
+                                  use_bias = FALSE)
 ))
 
 VAE = tf$keras$models$Model(inputs = down_size_model$inputs, 
@@ -251,10 +316,10 @@ VAE = tf$keras$models$Model(inputs = down_size_model$inputs,
 summary(VAE)
 ```
 
-
 ```{r}
 be = function(true, pred) tf$losses$binary_crossentropy(true, pred)*80.0*80.0
-VAE$compile(loss = be, optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.0003))
+VAE$compile(loss = be,
+            optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.0003))
 VAE$fit(x = train, y = train, epochs = 50L, shuffle = TRUE, batch_size = 20L)
 
 dist = down_size_model(train[1:10,,,])
@@ -281,44 +346,49 @@ scales::rescale(images[3,,,]$numpy(), to = c(0, 255)) %>%
 par(mfrow = c(1,1))
 ```
 
+  </p>
 </details>
 <br/>
 
 
-## Generative adversarial network (GANs)
-The idea of generative adversarial network (GAN) is that two neural networks contest with each other in a game. One network is creating data and is trying to "trick" the other network into thinking that the generated data is real. The generator (similar to the decoder in AEs) creates new images from noise. The discriminator is getting a mix of true (from the dataset) and artificially generated images from the generator. Thereby, the loss of the generator rises when fakes are identified as fakes by the discriminator (simple binary_crossentropy loss, 0/1...) and the loss of the discriminator rises when fakes are identified as fakes (class 1) and true images as true images (class 0), again a simple binary crossentropy.
+## Generative Adversarial Network (GANs)
 
-A possible application is to create pictures that look like real photographs (e.g. ![](https://thispersondoesnotexist.com/) ). However, the application of GANs today is much wider than just the creation of data. For example, GANs can also be used to "augment" data, i.e. to create new data and thereby improve the fitted model. 
+The idea of generative adversarial network (GAN) is that two neural networks contest with each other in a game. One network is creating data and is trying to "trick" the other network into thinking that the generated data is real. The generator (similar to the decoder in autoencoders) creates new images from noise. The discriminator is getting a mix of true (from the dataset) and artificially generated images from the generator. Thereby, the loss of the generator rises when fakes are identified as fakes by the discriminator (simple binary_crossentropy loss, 0/1...) and the loss of the discriminator rises when fakes are identified as fakes (class 1) and true images as true images (class 0), again a simple binary crossentropy.
+
+A possible application is to create pictures that look like real photographs (e.g. <a href="https://thispersondoesnotexist.com/" target="_blank" rel="noopener">https://thispersondoesnotexist.com/</a> ). However, the application of GANs today is much wider than just the creation of data. For example, GANs can also be used to "augment" data, i.e. to create new data and thereby improve the fitted model. 
 
 
+### MNIST - Generative Adversarial Networks Based on Deep Neural Networks
 
-### MNIST - GAN based on DNNs
 We will now explore this on the MNIST data set. 
 
 ```{r}
 library(keras)
 library(tensorflow)
+
 rotate = function(x) t(apply(x, 2, rev))
 imgPlot = function(img, title = ""){
  col=grey.colors(255)
- image(rotate(img), col = col, xlab = "", ylab = "", axes=FALSE, main = paste0("Label: ", as.character(title)))
+ image(rotate(img), col = col, xlab = "", ylab = "", axes = FALSE,
+       main = paste0("Label: ", as.character(title)))
 }
 ```
 
-We don't need the test set 
+We don't need the test set .
 
 ```{r}
 data = dataset_mnist()
 train = data$train
 train_x = array((train$x-127.5)/127.5, c(dim(train$x)[1], 784L))
 ```
+
 We also need a function to sample images for the discriminator.
+
 ```{r}
 batch_size = 32L
 dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
 dataset$batch(batch_size)
 ```
-
 
 Define generator model:
 
@@ -334,7 +404,9 @@ get_generator = function(){
  return(generator)
 }
 ```
+
 And we also test the generator model:
+
 ```{r}
 generator = get_generator()
 sample = tf$random$normal(c(1L, 100L))
@@ -356,7 +428,7 @@ get_discriminator = function(){
 }
 ```
 
-And also test the discriminator function
+And also test the discriminator function.
 
 ```{r}
 discriminator = get_discriminator()
@@ -383,7 +455,6 @@ loss_generator = function(fake){
 }
 ```
 
-
 Each network will get its own optimizer (in a GAN the networks are treated independently)
 
 ```{r}
@@ -393,16 +464,16 @@ disc_opt = tf$keras$optimizers$RMSprop(1e-4)
 
 We have to write here our own training loop (we cannot use the fit function). 
 In each iteration (for each batch) we will do the following (the GradientTape records computations to do automatic differenation):
-
-1. sample noise
-2. Generator creates images from the noise
-3. Discriminator will make predictions for fake images and real images (response is a probability between [0,1])
-4. Calculate loss for generator
-5. Calculate loss for discriminator
-6. Calculate gradients for weights and the loss
-7. Update weights of generator
-8. Update weights of discriminator
-9. return losses
+.
+1. Sample noise
+2. Generator creates images from the noise.
+3. Discriminator will make predictions for fake images and real images (response is a probability between [0,1]).
+4. Calculate loss for generator.
+5. Calculate loss for discriminator.
+6. Calculate gradients for weights and the loss.
+7. Update weights of generator.
+8. Update weights of discriminator.
+9. Return losses.
 
 ```{r}
 generator = get_generator()
@@ -425,14 +496,14 @@ train_step = function(images){
 }
 train_step = tf$`function`(reticulate::py_func(train_step))
 ```
-Now we can finally train our networks in a traings loop:
 
-1. Create networks
-2. get batch of images
-3. run train_step function
-4. print losses
-5. repeat step 2-4 for number of epochs
+Now we can finally train our networks in a training loop:
 
+1. Create networks.
+2. Get batch of images.
+3. Run train_step function.
+4. Print losses.
+5. Repeat step 2-4 for number of epochs.
 
 ```{r}
 batch_size = 128L
@@ -445,7 +516,6 @@ disc_loss = c()
 dataset2 = dataset
 dataset2 = dataset2$prefetch(tf$data$AUTOTUNE)
 
-
 for(e in 1:epochs) {
   dat = reticulate::as_iterator(dataset2$batch(batch_size))
   
@@ -454,27 +524,24 @@ for(e in 1:epochs) {
       gen_loss = c(gen_loss, tf$reduce_sum(losses[[1]])$numpy())
       disc_loss = c(disc_loss, tf$reduce_sum(losses[[2]])$numpy())
    })
-  
    
   if(epochs %% 5 == 0) cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
   noise = tf$random$normal(c(1L, 100L))
   if(epochs %% 10 == 0) imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
 }
-
-
 ```
 
 
-
 ### Flower - GAN
-We can now also do the same for the flower dataset, we will write this now completely in our own following the steps also done for the MNIST data set.
 
+We can now also do the same for the flower data set, we will write this now completely in our own following the steps also done for the MNIST data set.
 
 ```{r}
 library(keras)
 library(tidyverse)
 library(tensorflow)
 library(EcoData)
+
 data = EcoData::dataset_flower()
 train = (data$train-127.5)/127.5
 test = (data$test-127.5)/127.5
@@ -482,28 +549,38 @@ train_x = abind::abind(list(train, test), along = 1L)
 dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
 ```
 
-Define the generator models and test it 
+Define the generator models and test it :
 
 ```{r}
 get_generator = function(){
   generator = keras_model_sequential()
   generator %>% 
-    layer_dense(units = 20L*20L*128L, input_shape = c(100L), use_bias = FALSE) %>% 
+    layer_dense(units = 20L*20L*128L, input_shape = c(100L),
+                use_bias = FALSE) %>% 
     layer_activation_leaky_relu() %>% 
     layer_reshape(c(20L, 20L, 128L)) %>% 
     layer_dropout(0.3) %>% 
-    layer_conv_2d_transpose(filters = 256L, kernel_size = c(3L, 3L), padding = "same", strides = c(1L, 1L), use_bias = FALSE) %>% 
+    layer_conv_2d_transpose(filters = 256L, kernel_size = c(3L, 3L),
+                            padding = "same", strides = c(1L, 1L),
+                            use_bias = FALSE) %>% 
     layer_activation_leaky_relu() %>% 
     layer_dropout(0.3) %>% 
-    layer_conv_2d_transpose(filters = 128L, kernel_size = c(5L, 5L), padding = "same", strides = c(1L, 1L), use_bias = FALSE) %>% 
+    layer_conv_2d_transpose(filters = 128L, kernel_size = c(5L, 5L),
+                            padding = "same", strides = c(1L, 1L),
+                            use_bias = FALSE) %>% 
     layer_activation_leaky_relu() %>% 
     layer_dropout(0.3) %>% 
-    layer_conv_2d_transpose(filters = 64L, kernel_size = c(5L, 5L), padding = "same", strides = c(2L, 2L), use_bias = FALSE) %>%
+    layer_conv_2d_transpose(filters = 64L, kernel_size = c(5L, 5L),
+                            padding = "same", strides = c(2L, 2L),
+                            use_bias = FALSE) %>%
     layer_activation_leaky_relu() %>% 
     layer_dropout(0.3) %>% 
-    layer_conv_2d_transpose(filters =3L, kernel_size = c(5L, 5L), padding = "same", strides = c(2L, 2L), activation = "tanh", use_bias = FALSE)
+    layer_conv_2d_transpose(filters =3L, kernel_size = c(5L, 5L),
+                            padding = "same", strides = c(2L, 2L),
+                            activation = "tanh", use_bias = FALSE)
   return(generator)
 }
+
 generator = get_generator()
 image = generator(tf$random$normal(c(1L,100L)))$numpy()[1,,,]
 image = scales::rescale(image, to = c(0, 255))
@@ -514,36 +591,40 @@ image %>%
   plot()
 ```
 
-
-Define the discriminator and test it 
-
+Define the discriminator and test it:
 
 ```{r}
 get_discriminator = function(){
   discriminator = keras_model_sequential()
   discriminator %>% 
-    layer_conv_2d(filters = 64L, kernel_size = c(5L, 5L), strides = c(2L, 2L), padding = "same", input_shape = c(80L, 80L, 3L)) %>%
+    layer_conv_2d(filters = 64L, kernel_size = c(5L, 5L),
+                  strides = c(2L, 2L), padding = "same",
+                  input_shape = c(80L, 80L, 3L)) %>%
     layer_activation_leaky_relu() %>% 
     layer_dropout(0.3) %>% 
-    layer_conv_2d(filters = 128L, kernel_size = c(5L, 5L), strides = c(2L, 2L), padding = "same") %>% 
+    layer_conv_2d(filters = 128L, kernel_size = c(5L, 5L),
+                  strides = c(2L, 2L), padding = "same") %>% 
     layer_activation_leaky_relu() %>% 
     layer_dropout(0.3) %>% 
-    layer_conv_2d(filters = 256L, kernel_size = c(3L, 3L), strides = c(2L, 2L), padding = "same") %>% 
+    layer_conv_2d(filters = 256L, kernel_size = c(3L, 3L),
+                  strides = c(2L, 2L), padding = "same") %>% 
     layer_activation_leaky_relu() %>% 
     layer_dropout(0.3) %>% 
     layer_flatten() %>% 
     layer_dense(units = 1L, activation = "sigmoid")
   return(discriminator)
 }
+
 discriminator = get_discriminator()
 discriminator
 discriminator(generator(tf$random$normal(c(1L, 100L))))
 ```
 
-Defin the loss functions 
+Define the loss functions:
 
 ```{r}
-ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE,label_smoothing = 0.1)
+ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE,
+                                        label_smoothing = 0.1)
 loss_discriminator = function(real, fake){
   real_loss = ce(tf$ones_like(real), real)
   fake_loss = ce(tf$zeros_like(fake), fake)
@@ -553,12 +634,16 @@ loss_generator = function(fake){
   return(ce(tf$ones_like(fake), fake))
 }
 ```
-Define the optimizers and the batch function
+
+Define the optimizers and the batch function:
+
 ```{r}
 gen_opt = tf$keras$optimizers$RMSprop(1e-4)
 disc_opt = tf$keras$optimizers$RMSprop(1e-4)
 ```
-Define functions for the generator and discriminator 
+
+Define functions for the generator and discriminator:
+
 ```{r}
 generator = get_generator()
 discriminator = get_discriminator()
@@ -584,15 +669,14 @@ train_step = function(images){
   disc_opt$apply_gradients(purrr::transpose(list(disc_grads, discriminator$weights)))
   
   return(c(gen_loss, disc_loss))
-  
 }
+
 train_step = tf$`function`(reticulate::py_func(train_step))
 ```
 
-and do the training
+Do the training:
 
 ```{r}
-
 batch_size = 32L
 epochs = 30L
 steps = as.integer(dim(train_x)[1]/batch_size)
@@ -601,7 +685,6 @@ gen_loss = c()
 disc_loss = c()
 
 dataset = dataset$prefetch(tf$data$AUTOTUNE)
-
 
 for(e in 1:epochs) {
   dat = reticulate::as_iterator(dataset$batch(batch_size))
@@ -639,27 +722,30 @@ for(e in 1:epochs) {
 ```
 
 More images:
-```{r,echo=FALSE,out.width="150%",out.height="150%"}
-knitr::include_graphics(c("images/flower2.png", "images/flower3.png", "images/flower4.png", "images/flower5.png"))
+
+```{r, echo=FALSE,out.width="150%",out.height="150%"}
+knitr::include_graphics(c("images/flower2.png", "images/flower3.png",
+                          "images/flower4.png", "images/flower5.png"))
 ```
 
 
 ## Reinforcement learning 
 
-Objective: train a neural network capable of balancing a pole
+Objective: Train a neural network capable of balancing a pole.
 
 The environment is run on a local server, please install:
 
-* [gym](https://github.com/openai/gym-http-api){target="_blank"}
+* <a href="https://github.com/openai/gym-http-api" target="_blank" rel="noopener">gym</a>
 
-Or go through this [colab book](https://colab.research.google.com/github/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb){target="_blank"}
+Or go through this <a href="https://colab.research.google.com/github/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb" target="_blank" rel="noopener">colab book</a>.
 
-```{r,eval=FALSE}
+```{r, eval=FALSE}
 library(keras)
 library(tensorflow)
 library(gym)
-remote_base <- "http://127.0.0.1:5000"
-client <- create_GymClient(remote_base)
+
+remote_base =´ "http://127.0.0.1:5000"
+client = create_GymClient(remote_base)
 env = gym::env_create(client, "CartPole-v1")
 gym::env_list_all(client)
 env_reset(client, env)
@@ -677,67 +763,78 @@ gamma = 0.95
 epsilon = 0.95
 epsilon_min = 0.01
 epsilon_decay = 0.995
+
 model = keras_model_sequential()
 model %>% 
  layer_dense(input_shape = c(4L), units = 20L, activation = "relu") %>% 
  layer_dense(units = 20L, activation = "relu") %>% 
  layer_dense(2L, activation = "linear")
+
 model %>% 
  compile(loss = loss_mean_squared_error, optimizer = optimizer_adamax())
 
 memory = matrix(0, nrow = 8000L, 11L)
 counter = 1
+
 remember = function(memory, state, action, reward, next_state, done){
- memory[counter,] = as.numeric(c(state, action, reward, next_state, done))
- counter <<- counter+1
- return(memory)
+  memory[counter,] = as.numeric(c(state, action, reward, next_state, done))
+  counter <<- counter+1
+  return(memory)
 }
+
 # memory: state 1:4, action 5, reward 6, next_state 7:10, done 11
 act = function(state){
  if(runif(1) <= epsilon) return(sample(0:1, 1)) # 
  act_prob = predict(model, matrix(state,nrow = 1L))
  return(which.max(act_prob) -1L)
 }
+
 replay = function(batch_size = 25L, memory, counter){
- indices = sample.int(counter, batch_size)
- batch = memory[indices,,drop = FALSE]
- for(i in 1:nrow(batch)){
- target = batch[i,6] #reward
- action = batch[i,5] #action
- state = matrix(memory[i, 1:4], nrow = 1L)
- next_state = matrix(memory[i,7:10], nrow =1L)
- if(!batch[i,11]){ # not done
- target = (batch[i,6] + gamma* predict(model, matrix(next_state, nrow = 1L)))[1,1]
- } 
- target_f = predict(model, matrix(state, nrow = 1L))
- target_f[action+1L] = target
- model$fit(x = state, y = target_f, epochs = 1L, verbose = 0L)
- if(epsilon > epsilon_min){
- epsilon <<- epsilon_decay*epsilon
- }
- }
+  indices = sample.int(counter, batch_size)
+  batch = memory[indices,,drop = FALSE]
+  
+  for(i in 1:nrow(batch)){
+    target = batch[i,6] #reward
+    action = batch[i,5] #action
+    state = matrix(memory[i, 1:4], nrow = 1L)
+    next_state = matrix(memory[i,7:10], nrow =1L)
+    if(!batch[i,11]){ # not done
+      target = (batch[i,6] + gamma* predict(model,
+                                            matrix(next_state, nrow = 1L)))[1,1]
+    }
+    
+    target_f = predict(model, matrix(state, nrow = 1L))
+    target_f[action+1L] = target
+    model$fit(x = state, y = target_f, epochs = 1L, verbose = 0L)
+    
+    if(epsilon > epsilon_min){ epsilon <<- epsilon_decay*epsilon }
+  }
 }
+
 done = 0
+
 for(e in 1:100){
- state = unlist(env_reset(client, env))
- for(time in 1:500){
- action = act(state)
- response = env_step(client, env, action = action)
- done = as.integer(response$done)
- if(!done) reward = response$reward
- else reward = -10
- next_state = unlist(response$observation)
- memory = remember(memory, state, action, reward, next_state, done)
-
- state = next_state
- if(done){
- cat("episode", e/500, " score: ", time, " eps: ", epsilon, "\n")
- break()
- } 
- if(counter > 32L) 
- replay(32L, memory, counter-1L)
- }
+  state = unlist(env_reset(client, env))
+  
+  for(time in 1:500){
+    action = act(state)
+    response = env_step(client, env, action = action)
+    done = as.integer(response$done)
+    
+    if(!done){ reward = response$reward }
+    else{ reward = -10 }
+    
+    next_state = unlist(response$observation)
+    memory = remember(memory, state, action, reward, next_state, done)
+    
+    state = next_state
+    if(done){
+      cat("episode", e/500, " score: ", time, " eps: ", epsilon, "\n")
+      break()
+    }
+    
+    if(counter > 32L){ replay(32L, memory, counter-1L) }
+  }
 }
-
 ```
 
