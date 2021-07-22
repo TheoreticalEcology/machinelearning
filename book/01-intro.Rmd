@@ -166,7 +166,7 @@ A typical pipeline for using k-means clustering looks the same as for other algo
 ```{r}
 set.seed(123)
 
-#Reminder: traits = as.matrix(iris[,1:4])
+#Reminder: traits = as.matrix(iris[,1:4]).
 
 kc = kmeans(traits, 3)
 print(kc)
@@ -202,7 +202,7 @@ saveGIF(kmeans.ani(x = traits[,1:2], col = colors),
 set.seed(123)
 
 getSumSq = function(k){kmeans(traits, k, nstart=25)$tot.withinss}
-#Perform algorithm for different cluster sizes and retrieve variance
+#Perform algorithm for different cluster sizes and retrieve variance.
 iris.kmeans1to10 = sapply(1:10, getSumSq)
 plot(1:10, iris.kmeans1to10, type="b", pch = 19, frame = FALSE, 
      xlab="Number of clusters K",
@@ -222,10 +222,10 @@ This is a very general description as there are many ways to do so.
 ```{r}
 set.seed(123)
 
-#Reminder: traits = as.matrix(iris[,1:4])
+#Reminder: traits = as.matrix(iris[,1:4]).
 
 library(dbscan)
-kNNdistplot(traits, k =  4)   #Calculate and plot k-nearest-neighbor distances
+kNNdistplot(traits, k =  4)   #Calculate and plot k-nearest-neighbor distances.
 abline(h = 0.4, lty = 2)
 
 dc = dbscan(traits, eps = 0.4, minPts = 6)
@@ -253,14 +253,14 @@ library(mclust)
 mb = Mclust(traits)
 ```
 
-Mclust automatically compares a number of candidate models (#clusters, shape) according to BIC. We can look at the selected model via
+Mclust automatically compares a number of candidate models (clusters, shape) according to BIC. We can look at the selected model via
   
 ```{r}
-mb$G # two clusters
-mb$modelName # > ellipsoidal, equal shape
+mb$G # Two clusters.
+mb$modelName # > Ellipsoidal, equal shape.
 ```
   
-We see that the algorithm prefers to have 2 clusters. For better comparability to the other 2 methods, we will overrule this by setting:
+We see that the algorithm prefers having 2 clusters. For better comparability to the other 2 methods, we will override this by setting:
     
 ```{r}
 mb3 = Mclust(traits, 3)
@@ -319,14 +319,16 @@ The random forest (RF) algorithm is possibly the most widely used machine learni
 
 For the moment, we want to go through a typical workflow for a supervised regression: First, we visualize the data. Next, we fit the model and lastly we visualize the results. We will again use the iris data set that we used before. The goal is now to predict Sepal.Length based on the information about the other variables (including species). 
 
-Fitting the model
+Fitting the model:
 
 ```{r, results='hide', message=FALSE, warning=FALSE}
 library(randomForest)
 ```
 
 ```{r}
-m1 = randomForest(Sepal.Length ~ ., data = iris)   # ~.: against all others
+set.seed(123)
+
+m1 = randomForest(Sepal.Length ~ ., data = iris)   # ~.: Against all others.
 # str(m1)
 # m1$type
 # predict(m1)
@@ -336,10 +338,10 @@ print(m1)
 Visualization of the results:
 
 ```{r}
-par(mfrow = c(1,2))
+par(mfrow = c(1, 2))
 plot(predict(m1), iris$Sepal.Length,
      xlab = "Predicted", ylab = "Observed")
-abline(0,1)
+abline(0, 1)
 varImpPlot(m1)
 ```
 
@@ -447,7 +449,7 @@ To get started with TensorFlow, we have to load the library and check if the ins
 
 ```{r}
 library(tensorflow)
-# Don't worry about weird messages. TensorFlow supports additional optimizations
+# Don't worry about weird messages. TensorFlow supports additional optimizations.
 exists("tf")
 ```
 
@@ -477,7 +479,7 @@ tf$print(a+b)
 Their operators also automatically transform R numbers into constant tensors when attempting to add a tensor to an R number:
 
 ```{r}
-d = c + 5  # 5 is automatically converted to a tensor
+d = c + 5  # 5 is automatically converted to a tensor.
 print(d)
 ```
 
@@ -514,7 +516,7 @@ But let us see in practice what we have to do with these types and how to specif
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = "float32") 
 b = tf$constant(2.0, dtype = "float64")
-c = m / b # doesn't work! we try to divide float32/float64
+c = m / b # Doesn't work! we try to divide float32/float64.
 ```
 
 So what went wrong here: we tried to divide a float32 by a float64 number, but we can only divide numbers of the same type!
@@ -523,13 +525,13 @@ So what went wrong here: we tried to divide a float32 by a float64 number, but w
 r_matrix = matrix(runif(10*10), 10,10)
 m = tf$constant(r_matrix, dtype = "float64")
 b = tf$constant(2.0, dtype = "float64")
-c = m / b # now it works
+c = m / b # Now it works.
 ```
 
 We can also specify the type of the object by providing an object e.g. tf$float64.
 
 ```{r}
-r_matrix = matrix(runif(10*10), 10,10)
+r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = tf$float64)
 ```
 
@@ -593,7 +595,7 @@ print(a*b)
 Their operators also automatically transfrom R numbers into tensors when attempting to add a tensor to a R number:
 
 ```{r}
-d = a + 5  # 5 is automatically converted to a tensor
+d = a + 5  # 5 is automatically converted to a tensor.
 print(d)
 ```
 
@@ -659,7 +661,7 @@ To do so, we have to specify the number of categories. This can be tricky for a 
 
 ```{r, cache=TRUE}
 Y = to_categorical(as.integer(Y)-1L, 3)
-head(Y) # 3 colums, one for each level of the response
+head(Y) # 3 colums, one for each level of the response.
 ```
 
 After having prepared the data, we will now see a typical workflow to specify a model in Keras. 
@@ -740,6 +742,8 @@ optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 **4. Fit model in 30 iterations (epochs)**
     
 ```{r, cache=TRUE}
+set.seed(123)
+
 model_history =
   model %>%
     fit(x = X, y = apply(Y, 2, as.integer), epochs = 30L,
@@ -762,7 +766,9 @@ model_history =
     6. Go to step 1 and repeat.
     
 ```{r}
-# Calculate number of training steps
+set.seed(123)
+
+# Calculate number of training steps.
 epochs = 30
 batch_size = 20
 steps = round(nrow(X)/batch_size*epochs)
@@ -770,24 +776,24 @@ steps = round(nrow(X)/batch_size*epochs)
 X_torch = torch_tensor(X)
 Y_torch = torch_tensor(apply(Y, 1, which.max)) 
 
-# set model into training status
+# Set model into training status.
 model_torch$train()
 
 log_losses = NULL
 
-# training loop
+# Training loop.
 for(i in 1:steps){
-  # get batch
+  # Get batch.
   indices = sample.int(nrow(X), batch_size)
   
-  # reset backpropagation
+  # Reset backpropagation.
   optimizer_torch$zero_grad()
   
-  # predict and calculate loss
+  # Predict and calculate loss.
   pred = model_torch(X_torch[indices, ])
   loss = nnf_cross_entropy(pred, Y_torch[indices])
   
-  # backpropagate and weight update
+  # Backpropagation and weight update.
   loss$backward()
   optimizer_torch$step()
   
@@ -823,13 +829,13 @@ plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
 **6. Create predictions:**
 
 ```{r, cache=TRUE}
-predictions = predict(model, X) # probabilities for each class
+predictions = predict(model, X) # Probabilities for each class.
 ```
   
 Get probabilities:
 
 ```{r, cache=TRUE}
-head(predictions) # quasi-probabilities for each species
+head(predictions) # Quasi-probabilities for each species.
 ```
   
 For each plant, we want to know for which species we got the highest probability:

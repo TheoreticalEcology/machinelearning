@@ -32,6 +32,7 @@ cat(
 #### Small Optimization Example
 
 As an easy example for an optimization we can think of a quadratic function:
+
 ```{r}
 func = function(x) return(x^2)
 ```
@@ -39,6 +40,8 @@ func = function(x) return(x^2)
 This function is so easy, we can randomly probe it and identify the optimum by plotting.
 
 ```{r}
+set.seed(123)
+
 a = rnorm(100)
 plot(a, func(a))
 ```
@@ -48,6 +51,8 @@ The minimal value is at $x = 0$ (to be honest, we can calculate this analyticall
 We can also use an optimizer with the optim-function (the first argument is the starting value):
 
 ```{r}
+set.seed(123)
+
 opt = optim(1.0, func)
 print(opt$par)
 ```
@@ -55,7 +60,7 @@ print(opt$par)
 opt$par will return the best values found by the optimizer, which is really close to zero :)
 
 
-#### Advanced Optimization Example
+### Advanced Optimization Example
 
 Optimization is also done when fitting a linear regression model. Thereby, we optimize the weights (intercept and slope). Just using lm(y~x) is too simple. We want to do this by hand to also better understand what optimization is and how it works.
 
@@ -82,13 +87,14 @@ linear_regression = function(w){
          w[5]*X[,5] +
          w[6]         # or X * w[1:5]^T + w[6]
   # loss  = MSE, we want to find the optimal weights 
-  # to minimize the sum of squared residuals
+  # to minimize the sum of squared residuals.
   loss = mean((pred - Y)^2)
   return(loss)
 }
 ```
 
 For example we can sample some weights and see how the loss changes with this weights.
+
 ```{r}
 set.seed(123)
 
@@ -165,10 +171,12 @@ We can implement the linear regression also in Keras, when we do not specify any
 
 ```{r, cache=TRUE}
 library(keras)
+set.seed(123)
+
 data = airquality[complete.cases(airquality),]
 X = scale(data[,-1])
 Y = data$Ozone
-# l1/l2 on linear model
+# l1/l2 on linear model.
 
 model = keras_model_sequential()
 model %>%
@@ -196,6 +204,8 @@ coef(lm(Y~X))
   
 ```{r}
 library(torch)
+set.seed(123)
+
 model_torch = nn_sequential(
   nn_linear(in_features = dim(X)[2], out_features = 1L)
 )
@@ -223,6 +233,8 @@ TensorFlow and thus Keras also allows use to use LASSO and ridge on the weights.
 Lets see what happens when we put an l1 (LASSO) regularization on the weights:
 
 ```{r, cache=TRUE}
+set.seed(123)
+
 model = keras_model_sequential()
 model %>% # Remind the penalty lambda that is set to 10 here.
   layer_dense(units = 1L, activation = "linear", input_shape = list(dim(X)[2]), 
@@ -255,6 +267,8 @@ One can clearly see that parameters are pulled towards zero because of the regul
     In Torch, we have to specify the regularization on our own when calculating the loss.
     
 ```{r}
+set.seed(123)
+
 model_torch = nn_sequential(
   nn_linear(in_features = dim(X)[2], out_features = 1L)
 )
@@ -343,9 +357,9 @@ Applying the random forest follows the same principle as for the methods before:
 Fit a random forest and visualize the predictions:
 
 ```{r}
+library(randomForest)
 set.seed(123)
 
-library(randomForest)
 rf = randomForest(Ozone~., data = data)
 pred = predict(rf, data)
 plot(Ozone~Temp, data = data)
@@ -392,7 +406,7 @@ The parameter "nrounds" controls how many sequential trees we fit, in our exampl
 Let us visualize the predictions for different numbers of trees:
 
 ```{r BRT2, cache=TRUE}
-par(mfrow = c(2,2))
+par(mfrow = c(2, 2))
 for(i in 1:4){
   pred = predict(brt, newdata = data_xg, ntreelimit = i)
   plot(data$Temp, data$Ozone, main = i)
@@ -462,9 +476,9 @@ test = data[-indices,]
 Fit model and create predictions:
 
 ```{r}
+library(kknn)
 set.seed(123)
 
-library(kknn)
 knn = kknn(Species~., train = train, test = test)
 summary(knn)
 table(test$Species, fitted(knn))
@@ -479,6 +493,7 @@ Fitting a support-vector machine:
 
 ```{r}
 library(e1071)
+
 data = iris
 data[,1:4] = apply(data[,1:4], 2, scale)
 indices = sample.int(nrow(data), 0.7*nrow(data))
@@ -497,7 +512,7 @@ plot(test$Sepal.Length, test$Petal.Length,
      col =  test$Species, main = "observed")
 par(oldpar)
 
-mean(pred == test$Species) # accuracy
+mean(pred == test$Species) # Accuracy.
 ```
 
 Support-vector machines can only work on linearly separable problems. (A problem is called linearly separable if there exists at least one line in the plane with all of the points of one class on one side of the hyperplane and all the points of the others classes on the other side).
@@ -543,9 +558,11 @@ Now, we will come to artificial neural networks (ANNs), for which the topic of r
 
 ```{r}
 library(keras)
+set.seed(123)
+
 data = airquality
 summary(data)
-data = data[complete.cases(data),] # remove NAs
+data = data[complete.cases(data),] # Remove NAs.
 summary(data)
 
 X = scale(data[,2:6])
@@ -561,7 +578,7 @@ model %>%
              kernel_regularizer = regularizer_l1(penalty) ) %>%
   layer_dense(units = 100L, activation = "relu",
              kernel_regularizer = regularizer_l1(penalty)) %>%
- # one output dimension with a linear activation function
+ # One output dimension with a linear activation function.
   layer_dense(units = 1L, activation = "linear",
              kernel_regularizer = regularizer_l1(penalty))
 
@@ -589,6 +606,8 @@ fields::image.plot(weights[[1]])
     Again, we have to do the regularization on our own:
 
 ```{r}
+set.seed(123)
+
 model_torch = nn_sequential(
   nn_linear(in_features = dim(X)[2], out_features = 100L),
   nn_relu(),
@@ -858,6 +877,8 @@ What is the difference between the two splits? (Tip: have a look at the variable
 In the next step we will fit a Keras model on the training data of the inner split:
 
 ```{r}
+set.seed(123)
+
 model = keras_model_sequential()
 model %>%
   layer_dense(units = 20L, input_shape = ncol(sub_train) - 1L,
@@ -879,7 +900,7 @@ model_history =
     fit(x = as.matrix(sub_train[,-1]),
         y = to_categorical(sub_train[,1], num_classes = 2L),
         epochs = 100L, batch_size = 32L,
-        validation_split = 0.2,   #Again a test set used by the algorithm
+        validation_split = 0.2,   #Again a test set used by the algorithm.
         shuffle = TRUE)
 
 plot(model_history)
@@ -892,6 +913,8 @@ plot(model_history)
   <p>
   
 ```{r}
+set.seed(123)
+
 model_torch = nn_sequential(
   nn_linear(in_features = dim(sub_train[,-1])[2], out_features = 20L),
   nn_relu(),
@@ -932,7 +955,7 @@ preds =
 
 predicted = ifelse(preds[,2] < 0.5, 0, 1) #Ternary operator.
 observed = sub_test[,1]
-(accuracy = mean(predicted == observed))  #(...): show output.
+(accuracy = mean(predicted == observed))  #(...): Show output.
 ```
 
 <details>
@@ -1027,7 +1050,7 @@ data = nasa %>% select(-Orbit.Determination.Date,
                        -Close.Approach.Date, -Name, -Neo.Reference.ID)
 data$Hazardous = as.factor(data$Hazardous)
 
-# Create a classification task
+# Create a classification task.
 task = TaskClassif$new(id = "nasa", backend = data,
                        target = "Hazardous", positive = "1")
 ```
@@ -1035,10 +1058,12 @@ task = TaskClassif$new(id = "nasa", backend = data,
 Create a generic pipeline of data transformation (imputation $\rightarrow$ scaling $\rightarrow$ encoding of categorical variables):
 
 ```{r}
-# Let's create the preprocessing graph
+set.seed(123)
+
+# Let's create the preprocessing graph.
 preprocessing = po("imputeoor") %>>% po("scale") %>>% po("encode") 
 
-# Run the task
+# Run the task.
 transformed_task = preprocessing$train(task)[[1]]
 
 transformed_task$missings()
@@ -1057,6 +1082,8 @@ Now, to test our model (random forest) 10-fold cross-validated, we will do:
 * Run (benchmark) our model.
 
 ```{r mlr1}
+set.seed(123)
+
 transformed_task$data()
 transformed_task$set_row_roles((1:nrow(data))[is.na(data$Hazardous)],
                                "validation")
@@ -1070,7 +1097,7 @@ measurement =  msr("classif.auc")
 result = mlr3::resample(transformed_task,
                         rf, resampling = cv10, store_models = TRUE)
 
-# Calculate the average AUC of the holdouts
+# Calculate the average AUC of the holdouts.
 result$aggregate(measurement)
 ```
 
@@ -1129,6 +1156,7 @@ Define the hyper-parameter space of the random forest:
 
 ```{r mlr3}
 library(paradox)
+
 rf_pars = 
     paradox::ParamSet$new(
       list(paradox::ParamInt$new("min.node.size", lower = 1, upper = 30L),
@@ -1145,6 +1173,8 @@ To set up the tuning pipeline we need:
 * Tuning terminator (When should we stop tuning? E.g. after $n$ iterations).
 
 ```{r mlr4}
+set.seed(123)
+
 inner3 = mlr3::rsmp("cv", folds = 3L)
 measurement =  msr("classif.auc")
 tuner =  mlr3tuning::tnr("random_search") 
@@ -1163,10 +1193,12 @@ print(learner_tuner)
 Now we can wrap it normally into the 10-fold cross-validated setup as done previously:
 
 ```{r, eval=FALSE}
+set.seed(123)
+
 outer3 = mlr3::rsmp("cv", folds = 3L)
 result = mlr3::resample(transformed_task, learner_tuner, resampling = outer3, store_models = TRUE)
 
-# Calculate the average AUC of the holdouts
+# Calculate the average AUC of the holdouts.
 result$aggregate(measurement)
 ```
 
@@ -1202,6 +1234,8 @@ There are few techniques to correct for imbalance:
 Here, we will use oversampling which we can do by extending our random forest learner:
 
 ```{r}
+set.seed(123)
+
 rf_over = po("classbalancing", id = "over", adjust = "minor") %>>%rf
 
 # However rf_over is now a "graph",
@@ -1219,6 +1253,8 @@ rf_over_learner$param_set
 We can also tune the oversampling rate!
 
 ```{r}
+set.seed(123)
+
 rf_pars_over = 
     paradox::ParamSet$new(
       list(paradox::ParamInt$new("over.ratio", lower = 1, upper = 7L),
@@ -1244,11 +1280,13 @@ print(learner_tuner)
 ```
 
 ```{r, eval=FALSE}
+set.seed(123)
+
 outer3 = mlr3::rsmp("cv", folds = 3L)
 result = mlr3::resample(transformed_task, learner_tuner_over
                         resampling = outer3, store_models = TRUE)
 
-# Calculate the average AUC of the holdouts
+# Calculate the average AUC of the holdouts.
 result$aggregate(measurement)
 ```
 

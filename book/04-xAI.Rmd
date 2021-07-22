@@ -12,10 +12,10 @@ In this lecture we will work with another famous data set, the Boston housing da
 We will fit a random forest and use the iml package for xAI, see <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>.
 
 ```{r}
-set.seed(123)
-
 library(iml)
 library(randomForest)
+set.seed(123)
+
 data("Boston", package = "MASS")
 rf = randomForest(medv ~ ., data = Boston, ntree = 50)
 ```
@@ -44,14 +44,16 @@ plot(imp)
 Partial dependencies are similar to allEffects plots for normal regressions, the idea is to visualize "marginal effects" of predictors (with the feature argument we specify the variable we want to visualize):
 
 ```{r}
-eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp", grid.size = 30)
+eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp",
+                        grid.size = 30)
 plot(eff)
 ```
 
 Partial dependencies can be also plotted for single observations:
 
 ```{r}
-eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp+ice", grid.size = 30)
+eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp+ice",
+                        grid.size = 30)
 plot(eff)
 ```
 
@@ -132,13 +134,17 @@ Here an example for the variable importance indicators in the random forest algo
 We first simulate a data set with 2 predictors that are strongly correlated, but only one of them has an effect on the response.
 
 ```{r}
-# simulation parameters
+set.seed(123)
+
+# Simulation parameters.
 n = 1000
 col = 0.7
-# create collinear predictors
+
+# Create collinear predictors.
 x1 = runif(n)
 x2 = col * x1 + (1-col) * runif(n)
-# response is only influenced by x1
+
+# Response is only influenced by x1.
 y = x1 + rnorm(n)
 ```
 
@@ -151,7 +157,9 @@ summary(lm(y ~ x1 + x2))
 Fit random forest and show variable importance:
 
 ```{r}
-fit <- randomForest(y ~ x1 + x2, importance = TRUE)
+set.seed(123)
+
+fit = randomForest(y ~ x1 + x2, importance = TRUE)
 varImpPlot(fit)
 ```
 
@@ -171,7 +179,8 @@ If causal relationships get more complicated, it will not be possible to adjust 
 ```{r}
 library(piecewiseSEM)
 mod = psem(
- lm(rich ~ distance + elev + abiotic + age + hetero + firesev + cover, data = keeley),
+ lm(rich ~ distance + elev + abiotic + age + hetero + firesev + cover,
+    data = keeley),
  lm(firesev ~ elev + age + cover, data = keeley),
  lm(cover ~ age + elev + hetero + abiotic, data = keeley)
 )
@@ -183,17 +192,16 @@ For linear structural equation models, we can estimate the entire directed acycl
 
 ```{r}
 library(lavaan)
-mod <- "
+mod = "
  rich ~ distance + elev + abiotic + age + hetero + firesev + cover
  firesev ~ elev + age + cover
  cover ~ age + elev + abiotic
 "
-fit<-sem(mod,data=keeley)
+fit = sem(mod, data = keeley)
 summary(fit)
 ```
 
-
-The default Plot options are not so nice as before
+The default plot options are not so nice as before.
 
 ```{r}
 # devtools::install_version("lavaanPlot", version = "0.6.0")
@@ -214,7 +222,7 @@ semPaths(fit)
 But how to get the causal graph? In statistics, it is common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the PC algorithm. Here an example using the pcalg package:
 
 ```{r}
-# Bioconductor dependencies have to installed by hand, e.g. 
+# Bioconductor dependencies have to be installed by hand, e.g. 
 # BiocManager::install(c("Rgraphviz", "graph", "RBGL")
 library(pcalg)
 ```
@@ -222,15 +230,15 @@ library(pcalg)
 Loading the data:
 
 ```{r}
-data("gmG", package = "pcalg") ## loads data sets gmG and gmG8
-suffStat <- list(C = cor(gmG8$x), n = nrow(gmG8$x))
-varNames <- gmG8$g@nodes
+data("gmG", package = "pcalg") ## Loads data sets gmG and gmG8.
+suffStat = list(C = cor(gmG8$x), n = nrow(gmG8$x))
+varNames = gmG8$g@nodes
 ```
 
 First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph).
 
 ```{r}
-skel.gmG8 <- skeleton(suffStat, indepTest = gaussCItest,
+skel.gmG8 = skeleton(suffStat, indepTest = gaussCItest,
 labels = varNames, alpha = 0.01)
 Rgraphviz::plot(skel.gmG8)
 ```
@@ -238,7 +246,7 @@ Rgraphviz::plot(skel.gmG8)
 What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.
 
 ```{r}
-pc.gmG8 <- pc(suffStat, indepTest = gaussCItest,
+pc.gmG8 = pc(suffStat, indepTest = gaussCItest,
 labels = varNames, alpha = 0.01)
 Rgraphviz::plot(pc.gmG8 )
 ```

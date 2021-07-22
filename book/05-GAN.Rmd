@@ -17,9 +17,9 @@ We now will write an autoencoder for the MNIST data set.
 Let's start with the (usual) MNIST example:
 
 ```{r, include=FALSE}
-try({ detach("package:torch", unload=TRUE) }, silent = TRUE)
-try({ detach("package:torchvision", unload=TRUE) }, silent = TRUE)
-try({ detach("package:mlr3", unload=TRUE) }, silent = TRUE)
+try({ detach("package:torch", unload = TRUE) }, silent = TRUE)
+try({ detach("package:torchvision", unload = TRUE) }, silent = TRUE)
+try({ detach("package:mlr3", unload = TRUE) }, silent = TRUE)
 ```
 
 ```{r}
@@ -30,15 +30,17 @@ data = keras::dataset_mnist()
 data = keras::dataset_mnist()
 ```
 
-We don't need here the labels, our images will be the inputs and at the same time the outputs of our final autoencoder
+We don't need the labels here, our images will be the inputs and at the same time the outputs of our final autoencoder.
 
 ```{r}
-rotate = function(x) t(apply(x, 2, rev))
+rotate = function(x){ t(apply(x, 2, rev)) }
+
 imgPlot = function(img, title = ""){
  col=grey.colors(255)
  image(rotate(img), col = col, xlab = "", ylab = "", axes=FALSE,
        main = paste0("Label: ", as.character(title)))
 }
+
 train = data[[1]]
 test = data[[2]]
 train_x = array(train[[1]]/255, c(dim(train[[1]])[1], 784L))
@@ -75,7 +77,7 @@ autoencoder$compile(loss = loss_binary_crossentropy,
 summary(autoencoder)
 ```
 
-WE will now show an example of an image before and after the unfitted autoencoder, so we see that we have to train the autoencoder.
+We will now show an example of an image before and after the unfitted autoencoder, so we see that we have to train the autoencoder.
 
 ```{r AEmnistoutput}
 image = autoencoder(train_x[1,,drop = FALSE])
@@ -87,6 +89,8 @@ imgPlot(array(image$numpy(), c(28, 28)))
 Fit the autoencoder (inputs == outputs!):
 
 ```{r AEmnistfit}
+set.seed(123)
+
 autoencoder %>% 
   fit(x = train_x, y = train_x, epochs = 5L, batch_size = 128L)
 ```
@@ -120,7 +124,7 @@ Then define the downsize model:
 ```{r AEmnistCNN}
 down_size_model = keras_model_sequential()
 down_size_model %>% 
- layer_conv_2d(filters = 32L, activation = "relu", kernel_size = c(2L,2L), 
+ layer_conv_2d(filters = 32L, activation = "relu", kernel_size = c(2L, 2L), 
                           input_shape = c(28L, 28L, 1L),
                strides = c(4L, 4L)) %>% 
  layer_conv_2d(filters = 16L, activation = "relu", 
@@ -137,9 +141,9 @@ up_size_model %>%
  layer_dense(units = 8L, activation = "relu", input_shape = c(2L)) %>% 
  layer_reshape(target_shape = c(1L, 1L, 8L)) %>% 
  layer_conv_2d_transpose(filters = 16L, kernel_size = c(7,7),
-                         activation = "relu", strides = c(1L,1L)) %>% 
+                         activation = "relu", strides = c(1L, 1L)) %>% 
  layer_conv_2d_transpose(filters = 32L, activation = "relu",
-                         kernel_size = c(2,2), strides = c(4L,4L)) %>% 
+                         kernel_size = c(2,2), strides = c(4L, 4L)) %>% 
  layer_conv_2d(filters = 1, kernel_size = c(1L, 1L),
                strides = c(1L, 1L), activation = "sigmoid")
 ```
@@ -147,6 +151,8 @@ up_size_model %>%
 Combine the two models and fit it:
 
 ```{r}
+set.seed(123)
+
 autoencoder = tf$keras$models$Model(inputs = down_size_model$input,
                                     outputs = up_size_model(down_size_model$output))
 autoencoder$compile(loss = loss_binary_crossentropy,
@@ -163,7 +169,7 @@ reconstr_pred = autoencoder(tf$constant(test_x, "float32"))
 imgPlot(reconstr_pred[10,,,]$numpy()[,,1])
 plot(pred_dim[,1]$numpy(), pred_dim[,2]$numpy(), col = test[[2]]+1L)
 ## Generate new images!
-new = matrix(c(10,10), 1, 2)
+new = matrix(c(10, 10), 1, 2)
 imgPlot(array(up_size_model(new)$numpy(), c(28L, 28L)))
 ```
 
@@ -172,11 +178,12 @@ imgPlot(array(up_size_model(new)$numpy(), c(28L, 28L)))
 
 The difference between a variational and a normal autoencoder is that a variational autoencoder assumes a distribution for the latent variables.
 
-To do so we will use TensorFlow probability, but first, weneed to split the data again.
+To do so we will use TensorFlow probability, but first, we need to split the data again.
 
 ```{r}
 # install.packages("tfprobability")
 library(tfprobability)
+
 data = tf$keras$datasets$mnist$load_data()
 train = data[[1]]
 train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L))
@@ -227,6 +234,8 @@ VAE = keras_model(inputs = down_size_model$inputs,
 Compile and fit model:
 
 ```{r}
+set.seed(123)
+
 loss_binary = function(true, pred){
   loss_binary_crossentropy(true, pred)*28.0*28.0
   }
@@ -272,15 +281,15 @@ prior = tfp$distributions$Independent(tfp$distributions$Normal(loc=tf$zeros(enco
 down_size_model = tf$keras$models$Sequential(list(
   tf$keras$layers$InputLayer(input_shape = c(80L, 80L, 3L)),
   tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu,
-                         kernel_size = 5L, strides =1L),
+                         kernel_size = 5L, strides = 1L),
   tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu,
-                         kernel_size = 5L, strides =2L),
+                         kernel_size = 5L, strides = 2L),
   tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu,
-                         kernel_size = 5L, strides =1L),
+                         kernel_size = 5L, strides = 1L),
   tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu,
-                         kernel_size = 5L, strides =2L),
+                         kernel_size = 5L, strides = 2L),
   tf$keras$layers$Conv2D(filters = 128L, activation = tf$nn$leaky_relu,
-                         kernel_size = 7L, strides =1L),
+                         kernel_size = 7L, strides = 1L),
   tf$keras$layers$Flatten(),
   tf$keras$layers$Dense(units = tfp$layers$MultivariateNormalTriL$params_size(encoded),
                         activation = NULL),
@@ -316,7 +325,11 @@ VAE = tf$keras$models$Model(inputs = down_size_model$inputs,
 summary(VAE)
 ```
 
+Compile and train model:
+
 ```{r}
+set.seed(123)
+
 be = function(true, pred) tf$losses$binary_crossentropy(true, pred)*80.0*80.0
 VAE$compile(loss = be,
             optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.0003))
@@ -368,13 +381,13 @@ library(tensorflow)
 
 rotate = function(x) t(apply(x, 2, rev))
 imgPlot = function(img, title = ""){
- col=grey.colors(255)
+ col = grey.colors(255)
  image(rotate(img), col = col, xlab = "", ylab = "", axes = FALSE,
        main = paste0("Label: ", as.character(title)))
 }
 ```
 
-We don't need the test set .
+We don't need the test set here.
 
 ```{r}
 data = dataset_mnist()
@@ -450,6 +463,7 @@ loss_discriminator = function(real, fake){
  fake_loss = ce(tf$zeros_like(fake), fake)
  return(real_loss+fake_loss)
 }
+
 loss_generator = function(fake){
  return(ce(tf$ones_like(fake), fake))
 }
@@ -464,8 +478,8 @@ disc_opt = tf$keras$optimizers$RMSprop(1e-4)
 
 We have to write here our own training loop (we cannot use the fit function). 
 In each iteration (for each batch) we will do the following (the GradientTape records computations to do automatic differenation):
-.
-1. Sample noise
+
+1. Sample noise.
 2. Generator creates images from the noise.
 3. Discriminator will make predictions for fake images and real images (response is a probability between [0,1]).
 4. Calculate loss for generator.
@@ -478,15 +492,19 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 ```{r}
 generator = get_generator()
 discriminator = get_discriminator()
+
 train_step = function(images){
  noise = tf$random$normal(c(128L, 100L))
- with(tf$GradientTape(persistent = TRUE) %as% tape,{
-   gen_images = generator(noise)
-   fake_output = discriminator(gen_images)
-   real_output = discriminator(images)
-   gen_loss = loss_generator(fake_output)
-   disc_loss = loss_discriminator(real_output, fake_output)
- })
+ with(tf$GradientTape(persistent = TRUE) %as% tape,
+      {
+       gen_images = generator(noise)
+       fake_output = discriminator(gen_images)
+       real_output = discriminator(images)
+       gen_loss = loss_generator(fake_output)
+       disc_loss = loss_discriminator(real_output, fake_output)
+     }
+ )
+ 
  gen_grads = tape$gradient(gen_loss, generator$weights)
  disc_grads = tape$gradient(disc_loss, discriminator$weights)
  rm(tape)
@@ -494,6 +512,7 @@ train_step = function(images){
  disc_opt$apply_gradients(purrr::transpose(list(disc_grads, discriminator$weights)))
  return(c(gen_loss, disc_loss))
 }
+
 train_step = tf$`function`(reticulate::py_func(train_step))
 ```
 
@@ -506,6 +525,8 @@ Now we can finally train our networks in a training loop:
 5. Repeat step 2-4 for number of epochs.
 
 ```{r}
+set.seed(123)
+
 batch_size = 128L
 epochs = 20L
 steps = as.integer(nrow(train_x)/batch_size)
@@ -525,9 +546,11 @@ for(e in 1:epochs) {
       disc_loss = c(disc_loss, tf$reduce_sum(losses[[2]])$numpy())
    })
    
-  if(epochs %% 5 == 0) cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
+  if(epochs %% 5 == 0) cat("Gen: ", mean(gen_loss), " Disc: ",
+                           mean(disc_loss), " \n")
   noise = tf$random$normal(c(1L, 100L))
-  if(epochs %% 10 == 0) imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
+  if(epochs %% 10 == 0) imgPlot(array(generator(noise)$numpy(),
+                                      c(28L, 28L)), "Gen")
 }
 ```
 
@@ -549,9 +572,11 @@ train_x = abind::abind(list(train, test), along = 1L)
 dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
 ```
 
-Define the generator models and test it :
+Define the generator models and test it:
 
 ```{r}
+set.seed(123)
+
 get_generator = function(){
   generator = keras_model_sequential()
   generator %>% 
@@ -594,6 +619,8 @@ image %>%
 Define the discriminator and test it:
 
 ```{r}
+set.seed(123)
+
 get_discriminator = function(){
   discriminator = keras_model_sequential()
   discriminator %>% 
@@ -625,11 +652,13 @@ Define the loss functions:
 ```{r}
 ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE,
                                         label_smoothing = 0.1)
+
 loss_discriminator = function(real, fake){
   real_loss = ce(tf$ones_like(real), real)
   fake_loss = ce(tf$zeros_like(fake), fake)
   return(real_loss+fake_loss)
 }
+
 loss_generator = function(fake){
   return(ce(tf$ones_like(fake), fake))
 }
@@ -665,8 +694,10 @@ train_step = function(images){
   disc_grads = tape$gradient(disc_loss, discriminator$weights)
   rm(tape)
   
-  gen_opt$apply_gradients(purrr::transpose(list(gen_grads, generator$weights)))
-  disc_opt$apply_gradients(purrr::transpose(list(disc_grads, discriminator$weights)))
+  gen_opt$apply_gradients(purrr::transpose(list(gen_grads,
+                                                generator$weights)))
+  disc_opt$apply_gradients(purrr::transpose(list(disc_grads,
+                                                 discriminator$weights)))
   
   return(c(gen_loss, disc_loss))
 }
@@ -677,6 +708,8 @@ train_step = tf$`function`(reticulate::py_func(train_step))
 Do the training:
 
 ```{r}
+set.seed(123)
+
 batch_size = 32L
 epochs = 30L
 steps = as.integer(dim(train_x)[1]/batch_size)
@@ -711,14 +744,16 @@ for(e in 1:epochs) {
 ```
 
 ```{r}
-  noise = tf$random$normal(c(1L, 100L))
-  image = generator(noise)$numpy()[1,,,]
-  image = scales::rescale(image, to = c(0, 255))
-  image %>% 
-    image_to_array() %>%
-    `/`(., 255) %>%
-    as.raster() %>%
-    plot()
+set.seed(123)
+
+noise = tf$random$normal(c(1L, 100L))
+image = generator(noise)$numpy()[1,,,]
+image = scales::rescale(image, to = c(0, 255))
+image %>% 
+  image_to_array() %>%
+  `/`(., 255) %>%
+  as.raster() %>%
+  plot()
 ```
 
 More images:
@@ -749,7 +784,7 @@ client = create_GymClient(remote_base)
 env = gym::env_create(client, "CartPole-v1")
 gym::env_list_all(client)
 env_reset(client, env)
-#action = env_action_space_sample(client, env)
+# action = env_action_space_sample(client, env)
 step = env_step(client, env, 1)
 
 env_reset(client, env)
@@ -784,7 +819,7 @@ remember = function(memory, state, action, reward, next_state, done){
 
 # memory: state 1:4, action 5, reward 6, next_state 7:10, done 11
 act = function(state){
- if(runif(1) <= epsilon) return(sample(0:1, 1)) # 
+ if(runif(1) <= epsilon){ return(sample(0:1, 1)) }
  act_prob = predict(model, matrix(state,nrow = 1L))
  return(which.max(act_prob) -1L)
 }
@@ -794,11 +829,11 @@ replay = function(batch_size = 25L, memory, counter){
   batch = memory[indices,,drop = FALSE]
   
   for(i in 1:nrow(batch)){
-    target = batch[i,6] #reward
-    action = batch[i,5] #action
+    target = batch[i,6] # Reward.
+    action = batch[i,5] # Action.
     state = matrix(memory[i, 1:4], nrow = 1L)
     next_state = matrix(memory[i,7:10], nrow =1L)
-    if(!batch[i,11]){ # not done
+    if(!batch[i,11]){ # Not done.
       target = (batch[i,6] + gamma* predict(model,
                                             matrix(next_state, nrow = 1L)))[1,1]
     }
