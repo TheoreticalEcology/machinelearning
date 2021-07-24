@@ -1,0 +1,5 @@
+source("book/dependencies.R")
+install.packages("keras")
+keras::install_keras()
+install.packages("torch")
+torch::install_torch()
