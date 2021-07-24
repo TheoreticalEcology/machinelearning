@@ -1,6 +1,6 @@
 # Fundamental Principles and Techniques {#fund}
 
-## Machine learning principles
+## Machine Learning Principles
 
 ### Optimization
 
@@ -10,13 +10,13 @@ Why do we need this "optimization"?
 
 Somehow, we need to tell the algorithm what it should learn. To do so we have the so called _loss-function_, which expresses what our goal is. But we also need to find the configurations where the loss function attains its minimum. This is the job of the optimizer. Thus, an optimization consists of:
 
-- A _loss function_ (e.g. we tell the algorithm in each training step how many observations were miss-classified) guides the training of machine learning algorithms
+* A _loss function_ (e.g. we tell the algorithm in each training step how many observations were miss-classified) guides the training of machine learning algorithms.
 
-- The _optimizer_, which tries to update the weights of the machine learning algorithms in a way that the loss function is minimized
+* The _optimizer_, which tries to update the weights of the machine learning algorithms in a way that the loss function is minimized.
 
 Calculating the global optimum analytically is a non-trivial problem and thus a bunch of diverse optimization algorithms evolved.
 
-Some optimization algorithms are inspired by biological systems e.g. ants, bees, or even slimes. These optimizers are explained in the following video, have a look:
+Some optimization algorithms are inspired by biological systems e.g. ants, bees or even slimes. These optimizers are explained in the following video, have a look:
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -74,7 +74,7 @@ Y = data$Ozone
 
 The model we want to optimize: $Ozone = Solar.R \cdot X1 + Wind \cdot X2 + Temp \cdot X3 + Month \cdot X4 + Day \cdot X5 + X6$
 
-We assume that the residuals are normally distributed, and our loss function to be the mean squared error: $mean(\text{predicted ozone} - \text{true ozone})^{2}$
+We assume that the residuals are normally distributed, and our loss function to be the mean squared error: $\text{mean}(predicted~ozone - true~ozone)^{2}$
 
 Our task is now to find the parameters $X1,\dots,X6$ for which this loss function is minimal. Therefore, we implement a function, that takes parameters and returns the loss.
 
@@ -112,7 +112,7 @@ plot(losses, type = "l")
 random_search[which.min(losses),]
 ```
 
-In most cases, bruteforce isn't a good approach. It might work well with only a few parameters, but with increasing complexity and more parameters it will take a long time. Furthermore it is not guaranteed that it finds a stable solution.
+In most cases, bruteforce isn't a good approach. It might work well with only a few parameters, but with increasing complexity and more parameters it will take a long time. Furthermore it is not guaranteed that it finds a stable solution on continuous data.
 
 In R the optim function helps computing the optimum faster.
 
@@ -121,8 +121,7 @@ opt = optim(runif(6, -1, 1), linear_regression)
 opt$par
 ```
 
-In the background, mostly some gradient descent methods are used.
-
+In the background, mostly some _gradient descent_ methods are used.
 
 By comparing the weights from the optimizer to the estimated weights of the lm() function, we see that our self-written code obtains the same weights as the lm. Keep in mind, that our simple method uses random numbers thus the results might differ each run (without setting the seed).
 
@@ -133,21 +132,21 @@ coef(lm(Y~X))
 
 ### Regularization
 
-Regularization means adding information or structure to a system in order to solve an ill-posed optimization problem or to prevent overfitting. There are many ways of regularizing a machine learning model. The most important distinction is between shrinkage estimators and estimators based on model averaging. 
+Regularization means adding information or structure to a system in order to solve an ill-posed optimization problem or to prevent overfitting. There are many ways of regularizing a machine learning model. The most important distinction is between _shrinkage estimators_ and estimators based on _model averaging_. 
 
-**Shrikage estimators** are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are *"shrunk"* to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also _Lasso_ or _LASSO_, where the penalty is proportional to the sum of absolute deviations (L1 penalty), and the _Tikhonov regularization_ aka _ridge regression_, where the penalty is proportional to the sum of squared distances from the reference (L2 penalty). Thus, the loss function that we optimize is given by
+**Shrikage estimators** are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are *"shrunk"* to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also _Lasso_ or _LASSO_, where the penalty is proportional to the sum of absolute deviations ($L1$ penalty), and the _Tikhonov regularization_ aka _ridge regression_, where the penalty is proportional to the sum of squared distances from the reference ($L2$ penalty). Thus, the loss function that we optimize is given by
 
 $$
 loss = fit - \lambda \cdot d
 $$
-where fit refers to the standard loss function, $\lambda$ is the strength of the regularization, and $d$ is the chosen metric, e.g. L1 or L2:
+where fit refers to the standard loss function, $\lambda$ is the strength of the regularization, and $d$ is the chosen metric, e.g. $L1$ or$L2$:
 $$
 loss_{L1} = fit - \lambda \cdot \Vert weights \Vert_1
 $$
 $$
 loss_{L2} = fit - \lambda \cdot \Vert weights \Vert_2
 $$
-$\lambda$ and possibly d are typically optimized under cross-validation. L1 and L2 can be also combined what is then called _elastic net_ (see @zou2005).
+$\lambda$ and possibly d are typically optimized under cross-validation. $L1$ and $L2$ can be also combined what is then called _elastic net_ (see @zou2005).
 
 **Model averaging** refers to an entire set of techniques, including _boosting_, _bagging_ and other averaging techniques. The general principle is that predictions are made by combining (= averaging) several models. This is based on on the insight that it is often more efficient having many simpler models and average them, than one "super model". The reasons are complicated, and explained in more detail in @dormann2018.
 
@@ -155,12 +154,13 @@ A particular important application of averaging is _boosting_, where the idea is
 
 To see how these techniques work in practice, let's first focus on LASSO and ridge regularization for weights in neural networks. We can imagine that the LASSO and ridge act similar to a rubber band on the weights that pulls them to zero if the data does not strongly push them away from zero. This leads to important weights, which are supported by the data, being estimated as different from zero, whereas unimportant model structures are reduced (shrunken) to zero.
 
-LASSO (penalty ~ sum(abs(weights))) and ridge (penalty ~ (sum(weights))^2) have slightly different properties. They are best understood if we express those as the effective prior preference they create on the parameters:
+LASSO $\left(penalty \propto \sum_{}^{} \text{abs}(weights) \right)$ and ridge $\left(penalty \propto \sum_{}^{} weights^{2} \right)$ have slightly different properties. They are best understood if we express those as the effective prior preference they create on the parameters:
 
 ```{r, echo = F}
-par(mfrow = c(1,2))
-curve(dexp(abs(x)), -5, 5, main = "Lasso prior")
+oldpar = par(mfrow = c(1, 2))
+curve(dexp(abs(x)), -5, 5, main = "LASSO prior")
 curve(dnorm(abs(x)), -5, 5, main = "Ridge prior")
+par(oldpar)
 ```
 
 As you can see, the LASSO creates a very strong preference towards exactly zero, but falls off less strongly towards the tails. This means that parameters tend to be estimated either to exactly zero, or, if not, they are more free than the ridge. For this reason, LASSO is often more interpreted as a model selection method. 
@@ -170,13 +170,14 @@ The ridge, on the other hand, has a certain area around zero where it is relativ
 We can implement the linear regression also in Keras, when we do not specify any hidden layers:
 
 ```{r, cache=TRUE}
+library(tensorflow)
 library(keras)
-set.seed(123)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 data = airquality[complete.cases(airquality),]
 X = scale(data[,-1])
 Y = data$Ozone
-# l1/l2 on linear model.
+# L1/L2 on linear model.
 
 model = keras_model_sequential()
 model %>%
@@ -204,6 +205,7 @@ coef(lm(Y~X))
   
 ```{r}
 library(torch)
+torch_manual_seed(321L)
 set.seed(123)
 
 model_torch = nn_sequential(
@@ -217,7 +219,7 @@ for(i in 1:500) {
   indices = sample.int(nrow(X), 20L)
   opt$zero_grad()
   pred = model_torch(X_torch[indices, ])
-  loss = nnf_mse_loss(pred, Y_torch[indices,,drop=FALSE])
+  loss = nnf_mse_loss(pred, Y_torch[indices,,drop = FALSE])
   loss$sum()$backward()
   opt$step()
 }
@@ -229,11 +231,13 @@ model_torch$parameters
 </details>
 <br/>
 
-TensorFlow and thus Keras also allows use to use LASSO and ridge on the weights. 
-Lets see what happens when we put an l1 (LASSO) regularization on the weights:
+TensorFlow and thus Keras also allow use using LASSO and ridge on the weights. 
+Lets see what happens when we put an $L1$ (LASSO) regularization on the weights:
 
 ```{r, cache=TRUE}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 model = keras_model_sequential()
 model %>% # Remind the penalty lambda that is set to 10 here.
@@ -267,6 +271,8 @@ One can clearly see that parameters are pulled towards zero because of the regul
     In Torch, we have to specify the regularization on our own when calculating the loss.
     
 ```{r}
+library(torch)
+torch_manual_seed(321L)
 set.seed(123)
 
 model_torch = nn_sequential(
@@ -282,7 +288,7 @@ for(i in 1:500) {
   pred = model_torch(X_torch[indices, ])
   loss = nnf_mse_loss(pred, Y_torch[indices,,drop=FALSE])
   
-  # Add l1:
+  # Add L1:
   for(i in 1:length(model_torch$parameters)){
     # Remind the penalty lambda that is set to 10 here.
     loss = loss + model_torch$parameters[[i]]$abs()$sum()*10.0
@@ -302,16 +308,16 @@ model_torch$parameters
 
 ## Tree-based Machine Learning Algorithms
 
-Famous machine learning algorithms such as _Random Forest_ and _gradient boosted trees_ are based on classification- and regression trees.
+Famous machine learning algorithms such as _Random Forest_ and _Gradient Boosted trees_ are based on classification- and regression trees.
 
 
 ### Classification and Regression Trees
 
 Tree-based models in general use a series of if-then rules to generate predictions from one or more decision trees.
-In this lecture, we will explore regression and classification trees by the example of the airquality data set. There is one important hyper-parameter for regression trees: minsplit
+In this lecture, we will explore regression and classification trees by the example of the airquality data set. There is one important hyperparameter for regression trees: "minsplit".
 
-- It controls the depth of tree (see the help of rpart for a description).
-- It controls the complexity of the tree and can thus also be seen as a regularization parameter.
+* It controls the depth of tree (see the help of rpart for a description).
+* It controls the complexity of the tree and can thus also be seen as a regularization parameter.
 
 We first prepare and visualize the data and afterwards fit a decision tree. 
 
@@ -321,6 +327,7 @@ library(rpart)
 
 ```{r}
 library(rpart.plot)
+
 data = airquality[complete.cases(airquality),]
 ```
 
@@ -348,8 +355,8 @@ To overcome this weakness, a random forest uses an ensemble of regression/classi
 
 There are two randomization steps with the random forest that are responsible for their success:
 
-- Bootstrap samples for each tree (we will sample observations with replacement from the data set. For the phone this is like not everyone has experience about each phone).
-- At each split, we will sample a subset of predictors that is then considered as potential splitting criterion (for the phone this is like that not everyone has the same decision criteria).
+* Bootstrap samples for each tree (we will sample observations with replacement from the data set. For the phone this is like not everyone has experience about each phone).
+* At each split, we will sample a subset of predictors that is then considered as potential splitting criterion (for the phone this is like that not everyone has the same decision criteria).
 Annotation: While building a decision tree (random forests consist of many decision trees), one splits the data at some point according to their features. For example if you have females and males, big and small people in a crowd, you con split this crowd by gender and then by size or by size and then by gender to build a decision tree.
 
 Applying the random forest follows the same principle as for the methods before: We visualize the data (we have already done this so often for the airquality data set, thus we skip it here), fit the algorithm and then plot the outcomes.
@@ -374,8 +381,8 @@ rf$importance
 
 There are several important hyperparameters in a random forest that we can tune to get better results:
 
-- Similar to the minsplit parameter in regression and classification trees, the hyper parameter _nodesize_ controls for complexity $\rightarrow$ Minimum size of terminal nodes in the tree. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
-- mtry: Number of features randomly sampled as candidates at each split.
+* Similar to the minsplit parameter in regression and classification trees, the hyperparameter "nodesize" controls for complexity $\rightarrow$ Minimum size of terminal nodes in the tree. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
+* mtry: Number of features randomly sampled as candidates at each split.
 
 
 ### Boosted Regression Trees
@@ -385,8 +392,8 @@ Random forests fit hundreds of trees independent of each other. Here, the idea o
 A boosted regression tree (BRT) starts with a simple regression tree (weak learner) and then sequentially fits additional trees to improve the results.
 There are two different strategies to do so:
 
-- _AdaBoost_: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.
-- _Gradient boosting_ (state of the art): Each sequential model will be fit on the residual errors of the previous model.
+* _AdaBoost_: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.
+* _Gradient boosting_ (state of the art): Each sequential model will be fit on the residual errors of the previous model.
 
 We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix.
 
@@ -406,18 +413,19 @@ The parameter "nrounds" controls how many sequential trees we fit, in our exampl
 Let us visualize the predictions for different numbers of trees:
 
 ```{r BRT2, cache=TRUE}
-par(mfrow = c(2, 2))
+oldpar = par(mfrow = c(2, 2))
 for(i in 1:4){
   pred = predict(brt, newdata = data_xg, ntreelimit = i)
   plot(data$Temp, data$Ozone, main = i)
   lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 }
+par(oldpar)
 ```
 
 There are also other ways to control for complexity of the boosted regression tree algorithm:
 
-- max_depth: Depth of each tree.
-- shrinkage (each tree will get a weight and the weight will decrease with the number of trees).
+* max_depth: Depth of each tree.
+* shrinkage (each tree will get a weight and the weight will decrease with the number of trees).
 
 When having specified the final model, we can obtain the importance of the variables like for random forests:
 
@@ -456,8 +464,8 @@ Let us first see an example:
 ```{r}
 X = scale(iris[,1:4])
 Y = iris[,5]
-plot(X[-100,1], X[-100,3], col = Y)
-points(X[100,1], X[100,3], col = "blue", pch = 18, cex = 1.3)
+plot(X[-100,1], X[-100, 3], col = Y)
+points(X[100,1], X[100, 3], col = "blue", pch = 18, cex = 1.3)
 ```
 
 Which class would you decide for the blue point? What are the classes of the nearest points? Well, this procedure is used by the k-nearest-neighbors classifier and thus there is actually no "real" learning in a k-nearest-neighbors classification.
@@ -517,7 +525,7 @@ mean(pred == test$Species) # Accuracy.
 
 Support-vector machines can only work on linearly separable problems. (A problem is called linearly separable if there exists at least one line in the plane with all of the points of one class on one side of the hyperplane and all the points of the others classes on the other side).
 
-If this is not possible, we however, can use the so called kernel trick, which maps the predictor space into a (higher dimensional) space in which the problem is linear separable. After having identified the boundaries in the higher-dimensional space, we can project them back into the original dimensions. 
+If this is not possible, we however, can use the so called _kernel trick_, which maps the predictor space into a (higher dimensional) space in which the problem is linear separable. After having identified the boundaries in the higher-dimensional space, we can project them back into the original dimensions. 
 
 ```{r, eval=FALSE}
 x1 = seq(-3, 3, length.out = 100)
@@ -557,8 +565,9 @@ As you have seen this does not work with each kernel. Thus, the problem is to fi
 Now, we will come to artificial neural networks (ANNs), for which the topic of regularization is also important. We can specify the regularization in each layer via the kernel_regularization argument. 
 
 ```{r}
+library(tensorflow)
 library(keras)
-set.seed(123)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 data = airquality
 summary(data)
@@ -606,7 +615,9 @@ fields::image.plot(weights[[1]])
     Again, we have to do the regularization on our own:
 
 ```{r}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 model_torch = nn_sequential(
   nn_linear(in_features = dim(X)[2], out_features = 100L),
@@ -627,7 +638,7 @@ for(i in 1:500) {
   pred = model_torch(X_torch[indices, ])
   loss = nnf_mse_loss(pred, Y_torch[indices,,drop=FALSE])
   
-  # Add l1 (only on the 'kernel weights'):
+  # Add L1 (only on the 'kernel weights'):
   for(i in seq(1, 8, by = 2)){
     loss = loss + model_torch$parameters[[i]]$abs()$sum()*0.1
   }
@@ -647,7 +658,7 @@ fields::image.plot(as.matrix(model_torch$parameters$`0.weight`))
 </details>
 <br/>
 
-Additionally to the usual l1 and l2 regularization there is another regularization: the so called _dropout-layer_ (we will learn about this in more detail later).
+Additionally to the usual $L1$ and $L2$ regularization there is another regularization: the so called _dropout-layer_ (we will learn about this in more detail later).
 
 Before we specialize on any tuning, it is important to understand that machine learning always consists of a pipeline of actions. 
 
@@ -656,12 +667,12 @@ Before we specialize on any tuning, it is important to understand that machine l
 
 The typical machine learning workflow consist of:
 
-- Data cleaning and exploration (EDA = explorative data analysis) for exapmple with tidyverse
-- Pre-processing and feature selection
-- Splitting data set into training and test set for evaluation
-- Model fitting
-- Model evaluation
-- New predictions
+* Data cleaning and exploration (EDA = explorative data analysis) for exapmple with tidyverse.
+* Preprocessing and feature selection.
+* Splitting data set into training and test set for evaluation.
+* Model fitting.
+* Model evaluation.
+* New predictions.
 
 Here is an (optional) video that explains the entire pipeline from a slightly different perspective:
 
@@ -766,7 +777,7 @@ titles2 =
                         )
 ```
 
-We can count titles again to see the new number of titles
+We can count titles again to see the new number of titles:
 
 ```{r}
 titles2 %>%  
@@ -781,7 +792,7 @@ data =
     mutate(title = titles2)
 ```
 
-As a second example, we will explore and clean the numeric "age" variable:
+As a second example, we will explore and clean the numeric "age" variable.
 
 Explore the variable:
 
@@ -805,7 +816,7 @@ data =
 ```
  
 
-### Pre-processing and Feature Selection
+### Preprocessing and Feature Selection
 
 We want to use Keras in our example, but it cannot handle factors and requires the data to be scaled.
 
@@ -822,7 +833,7 @@ data_sub =
            title = as.integer(title) - 1L, pclass = as.integer(pclass - 1L))
 ```
 
-Factors with more than two levels should be one hot encoded:
+Factors with more than two levels should be _one hot encoded_ (Make columns for every different factor level and write 1 in the respective column for every taken feature value and 0 else. For example: $\{red, green, green, blue, red\} \rightarrow \{(0,0,1), (0,1,0), (0,1,0), (1,0,0), (0,0,1)\}$):
 
 ```{r}
 one_title = k_one_hot(data_sub$title, length(unique(data$title)))$numpy()
@@ -849,8 +860,8 @@ head(data_sub)
 
 The splitting consists of two splits:
 
-- An outer split (the original split, remember we got a training and test split without the response "survived").
-- An inner split (we will split the training data set further into another training and test split with known response).
+* An outer split (the original split, remember we got a training and test split without the response "survived").
+* An inner split (we will split the training data set further into another training and test split with known response).
 The inner split is important to assess the model's performance and potential overfitting.
 
 Outer split:
@@ -876,7 +887,9 @@ What is the difference between the two splits? (Tip: have a look at the variable
 In the next step we will fit a Keras model on the training data of the inner split:
 
 ```{r}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 model = keras_model_sequential()
 model %>%
@@ -912,6 +925,8 @@ plot(model_history)
   <p>
   
 ```{r}
+library(torch)
+torch_manual_seed(321L)
 set.seed(123)
 
 model_torch = nn_sequential(
@@ -936,7 +951,7 @@ for(i in 1:500) {
 }
 ```
 
-    Note: the 'nnf_cross_entropy' expects predictions on the scale of the linear predictors (the loss function itself will apply the softmax!)
+    Note: the "nnf_cross_entropy" expects predictions on the scale of the linear predictors (the loss function itself will apply the softmax!)
     
   </p>
 </details>
@@ -1009,14 +1024,14 @@ The file name is used as the ID on the submission server, so change it to whatev
 
 ## Bonus - Machine Learning Pipelines with mlr3 {#mlr}
 
-As we have seen today, many of the machine learning algorithms are distributed over several packages but the general machine learning pipeline is very similar for all models: feature engineering, feature selection, hyper-parameter tuning and cross-validation. 
+As we have seen today, many of the machine learning algorithms are distributed over several packages but the general machine learning pipeline is very similar for all models: feature engineering, feature selection, hyperparameter tuning and cross-validation. 
 
 The idea of the mlr3 framework is now to provide a general machine learning interface which you can use to build reproducible and automatic machine learning pipelines. The key features of mlr3 are:
 
 * All common machine learning packages are integrated into mlr3, you can easily switch between different machine learning algorithms.
 * A common 'language'/workflow to specify machine learning pipelines.
 * Support for different cross-validation strategies.
-* Hyper-parameter tuning for all supported machine learning algorithms.
+* Hyperparameter tuning for all supported machine learning algorithms.
 * Ensemble models.
 
 Useful links:
@@ -1028,7 +1043,7 @@ Useful links:
 
 ### mlr3 - The Basic Workflow
 
-The mlr3 package actually consists of several packages for different tasks (e.g. mlr3tuning for hyper-parameter tuning, mlr3pipelines for data preparation pipes). But let's start with the basic workflow:
+The mlr3 package actually consists of several packages for different tasks (e.g. mlr3tuning for hyperparameter tuning, mlr3pipelines for data preparation pipes). But let's start with the basic workflow:
 
 ```{r, message=FALSE}
 library(EcoData)
@@ -1100,7 +1115,7 @@ result = mlr3::resample(transformed_task,
 result$aggregate(measurement)
 ```
 
-Very cool! Pre-processing + 10-fold cross-validation model evaluation in a few lines of code!
+Very cool! Preprocessing + 10-fold cross-validation model evaluation in a few lines of code!
 
 Let's create the final predictions:
 
@@ -1114,12 +1129,12 @@ predictions = apply(preds, 1, mean)
 
 You could now submit the predictions <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a>.
 
-But we are still not happy with the results, let's do some hyper-parameter tuning!
+But we are still not happy with the results, let's do some hyperparameter tuning!
 
 
-### mlr3 - Hyper-parameter Tuning
+### mlr3 - Hyperparameter Tuning
 
-Machine learning algorithms have a varying number of hyper-parameters which can (!) have a high impact on the predictive performance. To list a few hyper parameters:
+Machine learning algorithms have a varying number of hyperparameters which can (!) have a high impact on the predictive performance. To list a few hyperparameters:
 
 **Random Forest**
 
@@ -1142,16 +1157,16 @@ Machine learning algorithms have a varying number of hyper-parameters which can 
 * gamma
 * lambda
 
-With mlr3, we can easily extend the above example to do hyper-parameter tuning within nested cross-validation (the tuning has its own inner cross-validation).
+With mlr3, we can easily extend the above example to do hyperparameter tuning within nested cross-validation (the tuning has its own inner cross-validation).
 
-Print the hyper-parameter space of our random forest learner:
+Print the hyperparameter space of our random forest learner:
 
 ```{r}
 rf$param_set
 ```
 
 
-Define the hyper-parameter space of the random forest:
+Define the hyperparameter space of the random forest:
 
 ```{r mlr3}
 library(paradox)
@@ -1214,7 +1229,7 @@ predictions = apply(preds, 1, mean)
 ```
 
 
-### mlr3 - Hyper-parameter Tuning with Oversampling
+### mlr3 - Hyperparameter Tuning with Oversampling
 
 Let's go one step back, maybe you have noticed that our classes are unbalanced:
 
@@ -1289,7 +1304,7 @@ result = mlr3::resample(transformed_task, learner_tuner_over
 result$aggregate(measurement)
 ```
 
-5 iterations in the hyper-space is not very much...
+5 iterations in the hyperspace is not very much...
 
 Let's create the final predictions:
 

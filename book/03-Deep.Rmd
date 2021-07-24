@@ -15,14 +15,17 @@ Deep neural networks are basically the same as simple artificial neural networks
 The main purpose of convolutional neural networks is image recognition. (Sound can be understood as an image as well!)
 In a convolutional neural network, we have at least one convolution layer, additional to the normal, fully connected deep neural network layers. 
 
-Neurons in a convolution layer are connected only to a small spatially contiguous area of the input layer (receptive field). We use this structure (feature map) to scan the entire features / neurons (e.g. picture). Think of the feature map as a kernel or filter (or imagine a sliding window) that is used to scan the image. The kernel weights are optimized, but we use the same weights across the entire input neurons (shared weights).
+Neurons in a convolution layer are connected only to a small spatially contiguous area of the input layer (_receptive field_). We use this structure (_feature map_) to scan the **entire** features / neurons (e.g. picture). Think of the feature map as a _kernel_ or _filter_ (or imagine a sliding window with weighted pixels) that is used to scan the image. As the name is already indicating, this operation is a convolution in mathematics.
+The kernel weights are optimized, but we use the same weights across the entire input neurons (_shared weights_).
 
-The resulting (hidden) convolitional layer after training is called a feature map. You can think of the feature map as a map that shows you where the “shapes” expressed by the kernel appear in the input. One kernel / feature map will not be enough, we typically have many shapes that we want to recognize. Thus, the input layer is typically connected to several feature maps, which can be aggregated and followed by a second layer of feature maps, and so on. 
+The resulting (hidden) convolitional layer after training is called a _feature map_. You can think of the feature map as a map that shows you where the “shapes” expressed by the kernel appear in the input. One kernel / feature map will not be enough, we typically have many shapes that we want to recognize. Thus, the input layer is typically connected to several feature maps, which can be aggregated and followed by a second layer of feature maps, and so on.
+
+You get one convolution map/layer for each kernel of one convolutional layer.
 
 
 ### Recurrent Neural Networks (RNNs)
 
-Recurrent Neural Networks are used to model sequential data, i.e. temporal sequence that exhibits temporal dynamic behavior. Here is a good introduction to the topic:
+Recurrent neural networks are used to model sequential data, i.e. a temporal sequence that exhibits temporal dynamic behavior. Here is a good introduction to the topic:
 
 ```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -54,22 +57,27 @@ See also the blog post linked with the Youtube video with accompanying code. Mor
 
 ## Case Study: Dropout and Early Stopping in a Deep Neural Network 
 
-Regularization in deep neural networks is very important because of the problem of overfitting. Standard regularization from statistics like l1 and l2 regularization are often fuzzy and require a lot of tuning. There are more stable and robust methods:
+Regularization in deep neural networks is very important because of the problem of overfitting. Standard regularization from statistics like $L1$ and $L2$ regularization are often fuzzy and require a lot of tuning. There are more stable and robust methods:
 
-* Early stopping: Early stopping allows us to stop the training when for instance the test loss does not increase anymore.
-* Dropout: The Dropout layer randomly sets input units to 0 with a frequency of given rate at each step during training time, which helps prevent overfitting. Dropout is more robust than l1 and l2, and tuning of the dropout rate can be beneficial but a rate between 0.2-0.5 often works quite well.
+* Early stopping: Early stopping allows us to stop the training when for instance the test loss does not decrease anymore or the validation loss starts increasing.
+* Dropout: The Dropout layer randomly sets input units to 0 with a frequency of a given rate at each step during training time, which helps prevent overfitting. Dropout is more robust than $L1$ and $L2$, and tuning of the dropout rate can be beneficial but a rate between $0.2-0.5$ often works quite well.
 
 **Data preparation**
 
-See \ref(mlr) for explanation about the pre-processing pipeline. 
+See \ref(mlr) for explanation about the preprocessing pipeline. 
 
 ```{r, message=FALSE}
-library(EcoData)
+#library(EcoData)
+load("datasets.RData")
+data(nasa)
+str(nasa)
+
 library(tidyverse)
 library(mlr3)
 library(mlr3pipelines)
-data(nasa)
-str(nasa)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 data = nasa %>% select(-Orbit.Determination.Date,
                        -Close.Approach.Date, -Name, -Neo.Reference.ID)
@@ -90,8 +98,9 @@ Y = to_categorical(as.matrix(Y), 2)
 **Early stopping**
 
 ```{r}
+library(tensorflow)
 library(keras)
-set.seed(123)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 model = keras_model_sequential()
 model %>%
@@ -113,19 +122,20 @@ model_history =
 plot(model_history)
 ```
 
-The validation loss first decreases but then starts to increase again, can you explain this behavior?
--> Overfitting!
+The validation loss first decreases but then starts increasing again, can you explain this behavior?
+$\rightarrow$ Overfitting!
 
-Let's try an l1+l2 regularization:
+Let's try an $L1+L2$ regularization:
 
 ```{r}
+library(tensorflow)
 library(keras)
-set.seed(123)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 model = keras_model_sequential()
 model %>%
   layer_dense(units = 50L, activation = "relu", input_shape = ncol(X),
-              kernel_regularizer = regularizer_l1_l2( 0.001, 0.001)) %>%
+              kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) %>%
   layer_dense(units = 50L, activation = "relu",
               kernel_regularizer = regularizer_l1_l2(0.001, 0.001)) %>%
   layer_dense(units = 50L, activation = "relu",
@@ -146,11 +156,12 @@ model_history =
 plot(model_history)
 ```
 
-Better, but the validation loss still starts to increase after 40 epochs. But we can use early stopping to end the training before the val loss starts to increase again!
+Better, but the validation loss still starts increasing after 40 epochs. But we can use early stopping to end the training before the validation loss starts increasing again!
 
 ```{r}
+library(tensorflow)
 library(keras)
-set.seed(123)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 model = keras_model_sequential()
 model %>%
@@ -183,10 +194,12 @@ Patience is the number of epochs to wait before aborting the training.
 
 **Dropout - another type of regularization**
 
-@dropout suggests a dropout rate of 50% for internal hidden layers and 20% for the input layer. One advantage of dropout is that the training is more independent of the number of epochs i.e. the val loss usually doesn't start to increase after several epochs. 
+@dropout suggests a dropout rate of 50% for internal hidden layers and 20% for the input layer. One advantage of dropout is that the training is more independent of the number of epochs i.e. the validation loss usually doesn't start to increase after several epochs. 
 
 ```{r}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 model = keras_model_sequential()
 model %>%
@@ -213,16 +226,17 @@ plot(model_history)
 
 Of course, you can still combine early stopping and dropout, which is normally a good idea since it improves training efficiency (e.g. you could start with 1000 epochs and you know training will be aborted if it doesn't improve anymore).
 
-
 <details>
   <summary>
-    **<span style="color: #CC2FAA">torch</span>**
+    **<span style="color: #CC2FAA">Torch</span>**
   </summary>
   <p>
   
-    Dropout and early stopping with torch:
+    Dropout and early stopping with Torch:
 
 ```{r}
+library(torch)
+torch_manual_seed(321L)
 set.seed(123)
 
 model_torch = nn_sequential(
@@ -239,7 +253,7 @@ model_torch = nn_sequential(
   nn_linear(50L, 2L)
 )
 
-YT = apply(Y, 1,which.max)
+YT = apply(Y, 1, which.max)
 
 dataset_nasa = dataset(
   name = "nasa",
@@ -248,7 +262,7 @@ dataset_nasa = dataset(
     self$Y = nasa$Y
   },
   .getitem = function(i) {
-    X = self$X[i,,drop=FALSE] %>% torch_tensor()
+    X = self$X[i,,drop = FALSE] %>% torch_tensor()
     Y = self$Y[i] %>% torch_tensor()
     list(X, Y)
   },
@@ -271,25 +285,28 @@ early_epoch = 0
 min_loss = Inf
 patience = 5
 for(epoch in 1:50) {
-  
-  if(early_epoch >= patience) break
+  if(early_epoch >= patience){ break }
   
   train_loss = c()
   test_loss = c()
-  coro::loop(for (batch in train_dl) {
-    opt$zero_grad()
-    pred = model_torch(batch[[1]]$squeeze())
-    loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(), reduction = "mean")
-    loss$backward()
-    opt$step()
-    train_loss = c(train_loss, loss$item())
-  })
+  coro::loop(
+    for(batch in train_dl){
+      opt$zero_grad()
+      pred = model_torch(batch[[1]]$squeeze())
+      loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(), reduction = "mean")
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
   
-  coro::loop(for (batch in test_dl) {
-    pred = model_torch(batch[[1]]$squeeze())
-    loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(), reduction = "mean")
-    test_loss = c(test_loss, loss$item())
-  })
+  coro::loop(
+    for(batch in test_dl){
+      pred = model_torch(batch[[1]]$squeeze())
+      loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(), reduction = "mean")
+      test_loss = c(test_loss, loss$item())
+    }
+  )
   
   ### Early stopping ###
   if(mean(test_loss) < min_loss) {
@@ -311,6 +328,7 @@ matplot(cbind(train_losses, test_losses), type = "o", pch = c(15, 16),
 legend("topright", bty = "n", col = c("darkblue", "darkred"),
        lty = 1, pch = c(15, 16), legend = c("Train loss", "Val loss") )
 ```
+
   </p>
 </details>
 <br/>
@@ -326,10 +344,11 @@ To do so, we define a few helper functions:
 library(keras)
 
 rotate = function(x) t(apply(x, 2, rev))
+
 imgPlot = function(img, title = ""){
- col = grey.colors(255)
- image(rotate(img), col = col, xlab = "", ylab = "", axes = FALSE,
-       main = paste0("Label: ", as.character(title)))
+  col = grey.colors(255)
+  image(rotate(img), col = col, xlab = "", ylab = "", axes = FALSE,
+     main = paste0("Label: ", as.character(title)))
 }
 ```
 
@@ -344,11 +363,12 @@ test = data$test
 Let's visualize a few digits:
 
 ```{r}
-par(mfrow = c(1,3))
+oldpar = par(mfrow = c(1, 3))
 .n = sapply(1:3, function(x) imgPlot(train$x[x,,], train$y[x]))
+par(oldpar)
 ```
 
-Similar to the normal ML workflow, we have to scale the pixels (from 0-255) to the range of [0,1] and one hot encode the response. To scale the pixels, we will use arrays instead of matrices. Arrays are called tensors in mathematics and a 2d array/tensor is typically called a matrix.
+Similar to the normal machine learning workflow, we have to scale the pixels (from 0-255) to the range of $[0, 1]$ and one hot encode the response. For scaling the pixels, we will use arrays instead of matrices. Arrays are called tensors in mathematics and a 2D array/tensor is typically called a matrix.
 
 ```{r}
 train_x = array(train$x/255, c(dim(train$x), 1))
@@ -357,11 +377,11 @@ train_y = to_categorical(train$y, 10)
 test_y = to_categorical(test$y, 10)
 ```
 
-The last dimension stands for the number of channels in the image. In our case we have only one channel because the images are white-black.
+The last dimension denotes the number of channels in the image. In our case we have only one channel because the images are black and white.
 
-Normally we would have three channels - colors are encoded by the combination of three base colors (usually red,green,blue).
+Most times, we would have at least 3 color channels, for example RGB (red, green, blue) or HSV (hue, saturation, value), sometimes with several additional dimensions like transparency.
 
-To build our convolutional model, we have to specify a kernel. In our case, we will use 16 convolutional kernels (filters) of size 2x2. These are 2D kernels because our images are 2D. For movies for example, one would use a 3D kernel (the third dimension would correspond to time and not to the color channels).
+To build our convolutional model, we have to specify a kernel. In our case, we will use 16 convolutional kernels (filters) of size $2\times2$. These are 2D kernels because our images are 2D. For movies for example, one would use 3D kernels (the third dimension would correspond to time and not to the color channels).
 
 ```{r}
 model = keras_model_sequential()
@@ -377,12 +397,48 @@ model %>%
 summary(model)
 ```
 
-We additionally used a pooling layer to downsize the resulting feature maps. After another convolutional and pooling layer we flatten the output, i.e. the following dense layer treats the previous layer as a full layer (so the dense layer is connected to all weights from the last feature maps).Having flattened the layer, we can simply use our typical output layer.
+We additionally used a pooling layer for downsizing the resulting feature maps.
+Without further specification, a $2\times2$ pooling layer is taken automatically.
+Pooling layers take the input feature map and divide it into (in our case) parts of $2\times2$ size. Then the respective pooling operation is executed.
+For every input map/layer, you get one (downsized) output map/layer.
 
+As we are using the max pooling layer (there are sever other methods like the mean pooling), only the maximum value of these 4 parts is taken and forwarded further.
+Example input:
+
+```{}
+1   2   |   5   8   |   3   6
+6   5   |   2   4   |   8   1
+------------------------------
+9   4   |   3   7   |   2   5
+0   3   |   2   7   |   4   9
+```
+
+We use max pooling for every field:
+
+```{}
+max(1, 2, 6, 5)   |   max(5, 8, 2, 4)   |   max(3, 6, 8, 1)
+-----------------------------------------------------------
+max(9, 4, 0, 3)   |   max(3, 7, 2, 7)   |   max(2, 5, 4, 9)
+```
+
+So the resulting pooled information is:
+
+```{}
+6   |   8   |   8
+------------------
+9   |   7   |   9
+```
+
+In this example, a $4\times6$ layer was transformed to a $2\times3$ layer and thus downsized.
+This is similar to the biological process called _lateral inhibition_ where active neurons inhibit the activity of neighboring neurons.
+It's a loss of information but often very useful for aggregating information and prevent overfitting.
+
+After another convolutional and pooling layer we flatten the output. That means the following dense layer treats the previous layer as a full layer (so the dense layer is connected to all weights from the last feature maps). You can imagine that like reshaping a matrix (2D) to a simple 1D vector. Then the full vector is used.
+Having flattened the layer, we can simply use our typical output layer.
 
 <details>
   <summary>
-    **<span style="color: #CC2FAA">torch</span>**
+    **<span style="color: #CC2FAA">Torch</span>**
   </summary>
   <p>
   
@@ -428,7 +484,6 @@ sample = df$x
 sample$size()
 ```
 
-
 **First convolutional layer has shape (input channel = 1, number of feature maps = 16, kernel size = 2)**
 
 ```{r}
@@ -436,8 +491,8 @@ conv1 = nn_conv2d(1, 16L, 2L, stride = 1L)
 (sample %>% conv1)$size()
 ```
 
-Output: batch_size = 32,  number of feature maps = 16, dimensions of each feature map = ( 27 , 27 )
-Wit a kernel size of two and stride =1 we wil lose one pixel in each dimension...
+Output: batch_size = 32,  number of feature maps = 16, dimensions of each feature map = $(27 , 27)$
+Wit a kernel size of two and stride = 1 we wil lose one pixel in each dimension...
 Questions: 
 
 * What happens if we increase the stride?
@@ -446,7 +501,7 @@ Questions:
 **Pooling layer summarizes each feature map**
 
 ```{r}
-(sample %>% conv1 %>% nnf_max_pool2d(kernel_size = 2L,stride = 2L))$size()
+(sample %>% conv1 %>% nnf_max_pool2d(kernel_size = 2L, stride = 2L))$size()
 ```
 
 kernel_size = 2L and stride = 2L halfs the pixel dimensions of our image
@@ -497,7 +552,6 @@ net = nn_module(
 </details>
 <br/>
 
-
 The rest is as usual: First we compile the model.
 
 ```{r}
@@ -512,7 +566,9 @@ summary(model)
 Then, we train the model:
 
 ```{r}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 epochs = 5L
 batch_size = 32L
@@ -529,13 +585,15 @@ model %>%
 
 <details>
   <summary>
-    **<span style="color: #CC2FAA">torch</span>**
+    **<span style="color: #CC2FAA">Torch</span>**
   </summary>
   <p>
 
     Train model:
 
 ```{r}
+library(torch)
+torch_manual_seed(321L)
 set.seed(123)
 
 model_torch = net()
@@ -564,15 +622,17 @@ test_losses = c()
 total = 0
 correct = 0
 
-coro::loop(for (b in test_dl) {
-  output = model_torch(b[[1]])
-  labels = b[[2]]
-  loss = nnf_cross_entropy(output, labels)
-  test_losses = c(test_losses, loss$item())
-  predicted = torch_max(output$data(), dim = 2)[[2]]
-  total = total + labels$size(1)
-  correct = correct + (predicted == labels)$sum()$item()
-})
+coro::loop(
+  for(b in test_dl){
+    output = model_torch(b[[1]])
+    labels = b[[2]]
+    loss = nnf_cross_entropy(output, labels)
+    test_losses = c(test_losses, loss$item())
+    predicted = torch_max(output$data(), dim = 2)[[2]]
+    total = total + labels$size(1)
+    correct = correct + (predicted == labels)$sum()$item()
+  }
+)
 
 mean(test_losses)
 test_accuracy =  correct/total
@@ -594,10 +654,12 @@ The idea is that a convolutional neural network learns specific structures such 
 
 Luckily, it is very easy to use data augmentation in Keras.
 
-To show this, we will use again the MNIST data set. We have to define a generator object (it is a specific object which infinitely draws samples from our data set). In the generator we can turn on the data augmentation However, now we have to set the step size (steps_per_epoch) because the model does not know the first dimension of the image.
+To show this, we will use again the MNIST data set. We have to define a generator object (a specific object which infinitely draws samples from our data set). In the generator we can turn on the data augmentation. However, now we have to set the step size (steps_per_epoch) because the model does not know the first dimension of the image.
 
 ```{r, eval=FALSE}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 data = EcoData::dataset_flower()
 train = data$train
@@ -652,11 +714,13 @@ for(e in 1:epochs) {
   epoch_loss = c()
   for(s in 1:steps) {
     batch = reticulate::iter_next(generator)
-    with(tf$GradientTape() %as% tape, {
-        pred = model(batch[[1]], training = TRUE)
-        loss = keras::loss_categorical_crossentropy(batch[[2]], pred)
-        loss = tf$reduce_mean(loss)
-      })
+    with(tf$GradientTape() %as% tape,
+         {
+            pred = model(batch[[1]], training = TRUE)
+            loss = keras::loss_categorical_crossentropy(batch[[2]], pred)
+            loss = tf$reduce_mean(loss)
+          }
+      )
     gradients = tape$gradient(target = loss,
                               sources = model$trainable_variables)
     optim$apply_gradients(purrr::transpose(list(gradients,
@@ -676,8 +740,8 @@ for(e in 1:epochs) {
   if(val_losses[e] < min_val_loss) {
     min_val_loss = val_losses[e]
     patience = 1
-  } else { patience = patience+1 }
-  if(patience == max_patience) break
+  } else { patience = patience + 1 }
+  if(patience == max_patience){ break }
 }
 
 preds = predict(model, data$test/255)
@@ -688,13 +752,15 @@ So using data augmentation we can artificially increase the number of images.
 
 <details>
   <summary>
-    **<span style="color: #CC2FAA">torch</span>**
+    **<span style="color: #CC2FAA">Torch</span>**
   </summary>
   <p>
 
-    In torch, we have to change the transform function (but only for the train dataloader):
+    In Torch, we have to change the transform function (but only for the train dataloader):
 
 ```{r}
+library(torch)
+torch_manual_seed(321L)
 set.seed(123)
 
 train_transforms = function(img) {
@@ -718,14 +784,17 @@ opt = optim_adam(params = model_torch$parameters, lr = 0.01)
 
 for(e in 1:1) {
   losses = c()
-  coro::loop(for (batch in train_dl) {
-    opt$zero_grad()
-    pred = model_torch(batch[[1]])
-    loss = nnf_cross_entropy(pred, batch[[2]], reduction = "mean")
-    loss$backward()
-    opt$step()
-    losses = c(losses, loss$item())
-  })
+  coro::loop(
+    for(batch in train_dl){
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]], reduction = "mean")
+      loss$backward()
+      opt$step()
+      losses = c(losses, loss$item())
+    }
+  )
+  
   cat(sprintf("Loss at epoch %d: %3f\n", e, mean(losses)))
 }
 
@@ -735,15 +804,17 @@ test_losses = c()
 total = 0
 correct = 0
 
-coro::loop(for (b in test_dl) {
-  output = model_torch(b[[1]])
-  labels = b[[2]]
-  loss = nnf_cross_entropy(output, labels)
-  test_losses = c(test_losses, loss$item())
-  predicted = torch_max(output$data(), dim = 2)[[2]]
-  total = total + labels$size(1)
-  correct = correct + (predicted == labels)$sum()$item()
-})
+coro::loop(
+  for(b in test_dl){
+    output = model_torch(b[[1]])
+    labels = b[[2]]
+    loss = nnf_cross_entropy(output, labels)
+    test_losses = c(test_losses, loss$item())
+    predicted = torch_max(output$data(), dim = 2)[[2]]
+    total = total + labels$size(1)
+    correct = correct + (predicted == labels)$sum()$item()
+  }
+)
 
 test_accuracy =  correct/total
 print(test_accuracy)
@@ -809,7 +880,9 @@ summary(model)
 And then the usual training:
 
 ```{r, eval=FALSE}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 model %>% 
  compile(loss = loss_categorical_crossentropy, optimizer = optimizer_adamax())
@@ -828,14 +901,16 @@ We have seen, that transfer learning can easily be done using Keras.
 
 <details>
   <summary>
-    **<span style="color: #CC2FAA">torch</span>**
+    **<span style="color: #CC2FAA">Torch</span>**
   </summary>
   <p>
 
-    In torch, we have to change the transform function (but only for the train dataloader):
+    In Torch, we have to change the transform function (but only for the train dataloader):
 
 ```{r}
 library(torchvision)
+library(torch)
+torch_manual_seed(321L)
 set.seed(123)
 
 train_ds = cifar10_dataset(".", download = TRUE, train = TRUE,
@@ -860,14 +935,17 @@ opt = optim_adam(params = model_torch$parameters, lr = 0.01)
 
 for(e in 1:1) {
   losses = c()
-  coro::loop(for (batch in train_dl) {
-    opt$zero_grad()
-    pred = model_torch(batch[[1]])
-    loss = nnf_cross_entropy(pred, batch[[2]], reduction = "mean")
-    loss$backward()
-    opt$step()
-    losses = c(losses, loss$item())
-  })
+  coro::loop(
+    for(batch in train_dl){
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]], reduction = "mean")
+      loss$backward()
+      opt$step()
+      losses = c(losses, loss$item())
+    }
+  )
+  
   cat(sprintf("Loss at epoch %d: %3f\n", e, mean(losses)))
 }
 
@@ -877,15 +955,17 @@ test_losses = c()
 total = 0
 correct = 0
 
-coro::loop(for (b in test_dl) {
-  output = model_torch(b[[1]])
-  labels = b[[2]]
-  loss = nnf_cross_entropy(output, labels)
-  test_losses = c(test_losses, loss$item())
-  predicted = torch_max(output$data(), dim = 2)[[2]]
-  total = total + labels$size(1)
-  correct = correct + (predicted == labels)$sum()$item()
-})
+coro::loop(
+  for(b in test_dl){
+    output = model_torch(b[[1]])
+    labels = b[[2]]
+    loss = nnf_cross_entropy(output, labels)
+    test_losses = c(test_losses, loss$item())
+    predicted = torch_max(output$data(), dim = 2)[[2]]
+    total = total + labels$size(1)
+    correct = correct + (predicted == labels)$sum()$item()
+  }
+)
 
 test_accuracy =  correct/total
 print(test_accuracy)
@@ -902,7 +982,7 @@ Let's do that with our flower data set:
 ```{r, eval=FALSE}
 library(keras)
 library(tensorflow)
-set.seed(123)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 data = EcoData::dataset_flower()
 train = data$train

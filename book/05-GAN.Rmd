@@ -47,7 +47,7 @@ train_x = array(train[[1]]/255, c(dim(train[[1]])[1], 784L))
 test_x = array(test[[1]]/255, c(dim(test[[1]])[1], 784L))
 ```
 
-Our encoder: image (784 dimensions) -> 2 dimensions
+Our encoder: image (784 dimensions) $\rightarrow$ 2 dimensions
 
 ```{r AEencoder}
 down_size_model = keras_model_sequential()
@@ -57,7 +57,7 @@ down_size_model %>%
  layer_dense(units = 2L, activation = "linear")
 ```
 
-Our decoder: 2 dimensions -> 784 dimensions (our image)
+Our decoder: 2 dimensions $\rightarrow$ 784 dimensions (our image)
 
 ```{r AEdecoder}
 up_size_model = keras_model_sequential()
@@ -81,15 +81,18 @@ We will now show an example of an image before and after the unfitted autoencode
 
 ```{r AEmnistoutput}
 image = autoencoder(train_x[1,,drop = FALSE])
-par(mfrow = c(1,2))
+oldpar = par(mfrow = c(1, 2))
 imgPlot(array(train_x[1,,drop = FALSE], c(28, 28)))
 imgPlot(array(image$numpy(), c(28, 28)))
+par(oldpar)
 ```
 
 Fit the autoencoder (inputs == outputs!):
 
 ```{r AEmnistfit}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 autoencoder %>% 
   fit(x = train_x, y = train_x, epochs = 5L, batch_size = 128L)
@@ -101,8 +104,9 @@ Visualization of the latent variables:
 pred_dim = down_size_model(test_x)
 reconstr_pred = up_size_model(pred_dim)
 imgPlot(array(reconstr_pred[10,]$numpy(), dim = c(28L, 28L)))
-par(mfrow = c(1,1))
+oldpar = par(mfrow = c(1, 1))
 plot(pred_dim$numpy()[,1], pred_dim$numpy()[,2], col = test[[2]]+1L)
+par(oldpar)
 ```
 
 
@@ -151,7 +155,9 @@ up_size_model %>%
 Combine the two models and fit it:
 
 ```{r}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 autoencoder = tf$keras$models$Model(inputs = down_size_model$input,
                                     outputs = up_size_model(down_size_model$output))
@@ -193,6 +199,7 @@ We will use TensorFlow probability to define priors for our latent variables.
 
 ```{r}
 library(tfprobability)
+
 tfp = reticulate::import("tensorflow_probability")
 ```
 
@@ -234,7 +241,9 @@ VAE = keras_model(inputs = down_size_model$inputs,
 Compile and fit model:
 
 ```{r}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 loss_binary = function(true, pred){
   loss_binary_crossentropy(true, pred)*28.0*28.0
@@ -250,9 +259,10 @@ And show that it works:
 dist = down_size_model(train_x[1:2000,,,,drop=FALSE])
 images = up_size_model( dist$sample()[1:5,] )
 
-par(mfrow = c(1,1))
+oldpar = par(mfrow = c(1, 1))
 imgPlot(images[1,,,1]$numpy())
 plot(dist$mean()$numpy()[,1], dist$mean()$numpy()[,2], col = train[[2]]+1L)
+par(oldpar)
 ```
 
 <details>
@@ -328,7 +338,9 @@ summary(VAE)
 Compile and train model:
 
 ```{r}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 be = function(true, pred) tf$losses$binary_crossentropy(true, pred)*80.0*80.0
 VAE$compile(loss = be,
@@ -338,7 +350,7 @@ VAE$fit(x = train, y = train, epochs = 50L, shuffle = TRUE, batch_size = 20L)
 dist = down_size_model(train[1:10,,,])
 images = up_size_model( dist$sample()[1:5,] )
 
-par(mfrow = c(3, 1), mar = rep(1,4))
+oldpar = par(mfrow = c(3, 1), mar = rep(1, 4))
 scales::rescale(images[1,,,]$numpy(), to = c(0, 255)) %>% 
   image_to_array() %>%
   `/`(., 255) %>%
@@ -356,7 +368,7 @@ scales::rescale(images[3,,,]$numpy(), to = c(0, 255)) %>%
   `/`(., 255) %>%
   as.raster() %>%
   plot()
-par(mfrow = c(1,1))
+par(oldpar)
 ```
 
   </p>
@@ -525,7 +537,9 @@ Now we can finally train our networks in a training loop:
 5. Repeat step 2-4 for number of epochs.
 
 ```{r}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 batch_size = 128L
 epochs = 20L
@@ -540,17 +554,21 @@ dataset2 = dataset2$prefetch(tf$data$AUTOTUNE)
 for(e in 1:epochs) {
   dat = reticulate::as_iterator(dataset2$batch(batch_size))
   
-   coro::loop(for (images in dat) {
+  coro::loop(
+    for(images in dat){
       losses = train_step(images)
       gen_loss = c(gen_loss, tf$reduce_sum(losses[[1]])$numpy())
       disc_loss = c(disc_loss, tf$reduce_sum(losses[[2]])$numpy())
-   })
+    }
+  )
    
-  if(epochs %% 5 == 0) cat("Gen: ", mean(gen_loss), " Disc: ",
-                           mean(disc_loss), " \n")
+  if(epochs %% 5 == 0){
+    cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
+  }
   noise = tf$random$normal(c(1L, 100L))
-  if(epochs %% 10 == 0) imgPlot(array(generator(noise)$numpy(),
-                                      c(28L, 28L)), "Gen")
+  if(epochs %% 10 == 0){
+    imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
+  }
 }
 ```
 
@@ -575,7 +593,9 @@ dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
 Define the generator models and test it:
 
 ```{r}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 get_generator = function(){
   generator = keras_model_sequential()
@@ -619,7 +639,9 @@ image %>%
 Define the discriminator and test it:
 
 ```{r}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 get_discriminator = function(){
   discriminator = keras_model_sequential()
@@ -708,7 +730,9 @@ train_step = tf$`function`(reticulate::py_func(train_step))
 Do the training:
 
 ```{r}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 batch_size = 32L
 epochs = 30L
@@ -722,16 +746,18 @@ dataset = dataset$prefetch(tf$data$AUTOTUNE)
 for(e in 1:epochs) {
   dat = reticulate::as_iterator(dataset$batch(batch_size))
   
-   coro::loop(for (images in dat) {
+  coro::loop(
+    for(images in dat){
       losses = train_step(images)
       gen_loss = c(gen_loss, tf$reduce_sum(losses[[1]])$numpy())
       disc_loss = c(disc_loss, tf$reduce_sum(losses[[2]])$numpy())
-   })
+    }
+  )
    
   noise = tf$random$normal(c(1L, 100L))
   image = generator(noise)$numpy()[1,,,]
   image = scales::rescale(image, to = c(0, 255))
-  if(e %% 10 == 0) {
+  if(e %% 10 == 0){
     image %>% 
       image_to_array() %>%
         `/`(., 255) %>%
@@ -744,7 +770,9 @@ for(e in 1:epochs) {
 ```
 
 ```{r}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 noise = tf$random$normal(c(1L, 100L))
 image = generator(noise)$numpy()[1,,,]
@@ -768,9 +796,7 @@ knitr::include_graphics(c("images/flower2.png", "images/flower3.png",
 
 Objective: Train a neural network capable of balancing a pole.
 
-The environment is run on a local server, please install:
-
-* <a href="https://github.com/openai/gym-http-api" target="_blank" rel="noopener">gym</a>
+The environment is run on a local server, please install <a href="https://github.com/openai/gym-http-api" target="_blank" rel="noopener">gym</a>.
 
 Or go through this <a href="https://colab.research.google.com/github/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb" target="_blank" rel="noopener">colab book</a>.
 
@@ -834,7 +860,7 @@ replay = function(batch_size = 25L, memory, counter){
     state = matrix(memory[i, 1:4], nrow = 1L)
     next_state = matrix(memory[i,7:10], nrow =1L)
     if(!batch[i,11]){ # Not done.
-      target = (batch[i,6] + gamma* predict(model,
+      target = (batch[i,6] + gamma * predict(model,
                                             matrix(next_state, nrow = 1L)))[1,1]
     }
     

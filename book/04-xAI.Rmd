@@ -88,6 +88,7 @@ Another idea is to simplify the machine learning model with another simpler mode
 
 ```{r}
 library(partykit)
+
 tree = TreeSurrogate$new(predictor, maxdepth = 2)
 plot(tree$tree)
 ```
@@ -101,6 +102,7 @@ However, sometimes we are only interested in understanding how single observatio
 
 ```{r}
 library(glmnet)
+
 lime.explain$results
 plot(lime.explain)
 ```
@@ -120,7 +122,7 @@ shapley$plot()
 
 xAI aims at explaining how predictions are being made. In general, xAI != causality. xAI methods measure which variables are used by the algorithm for predictions, or how much variables improve predictions. The important point to note here: if a variable causes something, we could also expect that it helps to predict the very thing. The opposite, however, is not generally true - it is very often possible that a variable that doesn't cause something can predict something.
 
-In statistical courses (in particular course: advanced biostatistics), we discuss the issue of causality at length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
+In statistical courses (in particular, our course: Advanced Biostatistics), we discuss the issue of causality at full length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
 
 
 ### Causal Inference on Static Data
@@ -168,7 +170,7 @@ Variable importance is now split nearly evenly.
 Task: understand why this is - remember:
 
 * How the random forest works - variables are randomly hidden from the regression tree when the trees for the forest are built.
-* Remember that as x1 ~ x2, we can use x2 as a replacement for $x1$.
+* Remember that as $x1 \propto x2$, we can use $x2$ as a replacement for $x1$.
 * Remember that the variable importance measures the average contributions of the different variables in the trees of the forest.
 
 
@@ -178,6 +180,7 @@ If causal relationships get more complicated, it will not be possible to adjust 
 
 ```{r}
 library(piecewiseSEM)
+
 mod = psem(
  lm(rich ~ distance + elev + abiotic + age + hetero + firesev + cover,
     data = keeley),
@@ -192,6 +195,7 @@ For linear structural equation models, we can estimate the entire directed acycl
 
 ```{r}
 library(lavaan)
+
 mod = "
  rich ~ distance + elev + abiotic + age + hetero + firesev + cover
  firesev ~ elev + age + cover
@@ -206,6 +210,7 @@ The default plot options are not so nice as before.
 ```{r}
 # devtools::install_version("lavaanPlot", version = "0.6.0")
 library(lavaanPlot)
+
 lavaanPlot(model = fit)
 ```
 
@@ -213,6 +218,7 @@ Another plotting option is to use semPlot.
 
 ```{r}
 library(semPlot)
+
 semPaths(fit)
 ```
 
@@ -258,6 +264,7 @@ When working with dynamic data, we can use an additional piece of information - 
 
 ```{r}
 library(lmtest)
+
 ## What came first: the chicken or the egg?
 data(ChickEgg)
 grangertest(egg ~ chicken, order = 3, data = ChickEgg)

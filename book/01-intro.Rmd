@@ -1,6 +1,6 @@
 ---
 output: html_document
-editor_options: 
+editor_options:
   chunk_output_type: console
 ---
 
@@ -12,7 +12,7 @@ There are three basic machine learning tasks
 * Unsupervised learning
 * Reinforcement learning
 
-In **supervised learning**, you train algorithms using labeled data, which means that you already know the correct answer for a part of the data (the so called _training data_).
+In **supervised learning**, you train algorithms using labeled data, what means that you already know the correct answer for a part of the data (the so called _training data_).
 
 **Unsupervised learning** in contrast is a technique, where one does not need to monitor the model or apply labels. Instead, you allow the model to work on its own to discover information.
 
@@ -70,7 +70,7 @@ Here an example
 ```{r}
 set.seed(123)
 
-#Reminder: traits = as.matrix(iris[,1:4])
+#Reminder: traits = as.matrix(iris[,1:4]).
 
 d = dist(traits)
 hc = hclust(d, method = "complete")
@@ -83,6 +83,7 @@ Same plot, but with colors for true species identity
 
 ```{r}
 library(ape)
+
 plot(as.phylo(hc), 
      tip.color = colors[as.integer(species)], 
      direction = "downwards")
@@ -159,7 +160,7 @@ Another example for an unsupervised learning algorithm is k-means clustering, on
 To start with the algorithm, you first have to specify the number of clusters (for our example the number of species). Each cluster has a centroid, which is the assumed or real location representing the center of the cluster (for our example this would be how an average plant of a specific species would look like). The algorithm starts by randomly putting centroids somewhere. Afterwards each data point is assigned to the respective cluster that raises the overall in-cluster sum of squares (variance) related to the distance to the centroid least of all. After the algorithm has placed all data points into a cluster the centroids get updated. By iterating this procedure until the assignment doesn't change any longer, the algorithm can find the (locally) optimal centroids and the data points belonging to this cluster.
 Note that results might differ according to the initial positions of the centroids. Thus several (locally) optimal solutions might be found.
 
-The k in K-means refers to the number of clusters and the ‘means’ refers to averaging the data-points to find the centroids.
+The "k" in K-means refers to the number of clusters and the ‘means’ refers to averaging the data-points to find the centroids.
 
 A typical pipeline for using k-means clustering looks the same as for other algorithms. After having visualized the data, we fit a model, visualize the results and have a look at the performance by use of the confusion matrix. By setting a fixed seed, we can ensure that results are reproducible.
 
@@ -192,6 +193,7 @@ If you want to animate the clustering process, you could run
 
 ```{r, eval=F}
 library(animation)
+
 saveGIF(kmeans.ani(x = traits[,1:2], col = colors),
         interval = 1, ani.width = 800, ani.height = 800)
 ```
@@ -201,7 +203,7 @@ saveGIF(kmeans.ani(x = traits[,1:2], col = colors),
 ```{r}
 set.seed(123)
 
-getSumSq = function(k){kmeans(traits, k, nstart=25)$tot.withinss}
+getSumSq = function(k){ kmeans(traits, k, nstart=25)$tot.withinss }
 #Perform algorithm for different cluster sizes and retrieve variance.
 iris.kmeans1to10 = sapply(1:10, getSumSq)
 plot(1:10, iris.kmeans1to10, type="b", pch = 19, frame = FALSE, 
@@ -220,11 +222,11 @@ Determine the affinity of a data point according to the affinity of its k neares
 This is a very general description as there are many ways to do so.
 
 ```{r}
-set.seed(123)
-
 #Reminder: traits = as.matrix(iris[,1:4]).
 
 library(dbscan)
+set.seed(123)
+
 kNNdistplot(traits, k =  4)   #Calculate and plot k-nearest-neighbor distances.
 abline(h = 0.4, lty = 2)
 
@@ -243,7 +245,7 @@ fviz_cluster(dc, traits, geom = "point", ggtheme = theme_light())
 
 ### Model-based Clustering
 
-The last class of methods for unsupervised clustering are so-called model-based clustering methods. 
+The last class of methods for unsupervised clustering are so-called _model-based clustering methods_. 
 
 ```{r}
 library(mclust)
@@ -253,7 +255,7 @@ library(mclust)
 mb = Mclust(traits)
 ```
 
-Mclust automatically compares a number of candidate models (clusters, shape) according to BIC. We can look at the selected model via
+Mclust automatically compares a number of candidate models (clusters, shape) according to BIC (The BIC is a criterion for classifying algorithms depending their prediction quality and their usage of parameters). We can look at the selected model via:
   
 ```{r}
 mb$G # Two clusters.
@@ -272,13 +274,13 @@ Result in terms of the predicted densities for 3 clusters
 plot(mb3, "density")
 ```
 
-Predicted clusters
+Predicted clusters:
 
 ```{r}
 plot(mb3, what=c("classification"), add = T)
 ```
 
-Confusion matrix
+Confusion matrix:
 
 ```{r}
 table(iris$Species, mb3$classification)
@@ -292,7 +294,7 @@ So there is a relationship between clustering and ordination. Here a PCA ordinat
 
 ```{r}
 pcTraits = prcomp(traits, center = TRUE, scale. = TRUE)
-biplot(pcTraits, xlim = c(-0.25,0.25), ylim = c(-0.25,0.25))
+biplot(pcTraits, xlim = c(-0.25, 0.25), ylim = c(-0.25, 0.25))
 ```
 
 You can cluster the results of this ordination, ordinate before clustering, or superimpose one on the other. 
@@ -323,11 +325,10 @@ Fitting the model:
 
 ```{r, results='hide', message=FALSE, warning=FALSE}
 library(randomForest)
+set.seed(123)
 ```
 
 ```{r}
-set.seed(123)
-
 m1 = randomForest(Sepal.Length ~ ., data = iris)   # ~.: Against all others.
 # str(m1)
 # m1$type
@@ -338,17 +339,18 @@ print(m1)
 Visualization of the results:
 
 ```{r}
-par(mfrow = c(1, 2))
+oldpar = par(mfrow = c(1, 2))
 plot(predict(m1), iris$Sepal.Length,
      xlab = "Predicted", ylab = "Observed")
 abline(0, 1)
 varImpPlot(m1)
+par(oldpar)
 ```
 
 To understand the structure of a random forest in more detail, we can use a package from GitHub.
 
 ```{r, message=FALSE, warning=FALSE}
-# devtools::install_github('araastat/reprtree')
+# devtools::install_github("araastat/reprtree")
 reprtree:::plot.getTree(m1, iris)
 ```
 
@@ -370,14 +372,14 @@ m1 = randomForest(Species ~ ., data = iris)
 Visualizing the fitted model:
   
 ```{r, message=FALSE, warning=FALSE}
-par(mfrow = c(1,2))
+oldpar = par(mfrow = c(1, 2))
 reprtree:::plot.getTree(m1, iris)
 ```
 
 Visualizing results ecologically:
 
 ```{r}
-oldpar = par(mfrow = c(1, 2))
+par(mfrow = c(1, 2))
 plot(iris$Petal.Width, iris$Petal.Length, col = iris$Species, 
      main = "Observed")
 plot(iris$Petal.Width, iris$Petal.Length, col = predict(m1),
@@ -397,7 +399,7 @@ table(predict(m1), iris$Species)
 
 ## Introduction to TensorFlow
 
-One of the most commonly used frameworks for machine learning is TensorFlow. TensorFlow is an open source linear algebra library with focus on neural networks, published by Google in 2015. TensorFlow supports several interesting features, in particular automatic differentiation, several gradient optimizers and CPU and GPU parallelization. 
+One of the most commonly used frameworks for machine learning is **TensorFlow**. TensorFlow is an open source linear algebra library with focus on neural networks, published by Google in 2015. TensorFlow supports several interesting features, in particular automatic differentiation, several gradient optimizers and CPU and GPU parallelization. 
 
 These advantages are nicely explained in the following video: 
   
@@ -413,9 +415,9 @@ cat(
 
 To sum up the most important points of the video: 
   
-* TensorFlow is a math library which is highly optimized for neural networks
-* If a GPU is available, computations can be easily run on the GPU but even on a CPU TensorFlow is still very fast
-* The "backend" (i.e. all the functions and all computations) are written in C++ and CUDA (CUDA is a programming language for NVIDIA GPUs)
+* TensorFlow is a math library which is highly optimized for neural networks.
+* If a GPU is available, computations can be easily run on the GPU but even on a CPU TensorFlow is still very fast.
+* The "backend" (i.e. all the functions and all computations) are written in C++ and CUDA (CUDA is a programming language for NVIDIA GPUs).
 * The interface (the part of TensorFlow we use) is written in Python and is also available in R, which means, we can write the code in R/Python but it will be executed by the (compiled) C++ backend.
 
 All operations in TensorFlow are written in C++ and are highly optimized. But don't worry, we don’t have to use C++ to use TensorFlow because there are several bindings for other languages. TensorFlow officially supports a Python API, but meanwhile there are several community carried APIs for other languages:
@@ -434,7 +436,7 @@ TensorFlow offers different levels of API. We could implement a neural network c
 
 Useful links:
 
-* <a href="https://www.tensorflow.org/api_docs/python/tf" target="_blank" rel="noopener">TensorFlow documentation</a> (This is for the Python API, but just replace the '.' with '$'.)
+* <a href="https://www.tensorflow.org/api_docs/python/tf" target="_blank" rel="noopener">TensorFlow documentation</a> (This is for the Python API, but just replace the "." with "$".)
 * <a href="https://tensorflow.rstudio.com/" target="_blank" rel="noopener">Rstudio TensorFlow website</a>
 
 
@@ -449,6 +451,7 @@ To get started with TensorFlow, we have to load the library and check if the ins
 
 ```{r}
 library(tensorflow)
+
 # Don't worry about weird messages. TensorFlow supports additional optimizations.
 exists("tf")
 
@@ -457,6 +460,7 @@ mutable = tf$constant(5.0)
 ```
 
 Don't worry about weird messages (they will only appear once at the start of the session).
+
 
 ### Basic Operations
 
@@ -510,9 +514,11 @@ char a = "a";
 
 While TensorFlow tries to infer the type dynamically, you must often state it explicitly.
 Common important types: 
-- float32 (floating point number with 32 bits, "single precision")
-- float64 (floating point number with 64 bits, "double precision")
-- int8 (integer with 8 bits)
+
+* float32 (floating point number with 32 bits, "single precision")
+* float64 (floating point number with 64 bits, "double precision")
+* int8 (integer with 8 bits)
+
 The reason why TensorFlow is so explicit about types is that many GPUs (e.g. the NVIDIA GeForces) can handle only up to 32 bit numbers! (you do not need high precision in graphical modeling)
 
 But let us see in practice what we have to do with these types and how to specifcy them:
@@ -521,13 +527,13 @@ But let us see in practice what we have to do with these types and how to specif
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = "float32") 
 b = tf$constant(2.0, dtype = "float64")
-c = m / b # Doesn't work! we try to divide float32/float64.
+c = m / b # Doesn't work! We try to divide float32/float64.
 ```
 
-So what went wrong here: we tried to divide a float32 by a float64 number, but we can only divide numbers of the same type!
+So what went wrong here? We tried to divide a float32 by a float64 number, but we can only divide numbers of the same type!
 
 ```{r, eval=TRUE}
-r_matrix = matrix(runif(10*10), 10,10)
+r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = "float64")
 b = tf$constant(2.0, dtype = "float64")
 c = m / b # Now it works.
@@ -562,9 +568,8 @@ PyTorch is another famous library for deep learning. Like TensorFlow, Torch itse
   
 Useful links:
 
-* <a href="https://pytorch.org/docs/stable/index.html" target="_blank" rel="noopener">PyTorch documentation</a> (This is for the Python API, bust just replace the '.' with '$'.)
+* <a href="https://pytorch.org/docs/stable/index.html" target="_blank" rel="noopener">PyTorch documentation</a> (This is for the Python API, bust just replace the "." with "$".)
 * <a href="https://torch.mlverse.org/" target="_blank" rel="noopener">R-Torch website</a>
-
 
 
 To get started with Torch, we have to load the library and check if the installation worked. 
@@ -573,9 +578,10 @@ To get started with Torch, we have to load the library and check if the installa
 library(torch)
 ```
 
+
 ### PyTorch Data Containers
 
-Unlike tenosrflow, torch doesn't have two data containers for mutable and immutable variables. All variables are initialized via the torch_tensor function:
+Unlike TensorFlow, Torch doesn't have two data containers for mutable and immutable variables. All variables are initialized via the torch_tensor function:
 
 ```{r}
 a = torch_tensor(1.)
@@ -602,7 +608,7 @@ c = a$add(b)
 print(c)
 ```
 
-The R-Torch package provides all common methods (an advantage over TensorFlow)
+The R-Torch package provides all common methods (an advantage over TensorFlow).
 
 ```{r}
 a = torch_tensor(5.)
@@ -707,7 +713,7 @@ model %>%
   layer_dense(units = 3L, activation = "softmax") 
 ```
 
-- softmax scales a potential multidimensional vector to the interval (0,1]
+* softmax scales a potential multidimensional vector to the interval $(0, 1]$.
 
 <details>
   <summary>
@@ -715,7 +721,7 @@ model %>%
   </summary>
   <p>
   
-    The Torch syntax is very similar, we will give a list of layers to the 'nn_sequential' function. Here, we have to specify the softmax activation function as an extra layer:
+    The Torch syntax is very similar, we will give a list of layers to the "nn_sequential" function. Here, we have to specify the softmax activation function as an extra layer:
     
 ```{r}
 model_torch = 
@@ -762,7 +768,9 @@ optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 **4. Fit model in 30 iterations (epochs)**
     
 ```{r, cache=TRUE}
-set.seed(123)
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 model_history =
   model %>%
@@ -786,6 +794,8 @@ model_history =
     6. Go to step 1 and repeat.
     
 ```{r}
+library(torch)
+torch_manual_seed(321L)
 set.seed(123)
 
 # Calculate number of training steps.
@@ -901,3 +911,4 @@ par(oldpar)   #Reset par.
 ```
 
 So you see, building a neural network is very easy with Keras and you can already do it on your own.
+
