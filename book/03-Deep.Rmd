@@ -829,9 +829,11 @@ print(test_accuracy)
 
 Another approach to reduce the necessary number of images or to speed up convergence of the models is the use of transfer learning.
 
-The main idea of transfer learning is that all the convolutional layers have mainly one task - learning to identify highly correlated neighbored features and therefore these learn structures such as edges in the image and only the top layer, the dense layer is the actual classifier of the convolutional neural network. Thus, one could think that we could only train the top layer as classifier. To do so, it will be confronted by sets of different edges/structures and has to decide the label based on these.
+The main idea of transfer learning is that all the convolutional layers have mainly one task - learning to identify highly correlated neighboring features. This knowledge is then used for new tasks.
+The convolutional layers learn structures such as edges in images and only the top layer, the dense layer is the actual classifier of the convolutional neural network for a specific task.
+Thus, one could think that we could only train the top layer as classifier. To do so, it will be confronted by sets of different edges/structures and has to decide the label based on these.
 
-Again, this sounds very complicating but is again quite easy with Keras.
+Again, this sounds very complicated but it is again quite easy with Keras.
 
 We will do this now with the CIFAR10 data set, so we have to prepare the data:
 
@@ -860,17 +862,21 @@ densenet = application_densenet201(include_top = FALSE,
                                    input_shape  = c(32L, 32L, 3L))
 ```
 
-Now, we will use not a sequential model but just a "keras_model" where we can specify the inputs and outputs. Thereby, the outputs are our own top layer, but the inputs are the densenet inputs, as these are already pre-trained.
+Now, we will not use a sequential model but just a "keras_model" where we can specify the inputs and outputs. Thereby, the output is our own top layer, but the inputs are the densenet inputs, as these are already pre-trained.
 
 ```{r, eval=FALSE}
 model = keras::keras_model(inputs = densenet$input, outputs = 
  layer_flatten(layer_dense(densenet$output, units = 10L,
                            activation = "softmax"))
+ 
+ # Notice that this snippet just creates one (!) new layer.
+ # The densenet's inputs are connected with the model's inputs.
+ # The densenet's outputs are connected with our own layer (with 10 nodes).
+ # This layer is also the output layer of the model.
  )
 ```
 
-
-In the next step we want to freeze all layers except for our own last layer (with freezing I mean that these are not trained: we do not want to train the complete model, we only want to train the last layer). You can check the number of trainable weights via summary(model)
+In the next step we want to freeze all layers except for our own last layer. Freezing means that these are not trained: We do not want to train the complete model, we only want to train the last layer. You can check the number of trainable weights via summary(model).
 
 ```{r, eval=FALSE}
 model %>% freeze_weights(to = length(model$layers)-1)
@@ -885,15 +891,16 @@ library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
 model %>% 
- compile(loss = loss_categorical_crossentropy, optimizer = optimizer_adamax())
+  compile(loss = loss_categorical_crossentropy, optimizer = optimizer_adamax())
+
 model %>% 
- fit(
- x = train_x, 
- y = train_y,
- epochs = 1L,
- batch_size = 32L,
- shuffle = T,
- validation_split = 0.2,
+  fit(
+  x = train_x, 
+  y = train_y,
+  epochs = 1L,
+  batch_size = 32L,
+  shuffle = T,
+  validation_split = 0.2,
 )
 ```
 
@@ -1004,7 +1011,7 @@ model = keras_model(inputs = densenet$input,
 
 
 # Data augmentation.
-aug = image_data_generator(rotation_range = 180,zoom_range = 0.4,
+aug = image_data_generator(rotation_range = 180, zoom_range = 0.4,
                            width_shift_range = 0.2, height_shift_range = 0.2,
                            vertical_flip = TRUE, horizontal_flip = TRUE,
                            preprocessing_function = imagenet_preprocess_input)

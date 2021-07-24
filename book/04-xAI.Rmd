@@ -2,7 +2,7 @@
 
 ## Explainable AI
 
-The goal of explainable AI (xAI, aka interpretable machine learning) is to explain **why** a fittedmachine learning model makes certain predictions. A typical example is to understand  how important different variables are for predictions. There incentives to do so range from a better technical understanding of the models over understanding which data is important to improve predictions to questions of fairness and discrimination (e.g. to understand if an algorithm uses skin color to make a decision).
+The goal of explainable AI (xAI, aka interpretable machine learning) is to explain **why** a fitted machine learning model makes certain predictions. A typical example is to understand how important different variables are for predictions. The incentives for doing so range from a better technical understanding of the models over understanding which data is important for improving predictions to questions of fairness and discrimination (e.g. to understand if an algorithm uses skin color to make a decision).
 
 
 ### A Practical Example
@@ -21,17 +21,18 @@ rf = randomForest(medv ~ ., data = Boston, ntree = 50)
 ```
 
 xAI packages are written generic, i.e. they can handle almost all machine learning models.
-When we want to use them, we first have to create a Predictor object, that holds the model and the data. The iml package uses R6 classes, that means new objects can be created by calling Predictor$new(). (do not worry if you do not know what R6 classes are, just use the command)
+When we want to use them, we first have to create a predictor object, that holds the model and the data. The iml package uses R6 classes, that means new objects can be created by calling Predictor$new(). (do not worry if you do not know what R6 classes are, just use the command)
 
 ```{r}
 X = Boston[which(names(Boston) != "medv")]
 predictor = Predictor$new(rf, data = X, y = Boston$medv)
+# "Predictor" is an object generator.
 ```
 
 
 ### Feature Importance
 
-Feature importance, should not be mistaken with the random forest variable importance. It tells us how important the individual variables are for predictions and can be calculated for all machine learning models and is based on a permutation approach (have a look at the book):
+Feature importance should not be mistaken with the random forest variable importance though they are related. It tells us how important the individual variables are for predictions and can be calculated for all machine learning models and is based on a permutation approach (have a look at the book):
 
 ```{r}
 imp = FeatureImp$new(predictor, loss = "mae")
@@ -41,7 +42,7 @@ plot(imp)
 
 ### Partial Dependencies
 
-Partial dependencies are similar to allEffects plots for normal regressions, the idea is to visualize "marginal effects" of predictors (with the feature argument we specify the variable we want to visualize):
+Partial dependencies are similar to allEffects plots for normal regressions. The idea is to visualize "marginal effects" of predictors (with the "feature" argument we specify the variable we want to visualize):
 
 ```{r}
 eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp",
@@ -49,7 +50,7 @@ eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp",
 plot(eff)
 ```
 
-Partial dependencies can be also plotted for single observations:
+Partial dependencies can also be plotted for single observations:
 
 ```{r}
 eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp+ice",
@@ -57,7 +58,7 @@ eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp+ice",
 plot(eff)
 ```
 
-One disadvantage of partial dependencies is that they are sensitive to correlated predictors. Accumulated local effects can be used to account for correlation for predictors
+One disadvantage of partial dependencies is that they are sensitive to correlated predictors. Accumulated local effects can be used for accounting for correlation of predictors.
 
 
 ### Accumulated Local Effects
