@@ -7,7 +7,7 @@ The goal of explainable AI (xAI, aka interpretable machine learning) is to expla
 
 ### A Practical Example
 
-In this lecture we will work with another famous data set, the Boston housing data set:
+In this lecture we will work with another famous data set, the _Boston housing_ data set:
 
 We will fit a random forest and use the iml package for xAI, see <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>.
 
@@ -21,7 +21,7 @@ rf = randomForest(medv ~ ., data = Boston, ntree = 50)
 ```
 
 xAI packages are written generic, i.e. they can handle almost all machine learning models.
-When we want to use them, we first have to create a predictor object, that holds the model and the data. The iml package uses R6 classes, that means new objects can be created by calling Predictor$new(). (do not worry if you do not know what R6 classes are, just use the command)
+When we want to use them, we first have to create a predictor object, that holds the model and the data. The iml package uses R6 classes, that means new objects can be created by calling Predictor$new(). (Do not worry if you do not know what R6 classes are, just use the command.)
 
 ```{r}
 X = Boston[which(names(Boston) != "medv")]
@@ -32,7 +32,7 @@ predictor = Predictor$new(rf, data = X, y = Boston$medv)
 
 ### Feature Importance
 
-Feature importance should not be mistaken with the random forest variable importance though they are related. It tells us how important the individual variables are for predictions and can be calculated for all machine learning models and is based on a permutation approach (have a look at the book):
+Feature importance should not be mistaken with the random forest variable importance though they are related. It tells us how important the individual variables are for predictions, can be calculated for all machine learning models and is based on a permutation approach (have a look at the book):
 
 ```{r}
 imp = FeatureImp$new(predictor, loss = "mae")
@@ -85,9 +85,9 @@ plot(interact)
 
 ### Global Explainer - Simplifying the Machine Learning Model
 
-Another idea is to simplify the machine learning model with another simpler model such as a decision tree. We create predictions with the machine learning model for a lot of different input values and then we fit on these predictions a decision tree, which we can then interpret.
+Another idea is simplifying the machine learning model with another simpler model such as a decision tree. We create predictions with the machine learning model for a lot of different input values and then we fit a decision tree on these predictions. We can then interpret the easier model.
 
-```{r}
+```{r, results='hide', message=FALSE, warning=FALSE}
 library(partykit)
 
 tree = TreeSurrogate$new(predictor, maxdepth = 2)
@@ -99,11 +99,9 @@ plot(tree$tree)
 
 The global approach is to simplify the entire machine learning-black-box model via a simpler model, which is then interpretable.
 
-However, sometimes we are only interested in understanding how single observations/predictions are generated. The lime approach explores the feature space around one observations and based on this local spare fits then a simpler model (e.g. a linear model):
+However, sometimes we are only interested in understanding how single predictions are generated. The LIME (Local interpretable model-agnostic explanations) approach explores the feature space around one observation and based on this locally fits a simpler model (e.g. a linear model):
 
 ```{r}
-library(glmnet)
-
 lime.explain$results
 plot(lime.explain)
 ```
@@ -111,7 +109,7 @@ plot(lime.explain)
 
 ### Local Explainer - Shapley
 
-The Shapley method computes the so called Shapley value, feature contributions for single predictions, and is based on an approach from cooperative game theory. The idea is that each feature value of the instance is a "player" in a game, where the prediction is the reward. The Shapley value tells us how to fairly distribute the award among the feature.
+The Shapley method computes the so called Shapley value, feature contributions for single predictions, and is based on an approach from cooperative game theory. The idea is that each feature value of the instance is a "player" in a game, where the prediction is the reward. The Shapley value tells us how to fairly distribute the reward among the features.
 
 ```{r}
 shapley = Shapley$new(predictor, x.interest = X[1,])
@@ -121,18 +119,18 @@ shapley$plot()
 
 ## Causal Inference and Machine Learning
 
-xAI aims at explaining how predictions are being made. In general, xAI != causality. xAI methods measure which variables are used by the algorithm for predictions, or how much variables improve predictions. The important point to note here: if a variable causes something, we could also expect that it helps to predict the very thing. The opposite, however, is not generally true - it is very often possible that a variable that doesn't cause something can predict something.
+xAI aims at explaining how predictions are being made. In general, xAI != causality. xAI methods measure which variables are used for predictions by the algorithm, or how far variables improve predictions. The important point to note here: If a variable causes something, we could also expect that it helps predicting the very thing. The opposite, however, is not generally true - very often it is possible that a variable that doesn't cause anything can predict something.
 
-In statistical courses (in particular, our course: Advanced Biostatistics), we discuss the issue of causality at full length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
+In statistics courses (in particular, our course: Advanced Biostatistics), we discuss the issue of causality at full length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
 
 
 ### Causal Inference on Static Data
 
-Methods for causal inference depend on whether we have dynamic or static data. The latter is the more common case. With static data, the problem is confounding - if you have several predictors that are correlated, you can get spurious correlations between a given predictor and the response, although there are no in general.
+Methods for causal inference depend on whether we have dynamic or static data. The latter is the more common case. With static data, the problem is confounding. If you have several correlated predictors, you can get spurious correlations between a given predictor and the response, although there is no causal effect in general.
 
-A multiple regression, and a few other methods are able to correct for other predictors, and thus isolate the causal effect. The same is not necessarily true for machine learning algorithms and xAI methods. This is not a bug, but a feature - for making good predictions, it is often no problem, but rather an advantage to also use non-causal predictors.
+Multiple regression and few other methods are able to correct for other predictors and thus isolate the causal effect. The same is not necessarily true for machine learning algorithms and xAI methods. This is not a bug, but a feature - for making good predictions, it is often no problem, but rather an advantage to also use non-causal predictors.
 
-Here an example for the variable importance indicators in the random forest algorithm. The purpose of this script is to show that random forest variable importance will split importance values for collinear variables evenly, even if collinearity is low enough so that variables are separable and would be correctly separated by an lm / ANOVA.
+Here an example for the indicators of variable importance in the random forest algorithm. The purpose of this script is to show that random forest variable importance will split importance values for collinear variables evenly, even if collinearity is low enough so that variables are separable and would be correctly separated by an lm / ANOVA.
 
 We first simulate a data set with 2 predictors that are strongly correlated, but only one of them has an effect on the response.
 
@@ -151,7 +149,7 @@ x2 = col * x1 + (1-col) * runif(n)
 y = x1 + rnorm(n)
 ```
 
-lm / anova correctly identify x1 as causal variable.
+lm / anova correctly identify $x1$ as causal variable.
 
 ```{r}
 summary(lm(y ~ x1 + x2))
@@ -177,7 +175,7 @@ Task: understand why this is - remember:
 
 ### Structural Equation Models
 
-If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). SEMs are designed to estimate entire causal diagrams. There are two main SEM packages in R: For anything that is non-normal, you will currently have to estimate the directed acyclic graph piece-wise with CRAN package piecewiseSEM. Example for a vegetation data set:
+If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). SEMs are designed to estimate entire causal diagrams. There are two main SEM packages in R: For anything that is non-normal, you will currently have to estimate the directed acyclic graph (that depicts causal relations) piece-wise with CRAN package piecewiseSEM. Example for a vegetation data set:
 
 ```{r}
 library(piecewiseSEM)
@@ -192,7 +190,7 @@ summary(mod)
 # plot(mod)
 ```
 
-For linear structural equation models, we can estimate the entire directed acyclic graph in one go. This also allows to have unobserved variables in the directed acyclic graph. One of the most popular packages for this is lavaan.
+For linear structural equation models, we can estimate the entire directed acyclic graph at once. This also allows havinge unobserved variables in the directed acyclic graph. One of the most popular packages for this is lavaan.
 
 ```{r}
 library(lavaan)
@@ -215,7 +213,7 @@ library(lavaanPlot)
 lavaanPlot(model = fit)
 ```
 
-Another plotting option is to use semPlot.
+Another plotting option is using semPlot.
 
 ```{r}
 library(semPlot)
@@ -226,7 +224,7 @@ semPaths(fit)
 
 ### Automatic Causal Discovery
 
-But how to get the causal graph? In statistics, it is common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the PC algorithm. Here an example using the pcalg package:
+But how to get the causal graph? In statistics, it is common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the _PC algorithm_. Here an example using the pcalg package:
 
 ```{r}
 # Bioconductor dependencies have to be installed by hand, e.g. 
@@ -261,7 +259,7 @@ Rgraphviz::plot(pc.gmG8 )
 
 ### Causal Inference on Dynamic Data
 
-When working with dynamic data, we can use an additional piece of information - the effect usually precedes the cause, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as Granger causality, or Granger methods. Here an example:
+When working with dynamic data, we can use an additional piece of information - the cause usually precedes the effect, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as _Granger causality_, or Granger methods. Here an example:
 
 ```{r}
 library(lmtest)
@@ -275,4 +273,5 @@ grangertest(chicken ~ egg, order = 3, data = ChickEgg)
 
 ### Outlook for Machine Learning
 
-As we have seen, there are already a few methods / algorithms to discover causality from large data, but the systematic transfer of these concepts to machine learning, in particular deep learning, is still at its infancy. At the moment, this field is actively researched and changes extremely fast, so we recommend to use Google to see what is currently going on. Particular, in business and industry, there is a large interest in learning about causal effect from large data sets. In our opinion, a great topic for young scientists to specialize on.
+As we have seen, there are already a few methods / algorithms for discovering causality from large data sets, but the systematic transfer of these concepts to machine learning, in particular deep learning, is still at its infancy. At the moment, this field is actively researched and changes extremely fast, so we recommend using Google to see what is currently going on. Particular in business and industry, there is a large interest in learning about causal effect from large data sets. In our opinion, a great topic for young scientists to specialize on.
+

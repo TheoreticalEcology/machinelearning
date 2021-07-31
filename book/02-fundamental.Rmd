@@ -74,7 +74,7 @@ Y = data$Ozone
 
 The model we want to optimize: $Ozone = Solar.R \cdot X1 + Wind \cdot X2 + Temp \cdot X3 + Month \cdot X4 + Day \cdot X5 + X6$
 
-We assume that the residuals are normally distributed, and our loss function to be the mean squared error: $\text{mean}(predicted~ozone - true~ozone)^{2}$
+We assume that the residuals are normally distributed, and our loss function to be the mean squared error: $\mathrm{mean}(predicted~ozone - true~ozone)^{2}$
 
 Our task is now to find the parameters $X1,\dots,X6$ for which this loss function is minimal. Therefore, we implement a function, that takes parameters and returns the loss.
 
@@ -154,7 +154,7 @@ A particular important application of averaging is _boosting_, where the idea is
 
 To see how these techniques work in practice, let's first focus on LASSO and ridge regularization for weights in neural networks. We can imagine that the LASSO and ridge act similar to a rubber band on the weights that pulls them to zero if the data does not strongly push them away from zero. This leads to important weights, which are supported by the data, being estimated as different from zero, whereas unimportant model structures are reduced (shrunken) to zero.
 
-LASSO $\left(penalty \propto \sum_{}^{} \text{abs}(weights) \right)$ and ridge $\left(penalty \propto \sum_{}^{} weights^{2} \right)$ have slightly different properties. They are best understood if we express those as the effective prior preference they create on the parameters:
+LASSO $\left(penalty \propto \sum_{}^{} \mathrm{abs}(weights) \right)$ and ridge $\left(penalty \propto \sum_{}^{} weights^{2} \right)$ have slightly different properties. They are best understood if we express those as the effective prior preference they create on the parameters:
 
 ```{r, echo = F}
 oldpar = par(mfrow = c(1, 2))
@@ -215,7 +215,7 @@ opt = optim_adam(params = model_torch$parameters, lr = 0.5)
 
 X_torch = torch_tensor(X)
 Y_torch = torch_tensor(matrix(Y, ncol = 1L), dtype = torch_float32())
-for(i in 1:500) {
+for(i in 1:500){
   indices = sample.int(nrow(X), 20L)
   opt$zero_grad()
   pred = model_torch(X_torch[indices, ])
@@ -282,11 +282,11 @@ opt = optim_adam(params = model_torch$parameters, lr = 0.5)
 
 X_torch = torch_tensor(X)
 Y_torch = torch_tensor(matrix(Y, ncol = 1L), dtype = torch_float32())
-for(i in 1:500) {
+for(i in 1:500){
   indices = sample.int(nrow(X), 20L)
   opt$zero_grad()
   pred = model_torch(X_torch[indices, ])
-  loss = nnf_mse_loss(pred, Y_torch[indices,,drop=FALSE])
+  loss = nnf_mse_loss(pred, Y_torch[indices,,drop = FALSE])
   
   # Add L1:
   for(i in 1:length(model_torch$parameters)){
@@ -399,11 +399,10 @@ We can fit a boosted regression tree using xgboost, but before we have to transf
 
 ```{r, cache=TRUE, results='hide', message=FALSE, warning=FALSE}
 library(xgboost)
+set.seed(123)
 ```
 
 ```{r BRT1, cache=TRUE}
-set.seed(123)
-
 data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
 brt = xgboost(data_xg, nrounds = 16L, nthreads = 4L)
 ```
@@ -424,7 +423,7 @@ par(oldpar)
 
 There are also other ways to control for complexity of the boosted regression tree algorithm:
 
-* max_depth: Depth of each tree.
+* max_depth: Maximum depth of each tree.
 * shrinkage (each tree will get a weight and the weight will decrease with the number of trees).
 
 When having specified the final model, we can obtain the importance of the variables like for random forests:
@@ -536,7 +535,7 @@ y = ifelse(1/(1+exp(-y)) < 0.62, 0, 1)
 
 image(matrix(y, 100, 100))
 animation::saveGIF({
-  for (i in c("truth", "linear", "radial", "sigmoid")) {
+  for (i in c("truth", "linear", "radial", "sigmoid")){
     if(i == "truth"){
       image(matrix(y, 100,100),
             main = "Ground truth",axes = FALSE, las = 2)
@@ -632,7 +631,7 @@ opt = optim_adam(params = model_torch$parameters, lr = 0.1)
 
 X_torch = torch_tensor(X)
 Y_torch = torch_tensor(matrix(Y, ncol = 1L), dtype = torch_float32())
-for(i in 1:500) {
+for(i in 1:500){
   indices = sample.int(nrow(X), 20L)
   opt$zero_grad()
   pred = model_torch(X_torch[indices, ])
@@ -940,7 +939,7 @@ opt = optim_adam(params = model_torch$parameters, lr = 0.01)
 
 X_torch = torch_tensor(as.matrix(sub_train[,-1])) 
 Y_torch = torch_tensor(sub_train[,1]+1, dtype = torch_long())
-for(i in 1:500) {
+for(i in 1:500){
   indices = sample.int(nrow(sub_train), 20L)
   opt$zero_grad()
   pred = model_torch(X_torch[indices, ])

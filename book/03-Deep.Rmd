@@ -257,16 +257,16 @@ YT = apply(Y, 1, which.max)
 
 dataset_nasa = dataset(
   name = "nasa",
-  initialize = function(nasa) {
+  initialize = function(nasa){
     self$X = nasa$X
     self$Y = nasa$Y
   },
-  .getitem = function(i) {
+  .getitem = function(i){
     X = self$X[i,,drop = FALSE] %>% torch_tensor()
     Y = self$Y[i] %>% torch_tensor()
     list(X, Y)
   },
-  .length = function() {
+  .length = function(){
     nrow(self$X)
   })
 
@@ -284,7 +284,7 @@ test_losses = c()
 early_epoch = 0
 min_loss = Inf
 patience = 5
-for(epoch in 1:50) {
+for(epoch in 1:50){
   if(early_epoch >= patience){ break }
   
   train_loss = c()
@@ -309,7 +309,7 @@ for(epoch in 1:50) {
   )
   
   ### Early stopping ###
-  if(mean(test_loss) < min_loss) {
+  if(mean(test_loss) < min_loss){
     min_loss = mean(test_loss)
     early_epoch = 0
   } else {
@@ -342,8 +342,9 @@ To do so, we define a few helper functions:
 
 ```{r}
 library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
-rotate = function(x) t(apply(x, 2, rev))
+rotate = function(x){ t(apply(x, 2, rev)) }
 
 imgPlot = function(img, title = ""){
   col = grey.colors(255)
@@ -447,6 +448,8 @@ Having flattened the layer, we can simply use our typical output layer.
 ```{r}
 library(torch)
 library(torchvision)
+torch_manual_seed(321L)
+set.seed(123)
 
 train_ds = mnist_dataset(
   ".",
@@ -492,7 +495,7 @@ conv1 = nn_conv2d(1, 16L, 2L, stride = 1L)
 ```
 
 Output: batch_size = 32,  number of feature maps = 16, dimensions of each feature map = $(27 , 27)$
-Wit a kernel size of two and stride = 1 we wil lose one pixel in each dimension...
+Wit a kernel size of two and stride = 1 we will lose one pixel in each dimension...
 Questions: 
 
 * What happens if we increase the stride?
@@ -526,13 +529,13 @@ Build the network:
 ```{r}
 net = nn_module(
   "mnist",
-  initialize = function() {
+  initialize = function(){
     self$conv1 = nn_conv2d(1, 16L, 2L)
-    self$conv2 = nn_conv2d(16L, 16L, 3)
+    self$conv2 = nn_conv2d(16L, 16L, 3L)
     self$fc1 = nn_linear(400L, 100L)
     self$fc2 = nn_linear(100L, 10L)
   },
-  forward = function(x) {
+  forward = function(x){
     x %>% 
       self$conv1() %>%
       nnf_relu() %>%
@@ -599,16 +602,18 @@ set.seed(123)
 model_torch = net()
 opt = optim_adam(params = model_torch$parameters, lr = 0.01)
 
-for(e in 1:3) {
+for(e in 1:3){
   losses = c()
-  coro::loop(for (batch in train_dl) {
-    opt$zero_grad()
-    pred = model_torch(batch[[1]])
-    loss = nnf_cross_entropy(pred, batch[[2]], reduction = "mean")
-    loss$backward()
-    opt$step()
-    losses = c(losses, loss$item())
-  })
+  coro::loop(
+    for(batch in train_dl){
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]], reduction = "mean")
+      loss$backward()
+      opt$step()
+      losses = c(losses, loss$item())
+    }
+  )
   cat(sprintf("Loss at epoch %d: %3f\n", e, mean(losses)))
 }
 ```
@@ -623,9 +628,9 @@ total = 0
 correct = 0
 
 coro::loop(
-  for(b in test_dl){
-    output = model_torch(b[[1]])
-    labels = b[[2]]
+  for(batch in test_dl){
+    output = model_torch(batch[[1]])
+    labels = batch[[2]]
     loss = nnf_cross_entropy(output, labels)
     test_losses = c(test_losses, loss$item())
     predicted = torch_max(output$data(), dim = 2)[[2]]
@@ -710,9 +715,9 @@ min_val_loss = Inf
 val_losses = c()
 epoch_losses = c()
 
-for(e in 1:epochs) {
+for(e in 1:epochs){
   epoch_loss = c()
-  for(s in 1:steps) {
+  for(s in 1:steps){
     batch = reticulate::iter_next(generator)
     with(tf$GradientTape() %as% tape,
          {
@@ -737,7 +742,7 @@ for(e in 1:epochs) {
   cat("Epoch: ", e, " Train Loss: ", mean(epoch_losses),
       " Val Loss: ", val_losses[e],  " \n")
   
-  if(val_losses[e] < min_val_loss) {
+  if(val_losses[e] < min_val_loss){
     min_val_loss = val_losses[e]
     patience = 1
   } else { patience = patience + 1 }
@@ -763,7 +768,7 @@ library(torch)
 torch_manual_seed(321L)
 set.seed(123)
 
-train_transforms = function(img) {
+train_transforms = function(img){
   img %>%
     transform_to_tensor() %>%
     transform_random_horizontal_flip(p = 0.3) %>% 
@@ -782,7 +787,7 @@ test_dl = dataloader(test_ds, batch_size = 100L)
 model_torch = net()
 opt = optim_adam(params = model_torch$parameters, lr = 0.01)
 
-for(e in 1:1) {
+for(e in 1:1){
   losses = c()
   coro::loop(
     for(batch in train_dl){
@@ -805,9 +810,9 @@ total = 0
 correct = 0
 
 coro::loop(
-  for(b in test_dl){
-    output = model_torch(b[[1]])
-    labels = b[[2]]
+  for(batch in test_dl){
+    output = model_torch(batch[[1]])
+    labels = batch[[2]]
     loss = nnf_cross_entropy(output, labels)
     test_losses = c(test_losses, loss$item())
     predicted = torch_max(output$data(), dim = 2)[[2]]
@@ -940,7 +945,7 @@ model_torch$fc = nn_linear(inFeat, out_features = 10L)
 
 opt = optim_adam(params = model_torch$parameters, lr = 0.01)
 
-for(e in 1:1) {
+for(e in 1:1){
   losses = c()
   coro::loop(
     for(batch in train_dl){
@@ -963,9 +968,9 @@ total = 0
 correct = 0
 
 coro::loop(
-  for(b in test_dl){
-    output = model_torch(b[[1]])
-    labels = b[[2]]
+  for(batch in test_dl){
+    output = model_torch(batch[[1]])
+    labels = batch[[2]]
     loss = nnf_cross_entropy(output, labels)
     test_losses = c(test_losses, loss$item())
     predicted = torch_max(output$data(), dim = 2)[[2]]
@@ -1036,15 +1041,17 @@ patience = 1L
 min_val_loss = Inf
 val_losses = c()
 epoch_losses = c()
-for(e in 1:epochs) {
+for(e in 1:epochs){
   epoch_loss = c()
-  for(s in 1:steps) {
+  for(s in 1:steps){
     batch = reticulate::iter_next(generator)
-    with(tf$GradientTape() %as% tape, {
+    with(tf$GradientTape() %as% tape,
+      {
         pred = model(batch[[1]], training = TRUE)
         loss = keras::loss_categorical_crossentropy(batch[[2]], pred)
         loss = tf$reduce_mean(loss)
-      })
+      }
+    )
     gradients = tape$gradient(target = loss,
                               sources = model$trainable_variables)
     optim$apply_gradients(purrr::transpose(list(gradients,
@@ -1061,7 +1068,7 @@ for(e in 1:epochs) {
   cat("Epoch: ", e, " Train Loss: ", mean(epoch_losses),
       " Val Loss: ", val_losses[e],  " \n")
   
-  if(val_losses[e] < min_val_loss) {
+  if(val_losses[e] < min_val_loss){
     min_val_loss = val_losses[e]
     patience = 1
   } else { patience = patience+1 }
@@ -1070,5 +1077,4 @@ for(e in 1:epochs) {
 
 preds = predict(model, imagenet_preprocess_input(data$test))
 ```
-
 
