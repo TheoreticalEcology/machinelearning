@@ -334,7 +334,7 @@ legend("topright", bty = "n", col = c("darkblue", "darkred"),
 <br/>
 
 
-## Case Study - Fitting a Convolutional Neural Network on MNIST
+## Case Study: Fitting a Convolutional Neural Network on MNIST
 
 We will show the use of convolutional neural networks with the MNIST data set. This data set is maybe one of the most famous image data sets. It consists of 60,000 handwritten digits from 0-9.
 
@@ -705,7 +705,7 @@ test = train[indices,,,]/255
 test_labels = k_one_hot(labels[indices], num_classes = 5L)
 
 # Our own training loop with early stopping:
-epochs = 50L
+epochs = 1L
 batch_size = 25L
 steps = floor(dim(train)[1]/batch_size)
 optim = keras::optimizer_rmsprop()
@@ -862,14 +862,14 @@ test_y = to_categorical(test$y, 10)
 
 Keras provides download functions for all famous architectures/convolutional neural network models which are already trained on the imagenet data set (another famous data set). These trained networks come already without their top layer, so we have to set include_top to false and change the input shape.
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 densenet = application_densenet201(include_top = FALSE,
                                    input_shape  = c(32L, 32L, 3L))
 ```
 
 Now, we will not use a sequential model but just a "keras_model" where we can specify the inputs and outputs. Thereby, the output is our own top layer, but the inputs are the densenet inputs, as these are already pre-trained.
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 model = keras::keras_model(inputs = densenet$input, outputs = 
  layer_flatten(layer_dense(densenet$output, units = 10L,
                            activation = "softmax"))
@@ -883,7 +883,7 @@ model = keras::keras_model(inputs = densenet$input, outputs =
 
 In the next step we want to freeze all layers except for our own last layer. Freezing means that these are not trained: We do not want to train the complete model, we only want to train the last layer. You can check the number of trainable weights via summary(model).
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 model %>% freeze_weights(to = length(model$layers)-1)
 summary(model)
 ```
@@ -991,7 +991,7 @@ print(test_accuracy)
 
 Let's do that with our flower data set:
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 library(keras)
 library(tensorflow)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
