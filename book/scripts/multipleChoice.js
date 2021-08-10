@@ -5,7 +5,7 @@
 
 
 //Try to not include this script several times in one file. That means, use <script src=".../multipleChoice.js"></script> only one time (if possible).
-//The function "makeMultipleChoiceForm" may be used as often as you like.
+//The function 'makeMultipleChoiceForm' may be used as often as you like.
 
 
 /**********		Examples	**********
@@ -123,7 +123,7 @@
 ////////////////////////////////////////////////////////////
 
 if(multipleChoiceIncluded === undefined){	//Prevent from errors, if the script is included multiple times.
-	var multipleChoiceIncluded = true;	//Define variable "multipleChoiceIncluded" if already included.
+	var multipleChoiceIncluded = true;	//Define variable 'multipleChoiceIncluded' if already included.
 	var uniqueSelectObjectID = 0;		//Global(!) counter for inserted multiple choice forms.
 	var correctAnswers = {};			//Global variable for storing (indices of) correct answers.
 	var textAnswers = {};				//Global variable for storing all supplied text answers.
@@ -134,7 +134,8 @@ if(multipleChoiceIncluded === undefined){	//Prevent from errors, if the script i
 
 var dyeAnswers = true;					//true/false. Indicates whether wrong answers (rather the respective labels) should get red and right ones green.
 var radioDyeAll = false;				//true/false. Set to true, if you want to show correctness (dye labels) of ALL (not just the selected) answer.
-var disableButtonOnClick = false;		//true/false. Set to true, if you want to enable only 1 button click (disabled after).
+										//Only usefull, if 'dyeAnswers' is true.
+var disableButtonOnClick = true;		//true/false. Set to true, if you want to enable only 1 button click (disabled after).
 
 ////////////////////////////////////////////////////////////
 ////////////////////	End global variables
@@ -147,7 +148,7 @@ var disableButtonOnClick = false;		//true/false. Set to true, if you want to ena
 
 /*!
 *	\brief	Makes entered invisible text visible, if not empty.
-*			This function is used very often and thus "outsourced".
+*			This function is used very often and thus 'outsourced'.
 *	
 *	@param	uniqueIdentifier[in]	Unique object identifier (literally; by name).
 */
@@ -175,7 +176,7 @@ function dyeAnswerLabel(uniqueIdentifier, color){
 /*!
 *	\brief	Is called when a submit button was clicked.
 *			Evaluates the given answers and makes the corresponding explanation and comment fields visible.
-*			Makes use of the global variables "correctAnswers" and "textAnswers".
+*			Makes use of the global variables 'correctAnswers' and 'textAnswers'.
 *	
 *	@param	objectID[in]	Global question ID with kind prefix (kind_id).
 */
