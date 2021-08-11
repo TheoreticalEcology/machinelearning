@@ -48,8 +48,8 @@ devtools::install_github(repo = "florianhartig/EcoData", subdir = "EcoData", dep
 devtools::install_github('araastat/reprtree')
 devtools::install_version("lavaanPlot", version = "0.6.0")
 
-reticulate::conda_install("r-reticulate", packages = "scipy", pip=TRUE)
 torch::install_torch()
+reticulate::conda_install("r-reticulate", packages = "scipy", pip = TRUE)
 
 
 
