@@ -32,8 +32,6 @@ create_test = function(input_file) {
     }
     result = c(result, code[i])
   }
-  result = c(result, end)
+  result = c(result, end, "rm(list=ls())", "gc()")
   writeLines(result, con = paste0("tests/", "test-",name, ".R"))
 }
-
-
