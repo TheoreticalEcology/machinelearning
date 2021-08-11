@@ -2,7 +2,7 @@
 
 You can download the data sets we use in the course <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a> (ignore browser warnings) or by installing the EcoData package:
 
-```{r, eval=FALSE}
+```{r chunk_chapter6_0, eval=FALSE}
 devtools::install_github(repo = "florianhartig/EcoData", subdir = "EcoData", 
 dependencies = TRUE, build_vignettes = FALSE)
 ```
@@ -20,8 +20,7 @@ A minimal working example:
 
 1. Load data set:
 
-```{r}
-# load("datasets.RData")
+```{r chunk_chapter6_1}
 library(EcoData)
 
 data(titanic_ml)
@@ -31,7 +30,7 @@ summary(titanic)
 
 2. Impute missing values (not our response variable!):
 
-```{r}
+```{r chunk_chapter6_2}
 library(missRanger)
 library(dplyr)
 set.seed(123)
@@ -44,27 +43,27 @@ titanic_imputed$survived = titanic$survived
 
 3. Split into training and test set:
 
-```{r}
+```{r chunk_chapter6_3}
 train = titanic_imputed[!is.na(titanic$survived), ]
 test = titanic_imputed[is.na(titanic$survived), ]
 ```
 
 4. Train model:
 
-```{r}
+```{r chunk_chapter6_4}
 model = glm(survived~., data = train, family = binomial())
 ```
 
 5. Predictions:
 
-```{r}
+```{r chunk_chapter6_5}
 preds = predict(model, data = test, type = "response")
 head(preds)
 ```
 
 6. Create submission csv:
 
-```{r, eval=FALSE}
+```{r chunk_chapter6_6, eval=FALSE}
 write.csv(data.frame(y = preds), file = "glm.csv")
 ```
 
@@ -76,7 +75,7 @@ And submit the csv on <a href="http://rhsbio7.uni-regensburg.de:8500" target="_b
 The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower).
 We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>.
 
-```{r, echo=FALSE}
+```{r chunk_chapter6_7, echo=FALSE}
 knitr::include_graphics(c("images/TM.png"))
 ```
 
@@ -86,19 +85,18 @@ A minimal working example:
 
 1. Load data set:
 
-```{r}
-load("datasets.RData")
-# library(EcoData)
+```{r chunk_chapter6_8}
+library(EcoData)
 
-# data(plantPollinator_df)
-# plant_poll = plantPollinator_df
+data(plantPollinator_df)
+plant_poll = plantPollinator_df
 summary(plant_poll)
 ```
 
 2. Impute missing values (not our response variable!)
 We will select only a few predictors here (you can work with all predictors of course).
 
-```{r}
+```{r chunk_chapter6_9}
 library(missRanger)
 library(dplyr)
 set.seed(123)
@@ -116,27 +114,27 @@ plant_poll_imputed$interaction = plant_poll$interaction
 
 3. Split into training and test set:
 
-```{r}
+```{r chunk_chapter6_10}
 train = plant_poll_imputed[!is.na(plant_poll_imputed$interaction), ]
 test = plant_poll_imputed[is.na(plant_poll_imputed$interaction), ]
 ```
 
 4. Train model:
 
-```{r}
+```{r chunk_chapter6_11}
 model = glm(interaction~., data = train, family = binomial())
 ```
 
 5. Predictions:
 
-```{r}
+```{r chunk_chapter6_12}
 preds = predict(model, newdata = test, type = "response")
 head(preds)
 ```
 
 6. Create submission csv:
 
-```{r, eval=FALSE}
+```{r chunk_chapter6_13, eval=FALSE}
 write.csv(data.frame(y = preds), file = "glm.csv")
 ```
 
@@ -156,17 +154,16 @@ A minimal working example:
 
 1. Load data set:
 
-```{r}
-load("datasets.RData")
-# library(EcoData)
+```{r chunk_chapter6_14}
+library(EcoData)
 
-# data(wine)
+data(wine)
 summary(wine)
 ```
 
 2. Impute missing values (not our response variable!).
 
-```{r}
+```{r chunk_chapter6_15}
 library(missRanger)
 library(dplyr)
 set.seed(123)
@@ -178,14 +175,14 @@ wine_imputed$quality = wine$quality
 
 3. Split into training and test set:
 
-```{r}
+```{r chunk_chapter6_16}
 train = wine_imputed[!is.na(wine$quality), ]
 test = wine_imputed[is.na(wine$quality), ]
 ```
 
 4. Train model:
 
-```{r}
+```{r chunk_chapter6_17}
 library(ranger)
 set.seed(123)
 
@@ -194,14 +191,14 @@ rf = ranger(quality~., data = train, classification = TRUE)
 
 5. Predictions:
 
-```{r}
+```{r chunk_chapter6_18}
 preds = predict(rf, data = test)$predictions
 head(preds)
 ```
 
 6. Create submission csv:
 
-```{r,eval=FALSE}
+```{r chunk_chapter6_19, eval=FALSE}
 write.csv(data.frame(y = preds), file = "rf.csv")
 ```
 
@@ -215,17 +212,16 @@ For inspiration and data exploration notebooks, check out this <a href="https://
 
 1. Load data set:
 
-```{r}
-load("datasets.RData")
-# library(EcoData)
+```{r chunk_chapter6_20}
+library(EcoData)
 
-# data(nasa)
+data(nasa)
 summary(nasa)
 ```
 
 2. Impute missing values (not our response variable!):
 
-```{r}
+```{r chunk_chapter6_21}
 library(missRanger)
 library(dplyr)
 set.seed(123)
@@ -237,14 +233,14 @@ nasa_imputed$Hazardous = nasa$Hazardous
 
 3. Split into training and test set:
 
-```{r}
+```{r chunk_chapter6_22}
 train = nasa_imputed[!is.na(nasa$Hazardous), ]
 test = nasa_imputed[is.na(nasa$Hazardous), ]
 ```
 
 4. Train model:
 
-```{r}
+```{r chunk_chapter6_23}
 library(ranger)
 set.seed(123)
 
@@ -254,14 +250,14 @@ rf = ranger(Hazardous~., data = train, classification = TRUE,
 
 5. Predictions:
 
-```{r}
+```{r chunk_chapter6_24}
 preds = predict(rf, data = test)$predictions[,2]
 head(preds)
 ```
 
 6. Create submission csv:
 
-```{r,eval=FALSE}
+```{r chunk_chapter6_25, eval=FALSE}
 write.csv(data.frame(y = preds), file = "rf.csv")
 ```
 
@@ -281,7 +277,7 @@ You can download the data set <a href="http://rhsbio7.uni-regensburg.de:8500" ta
 1. Load data set:
 The data set requires preprocessing (we have to concatenate the train and test images):
 
-```{r}
+```{r chunk_chapter6_26}
 library(keras)
 library(stringr)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -302,7 +298,7 @@ train_classes = flower$labels
 
 Let's visualize a flower:
 
-```{r}
+```{r chunk_chapter6_27}
 train[100,,,] %>% 
  image_to_array() %>%
  `/`(., 255) %>%
@@ -312,7 +308,7 @@ train[100,,,] %>%
 
 2. Build and train model:
 
-```{r, eval=FALSE}
+```{r chunk_chapter6_28, eval=FALSE}
 model = keras_model_sequential()
 model %>% 
   layer_conv_2d(filters = 4L, kernel_size = 2L,
@@ -359,7 +355,7 @@ for(e in 1:epochs){
 
 3. Predictions:
 
-```{r, eval=FALSE}
+```{r chunk_chapter6_29, eval=FALSE}
 preds = model %>% predict(test/255)
 preds = apply(preds, 1, which.max)-1
 head(preds)
@@ -367,7 +363,7 @@ head(preds)
 
 4. Create submission csv:
 
-```{r, eval=FALSE}
+```{r chunk_chapter6_30, eval=FALSE}
 write.csv(data.frame(y = preds), file = "cnn.csv")
 ```
 

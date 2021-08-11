@@ -11,7 +11,7 @@ In this lecture we will work with another famous data set, the _Boston housing_ 
 
 We will fit a random forest and use the iml package for xAI, see <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>.
 
-```{r}
+```{r chunk_chapter4_0}
 library(iml)
 library(randomForest)
 set.seed(123)
@@ -23,7 +23,7 @@ rf = randomForest(medv ~ ., data = Boston, ntree = 50)
 xAI packages are written generic, i.e. they can handle almost all machine learning models.
 When we want to use them, we first have to create a predictor object, that holds the model and the data. The iml package uses R6 classes, that means new objects can be created by calling Predictor$new(). (Do not worry if you do not know what R6 classes are, just use the command.)
 
-```{r}
+```{r chunk_chapter4_1}
 X = Boston[which(names(Boston) != "medv")]
 predictor = Predictor$new(rf, data = X, y = Boston$medv)
 # "Predictor" is an object generator.
@@ -34,7 +34,7 @@ predictor = Predictor$new(rf, data = X, y = Boston$medv)
 
 Feature importance should not be mistaken with the random forest variable importance though they are related. It tells us how important the individual variables are for predictions, can be calculated for all machine learning models and is based on a permutation approach (have a look at the book):
 
-```{r}
+```{r chunk_chapter4_2}
 imp = FeatureImp$new(predictor, loss = "mae")
 plot(imp)
 ```
@@ -44,7 +44,7 @@ plot(imp)
 
 Partial dependencies are similar to allEffects plots for normal regressions. The idea is to visualize "marginal effects" of predictors (with the "feature" argument we specify the variable we want to visualize):
 
-```{r}
+```{r chunk_chapter4_3}
 eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp",
                         grid.size = 30)
 plot(eff)
@@ -52,7 +52,7 @@ plot(eff)
 
 Partial dependencies can also be plotted for single observations:
 
-```{r}
+```{r chunk_chapter4_4}
 eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp+ice",
                         grid.size = 30)
 plot(eff)
@@ -65,7 +65,7 @@ One disadvantage of partial dependencies is that they are sensitive to correlate
 
 Accumulated local effects (ALE) are basically partial dependencies plots but try to correct for correlations between predictors.
 
-```{r}
+```{r chunk_chapter4_5}
 ale = FeatureEffect$new(predictor, feature = "rm", method = "ale")
 ale$plot()
 ```
@@ -77,7 +77,7 @@ If there is no collinearity, you shouldn't see much difference between partial d
 
 The H-statistic can be used to find interactions between predictors. However, again, keep in mind that the H-statistic is sensible to correlation between predictors:
 
-```{r}
+```{r chunk_chapter4_6}
 interact = Interaction$new(predictor, "lstat")
 plot(interact)
 ```
@@ -87,7 +87,7 @@ plot(interact)
 
 Another idea is simplifying the machine learning model with another simpler model such as a decision tree. We create predictions with the machine learning model for a lot of different input values and then we fit a decision tree on these predictions. We can then interpret the easier model.
 
-```{r, results='hide', message=FALSE, warning=FALSE}
+```{r chunk_chapter4_7, results='hide', message=FALSE, warning=FALSE}
 library(partykit)
 
 tree = TreeSurrogate$new(predictor, maxdepth = 2)
@@ -101,7 +101,7 @@ The global approach is to simplify the entire machine learning-black-box model v
 
 However, sometimes we are only interested in understanding how single predictions are generated. The LIME (Local interpretable model-agnostic explanations) approach explores the feature space around one observation and based on this locally fits a simpler model (e.g. a linear model):
 
-```{r}
+```{r chunk_chapter4_8}
 lime.explain$results
 plot(lime.explain)
 ```
@@ -111,7 +111,7 @@ plot(lime.explain)
 
 The Shapley method computes the so called Shapley value, feature contributions for single predictions, and is based on an approach from cooperative game theory. The idea is that each feature value of the instance is a "player" in a game, where the prediction is the reward. The Shapley value tells us how to fairly distribute the reward among the features.
 
-```{r}
+```{r chunk_chapter4_9}
 shapley = Shapley$new(predictor, x.interest = X[1,])
 shapley$plot()
 ```
@@ -134,7 +134,7 @@ Here an example for the indicators of variable importance in the random forest a
 
 We first simulate a data set with 2 predictors that are strongly correlated, but only one of them has an effect on the response.
 
-```{r}
+```{r chunk_chapter4_10}
 set.seed(123)
 
 # Simulation parameters.
@@ -151,13 +151,13 @@ y = x1 + rnorm(n)
 
 lm / anova correctly identify $x1$ as causal variable.
 
-```{r}
+```{r chunk_chapter4_11}
 summary(lm(y ~ x1 + x2))
 ```
 
 Fit random forest and show variable importance:
 
-```{r}
+```{r chunk_chapter4_12}
 set.seed(123)
 
 fit = randomForest(y ~ x1 + x2, importance = TRUE)
@@ -177,7 +177,7 @@ Task: understand why this is - remember:
 
 If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). SEMs are designed to estimate entire causal diagrams. There are two main SEM packages in R: For anything that is non-normal, you will currently have to estimate the directed acyclic graph (that depicts causal relations) piece-wise with CRAN package piecewiseSEM. Example for a vegetation data set:
 
-```{r}
+```{r chunk_chapter4_13}
 library(piecewiseSEM)
 
 mod = psem(
@@ -192,7 +192,7 @@ summary(mod)
 
 For linear structural equation models, we can estimate the entire directed acyclic graph at once. This also allows havinge unobserved variables in the directed acyclic graph. One of the most popular packages for this is lavaan.
 
-```{r}
+```{r chunk_chapter4_14}
 library(lavaan)
 
 mod = "
@@ -206,7 +206,7 @@ summary(fit)
 
 The default plot options are not so nice as before.
 
-```{r}
+```{r chunk_chapter4_15}
 # devtools::install_version("lavaanPlot", version = "0.6.0")
 library(lavaanPlot)
 
@@ -215,7 +215,7 @@ lavaanPlot(model = fit)
 
 Another plotting option is using semPlot.
 
-```{r}
+```{r chunk_chapter4_16}
 library(semPlot)
 
 semPaths(fit)
@@ -226,7 +226,7 @@ semPaths(fit)
 
 But how to get the causal graph? In statistics, it is common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the _PC algorithm_. Here an example using the pcalg package:
 
-```{r}
+```{r chunk_chapter4_17}
 # Bioconductor dependencies have to be installed by hand, e.g. 
 # BiocManager::install(c("Rgraphviz", "graph", "RBGL")
 library(pcalg)
@@ -234,7 +234,7 @@ library(pcalg)
 
 Loading the data:
 
-```{r}
+```{r chunk_chapter4_18}
 data("gmG", package = "pcalg") ## Loads data sets gmG and gmG8.
 suffStat = list(C = cor(gmG8$x), n = nrow(gmG8$x))
 varNames = gmG8$g@nodes
@@ -242,7 +242,7 @@ varNames = gmG8$g@nodes
 
 First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph).
 
-```{r}
+```{r chunk_chapter4_19}
 skel.gmG8 = skeleton(suffStat, indepTest = gaussCItest,
 labels = varNames, alpha = 0.01)
 Rgraphviz::plot(skel.gmG8)
@@ -250,7 +250,7 @@ Rgraphviz::plot(skel.gmG8)
 
 What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.
 
-```{r}
+```{r chunk_chapter4_20}
 pc.gmG8 = pc(suffStat, indepTest = gaussCItest,
 labels = varNames, alpha = 0.01)
 Rgraphviz::plot(pc.gmG8 )
@@ -261,7 +261,7 @@ Rgraphviz::plot(pc.gmG8 )
 
 When working with dynamic data, we can use an additional piece of information - the cause usually precedes the effect, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as _Granger causality_, or Granger methods. Here an example:
 
-```{r}
+```{r chunk_chapter4_21}
 library(lmtest)
 
 ## What came first: the chicken or the egg?

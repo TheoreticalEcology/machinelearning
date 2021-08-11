@@ -18,7 +18,7 @@ In a convolutional neural network, we have at least one convolution layer, addit
 Neurons in a convolution layer are connected only to a small spatially contiguous area of the input layer (_receptive field_). We use this structure (_feature map_) to scan the **entire** features / neurons (e.g. picture). Think of the feature map as a _kernel_ or _filter_ (or imagine a sliding window with weighted pixels) that is used to scan the image. As the name is already indicating, this operation is a convolution in mathematics.
 The kernel weights are optimized, but we use the same weights across the entire input neurons (_shared weights_).
 
-The resulting (hidden) convolitional layer after training is called a _feature map_. You can think of the feature map as a map that shows you where the “shapes” expressed by the kernel appear in the input. One kernel / feature map will not be enough, we typically have many shapes that we want to recognize. Thus, the input layer is typically connected to several feature maps, which can be aggregated and followed by a second layer of feature maps, and so on.
+The resulting (hidden) convolutional layer after training is called a _feature map_. You can think of the feature map as a map that shows you where the “shapes” expressed by the kernel appear in the input. One kernel / feature map will not be enough, we typically have many shapes that we want to recognize. Thus, the input layer is typically connected to several feature maps, which can be aggregated and followed by a second layer of feature maps, and so on.
 
 You get one convolution map/layer for each kernel of one convolutional layer.
 
@@ -27,7 +27,7 @@ You get one convolution map/layer for each kernel of one convolutional layer.
 
 Recurrent neural networks are used to model sequential data, i.e. a temporal sequence that exhibits temporal dynamic behavior. Here is a good introduction to the topic:
 
-```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+```{r chunk_chapter3_0, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315" 
   src="https://www.youtube.com/embed/SEnXr6v2ifU"
@@ -42,7 +42,7 @@ cat(
 
 Natural language processing is actually more of a task than a network structure, but in the area of deep learning for natural language processing, particular network structures are used. The following video should give you an idea about what NLP is about.
 
-```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+```{r chunk_chapter3_1, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315" 
   src="https://www.youtube.com/embed/UFtXy0KRxVI"
@@ -66,9 +66,8 @@ Regularization in deep neural networks is very important because of the problem 
 
 See \ref(mlr) for explanation about the preprocessing pipeline. 
 
-```{r, message=FALSE}
-#library(EcoData)
-load("datasets.RData")
+```{r chunk_chapter3_2, message=FALSE}
+library(EcoData)
 data(nasa)
 str(nasa)
 
@@ -97,7 +96,7 @@ Y = to_categorical(as.matrix(Y), 2)
 
 **Early stopping**
 
-```{r}
+```{r chunk_chapter3_3}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -127,7 +126,7 @@ $\rightarrow$ Overfitting!
 
 Let's try an $L1+L2$ regularization:
 
-```{r}
+```{r chunk_chapter3_4}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -158,7 +157,7 @@ plot(model_history)
 
 Better, but the validation loss still starts increasing after 40 epochs. But we can use early stopping to end the training before the validation loss starts increasing again!
 
-```{r}
+```{r chunk_chapter3_5}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -196,7 +195,7 @@ Patience is the number of epochs to wait before aborting the training.
 
 @dropout suggests a dropout rate of 50% for internal hidden layers and 20% for the input layer. One advantage of dropout is that the training is more independent of the number of epochs i.e. the validation loss usually doesn't start to increase after several epochs. 
 
-```{r}
+```{r chunk_chapter3_6}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -234,7 +233,7 @@ Of course, you can still combine early stopping and dropout, which is normally a
   
     Dropout and early stopping with Torch:
 
-```{r}
+```{r chunk_chapter3_7}
 library(torch)
 torch_manual_seed(321L)
 set.seed(123)
@@ -340,7 +339,7 @@ We will show the use of convolutional neural networks with the MNIST data set. T
 
 To do so, we define a few helper functions:
 
-```{r}
+```{r chunk_chapter3_8}
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
@@ -355,7 +354,7 @@ imgPlot = function(img, title = ""){
 
 The MNIST data set is so famous that there is an automatic download function in Keras:
 
-```{r}
+```{r chunk_chapter3_9}
 data = dataset_mnist()
 train = data$train
 test = data$test
@@ -363,7 +362,7 @@ test = data$test
 
 Let's visualize a few digits:
 
-```{r}
+```{r chunk_chapter3_10}
 oldpar = par(mfrow = c(1, 3))
 .n = sapply(1:3, function(x) imgPlot(train$x[x,,], train$y[x]))
 par(oldpar)
@@ -371,7 +370,7 @@ par(oldpar)
 
 Similar to the normal machine learning workflow, we have to scale the pixels (from 0-255) to the range of $[0, 1]$ and one hot encode the response. For scaling the pixels, we will use arrays instead of matrices. Arrays are called tensors in mathematics and a 2D array/tensor is typically called a matrix.
 
-```{r}
+```{r chunk_chapter3_11}
 train_x = array(train$x/255, c(dim(train$x), 1))
 test_x = array(test$x/255, c(dim(test$x), 1))
 train_y = to_categorical(train$y, 10)
@@ -384,7 +383,7 @@ Most times, we would have at least 3 color channels, for example RGB (red, green
 
 To build our convolutional model, we have to specify a kernel. In our case, we will use 16 convolutional kernels (filters) of size $2\times2$. These are 2D kernels because our images are 2D. For movies for example, one would use 3D kernels (the third dimension would correspond to time and not to the color channels).
 
-```{r}
+```{r chunk_chapter3_12}
 model = keras_model_sequential()
 model %>% 
  layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L,
@@ -445,7 +444,7 @@ Having flattened the layer, we can simply use our typical output layer.
   
     Prepare/download data:
 
-```{r}
+```{r chunk_chapter3_13}
 library(torch)
 library(torchvision)
 torch_manual_seed(321L)
@@ -468,7 +467,7 @@ test_ds = mnist_dataset(
 
 Build dataloader:
 
-```{r}
+```{r chunk_chapter3_14}
 train_dl = dataloader(train_ds, batch_size = 32, shuffle = TRUE)
 test_dl = dataloader(test_ds, batch_size = 32)
 first_batch = train_dl$.iter()
@@ -482,14 +481,14 @@ We have here to calculate the shapes of our layers on our own:
 
 **We start with our input of shape (batch_size, 1, 28, 28)**
 
-```{r}
+```{r chunk_chapter3_15}
 sample = df$x
 sample$size()
 ```
 
 **First convolutional layer has shape (input channel = 1, number of feature maps = 16, kernel size = 2)**
 
-```{r}
+```{r chunk_chapter3_16}
 conv1 = nn_conv2d(1, 16L, 2L, stride = 1L)
 (sample %>% conv1)$size()
 ```
@@ -503,7 +502,7 @@ Questions:
 
 **Pooling layer summarizes each feature map**
 
-```{r}
+```{r chunk_chapter3_17}
 (sample %>% conv1 %>% nnf_max_pool2d(kernel_size = 2L, stride = 2L))$size()
 ```
 
@@ -513,7 +512,7 @@ kernel_size = 2L and stride = 2L halfs the pixel dimensions of our image
 
 Now we have to flatten our final output of the convolutional neural network model to use a normal fully connected layer, but to do so we have to calculate the number of inputs for the fully connected layer:
 
-```{r}
+```{r chunk_chapter3_18}
 dims = (sample %>% conv1 %>%
           nnf_max_pool2d(kernel_size = 2L,stride = 2L))$size()
 # Without the batch size of course.
@@ -526,7 +525,7 @@ fc = nn_linear(final, 10L)
 
 Build the network:
 
-```{r}
+```{r chunk_chapter3_19}
 net = nn_module(
   "mnist",
   initialize = function(){
@@ -557,7 +556,7 @@ net = nn_module(
 
 The rest is as usual: First we compile the model.
 
-```{r}
+```{r chunk_chapter3_20}
 model %>% 
  compile(
  optimizer = keras::optimizer_adamax(0.01),
@@ -568,7 +567,7 @@ summary(model)
 
 Then, we train the model:
 
-```{r}
+```{r chunk_chapter3_21}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -594,7 +593,7 @@ model %>%
 
     Train model:
 
-```{r}
+```{r chunk_chapter3_22}
 library(torch)
 torch_manual_seed(321L)
 set.seed(123)
@@ -620,7 +619,7 @@ for(e in 1:3){
 
     Evaluation:
 
-```{r}
+```{r chunk_chapter3_23}
 model_torch$eval()
 
 test_losses = c()
@@ -659,9 +658,9 @@ The idea is that a convolutional neural network learns specific structures such 
 
 Luckily, it is very easy to use data augmentation in Keras.
 
-To show this, we will use again the MNIST data set. We have to define a generator object (a specific object which infinitely draws samples from our data set). In the generator we can turn on the data augmentation. However, now we have to set the step size (steps_per_epoch) because the model does not know the first dimension of the image.
+To show this, we will use our flower data set. We have to define a generator object (a specific object which infinitely draws samples from our data set). In the generator we can turn on the data augmentation.
 
-```{r, eval=FALSE}
+```{r chunk_chapter3_24, eval=FALSE}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -704,50 +703,19 @@ generator = flow_images_from_data(train[-indices,,,]/255,
 test = train[indices,,,]/255
 test_labels = k_one_hot(labels[indices], num_classes = 5L)
 
-# Our own training loop with early stopping:
-epochs = 1L
-batch_size = 25L
-steps = floor(dim(train)[1]/batch_size)
-optim = keras::optimizer_rmsprop()
-max_patience = 5L
-patience = 1L
-min_val_loss = Inf
-val_losses = c()
-epoch_losses = c()
+# Training loop with early stopping:
 
-for(e in 1:epochs){
-  epoch_loss = c()
-  for(s in 1:steps){
-    batch = reticulate::iter_next(generator)
-    with(tf$GradientTape() %as% tape,
-         {
-            pred = model(batch[[1]], training = TRUE)
-            loss = keras::loss_categorical_crossentropy(batch[[2]], pred)
-            loss = tf$reduce_mean(loss)
-          }
-      )
-    gradients = tape$gradient(target = loss,
-                              sources = model$trainable_variables)
-    optim$apply_gradients(purrr::transpose(list(gradients,
-                                                model$trainable_variables)))
-    epoch_loss = c(epoch_loss, loss$numpy())
-  }
-  epoch_losses = c(epoch_losses, epoch_loss)
-  
-  ## Test loss ##
-  preds = model %>% predict(test)
-  test_loss = keras::loss_categorical_crossentropy(test_labels, preds)
-  val_losses = c(val_losses, tf$reduce_mean(test_loss)$numpy())
-  
-  cat("Epoch: ", e, " Train Loss: ", mean(epoch_losses),
-      " Val Loss: ", val_losses[e],  " \n")
-  
-  if(val_losses[e] < min_val_loss){
-    min_val_loss = val_losses[e]
-    patience = 1
-  } else { patience = patience + 1 }
-  if(patience == max_patience){ break }
-}
+# As we use an iterator (the generator), validation loss is not applicable.
+# An available metric is the normal loss.
+early = keras::callback_early_stopping(patience = 2L, monitor = "loss")
+
+model %>% 
+	compile(loss = loss_categorical_crossentropy,
+	        optimizer = keras::optimizer_rmsprop())
+
+model %>% 
+	fit(generator, epochs = 20L, batch_size = 25L,
+	    shuffle = TRUE, callbacks = c(early))
 
 preds = predict(model, data$test/255)
 preds = apply(preds, 1, which.max)-1
@@ -763,7 +731,7 @@ So using data augmentation we can artificially increase the number of images.
 
     In Torch, we have to change the transform function (but only for the train dataloader):
 
-```{r}
+```{r chunk_chapter3_25}
 library(torch)
 torch_manual_seed(321L)
 set.seed(123)
@@ -842,7 +810,7 @@ Again, this sounds very complicated but it is again quite easy with Keras.
 
 We will do this now with the CIFAR10 data set, so we have to prepare the data:
 
-```{r}
+```{r chunk_chapter3_26}
 data = keras::dataset_cifar10()
 train = data$train
 test = data$test
@@ -862,14 +830,14 @@ test_y = to_categorical(test$y, 10)
 
 Keras provides download functions for all famous architectures/convolutional neural network models which are already trained on the imagenet data set (another famous data set). These trained networks come already without their top layer, so we have to set include_top to false and change the input shape.
 
-```{r, eval=TRUE}
+```{r chunk_chapter3_27, eval=TRUE}
 densenet = application_densenet201(include_top = FALSE,
                                    input_shape  = c(32L, 32L, 3L))
 ```
 
 Now, we will not use a sequential model but just a "keras_model" where we can specify the inputs and outputs. Thereby, the output is our own top layer, but the inputs are the densenet inputs, as these are already pre-trained.
 
-```{r, eval=TRUE}
+```{r chunk_chapter3_28, eval=TRUE}
 model = keras::keras_model(inputs = densenet$input, outputs = 
  layer_flatten(layer_dense(densenet$output, units = 10L,
                            activation = "softmax"))
@@ -883,14 +851,14 @@ model = keras::keras_model(inputs = densenet$input, outputs =
 
 In the next step we want to freeze all layers except for our own last layer. Freezing means that these are not trained: We do not want to train the complete model, we only want to train the last layer. You can check the number of trainable weights via summary(model).
 
-```{r, eval=TRUE}
+```{r chunk_chapter3_29, eval=TRUE}
 model %>% freeze_weights(to = length(model$layers)-1)
 summary(model)
 ```
 
 And then the usual training:
 
-```{r, eval=FALSE}
+```{r chunk_chapter3_30, eval=FALSE}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -919,7 +887,7 @@ We have seen, that transfer learning can easily be done using Keras.
 
     In Torch, we have to change the transform function (but only for the train dataloader):
 
-```{r}
+```{r chunk_chapter3_31}
 library(torchvision)
 library(torch)
 torch_manual_seed(321L)
@@ -991,7 +959,7 @@ print(test_accuracy)
 
 Let's do that with our flower data set:
 
-```{r, eval=TRUE}
+```{r chunk_chapter3_32, eval=TRUE}
 library(keras)
 library(tensorflow)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -1014,7 +982,6 @@ model = keras_model(inputs = densenet$input,
                       layer_dropout(0.2) %>% 
                       layer_dense(units = 5L, activation = "softmax"))
 
-
 # Data augmentation.
 aug = image_data_generator(rotation_range = 180, zoom_range = 0.4,
                            width_shift_range = 0.2, height_shift_range = 0.2,
@@ -1023,7 +990,7 @@ aug = image_data_generator(rotation_range = 180, zoom_range = 0.4,
 
 # Data preparation / splitting.
 indices = sample.int(nrow(train), 0.1*nrow(train))
-generator = flow_images_from_data(train[-indices,,,]
+generator = flow_images_from_data(train[-indices,,,]/255,
                                   k_one_hot(labels[-indices], num_classes = 5L), 
                                   batch_size = 25L, shuffle = TRUE,
                                   generator = aug)
@@ -1031,50 +998,21 @@ generator = flow_images_from_data(train[-indices,,,]
 test = imagenet_preprocess_input(train[indices,,,])
 test_labels = k_one_hot(labels[indices], num_classes = 5L)
 
-# Our own training loop with early stopping:
-epochs = 1L
-batch_size = 45L
-steps = floor(dim(train)[1]/batch_size)
-optim = keras::optimizer_rmsprop(lr = 0.0005)
-max_patience = 10L
-patience = 1L
-min_val_loss = Inf
-val_losses = c()
-epoch_losses = c()
-for(e in 1:epochs){
-  epoch_loss = c()
-  for(s in 1:steps){
-    batch = reticulate::iter_next(generator)
-    with(tf$GradientTape() %as% tape,
-      {
-        pred = model(batch[[1]], training = TRUE)
-        loss = keras::loss_categorical_crossentropy(batch[[2]], pred)
-        loss = tf$reduce_mean(loss)
-      }
-    )
-    gradients = tape$gradient(target = loss,
-                              sources = model$trainable_variables)
-    optim$apply_gradients(purrr::transpose(list(gradients,
-                                                model$trainable_variables)))
-    epoch_loss = c(epoch_loss, loss$numpy())
-  }
-  epoch_losses = c(epoch_losses, epoch_loss)
-  
-  ## Test loss ##
-  preds = model %>% predict(test)
-  test_loss = keras::loss_categorical_crossentropy(test_labels, preds)
-  val_losses = c(val_losses, tf$reduce_mean(test_loss)$numpy())
-  
-  cat("Epoch: ", e, " Train Loss: ", mean(epoch_losses),
-      " Val Loss: ", val_losses[e],  " \n")
-  
-  if(val_losses[e] < min_val_loss){
-    min_val_loss = val_losses[e]
-    patience = 1
-  } else { patience = patience+1 }
-  if(patience == max_patience) break
-}
+# Training loop with early stopping:
+
+# As we use an iterator (the generator), validation loss is not applicable.
+# An available metric is the normal loss.
+early = keras::callback_early_stopping(patience = 2L, monitor = "loss")
+
+model %>% 
+	compile(loss = loss_categorical_crossentropy,
+	        optimizer = keras::optimizer_rmsprop(lr = 0.0005))
+
+model %>% 
+	fit(generator, epochs = 8L, batch_size = 45L,
+	    shuffle = TRUE, callbacks = c(early))
 
 preds = predict(model, imagenet_preprocess_input(data$test))
+preds = apply(preds, 1, which.max)-1
 ```
 

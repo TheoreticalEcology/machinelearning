@@ -20,7 +20,7 @@ In **supervised learning**, you train algorithms using labeled data, what means 
 
 For the moment, we will focus on the first two tasks, supervised and unsupervised learning. To do so, we will begin with a small example. But before you start with the code, here is a video to prepare you for what we will do in the class:
 
-```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+```{r chunk_chapter1_0, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
 '<iframe width="560" height="315" 
   src="https://www.youtube.com/embed/1AVrWvRvfxs"
@@ -35,7 +35,7 @@ cat(
 
 In unsupervised learning, we  want to identify patterns in data without having any examples (supervision) about what the correct patterns / classes are. As an example, consider the iris data set. Here, we have 150 observations of 4 floral traits:
 
-```{r iris plot, fig.width=10, fig.height=4}
+```{r chunk_chapter1_1__iris_plot, fig.width=10, fig.height=4}
 colors = hcl.colors(3)
 traits = as.matrix(iris[,1:4]) 
 species = iris$Species
@@ -47,7 +47,7 @@ segments(100.5, 0, 100.5, 5, col = "black", lwd = 2)
 
 The observations are from 3 species and indeed those species tend to have different traits, meaning that the observations form 3 clusters. 
 
-```{r}
+```{r chunk_chapter1_2}
 pairs(traits, pch = as.integer(species), col = colors[as.integer(species)])
 ```
 
@@ -67,7 +67,7 @@ Merges / splits are done according to linkage criterion, which measures distance
 
 Here an example
 
-```{r}
+```{r chunk_chapter1_3}
 set.seed(123)
 
 #Reminder: traits = as.matrix(iris[,1:4]).
@@ -81,7 +81,7 @@ rect.hclust(hc, k = 3)  #Draw rectangles around the branches.
 
 Same plot, but with colors for true species identity
 
-```{r}
+```{r chunk_chapter1_4}
 library(ape)
 
 plot(as.phylo(hc), 
@@ -93,7 +93,7 @@ hcRes3 = cutree(hc, k = 3)   #Cut a dendrogram tree into groups.
 
 Calculate confusion matrix. Note we are switching labels here so that it fits to the species.
 
-```{r}
+```{r chunk_chapter1_5}
 tmp = hcRes3
 tmp[hcRes3 == 2] = 3
 tmp[hcRes3 == 3] = 2
@@ -103,7 +103,7 @@ table(hcRes3, species)
 
 Note that results might change if you choose a different agglomeration method, distance metric or scale of your variables. Compare, e.g. to this example
 
-```{r}
+```{r chunk_chapter1_6}
 hc = hclust(d, method = "ward.D2")
 
 plot(as.phylo(hc), 
@@ -116,11 +116,11 @@ table(hcRes3, species)
 
 Which method is best? 
 
-```{r, results='hide', message=FALSE, warning=FALSE}
+```{r chunk_chapter1_7, results='hide', message=FALSE, warning=FALSE}
 library(dendextend)
 ```
 
-```{r}
+```{r chunk_chapter1_8}
 methods = c("ward.D", "single", "complete", "average",
              "mcquitty", "median", "centroid", "ward.D2")
 out = dendlist()   #Create a dendlist object from several dendrograms.
@@ -164,7 +164,7 @@ The "k" in K-means refers to the number of clusters and the ‘means’ refers t
 
 A typical pipeline for using k-means clustering looks the same as for other algorithms. After having visualized the data, we fit a model, visualize the results and have a look at the performance by use of the confusion matrix. By setting a fixed seed, we can ensure that results are reproducible.
 
-```{r}
+```{r chunk_chapter1_9}
 set.seed(123)
 
 #Reminder: traits = as.matrix(iris[,1:4]).
@@ -176,7 +176,7 @@ print(kc)
 _Visualizing the results._
 Color codes true species identity, symbol shows cluster result.
 
-```{r}
+```{r chunk_chapter1_10}
 plot(iris[c("Sepal.Length", "Sepal.Width")],
      col =  colors[as.integer(species)], pch = kc$cluster)
 points(kc$centers[, c("Sepal.Length", "Sepal.Width")],
@@ -185,13 +185,13 @@ points(kc$centers[, c("Sepal.Length", "Sepal.Width")],
 
 We see that there are are some discrepancies. Confusion matrix:
 
-```{r}
+```{r chunk_chapter1_11}
 table(iris$Species, kc$cluster)
 ```
 
 If you want to animate the clustering process, you could run
 
-```{r, eval=F}
+```{r chunk_chapter1_12, eval=F}
 library(animation)
 
 saveGIF(kmeans.ani(x = traits[,1:2], col = colors),
@@ -200,7 +200,7 @@ saveGIF(kmeans.ani(x = traits[,1:2], col = colors),
 
 **Elbow technique** to determine the probably best suited number of clusters:
 
-```{r}
+```{r chunk_chapter1_13}
 set.seed(123)
 
 getSumSq = function(k){ kmeans(traits, k, nstart=25)$tot.withinss }
@@ -222,7 +222,7 @@ But keep in mind, this is only a rule of thumb and might be wrong in some specia
 Determine the affinity of a data point according to the affinity of its k nearest neighbors.
 This is a very general description as there are many ways to do so.
 
-```{r}
+```{r chunk_chapter1_14}
 #Reminder: traits = as.matrix(iris[,1:4]).
 
 library(dbscan)
@@ -235,11 +235,11 @@ dc = dbscan(traits, eps = 0.4, minPts = 6)
 print(dc)
 ```
 
-```{r}
+```{r chunk_chapter1_15}
 library(factoextra)
 ```
 
-```{r, results='hide', message=FALSE, warning=FALSE}
+```{r chunk_chapter1_16, results='hide', message=FALSE, warning=FALSE}
 fviz_cluster(dc, traits, geom = "point", ggtheme = theme_light())
 ```
 
@@ -248,42 +248,42 @@ fviz_cluster(dc, traits, geom = "point", ggtheme = theme_light())
 
 The last class of methods for unsupervised clustering are so-called _model-based clustering methods_. 
 
-```{r}
+```{r chunk_chapter1_17}
 library(mclust)
 ```
 
-```{r, results='hide', message=FALSE, warning=FALSE}
+```{r chunk_chapter1_18, results='hide', message=FALSE, warning=FALSE}
 mb = Mclust(traits)
 ```
 
 Mclust automatically compares a number of candidate models (clusters, shape) according to BIC (The BIC is a criterion for classifying algorithms depending their prediction quality and their usage of parameters). We can look at the selected model via:
   
-```{r}
+```{r chunk_chapter1_19}
 mb$G # Two clusters.
 mb$modelName # > Ellipsoidal, equal shape.
 ```
   
 We see that the algorithm prefers having 2 clusters. For better comparability to the other 2 methods, we will override this by setting:
     
-```{r}
+```{r chunk_chapter1_20}
 mb3 = Mclust(traits, 3)
 ```
 
 Result in terms of the predicted densities for 3 clusters
 
-```{r}
+```{r chunk_chapter1_21}
 plot(mb3, "density")
 ```
 
 Predicted clusters:
 
-```{r}
+```{r chunk_chapter1_22}
 plot(mb3, what=c("classification"), add = T)
 ```
 
 Confusion matrix:
 
-```{r}
+```{r chunk_chapter1_23}
 table(iris$Species, mb3$classification)
 ```
 
@@ -293,7 +293,7 @@ table(iris$Species, mb3$classification)
 Ordination is used in explorative analysis and compared to clustering, similar objects are ordered together.
 So there is a relationship between clustering and ordination. Here a PCA ordination on on the iris data set.
 
-```{r}
+```{r chunk_chapter1_24}
 pcTraits = prcomp(traits, center = TRUE, scale. = TRUE)
 biplot(pcTraits, xlim = c(-0.25, 0.25), ylim = c(-0.25, 0.25))
 ```
@@ -305,7 +305,7 @@ You can cluster the results of this ordination, ordinate before clustering, or s
 
 The two most prominent branches of supervised learning are regression and classification. Fundamentally, classification is about predicting a label and regression is about predicting a quantity. The following video explains that in more depth:
   
-```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+```{r chunk_chapter1_25, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315" 
   src="https://www.youtube.com/embed/i04Pfrb71vk"
@@ -324,12 +324,12 @@ For the moment, we want to go through a typical workflow for a supervised regres
 
 Fitting the model:
 
-```{r, results='hide', message=FALSE, warning=FALSE}
+```{r chunk_chapter1_26, results='hide', message=FALSE, warning=FALSE}
 library(randomForest)
 set.seed(123)
 ```
 
-```{r}
+```{r chunk_chapter1_27}
 m1 = randomForest(Sepal.Length ~ ., data = iris)   # ~.: Against all others.
 # str(m1)
 # m1$type
@@ -339,7 +339,7 @@ print(m1)
 
 Visualization of the results:
 
-```{r}
+```{r chunk_chapter1_28}
 oldpar = par(mfrow = c(1, 2))
 plot(predict(m1), iris$Sepal.Length,
      xlab = "Predicted", ylab = "Observed")
@@ -350,7 +350,7 @@ par(oldpar)
 
 To understand the structure of a random forest in more detail, we can use a package from GitHub.
 
-```{r, message=FALSE, warning=FALSE}
+```{r chunk_chapter1_29, message=FALSE, warning=FALSE}
 # devtools::install_github("araastat/reprtree")
 reprtree:::plot.getTree(m1, iris)
 ```
@@ -364,7 +364,7 @@ With the random forest, we can also do classification. The steps are the same as
 
 Fitting the model:
 
-```{r}
+```{r chunk_chapter1_30}
 set.seed(123)
 
 m1 = randomForest(Species ~ ., data = iris)
@@ -372,14 +372,14 @@ m1 = randomForest(Species ~ ., data = iris)
 
 Visualizing the fitted model:
   
-```{r, message=FALSE, warning=FALSE}
+```{r chunk_chapter1_31, message=FALSE, warning=FALSE}
 oldpar = par(mfrow = c(1, 2))
 reprtree:::plot.getTree(m1, iris)
 ```
 
 Visualizing results ecologically:
 
-```{r}
+```{r chunk_chapter1_32}
 par(mfrow = c(1, 2))
 plot(iris$Petal.Width, iris$Petal.Length, col = iris$Species, 
      main = "Observed")
@@ -387,13 +387,13 @@ plot(iris$Petal.Width, iris$Petal.Length, col = predict(m1),
      main = "Predicted")
 ```
 
-```{r}
+```{r chunk_chapter1_33}
 par(oldpar)   #Reset par.
 ```
 
 Confusion matrix:
 
-```{r}
+```{r chunk_chapter1_34}
 table(predict(m1), iris$Species)
 ```
 
@@ -404,7 +404,7 @@ One of the most commonly used frameworks for machine learning is **TensorFlow**.
 
 These advantages are nicely explained in the following video: 
   
-```{r, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+```{r chunk_chapter1_35, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315" 
   src="https://www.youtube.com/embed/MotG3XI2qSs"
@@ -450,7 +450,7 @@ TensorFlow has two data containers (structures):
 
 To get started with TensorFlow, we have to load the library and check if the installation worked. 
 
-```{r}
+```{r chunk_chapter1_36}
 library(tensorflow)
 
 # Don't worry about weird messages. TensorFlow supports additional optimizations.
@@ -467,7 +467,7 @@ Don't worry about weird messages (they will only appear once at the start of the
 
 We now can define the variables and do some math with them:
 
-```{r}
+```{r chunk_chapter1_37}
 a = tf$constant(5)
 b = tf$constant(10)
 print(a)
@@ -481,14 +481,14 @@ Normal R methods such as print() are provided by the R package "tensorflow".
 
 The TensorFlow library (created by the RStudio team) built R methods for all common operations:
 
-```{r}
+```{r chunk_chapter1_38}
 `+.tensorflow.tensor` = function(a, b) return(tf$add(a,b))
 tf$print(a+b)
 ```
 
 Their operators also automatically transform R numbers into constant tensors when attempting to add a tensor to an R number:
 
-```{r}
+```{r chunk_chapter1_39}
 d = c + 5  # 5 is automatically converted to a tensor.
 print(d)
 ```
@@ -496,7 +496,7 @@ print(d)
 TensorFlow containers are objects, what means that they are not just simple variables of type numeric (class(5)), but they instead have so called methods. Methods are changing the state of a class (which for most of our purposes here is the values of the object).
 For instance, there is a method to transform the tensor object back to an R object:
 
-```{r}
+```{r chunk_chapter1_40}
 class(d)
 class(d$numpy())
 ```
@@ -524,7 +524,7 @@ The reason why TensorFlow is so explicit about types is that many GPUs (e.g. the
 
 But let us see in practice what we have to do with these types and how to specifcy them:
 
-```{r, eval=FALSE}
+```{r chunk_chapter1_41, eval=FALSE}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = "float32") 
 b = tf$constant(2.0, dtype = "float64")
@@ -533,7 +533,7 @@ c = m / b # Doesn't work! We try to divide float32/float64.
 
 So what went wrong here? We tried to divide a float32 by a float64 number, but we can only divide numbers of the same type!
 
-```{r, eval=TRUE}
+```{r chunk_chapter1_42, eval=TRUE}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = "float64")
 b = tf$constant(2.0, dtype = "float64")
@@ -542,7 +542,7 @@ c = m / b # Now it works.
 
 We can also specify the type of the object by providing an object e.g. tf$float64.
 
-```{r}
+```{r chunk_chapter1_43}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = tf$float64)
 ```
@@ -552,7 +552,7 @@ In TensorFlow, arguments often require exact/explicit data types:
 TensorFlow often expects integers as arguments. In R however an integer is normally saved as float. 
 Thus, we have to use an "L" after an integer to tell the R interpreter that it should be treated as an integer:
   
-```{r, eval=FALSE}
+```{r chunk_chapter1_44, eval=FALSE}
 is.integer(5)
 is.integer(5L)
 matrix(t(r_matrix), 5, 20, byrow = TRUE)
@@ -575,7 +575,7 @@ Useful links:
 
 To get started with Torch, we have to load the library and check if the installation worked. 
 
-```{r}
+```{r chunk_chapter1_45}
 library(torch)
 ```
 
@@ -584,13 +584,13 @@ library(torch)
 
 Unlike TensorFlow, Torch doesn't have two data containers for mutable and immutable variables. All variables are initialized via the torch_tensor function:
 
-```{r}
+```{r chunk_chapter1_46}
 a = torch_tensor(1.)
 ```
 
 To mark variables as mutable (and to track their operations for automatic differentiation) we have to set the argument 'requires_grad' to true in the torch_tensor function:
 
-```{r}
+```{r chunk_chapter1_47}
 mutable = torch_tensor(5, requires_grad=TRUE) # tf$Variable(...)
 immutable = torch_tensor(5, requires_grad=FALSE) # tf$constant(...)
 ```
@@ -600,7 +600,7 @@ immutable = torch_tensor(5, requires_grad=FALSE) # tf$constant(...)
 
 We now can define the variables and do some math with them:
 
-```{r}
+```{r chunk_chapter1_48}
 a = torch_tensor(5.)
 b = torch_tensor(10.)
 print(a)
@@ -611,7 +611,7 @@ print(c)
 
 The R-Torch package provides all common methods (an advantage over TensorFlow).
 
-```{r}
+```{r chunk_chapter1_49}
 a = torch_tensor(5.)
 b = torch_tensor(10.)
 print(a+b)
@@ -621,14 +621,14 @@ print(a*b)
 
 Their operators also automatically transfrom R numbers into tensors when attempting to add a tensor to a R number:
 
-```{r}
+```{r chunk_chapter1_50}
 d = a + 5  # 5 is automatically converted to a tensor.
 print(d)
 ```
 
 As for TensorFlow, we have to explicitly transform the tensors back to R:
 
-```{r}
+```{r chunk_chapter1_51}
 class(d)
 class(as.numeric(d))
 ```
@@ -638,7 +638,7 @@ class(as.numeric(d))
 
 Similar to TensorFlow:
 
-```{r, eval=FALSE}
+```{r chunk_chapter1_52, eval=FALSE}
 r_matrix = matrix(runif(10*10), 10,10)
 m = torch_tensor(r_matrix, dtype = torch_float32()) 
 b = torch_tensor(2.0, dtype = torch_float64())
@@ -658,7 +658,7 @@ Keras is a powerful framework for building and training neural networks with a f
 
 The objective of this lesson is to familiarize yourself with Keras. If you have installed TensorFlow, Keras can be found within TensorFlow: tf.keras. However, the RStudio team has built an R package on top of tf.keras, and it is more convenient to use this. To load the Keras package, type
 
-```{r}
+```{r chunk_chapter1_53}
 library(keras)
 ```
 
@@ -667,7 +667,7 @@ library(keras)
 
 To show how Keras works, we will now build a small classifier to predict the three species of the iris data set. Load the necessary packages and data sets:
 
-```{r}
+```{r chunk_chapter1_54}
 library(keras)
 library(tensorflow)
 
@@ -678,7 +678,7 @@ head(iris)
 For neural networks, it is beneficial to scale the predictors (scaling = centering and standardization, see ?scale).
 We also split our data into predictors (X) and response (Y = the three species).
 
-```{r, cache=TRUE}
+```{r chunk_chapter1_55, cache=TRUE}
 X = scale(iris[,1:4])
 Y = iris[,5]
 ```
@@ -686,7 +686,7 @@ Y = iris[,5]
 Additionally, Keras/TensorFlow cannot handle factors and we have to create contrasts (one-hot encoding).
 To do so, we have to specify the number of categories. This can be tricky for a beginner, because in other programming languages like Python and C++, arrays start at zero. Thus, when we would specify 3 as number of classes for our three species, we would have the classes 0,1,2,3. Keep this in mind.
 
-```{r, cache=TRUE}
+```{r chunk_chapter1_56, cache=TRUE}
 Y = to_categorical(as.integer(Y)-1L, 3)
 head(Y) # 3 colums, one for each level of the response.
 ```
@@ -695,7 +695,7 @@ After having prepared the data, we will now see a typical workflow to specify a 
 
 **1. Initiliaze a sequential model in Keras:**
 
-```{r, cache=TRUE}
+```{r chunk_chapter1_57, cache=TRUE}
 model = keras_model_sequential()
 ```
 
@@ -703,10 +703,10 @@ A sequential Keras model is a higher order type of model within Keras and consis
 
 **2. Add hidden layers to the model (we will learn more about hidden layers during the next days).**
 
-When specifiying the hidden layers, we also have to specify a so called activation function and their shape. 
+When specifying the hidden layers, we also have to specify a so called activation function and the shape. 
 You can think of the activation function as decision for what is forwarded to the next neuron (but we will learn more about it later). The shape of the input is the number of predictors (here 4) and the shape of the output is the number of classes (here 3).
 
-```{r, cache=TRUE}
+```{r chunk_chapter1_58, cache=TRUE}
 model %>%
   layer_dense(units = 20L, activation = "relu", input_shape = list(4L)) %>%
   layer_dense(units = 20L) %>%
@@ -724,7 +724,7 @@ model %>%
   
     The Torch syntax is very similar, we will give a list of layers to the "nn_sequential" function. Here, we have to specify the softmax activation function as an extra layer:
     
-```{r}
+```{r chunk_chapter1_59}
 model_torch = 
   nn_sequential(
     nn_linear(4L, 20L),
@@ -743,7 +743,7 @@ model_torch =
     
 We will learn about other options later, so for now, do not worry about the "lr" argument, cross entropy or the optimizer.
 
-```{r, cache=TRUE}
+```{r chunk_chapter1_60, cache=TRUE}
 model %>%
   compile(loss = loss_categorical_crossentropy,
           keras::optimizer_adamax(lr = 0.001))
@@ -758,7 +758,7 @@ summary(model)
   
     Specify optimizer and the parameters which will be trained (in our case the parameters of the network):
     
-```{r}
+```{r chunk_chapter1_61}
 optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 ```
 
@@ -768,7 +768,7 @@ optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 
 **4. Fit model in 30 iterations (epochs)**
     
-```{r, cache=TRUE}
+```{r chunk_chapter1_62, cache=TRUE}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -794,7 +794,7 @@ model_history =
     5. Update weights.
     6. Go to step 1 and repeat.
     
-```{r}
+```{r chunk_chapter1_63}
 library(torch)
 torch_manual_seed(321L)
 set.seed(123)
@@ -838,7 +838,7 @@ for(i in 1:steps){
 
 **5. Plot training history:**
  
-```{r, cache=TRUE}
+```{r chunk_chapter1_64, cache=TRUE}
 plot(model_history)
 ```
   
@@ -848,7 +848,7 @@ plot(model_history)
   </summary>
   <p>
   
-```{r}
+```{r chunk_chapter1_65}
 plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
 ```
 
@@ -859,19 +859,19 @@ plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
 
 **6. Create predictions:**
 
-```{r, cache=TRUE}
+```{r chunk_chapter1_66, cache=TRUE}
 predictions = predict(model, X) # Probabilities for each class.
 ```
   
 Get probabilities:
 
-```{r, cache=TRUE}
+```{r chunk_chapter1_67, cache=TRUE}
 head(predictions) # Quasi-probabilities for each species.
 ```
   
 For each plant, we want to know for which species we got the highest probability:
 
-```{r, cache=TRUE}
+```{r chunk_chapter1_68, cache=TRUE}
 preds = apply(predictions, 1, which.max) 
 print(preds)
 ```
@@ -882,7 +882,7 @@ print(preds)
   </summary>
   <p>
 
-```{r}
+```{r chunk_chapter1_69}
 model_torch$eval()
 preds_torch = model_torch(torch_tensor(X))
 preds_torch = apply(preds_torch, 1, which.max) 
@@ -896,13 +896,13 @@ mean(preds_torch == as.integer(iris$Species))
 
 **7. Calculate Accuracy (how often we have been correct):**
 
-```{r, cache=TRUE}
+```{r chunk_chapter1_70, cache=TRUE}
 mean(preds == as.integer(iris$Species))
 ```
 
 **8. Plot predictions, to see if we have done a good job:**
 
-```{r, cache=TRUE}
+```{r chunk_chapter1_71, cache=TRUE}
 oldpar = par(mfrow = c(1, 2))
 plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species,
      main = "Observed")
