@@ -1,6 +1,6 @@
 /*
 *	This script is for generating multiple choice questions.
-*	Version 0.99
+*	Version 0.992
 */
 
 
@@ -309,8 +309,7 @@ function makeMultipleChoiceForm(
 	
 	
 	var questionHeading = document.createElement('H4');
-	var questionText = document.createTextNode(question);
-	questionHeading.appendChild(questionText);
+	questionHeading.insertAdjacentHTML('afterbegin', question);
 	thisDiv.appendChild(questionHeading);
 	
 	let answerArray = [];
@@ -336,24 +335,21 @@ function makeMultipleChoiceForm(
 		//Traverse just to enable an explanation for every possible (given) answer, if needed.
 		answers.map(function(element){	//Traverse all answers.
 			var explanation = document.createElement('p');
-			var text = document.createTextNode(element['explanationIfSelected']);
-			explanation.appendChild(text);
+			explanation.insertAdjacentHTML('afterbegin', element['explanationIfSelected']);
 			explanation.id = identifier + localElementCounter + '_explanationIfSelected';
 			explanation.style.display = 'none';		//Invisible.
 			//explanation.style.display = 'block';	//Visible.
 			thisDiv.appendChild(explanation);
 			
 			var explanation = document.createElement('p');
-			var text = document.createTextNode(element['explanationIfNotSelected']);
-			explanation.appendChild(text);
+			explanation.insertAdjacentHTML('afterbegin', element['explanationIfNotSelected']);
 			explanation.id = identifier + localElementCounter + '_explanationIfNotSelected';
 			explanation.style.display = 'none';		//Invisible.
 			//explanation.style.display = 'block';	//Visible.
 			thisDiv.appendChild(explanation);
 			
 			var explanation = document.createElement('p');
-			var text = document.createTextNode(element['explanationGeneral']);
-			explanation.appendChild(text);
+			explanation.insertAdjacentHTML('afterbegin', element['explanationGeneral']);
 			explanation.id = identifier + localElementCounter + '_explanationGeneral';
 			explanation.style.display = 'none';		//Invisible.
 			//explanation.style.display = 'block';	//Visible.
@@ -390,8 +386,7 @@ function makeMultipleChoiceForm(
 			var label = document.createElement('label');
 			label.id = identifier + '_answerField';
 			label.htmlFor = identifier;
-			var description = document.createTextNode('  ' + element['answer']);
-			label.appendChild(description);
+			label.insertAdjacentHTML('afterbegin', '  ' + element['answer']);
 			
 			var newline = document.createElement('br');
 			
@@ -401,24 +396,21 @@ function makeMultipleChoiceForm(
 			
 			
 			var explanation = document.createElement('p');
-			var text = document.createTextNode(element['explanationIfSelected']);
-			explanation.appendChild(text);
+			explanation.insertAdjacentHTML('afterbegin', element['explanationIfSelected']);
 			explanation.id = identifier + '_explanationIfSelected';
 			explanation.style.display = 'none';		//Invisible.
 			//explanation.style.display = 'block';	//Visible.
 			thisDiv.appendChild(explanation);
 			
 			var explanation = document.createElement('p');
-			var text = document.createTextNode(element['explanationIfNotSelected']);
-			explanation.appendChild(text);
+			explanation.insertAdjacentHTML('afterbegin', element['explanationIfNotSelected']);
 			explanation.id = identifier + '_explanationIfNotSelected';
 			explanation.style.display = 'none';		//Invisible.
 			//explanation.style.display = 'block';	//Visible.
 			thisDiv.appendChild(explanation);
 			
 			var explanation = document.createElement('p');
-			var text = document.createTextNode(element['explanationGeneral']);
-			explanation.appendChild(text);
+			explanation.insertAdjacentHTML('afterbegin', element['explanationGeneral']);
 			explanation.id = identifier + '_explanationGeneral';
 			explanation.style.display = 'none';		//Invisible.
 			//explanation.style.display = 'block';	//Visible.
@@ -434,8 +426,7 @@ function makeMultipleChoiceForm(
 		});
 	}
 	var explanation = document.createElement('p');
-	var text = document.createTextNode(comment);
-	explanation.appendChild(text);
+	explanation.insertAdjacentHTML('afterbegin', comment);
 	explanation.id = kind + '_' + uniqueSelectObjectID + '_comment';
 	explanation.style.display = 'none';		//Invisible.
 	//explanation.style.display = 'block';	//Visible.
