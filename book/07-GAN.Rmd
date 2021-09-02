@@ -21,13 +21,13 @@ We now will write an autoencoder for the MNIST data set.
 
 Let's start with the (usual) MNIST example:
 
-```{r chunk_chapter5_0, include=FALSE}
+```{r chunk_chapter7_0, include=FALSE}
 try({ detach("package:torch", unload = TRUE) }, silent = TRUE)
 try({ detach("package:torchvision", unload = TRUE) }, silent = TRUE)
 try({ detach("package:mlr3", unload = TRUE) }, silent = TRUE)
 ```
 
-```{r chunk_chapter5_1}
+```{r chunk_chapter7_1}
 library(keras)
 library(tensorflow)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -37,7 +37,7 @@ data = keras::dataset_mnist()
 
 We don't need the labels here, our images will be the inputs and at the same time the outputs of our final autoencoder.
 
-```{r chunk_chapter5_2}
+```{r chunk_chapter7_2}
 rotate = function(x){ t(apply(x, 2, rev)) }
 
 imgPlot = function(img, title = ""){
@@ -55,7 +55,7 @@ test_x = array(test[[1]]/255, c(dim(test[[1]])[1], 784L))
 
 Our encoder: image (784 dimensions) $\rightarrow$ 2 dimensions
 
-```{r chunk_chapter5_3__AEencoder}
+```{r chunk_chapter7_3__AEencoder}
 down_size_model = keras_model_sequential()
 down_size_model %>% 
  layer_dense(units = 100L, input_shape = c(784L), activation = "relu") %>% 
@@ -65,7 +65,7 @@ down_size_model %>%
 
 Our decoder: 2 dimensions $\rightarrow$ 784 dimensions (our image)
 
-```{r chunk_chapter5_4__AEdecoder}
+```{r chunk_chapter7_4__AEdecoder}
 up_size_model = keras_model_sequential()
 up_size_model %>% 
  layer_dense(units = 20L, input_shape = c(2L), activation = "relu") %>% 
@@ -75,7 +75,7 @@ up_size_model %>%
 
 We can use the non-sequential model type to connect the two models. (We did the same in the transfer learning chapter.)
 
-```{r chunk_chapter5_5__AEmnist}
+```{r chunk_chapter7_5__AEmnist}
 autoencoder = keras_model(inputs = down_size_model$input, 
                           outputs = up_size_model(down_size_model$output))
 autoencoder$compile(loss = loss_binary_crossentropy,
@@ -85,7 +85,7 @@ summary(autoencoder)
 
 We will now show an example of an image before and after the unfitted autoencoder, so we see that we have to train the autoencoder.
 
-```{r chunk_chapter5_6__AEmnistoutput}
+```{r chunk_chapter7_6__AEmnistoutput}
 image = autoencoder(train_x[1,,drop = FALSE])
 oldpar = par(mfrow = c(1, 2))
 imgPlot(array(train_x[1,,drop = FALSE], c(28, 28)), title = "Before")
@@ -95,7 +95,7 @@ par(oldpar)
 
 Fit the autoencoder (inputs == outputs!):
 
-```{r chunk_chapter5_7__AEmnistfit}
+```{r chunk_chapter7_7__AEmnistfit}
 library(tensorflow)
 library(keras)
 set_random_seed(123L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -106,13 +106,13 @@ autoencoder %>%
 
 Visualization of the latent variables:
 
-```{r chunk_chapter5_8__AEvisualization}
+```{r chunk_chapter7_8__AEvisualization}
 pred_dim = down_size_model(test_x)
 reconstr_pred = up_size_model(pred_dim)
 imgPlot(array(reconstr_pred[10,]$numpy(), dim = c(28L, 28L)), title = "")
 ```
 
-```{r chunk_chapter5_9__AEvisualizationContinuation}
+```{r chunk_chapter7_9__AEvisualizationContinuation}
 ownColors = c("limegreen", "purple", "yellow", "grey", "orange",
               "black", "red", "navy", "sienna", "springgreen")
 oldpar = par(mfrow = c(1, 1))
@@ -129,7 +129,7 @@ We can also use convolutional neural networks instead or on the side of deep neu
 
 Prepare data:
 
-```{r chunk_chapter5_10}
+```{r chunk_chapter7_10}
 data = tf$keras$datasets$mnist$load_data()
 train = data[[1]]
 train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L))
@@ -138,7 +138,7 @@ test_x = array(data[[2]][[1]]/255, c(dim(data[[2]][[1]]/255), 1L))
 
 Then define the downsize model:
 
-```{r chunk_chapter5_11__AEmnistCNN}
+```{r chunk_chapter7_11__AEmnistCNN}
 down_size_model = keras_model_sequential()
 down_size_model %>% 
  layer_conv_2d(filters = 32L, activation = "relu", kernel_size = c(2L, 2L), 
@@ -152,7 +152,7 @@ down_size_model %>%
 
 Define the upsize model:
 
-```{r chunk_chapter5_12}
+```{r chunk_chapter7_12}
 up_size_model = keras_model_sequential()
 up_size_model %>% 
  layer_dense(units = 8L, activation = "relu", input_shape = c(2L)) %>% 
@@ -167,7 +167,7 @@ up_size_model %>%
 
 Combine the two models and fit it:
 
-```{r chunk_chapter5_13}
+```{r chunk_chapter7_13}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -184,7 +184,7 @@ autoencoder$fit(x = tf$constant(train_x), y = tf$constant(train_x),
 
 Test it:
 
-```{r chunk_chapter5_14}
+```{r chunk_chapter7_14}
 pred_dim = down_size_model(tf$constant(test_x, "float32"))
 reconstr_pred = autoencoder(tf$constant(test_x, "float32"))
 imgPlot(reconstr_pred[10,,,]$numpy()[,,1])
@@ -210,7 +210,7 @@ In this process, the input to the VAE is encoded to a distribution in the latent
 
 For building variational autoencoders, we will use TensorFlow probability, but first, we need to split the data again.
 
-```{r chunk_chapter5_15}
+```{r chunk_chapter7_15}
 # install.packages("tfprobability")
 library(tfprobability)
 
@@ -221,7 +221,7 @@ train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L))
 
 We will use TensorFlow probability to define priors for our latent variables.
 
-```{r chunk_chapter5_16}
+```{r chunk_chapter7_16}
 library(tfprobability)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
@@ -230,7 +230,7 @@ tfp = reticulate::import("tensorflow_probability")
 
 Build the two networks: 
 
-```{r chunk_chapter5_17}
+```{r chunk_chapter7_17}
 encoded = 2L
 prior = tfd_independent(tfd_normal(c(0.0, 0.0), 1.0), 1L)
 
@@ -266,7 +266,7 @@ VAE = keras_model(inputs = down_size_model$inputs,
 
 Compile and fit model:
 
-```{r chunk_chapter5_18}
+```{r chunk_chapter7_18}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -281,7 +281,7 @@ VAE$fit(train_x, train_x, epochs = 5L)
 
 And show that it works:
 
-```{r chunk_chapter5_19__VAEmnist}
+```{r chunk_chapter7_19__VAEmnist}
 dist = down_size_model(train_x[1:2000,,,,drop = FALSE])
 images = up_size_model(dist$sample()[1:5,])
 
@@ -301,7 +301,7 @@ par(oldpar)
 
     Split the data :
     
-```{r chunk_chapter5_20}
+```{r chunk_chapter7_20}
 data = EcoData::dataset_flower()
 test = data$test/255
 train = data$train/255
@@ -310,7 +310,7 @@ train = abind::abind(list(train, test), along = 1L)
 
 Build the variational autoencoder:
 
-```{r chunk_chapter5_21__VAEflower}
+```{r chunk_chapter7_21__VAEflower}
 encoded = 10L
 prior = tfp$distributions$Independent(tfp$distributions$Normal(loc=tf$zeros(encoded),
                                                                scale=1.),
@@ -366,7 +366,7 @@ summary(VAE)
 
 Compile and train model:
 
-```{r chunk_chapter5_22}
+```{r chunk_chapter7_22}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -441,7 +441,7 @@ However, the application of generative adversarial networks today is much wider 
 
 We will now explore this on the MNIST data set. 
 
-```{r chunk_chapter5_23}
+```{r chunk_chapter7_23}
 library(keras)
 library(tensorflow)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -456,7 +456,7 @@ imgPlot = function(img, title = ""){
 
 We don't need the test set here.
 
-```{r chunk_chapter5_24}
+```{r chunk_chapter7_24}
 data = dataset_mnist()
 train = data$train
 train_x = array((train$x-127.5)/127.5, c(dim(train$x)[1], 784L))
@@ -464,7 +464,7 @@ train_x = array((train$x-127.5)/127.5, c(dim(train$x)[1], 784L))
 
 We need a function to sample images for the discriminator.
 
-```{r chunk_chapter5_25}
+```{r chunk_chapter7_25}
 batch_size = 32L
 dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
 dataset$batch(batch_size)
@@ -472,7 +472,7 @@ dataset$batch(batch_size)
 
 Define generator model:
 
-```{r chunk_chapter5_26}
+```{r chunk_chapter7_26}
 get_generator = function(){
  generator = keras_model_sequential()
  generator %>% 
@@ -487,7 +487,7 @@ get_generator = function(){
 
 And we also test the generator model:
 
-```{r chunk_chapter5_27}
+```{r chunk_chapter7_27}
 generator = get_generator()
 sample = tf$random$normal(c(1L, 100L))
 imgPlot(array(generator(sample)$numpy(), c(28L, 28L)))
@@ -495,7 +495,7 @@ imgPlot(array(generator(sample)$numpy(), c(28L, 28L)))
 
 In the discriminator, noise (random vector with 100 values) is passed through the network such that the output corresponds to the number of pixels of one MNIST image (784). We therefore define the discriminator function now.
 
-```{r chunk_chapter5_28}
+```{r chunk_chapter7_28}
 get_discriminator = function(){
  discriminator = keras_model_sequential()
  discriminator %>% 
@@ -511,7 +511,7 @@ get_discriminator = function(){
 
 And we also test the discriminator function.
 
-```{r chunk_chapter5_29}
+```{r chunk_chapter7_29}
 discriminator = get_discriminator()
 discriminator(generator(tf$random$normal(c(1L, 100L))))
 ```
@@ -522,7 +522,7 @@ The discriminator will get two losses - one for identifying fake images as fake,
 
 The generator will just get one loss - was it able to deceive the discriminator?
 
-```{r chunk_chapter5_30}
+```{r chunk_chapter7_30}
 ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE)
 
 loss_discriminator = function(real, fake){
@@ -538,7 +538,7 @@ loss_generator = function(fake){
 
 Each network will get its own optimizer (in a GAN the networks are treated independently):
 
-```{r chunk_chapter5_31}
+```{r chunk_chapter7_31}
 gen_opt = tf$keras$optimizers$RMSprop(1e-4)
 disc_opt = tf$keras$optimizers$RMSprop(1e-4)
 ```
@@ -556,7 +556,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 8. Update weights of discriminator.
 9. Return losses.
 
-```{r chunk_chapter5_32}
+```{r chunk_chapter7_32}
 generator = get_generator()
 discriminator = get_discriminator()
 
@@ -592,7 +592,7 @@ Now we can finally train our networks in a training loop:
 4. Print losses.
 5. Repeat step 2-4 for number of epochs.
 
-```{r chunk_chapter5_33}
+```{r chunk_chapter7_33}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -632,7 +632,7 @@ for(e in 1:epochs){
 
 We can now also do the same for the flower data set. We will write this completely on our own following the steps also done for the MNIST data set.
 
-```{r chunk_chapter5_34}
+```{r chunk_chapter7_34}
 library(keras)
 library(tidyverse)
 library(tensorflow)
@@ -647,7 +647,7 @@ dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
 
 Define the generator model and test it:
 
-```{r chunk_chapter5_35}
+```{r chunk_chapter7_35}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -693,7 +693,7 @@ image %>%
 
 Define the discriminator and test it:
 
-```{r chunk_chapter5_36}
+```{r chunk_chapter7_36}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -726,7 +726,7 @@ discriminator(generator(tf$random$normal(c(1L, 100L))))
 
 Define the loss functions:
 
-```{r chunk_chapter5_37}
+```{r chunk_chapter7_37}
 ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE,
                                         label_smoothing = 0.1)
 
@@ -743,14 +743,14 @@ loss_generator = function(fake){
 
 Define the optimizers and the batch function:
 
-```{r chunk_chapter5_38}
+```{r chunk_chapter7_38}
 gen_opt = tf$keras$optimizers$RMSprop(1e-4)
 disc_opt = tf$keras$optimizers$RMSprop(1e-4)
 ```
 
 Define functions for the generator and discriminator:
 
-```{r chunk_chapter5_39}
+```{r chunk_chapter7_39}
 generator = get_generator()
 discriminator = get_discriminator()
 
@@ -786,7 +786,7 @@ train_step = tf$`function`(reticulate::py_func(train_step))
 
 Do the training:
 
-```{r chunk_chapter5_40}
+```{r chunk_chapter7_40}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -826,7 +826,7 @@ for(e in 1:epochs){
 }
 ```
 
-```{r chunk_chapter5_41}
+```{r chunk_chapter7_41}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -843,7 +843,7 @@ image %>%
 
 More images:
 
-```{r chunk_chapter5_42, echo=FALSE, out.width="150%", out.height="150%"}
+```{r chunk_chapter7_42, echo=FALSE, out.width="150%", out.height="150%"}
 knitr::include_graphics(c("images/flower2.png", "images/flower3.png",
                           "images/flower4.png", "images/flower5.png"))
 ```
@@ -859,7 +859,7 @@ The environment is run on a local server, please install <a href="https://github
 
 Or go through this <a href="https://colab.research.google.com/github/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb" target="_blank" rel="noopener">colab book</a>.
 
-```{r chunk_chapter5_43, eval=FALSE}
+```{r chunk_chapter7_43, eval=FALSE}
 library(keras)
 library(tensorflow)
 library(gym)
