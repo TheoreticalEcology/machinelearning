@@ -87,7 +87,7 @@ cat(
 As an easy example for an optimization we can think of a quadratic function:
 
 ```{r chunk_chapter4_1}
-func = function(x) return(x^2)
+func = function(x){ return(x^2) }
 ```
 
 This function is so easy, we can randomly probe it and identify the optimum by plotting.
@@ -357,6 +357,358 @@ model_torch$parameters
   </p>
 </details>
 <br/>
+
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
+  In our linear regression model for the airquality dataset we only had to optimize 6 parameters/weights...
+... in neural networks, we have to optimize thousands, up to billions of weights.
+You can surlely imagine that the surface of the loss function is very complex, with many local optima. 
+Finding a global optimum is almost impossible, most of the times we are only searching for good local optima.
+
+The learning rate of the optimizers defines the step size in which the weights of the neural network are updated:
+
+<ul>
+  <li>Too high learning rates and optima might be jumped over.</li>
+  <li>Too low learning rates and we might be land in local optima or it might take too long.</li>
+</ul> 
+
+Below, there is the code for the iris dataset.
+
+Try out different learning rates, very high and very low learning rates, can you see a difference?
+```
+
+```{r chunk_chapter4_task_0}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
+
+data(iris)
+X = scale(iris[,1:4])
+Y = iris[,5]
+Y = keras::k_one_hot(as.integer(Y)-1L, 3)
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 20L, activation = "relu", input_shape = list(4L)) %>%
+  layer_dense(units = 20L) %>%
+  layer_dense(units = 20L) %>%
+  layer_dense(units = 3L, activation = "softmax")
+# Softmax scales to (0, 1); 3 output nodes for 3 response classes/labels.
+summary(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.5),
+          metrics = c(metric_categorical_accuracy))
+
+model_history =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history)
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_1}
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.005),
+          metrics = c(metric_categorical_accuracy))
+
+model_history2 =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history2)
+
+##########  -> (very) low learning rate (may take (very) long 
+#           (and may need very many epochs) and get stuck in local optima)
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.00001),
+          metrics = c(metric_categorical_accuracy))
+
+model_history3 =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history3)
+
+keras::reset_states(model)
+
+# Try higher epoch number
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.00001),
+          metrics = c(metric_categorical_accuracy))
+
+model_history3 =
+  model %>%
+  fit(x = X, y = Y, epochs = 200L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history4)
+
+##########  -> (Very) high learning rate (may skip optimum)
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 3),
+          metrics = c(metric_categorical_accuracy))
+
+model_history4 =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history5)
+
+##########  -> Higher epoch number (possibly better fitting, maybe overfitting)
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 3),
+          metrics = c(metric_categorical_accuracy))
+
+model_history6 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history6)
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.5),
+          metrics = c(metric_categorical_accuracy))
+
+model_history7 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history7)
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.00001),
+          metrics = c(metric_categorical_accuracy))
+
+model_history8 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history8)
+
+##########  -> Lower batch size
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 3),
+          metrics = c(metric_categorical_accuracy))
+
+model_history9 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 5L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history9)
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.5),
+          metrics = c(metric_categorical_accuracy))
+
+model_history10 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 5L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history10)
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.00001),
+          metrics = c(metric_categorical_accuracy))
+
+model_history11 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 5L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history11)
+
+##########  -> Higher batch size (faster but less accurate)
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 3),
+          metrics = c(metric_categorical_accuracy))
+
+model_history12 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 50L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history12)
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.5),
+          metrics = c(metric_categorical_accuracy))
+
+model_history13 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 50L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history13)
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.00001),
+          metrics = c(metric_categorical_accuracy))
+
+model_history14 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 50L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history14)
+
+####################
+####################
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.05),
+          metrics = c(metric_categorical_accuracy))
+
+model_history15 =
+  model %>%
+  fit(x = X, y = Y, epochs = 150L, batch_size = 50L, shuffle = TRUE)
+
+plot(model_history15)
+
+##########  -> shuffle = FALSE (some kind of overfitting)
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.05),
+          metrics = c(metric_categorical_accuracy))
+
+model_history16 =
+  model %>%
+  fit(x = X, y = Y, epochs = 150L, batch_size = 50L, shuffle = FALSE)
+
+plot(model_history16)
+
+##########  -> shuffle = FALSE + lower batch size
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.05),
+          metrics = c(metric_categorical_accuracy))
+
+model_history17 =
+  model %>%
+  fit(x = X, y = Y, epochs = 150L, batch_size = 5L, shuffle = FALSE)
+
+plot(model_history17)
+
+##########  -> shuffle = FALSE + higher batch size
+#           (many samples are taken at once, so no "hopping" any longer)
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy, optimizer_adamax(lr = 0.05),
+          metrics = c(metric_categorical_accuracy))
+
+model_history18 =
+  model %>%
+  fit(x = X, y = Y, epochs = 150L, batch_size = 75L, shuffle = FALSE)
+
+plot(model_history18)
+
+
+####################
+####################
+
+# Play around with the parameters on your own!
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/>
+```
 
 
 ## Tree-based Machine Learning Algorithms
@@ -1367,5 +1719,4 @@ preds =
 dim(preds)
 predictions = apply(preds, 1, mean)
 ```
-
 
