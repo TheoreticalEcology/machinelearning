@@ -5,7 +5,7 @@
 <script src="./scripts/multipleChoice.js"></script>
 ```
 
-There are three basic machine learning tasks
+There are three basic machine learning tasks:
 
 * Supervised learning
 * Unsupervised learning
@@ -305,6 +305,7 @@ You can cluster the results of this ordination, ordinate before clustering, or s
 
 
 ```{=html}
+  <hr/>
   <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
   Go through the 4(5) algorithms above, and check if they are sensitive (i.e. if results change) if you scale the input features (= predictors), instead of using the raw data. Discuss in your group: Which is more appropriate for this analysis and/or in general: Scaling or not scaling? 
 ```
@@ -320,7 +321,7 @@ You can cluster the results of this ordination, ordinate before clustering, or s
 ```{=html}
   <strong><span style="font-size:20px;">Hierarchical Clustering</span></strong>
 ```
-```{r chunk_chapter3_25, message=FALSE, warning=FALSE}
+```{r chunk_chapter3_task_0, message=FALSE, warning=FALSE}
 library(dendextend)
 
 methods = c("ward.D", "single", "complete", "average",
@@ -379,7 +380,7 @@ It seems that scaling is harmful for hierarchical clustering. But this might be 
 ```{=html}
   <strong><span style="font-size:20px;">K-means Clustering</span></strong>
 ```
-```{r chunk_chapter3_26}
+```{r chunk_chapter3_task_1}
 do_clustering = function(traits, scale = FALSE){
   set.seed(123)
   
@@ -415,7 +416,7 @@ It seems that scaling is harmful for K-means clustering. But this might be a dec
 ```{=html}
   <strong><span style="font-size:20px;">Density-based Clustering</span></strong>
 ```
-```{r chunk_chapter3_27, message=FALSE, warning=FALSE}
+```{r chunk_chapter3_task_2, message=FALSE, warning=FALSE}
 library(dbscan)
 
 correct = as.factor(iris[,5])
@@ -465,7 +466,7 @@ It seems that scaling is harmful for density based clustering. But this might be
 ```{=html}
   <strong><span style="font-size:20px;">Model-based Clustering</span></strong>
 ```
-```{r chunk_chapter3_28, message=FALSE, warning=FALSE}
+```{r chunk_chapter3_task_3, message=FALSE, warning=FALSE}
 library(mclust)
 
 do_clustering = function(traits, scale = FALSE){
@@ -497,7 +498,7 @@ For model based clustering, scaling does not matter.
 ```{=html}
   <strong><span style="font-size:20px;">Ordination</span></strong>
 ```
-```{r chunk_chapter3_29, message=FALSE, warning=FALSE}
+```{r chunk_chapter3_task_4, message=FALSE, warning=FALSE}
 traits = as.matrix(iris[,1:4])
 
 biplot(prcomp(traits, center = TRUE, scale. = TRUE),
@@ -516,7 +517,7 @@ Because we are interested in directions of maximal variance, all parameters shou
 ```{=html}
     </p>
   </details>
-  <br/>
+  <br/><hr/>
 ```
 
 
@@ -524,7 +525,7 @@ Because we are interested in directions of maximal variance, all parameters shou
 
 The two most prominent branches of supervised learning are regression and classification. Fundamentally, classification is about predicting a label and regression is about predicting a quantity. The following video explains that in more depth:
   
-```{r chunk_chapter3_30, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+```{r chunk_chapter3_25, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315" 
   src="https://www.youtube.com/embed/i04Pfrb71vk"
@@ -543,12 +544,12 @@ For the moment, we want to go through a typical workflow for a supervised regres
 
 Fitting the model:
 
-```{r chunk_chapter3_31, results='hide', message=FALSE, warning=FALSE}
+```{r chunk_chapter3_26, results='hide', message=FALSE, warning=FALSE}
 library(randomForest)
 set.seed(123)
 ```
 
-```{r chunk_chapter3_32}
+```{r chunk_chapter3_27}
 m1 = randomForest(Sepal.Length ~ ., data = iris)   # ~.: Against all others.
 # str(m1)
 # m1$type
@@ -558,7 +559,7 @@ print(m1)
 
 Visualization of the results:
 
-```{r chunk_chapter3_33}
+```{r chunk_chapter3_28}
 oldpar = par(mfrow = c(1, 2))
 plot(predict(m1), iris$Sepal.Length,
      xlab = "Predicted", ylab = "Observed")
@@ -569,7 +570,7 @@ par(oldpar)
 
 To understand the structure of a random forest in more detail, we can use a package from GitHub.
 
-```{r chunk_chapter3_34, message=FALSE, warning=FALSE}
+```{r chunk_chapter3_29, message=FALSE, warning=FALSE}
 devtools::install_github("araastat/reprtree")
 reprtree:::plot.getTree(m1, iris)
 ```
@@ -583,7 +584,7 @@ With the random forest, we can also do classification. The steps are the same as
 
 Fitting the model:
 
-```{r chunk_chapter3_35}
+```{r chunk_chapter3_30}
 set.seed(123)
 
 m1 = randomForest(Species ~ ., data = iris)
@@ -591,14 +592,14 @@ m1 = randomForest(Species ~ ., data = iris)
 
 Visualizing the fitted model:
   
-```{r chunk_chapter3_36, message=FALSE, warning=FALSE}
+```{r chunk_chapter3_31, message=FALSE, warning=FALSE}
 oldpar = par(mfrow = c(1, 2))
 reprtree:::plot.getTree(m1, iris)
 ```
 
 Visualizing results ecologically:
 
-```{r chunk_chapter3_37}
+```{r chunk_chapter3_32}
 par(mfrow = c(1, 2))
 plot(iris$Petal.Width, iris$Petal.Length, col = iris$Species, 
      main = "Observed")
@@ -606,18 +607,19 @@ plot(iris$Petal.Width, iris$Petal.Length, col = predict(m1),
      main = "Predicted")
 ```
 
-```{r chunk_chapter3_38}
+```{r chunk_chapter3_33}
 par(oldpar)   #Reset par.
 ```
 
 Confusion matrix:
 
-```{r chunk_chapter3_39}
+```{r chunk_chapter3_34}
 table(predict(m1), iris$Species)
 ```
 
 
 ```{=html}
+  <hr/>
   <details>
     <summary>
       <strong><span style="color: #0011AA; font-size:25px;">Questions</span></strong>
@@ -648,16 +650,17 @@ table(predict(m1), iris$Species)
       </script>
     </p>
   </details>
+  <hr/>
 ```
 
 
 ## Introduction to TensorFlow
 
-One of the most commonly used frameworks for machine learning is **TensorFlow**. TensorFlow is an open source linear algebra library with focus on neural networks, published by Google in 2015. TensorFlow supports several interesting features, in particular automatic differentiation, several gradient optimizers and CPU and GPU parallelization. 
+One of the most commonly used frameworks for machine learning is **TensorFlow**. TensorFlow is an open source <a href="https://en.wikipedia.org/wiki/Linear_algebra" target="_blank" rel="noopener">linear algebra</a> library with focus on neural networks, published by Google in 2015. TensorFlow supports several interesting features, in particular automatic differentiation, several gradient optimizers and CPU and GPU parallelization. 
 
 These advantages are nicely explained in the following video: 
   
-```{r chunk_chapter3_40, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+```{r chunk_chapter3_35, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315" 
   src="https://www.youtube.com/embed/MotG3XI2qSs"
@@ -702,7 +705,7 @@ TensorFlow has two data containers (structures):
 
 To get started with TensorFlow, we have to load the library and check if the installation worked. 
 
-```{r chunk_chapter3_41}
+```{r chunk_chapter3_36}
 library(tensorflow)
 
 # Don't worry about weird messages. TensorFlow supports additional optimizations.
@@ -719,7 +722,7 @@ Don't worry about weird messages (they will only appear once at the start of the
 
 We now can define the variables and do some math with them:
 
-```{r chunk_chapter3_42}
+```{r chunk_chapter3_37}
 a = tf$constant(5)
 b = tf$constant(10)
 print(a)
@@ -733,14 +736,15 @@ Normal R methods such as print() are provided by the R package "tensorflow".
 
 The TensorFlow library (created by the RStudio team) built R methods for all common operations:
 
-```{r chunk_chapter3_43}
-`+.tensorflow.tensor` = function(a, b) return(tf$add(a,b))
+```{r chunk_chapter3_38}
+`+.tensorflow.tensor` = function(a, b){ return(tf$add(a,b)) }
+# Mind the backticks.
 tf$print(a+b)
 ```
 
 Their operators also automatically transform R numbers into constant tensors when attempting to add a tensor to an R number:
 
-```{r chunk_chapter3_44}
+```{r chunk_chapter3_39}
 d = c + 5  # 5 is automatically converted to a tensor.
 print(d)
 ```
@@ -748,7 +752,7 @@ print(d)
 TensorFlow containers are objects, what means that they are not just simple variables of type numeric (class(5)), but they instead have so called methods. Methods are changing the state of a class (which for most of our purposes here is the values of the object).
 For instance, there is a method to transform the tensor object back to an R object:
 
-```{r chunk_chapter3_45}
+```{r chunk_chapter3_40}
 class(d)
 class(d$numpy())
 ```
@@ -776,7 +780,7 @@ The reason why TensorFlow is so explicit about types is that many GPUs (e.g. the
 
 But let us see in practice what we have to do with these types and how to specifcy them:
 
-```{r chunk_chapter3_46, eval=FALSE}
+```{r chunk_chapter3_41, eval=FALSE}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = "float32") 
 b = tf$constant(2.0, dtype = "float64")
@@ -785,7 +789,7 @@ c = m / b # Doesn't work! We try to divide float32/float64.
 
 So what went wrong here? We tried to divide a float32 by a float64 number, but we can only divide numbers of the same type!
 
-```{r chunk_chapter3_47, eval=TRUE}
+```{r chunk_chapter3_42, eval=TRUE}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = "float64")
 b = tf$constant(2.0, dtype = "float64")
@@ -794,17 +798,16 @@ c = m / b # Now it works.
 
 We can also specify the type of the object by providing an object e.g. tf$float64.
 
-```{r chunk_chapter3_48}
+```{r chunk_chapter3_43}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = tf$float64)
 ```
-
 
 In TensorFlow, arguments often require exact/explicit data types:
 TensorFlow often expects integers as arguments. In R however an integer is normally saved as float. 
 Thus, we have to use an "L" after an integer to tell the R interpreter that it should be treated as an integer:
   
-```{r chunk_chapter3_49, eval=FALSE}
+```{r chunk_chapter3_44, eval=FALSE}
 is.integer(5)
 is.integer(5L)
 matrix(t(r_matrix), 5, 20, byrow = TRUE)
@@ -813,6 +816,222 @@ tf$reshape(r_matrix, shape = c(5L, 20L))$numpy()
 ```
 
 Skipping the "L" is one of the most common errors when using R-TensorFlow!
+
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
+```
+
+To run TensorFlow from R, note that you can access the different mathematical operations in TensorFlow via tf\$..., e.g. there is a tf\$math\$... for all common math operations or the tf\$linalg\$... for different linear algebra operations.
+Tip: type tf\$ and then hit the tab key to list all available options (sometimes you have to do this directly in the console).
+
+An example: how to get the maximum value of a vector?
+
+```{r chunk_chapter3_task_5, eval=FALSE}
+library(tensorflow)
+library(keras)
+
+x = 100:1
+y = as.double(100:1)
+
+max(x)  # R solution. Integer!
+tf$math$reduce_max(x) # TensorFlow solution. Integer!
+
+max(y)  # Float!
+tf$math$reduce_max(y) # Float!
+```
+
+Rewrite the following expressions (a to g) in TensorFlow:
+
+```{r chunk_chapter3_task_6, eval=TRUE}
+x = 100:1
+y = as.double(100:1)
+
+# a)
+min(x)
+
+# b)
+mean(x)
+
+# c) Tip: Use Google!
+which.max(x)
+
+# d) 
+which.min(x)
+
+# e) Tip: Use Google! 
+order(x)
+
+# f) Tip: See tf$reshape.
+m = matrix(y, 10, 10) # Mind: We use y here! (Float)
+m_2 = abs(m %*% t(m))  # m %*% m is the normal matrix multiplication.
+m_2_log = log(m_2)
+print(m_2_log)
+
+# g) Custom mean function i.e. rewrite the function using TensorFlow. 
+mean_R = function(y){
+  result = sum(y) / length(y)
+  return(result)
+}
+
+mean_R(y) == mean(y)	# Test for equality.
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter3_task_7, eval=TRUE}
+library(tensorflow)
+library(keras)
+
+x = 100:1
+y = as.double(100:1)
+
+# a)    min(x)
+tf$math$reduce_min(x) # Integer!
+tf$math$reduce_min(y) # Float!
+
+# b)    mean(x)
+# Check out the difference here:
+mean(x)
+mean(y)
+tf$math$reduce_mean(x)  # Integer!
+tf$math$reduce_mean(y)  # Float!
+
+# c)    which.max(x)
+tf$argmax(x)
+tf$argmax(y)
+
+# d)    which.min(x)
+tf$argmin(x)
+
+# e)    order(x)
+tf$argsort(x)
+
+# f)
+# m = matrix(y, 10, 10)
+# m_2 = abs(m %*% m)
+# m_2_log = log(m_2)
+
+# Mind: We use y here! TensorFlow just accepts floats in the following lines!
+mTF = tf$reshape(y, list(10L, 10L))
+m_2TF = tf$math$abs( tf$matmul(mTF, tf$transpose(mTF)) )
+m_2_logTF = tf$math$log(m_2TF)
+print(m_2_logTF)
+
+# g)    # Custom mean function
+mean_TF = function(y){
+  result = tf$math$reduce_sum(y)
+  return( result / length(y) )  # If y is an R object.
+}
+mean_TF(y) == mean(y)
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+This exercise compares the speed of R to TensorFlow.
+The first exercise is to rewrite the following function in TensorFlow:
+
+```{r chunk_chapter3_task_8, eval=TRUE}
+do_something_R = function(x = matrix(0.0, 10L, 10L)){
+  mean_per_row = apply(x, 1, mean)
+  result = x - mean_per_row
+  return(result)
+}
+```
+
+Here, we provide a skeleton for a TensorFlow function:
+
+```{r chunk_chapter3_task_9, eval=FALSE, purl=FALSE}
+do_something_TF = function(x = matrix(0.0, 10L, 10L)){
+   ...
+}
+```
+
+We can compare the speed using the Microbenchmark package:
+
+```{r chunk_chapter3_task_10, eval=FALSE, purl=FALSE}
+test = matrix(0.0, 100L, 100L)
+microbenchmark::microbenchmark(do_something_R(test), do_something_TF(test))
+```
+
+Try different matrix sizes for the test matrix and compare the speed.
+
+Tip: Have a look at the the tf.reduce_mean documentation and the "axis" argument.
+
+<br/>
+
+Compare the following with different matrix sizes:
+
+* test = matrix(0.0, 1000L, 500L)
+* testTF = tf\$constant(test)
+
+Also try the following:
+
+```{r chunk_chapter3_task_11, eval=FALSE, purl=FALSE}
+microbenchmark::microbenchmark(
+  { tf$matmul( testT, tf$transpose(testT)) } # TensorFlow style.
+  { test %*% t(test) } # R style.
+)
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter3_task_12, eval=TRUE}
+do_something_TF = function(x = matrix(0.0, 10L, 10L)){
+  x = tf$constant(x)  # Remember, this is a local copy!
+  mean_per_row = tf$reduce_mean(x, axis = 0L)
+  result = x - mean_per_row
+  return(result)
+}
+```
+
+```{r chunk_chapter3_task_13, eval=TRUE}
+test = matrix(0.0, 100L, 100L)
+microbenchmark::microbenchmark(do_something_R(test), do_something_TF(test))
+
+test = matrix(0.0, 1000L, 500L)
+microbenchmark::microbenchmark(do_something_R(test), do_something_TF(test))
+```
+
+Why is R faster (the first time)?
+
+* a) The R functions we used (apply, mean, "-") are also implemented in C.
+* b) The Problem is not large enough and TensorFlow has an overhead.
+
+<br/>
+
+```{r chunk_chapter3_task_14, eval=TRUE}
+test = matrix(0.0, 1000L, 500L)
+testTF = tf$constant(test)
+
+microbenchmark::microbenchmark(
+  { tf$matmul( testT, tf$transpose(testT)) } # TensorFlow style.
+  { test %*% t(test) } # R style.
+)
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
 
 
 ## Introduction to PyTorch
@@ -827,7 +1046,7 @@ Useful links:
 
 To get started with Torch, we have to load the library and check if the installation worked. 
 
-```{r chunk_chapter3_50}
+```{r chunk_chapter3_45}
 library(torch)
 ```
 
@@ -836,15 +1055,15 @@ library(torch)
 
 Unlike TensorFlow, Torch doesn't have two data containers for mutable and immutable variables. All variables are initialized via the torch_tensor function:
 
-```{r chunk_chapter3_51}
+```{r chunk_chapter3_46}
 a = torch_tensor(1.)
 ```
 
 To mark variables as mutable (and to track their operations for automatic differentiation) we have to set the argument 'requires_grad' to true in the torch_tensor function:
 
-```{r chunk_chapter3_52}
-mutable = torch_tensor(5, requires_grad=TRUE) # tf$Variable(...)
-immutable = torch_tensor(5, requires_grad=FALSE) # tf$constant(...)
+```{r chunk_chapter3_47}
+mutable = torch_tensor(5, requires_grad = TRUE) # tf$Variable(...)
+immutable = torch_tensor(5, requires_grad = FALSE) # tf$constant(...)
 ```
 
 
@@ -852,7 +1071,7 @@ immutable = torch_tensor(5, requires_grad=FALSE) # tf$constant(...)
 
 We now can define the variables and do some math with them:
 
-```{r chunk_chapter3_53}
+```{r chunk_chapter3_48}
 a = torch_tensor(5.)
 b = torch_tensor(10.)
 print(a)
@@ -863,7 +1082,7 @@ print(c)
 
 The R-Torch package provides all common methods (an advantage over TensorFlow).
 
-```{r chunk_chapter3_54}
+```{r chunk_chapter3_49}
 a = torch_tensor(5.)
 b = torch_tensor(10.)
 print(a+b)
@@ -871,16 +1090,16 @@ print(a/b)
 print(a*b)
 ```
 
-Their operators also automatically transfrom R numbers into tensors when attempting to add a tensor to a R number:
+Their operators also automatically transform R numbers into tensors when attempting to add a tensor to a R number:
 
-```{r chunk_chapter3_55}
+```{r chunk_chapter3_50}
 d = a + 5  # 5 is automatically converted to a tensor.
 print(d)
 ```
 
 As for TensorFlow, we have to explicitly transform the tensors back to R:
 
-```{r chunk_chapter3_56}
+```{r chunk_chapter3_51}
 class(d)
 class(as.numeric(d))
 ```
@@ -890,7 +1109,7 @@ class(as.numeric(d))
 
 Similar to TensorFlow:
 
-```{r chunk_chapter3_57, eval=FALSE}
+```{r chunk_chapter3_52, eval=FALSE}
 r_matrix = matrix(runif(10*10), 10,10)
 m = torch_tensor(r_matrix, dtype = torch_float32()) 
 b = torch_tensor(2.0, dtype = torch_float64())
@@ -910,7 +1129,7 @@ Keras is a powerful framework for building and training neural networks with a f
 
 The objective of this lesson is to familiarize yourself with Keras. If you have installed TensorFlow, Keras can be found within TensorFlow: tf.keras. However, the RStudio team has built an R package on top of tf.keras, and it is more convenient to use this. To load the Keras package, type
 
-```{r chunk_chapter3_58}
+```{r chunk_chapter3_53}
 library(keras)
 ```
 
@@ -919,7 +1138,7 @@ library(keras)
 
 To show how Keras works, we will now build a small classifier to predict the three species of the iris data set. Load the necessary packages and data sets:
 
-```{r chunk_chapter3_59}
+```{r chunk_chapter3_54}
 library(keras)
 library(tensorflow)
 
@@ -930,7 +1149,7 @@ head(iris)
 For neural networks, it is beneficial to scale the predictors (scaling = centering and standardization, see ?scale).
 We also split our data into predictors (X) and response (Y = the three species).
 
-```{r chunk_chapter3_60, cache=TRUE}
+```{r chunk_chapter3_55, cache=TRUE}
 X = scale(iris[,1:4])
 Y = iris[,5]
 ```
@@ -938,7 +1157,7 @@ Y = iris[,5]
 Additionally, Keras/TensorFlow cannot handle factors and we have to create contrasts (one-hot encoding).
 To do so, we have to specify the number of categories. This can be tricky for a beginner, because in other programming languages like Python and C++, arrays start at zero. Thus, when we would specify 3 as number of classes for our three species, we would have the classes 0,1,2,3. Keep this in mind.
 
-```{r chunk_chapter3_61, cache=TRUE}
+```{r chunk_chapter3_56, cache=TRUE}
 Y = to_categorical(as.integer(Y)-1L, 3)
 head(Y) # 3 columns, one for each level of the response.
 ```
@@ -947,7 +1166,7 @@ After having prepared the data, we will now see a typical workflow to specify a 
 
 **1. Initialize a sequential model in Keras:**
 
-```{r chunk_chapter3_62, cache=TRUE}
+```{r chunk_chapter3_57, cache=TRUE}
 model = keras_model_sequential()
 ```
 
@@ -958,7 +1177,7 @@ A sequential Keras model is a higher order type of model within Keras and consis
 When specifying the hidden layers, we also have to specify a so called activation function and the shape. 
 You can think of the activation function as decision for what is forwarded to the next neuron (but we will learn more about it later). The shape of the input is the number of predictors (here 4) and the shape of the output is the number of classes (here 3).
 
-```{r chunk_chapter3_63, cache=TRUE}
+```{r chunk_chapter3_58, cache=TRUE}
 model %>%
   layer_dense(units = 20L, activation = "relu", input_shape = list(4L)) %>%
   layer_dense(units = 20L) %>%
@@ -976,7 +1195,7 @@ model %>%
   
     The Torch syntax is very similar, we will give a list of layers to the "nn_sequential" function. Here, we have to specify the softmax activation function as an extra layer:
     
-```{r chunk_chapter3_64}
+```{r chunk_chapter3_59}
 model_torch = 
   nn_sequential(
     nn_linear(4L, 20L),
@@ -995,7 +1214,7 @@ model_torch =
     
 We will learn about other options later, so for now, do not worry about the "lr" argument, cross entropy or the optimizer.
 
-```{r chunk_chapter3_65, cache=TRUE}
+```{r chunk_chapter3_60, cache=TRUE}
 model %>%
   compile(loss = loss_categorical_crossentropy,
           keras::optimizer_adamax(lr = 0.001))
@@ -1010,7 +1229,7 @@ summary(model)
   
     Specify optimizer and the parameters which will be trained (in our case the parameters of the network):
     
-```{r chunk_chapter3_66}
+```{r chunk_chapter3_61}
 optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 ```
 
@@ -1020,7 +1239,7 @@ optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 
 **4. Fit model in 30 iterations (epochs)**
     
-```{r chunk_chapter3_67, cache=TRUE}
+```{r chunk_chapter3_62, cache=TRUE}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
@@ -1046,7 +1265,7 @@ model_history =
     5. Update weights.
     6. Go to step 1 and repeat.
     
-```{r chunk_chapter3_68}
+```{r chunk_chapter3_63}
 library(torch)
 torch_manual_seed(321L)
 set.seed(123)
@@ -1090,7 +1309,7 @@ for(i in 1:steps){
 
 **5. Plot training history:**
  
-```{r chunk_chapter3_69, cache=TRUE}
+```{r chunk_chapter3_64, cache=TRUE}
 plot(model_history)
 ```
   
@@ -1100,7 +1319,7 @@ plot(model_history)
   </summary>
   <p>
   
-```{r chunk_chapter3_70}
+```{r chunk_chapter3_65}
 plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
 ```
 
@@ -1111,19 +1330,19 @@ plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
 
 **6. Create predictions:**
 
-```{r chunk_chapter3_71, cache=TRUE}
+```{r chunk_chapter3_66, cache=TRUE}
 predictions = predict(model, X) # Probabilities for each class.
 ```
   
 Get probabilities:
 
-```{r chunk_chapter3_72, cache=TRUE}
+```{r chunk_chapter3_67, cache=TRUE}
 head(predictions) # Quasi-probabilities for each species.
 ```
   
 For each plant, we want to know for which species we got the highest probability:
 
-```{r chunk_chapter3_73, cache=TRUE}
+```{r chunk_chapter3_68, cache=TRUE}
 preds = apply(predictions, 1, which.max) 
 print(preds)
 ```
@@ -1134,7 +1353,7 @@ print(preds)
   </summary>
   <p>
 
-```{r chunk_chapter3_74}
+```{r chunk_chapter3_69}
 model_torch$eval()
 preds_torch = model_torch(torch_tensor(X))
 preds_torch = apply(preds_torch, 1, which.max) 
@@ -1148,13 +1367,13 @@ mean(preds_torch == as.integer(iris$Species))
 
 **7. Calculate Accuracy (how often we have been correct):**
 
-```{r chunk_chapter3_75, cache=TRUE}
+```{r chunk_chapter3_70, cache=TRUE}
 mean(preds == as.integer(iris$Species))
 ```
 
 **8. Plot predictions, to see if we have done a good job:**
 
-```{r chunk_chapter3_76, cache=TRUE}
+```{r chunk_chapter3_71, cache=TRUE}
 oldpar = par(mfrow = c(1, 2))
 plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species,
      main = "Observed")
@@ -1167,6 +1386,7 @@ So you see, building a neural network is very easy with Keras and you can alread
 
 
 ```{=html}
+  <hr/>
   <details>
     <summary>
       <strong><span style="color: #0011AA; font-size:25px;">Questions</span></strong>
@@ -1243,4 +1463,26 @@ So you see, building a neural network is very easy with Keras and you can alread
       </script>
     </p>
   </details>
+  <hr/>
 ```
+
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
