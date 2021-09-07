@@ -8,8 +8,8 @@
 You can download the data sets we use in the course <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a> (ignore browser warnings) or by installing the EcoData package:
 
 ```{r chunk_chapter8_0, eval=FALSE}
-devtools::install_github(repo = "florianhartig/EcoData", subdir = "EcoData", 
-dependencies = TRUE, build_vignettes = FALSE)
+devtools::install_github(repo = "florianhartig/EcoData", subdir = "EcoData",
+                         dependencies = TRUE, build_vignettes = FALSE)
 ```
 
 
@@ -111,9 +111,8 @@ plant_poll_imputed = plant_poll %>% select(diameter,
                                            tongue,
                                            body,
                                            interaction)
-plant_poll_imputed = missRanger::missRanger(data =
-                                              plant_poll_imputed %>%
-                                                select(-interaction))
+plant_poll_imputed = missRanger::missRanger(data = plant_poll_imputed %>%
+                                              select(-interaction))
 plant_poll_imputed$interaction = plant_poll$interaction
 ```
 
@@ -280,35 +279,27 @@ You can download the data set <a href="http://rhsbio7.uni-regensburg.de:8500" ta
 **Response variable:** "Plant species"
 
 1. Load data set:
-The data set requires preprocessing (we have to concatenate the train and test images):
 
 ```{r chunk_chapter8_26}
+library(tensorflow)
 library(keras)
 library(stringr)
 set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
 
-data_files = list.files("flower/", full.names = TRUE)
-train = data_files[str_detect(data_files, "train")]
-test = readRDS(file = "flower/test.RDS")
-train = lapply(train, readRDS)
-train_classes = lapply(train, function(d) dim(d)[1])
-train = abind::abind(train, along = 1L)
-labels_train = rep(0:4, unlist(train_classes))
-
 flower = EcoData::dataset_flower()
 train = flower$train
 test = flower$test
-train_classes = flower$labels
+labels_train = flower$labels
 ```
 
 Let's visualize a flower:
 
 ```{r chunk_chapter8_27}
 train[100,,,] %>% 
- image_to_array() %>%
- `/`(., 255) %>%
- as.raster() %>%
- plot()
+  image_to_array() %>%
+  `/`(., 255) %>%
+  as.raster() %>%
+  plot()
 ```
 
 2. Build and train model:

@@ -238,7 +238,7 @@ dc = dbscan(traits, eps = 0.4, minPts = 6)
 print(dc)
 ```
 
-```{r chunk_chapter3_15}
+```{r chunk_chapter3_15, message=FALSE, warning=FALSE}
 library(factoextra)
 ```
 
@@ -302,7 +302,6 @@ biplot(pcTraits, xlim = c(-0.25, 0.25), ylim = c(-0.25, 0.25))
 ```
 
 You can cluster the results of this ordination, ordinate before clustering, or superimpose one on the other. 
-
 
 ```{=html}
   <hr/>
@@ -375,7 +374,7 @@ do_clustering(traits, TRUE)
 ```
 
 It seems that scaling is harmful for hierarchical clustering. But this might be a deception.
-*Be careful:* If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.
+<strong>*Be careful:*</strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.
 
 ```{=html}
   <strong><span style="font-size:20px;">K-means Clustering</span></strong>
@@ -411,7 +410,7 @@ do_clustering(traits, TRUE)
 ```
 
 It seems that scaling is harmful for K-means clustering. But this might be a deception.
-*Be careful:* If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.
+<strong>*Be careful:*</strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.
 
 ```{=html}
   <strong><span style="font-size:20px;">Density-based Clustering</span></strong>
@@ -444,10 +443,10 @@ do_clustering = function(traits, scale = FALSE){
     correct_classified = correct_classified + tbl[i, i + 1]
   }
   
-  cat( if(scale){ "Scaled" }else{ "Not scaled" }, "\n" )
+  cat( if(scale){ "Scaled" }else{ "Not scaled" }, "\n\n" )
   cat("Confusion matrix:\n")
   print(tbl)
-  cat("\nCorrect classified points: ", correct_classified, " / " , length(iris[,5]))
+  cat("\nCorrect classified points: ", correct_classified, " / ", length(iris[,5]))
   cat("\nSum of noise points: ", noise, "\n")
 }
 
@@ -461,7 +460,7 @@ do_clustering(traits, TRUE)
 ```
 
 It seems that scaling is harmful for density based clustering. But this might be a deception.
-*Be careful:* If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.
+<strong>*Be careful:*</strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.
 
 ```{=html}
   <strong><span style="font-size:20px;">Model-based Clustering</span></strong>
@@ -478,7 +477,7 @@ do_clustering = function(traits, scale = FALSE){
   
   tbl = table(iris$Species, mb3$classification)
   
-  cat( if(scale){ "Scaled" }else{ "Not scaled" }, "\n" )
+  cat( if(scale){ "Scaled" }else{ "Not scaled" }, "\n\n" )
   cat("Confusion matrix:\n")
   print(tbl)
   cat("\nCorrect classified points: ", sum(diag(tbl)), " / ", length(iris[,5]))
@@ -561,8 +560,7 @@ Visualization of the results:
 
 ```{r chunk_chapter3_28}
 oldpar = par(mfrow = c(1, 2))
-plot(predict(m1), iris$Sepal.Length,
-     xlab = "Predicted", ylab = "Observed")
+plot(predict(m1), iris$Sepal.Length, xlab = "Predicted", ylab = "Observed")
 abline(0, 1)
 varImpPlot(m1)
 par(oldpar)
@@ -616,7 +614,6 @@ Confusion matrix:
 ```{r chunk_chapter3_34}
 table(predict(m1), iris$Species)
 ```
-
 
 ```{=html}
   <hr/>
@@ -707,6 +704,7 @@ To get started with TensorFlow, we have to load the library and check if the ins
 
 ```{r chunk_chapter3_36}
 library(tensorflow)
+library(keras)
 
 # Don't worry about weird messages. TensorFlow supports additional optimizations.
 exists("tf")
@@ -729,7 +727,8 @@ print(a)
 print(b)
 c = tf$add(a, b)
 print(c)
-tf$print(c)
+tf$print(c) # Prints to stderr. For stdout, use k_print_tensor(..., message).
+k_print_tensor(c) # Comes out of Keras!
 ```
 
 Normal R methods such as print() are provided by the R package "tensorflow". 
@@ -739,7 +738,7 @@ The TensorFlow library (created by the RStudio team) built R methods for all com
 ```{r chunk_chapter3_38}
 `+.tensorflow.tensor` = function(a, b){ return(tf$add(a,b)) }
 # Mind the backticks.
-tf$print(a+b)
+k_print_tensor(a+b)
 ```
 
 Their operators also automatically transform R numbers into constant tensors when attempting to add a tensor to an R number:
@@ -816,7 +815,6 @@ tf$reshape(r_matrix, shape = c(5L, 20L))$numpy()
 ```
 
 Skipping the "L" is one of the most common errors when using R-TensorFlow!
-
 
 ```{=html}
   <hr/>
@@ -936,7 +934,12 @@ mean_TF(y) == mean(y)
 ```{=html}
     </p>
   </details>
-  <br/><hr/>
+  <br/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
 ```
 
 This exercise compares the speed of R to TensorFlow.
@@ -980,8 +983,8 @@ Also try the following:
 
 ```{r chunk_chapter3_task_11, eval=FALSE, purl=FALSE}
 microbenchmark::microbenchmark(
-  { tf$matmul( testT, tf$transpose(testT)) } # TensorFlow style.
-  { test %*% t(test) } # R style.
+   tf$matmul(testTF, tf$transpose(testTF)), # TensorFlow style.
+   test %*% t(test)  # R style.
 )
 ```
 
@@ -1022,9 +1025,256 @@ test = matrix(0.0, 1000L, 500L)
 testTF = tf$constant(test)
 
 microbenchmark::microbenchmark(
-  { tf$matmul( testT, tf$transpose(testT)) } # TensorFlow style.
-  { test %*% t(test) } # R style.
+  tf$matmul(testTF, tf$transpose(testTF)),  # TensorFlow style.
+  test %*% t(test) # R style.
 )
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Google to find out how to write the following tasks in TensorFlow:
+
+```{r chunk_chapter3_task_15, eval=TRUE}
+A = matrix(c(1, 2, 0, 0, 2, 0, 2, 5, 3), 3, 3)
+
+# i)
+solve(A)  # Solve equation AX = B. If just A  is given, invert it.
+
+# j)
+diag(A) # Diagonal of A, if no matrix is given, construct diagonal matrix.
+
+# k)
+diag(diag(A)) # Diagonal matrix with entries diag(A).
+
+# l)
+eigen(A)
+
+# m)
+det(A)
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter3_task_16, eval=TRUE}
+library(tensorflow)
+library(keras)
+
+A = matrix(c(1., 2., 0., 0., 2., 0., 2., 5., 3.), 3, 3)
+# Do not use the "L" form here!
+
+# i)    solve(A)
+tf$linalg$inv(A)
+
+# j)    diag(A)
+tf$linalg$diag_part(A)
+
+# k)    diag(diag(A))
+tf$linalg$diag(tf$linalg$diag_part(A))
+
+# l)    eigen(A)
+tf$linalg$eigh(A)
+
+# m)    det(A)
+tf$linalg$det(A)
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+TensorFlow supports automatic differentiation (analytical and not numerical!). 
+Let's have a look at the function $f(x) = 5 x^2 + 3$ with derivative $f'(x) = 10x$.
+So for $f'(5)$ we will get $10$.
+
+Let's do this in TensorFlow. Define the function:
+
+```{r chunk_chapter3_task_17, eval=TRUE}
+f = function(x){ return(5.0 * tf$square(x) + 3.0) }
+```
+
+We want to calculate the derivative for $x = 2.0$:
+
+```{r chunk_chapter3_task_18, eval=TRUE}
+x = tf$constant(2.0)
+```
+
+To do automatic differentiation, we have to forward $x$ through the function within the tf\$GradientTape() environment. We have also have to tell TensorFlow which value to "watch":
+
+```{r chunk_chapter3_task_19, eval=TRUE}
+with(tf$GradientTape() %as% tape,
+  {
+    tape$watch(x)
+    y = f(x)
+  }
+)
+```
+
+To print the gradient:
+
+```{r chunk_chapter3_task_20, eval=TRUE}
+(tape$gradient(y, x))
+```
+
+We can also calculate the second order derivative $f''(x) = 10$:
+
+```{r chunk_chapter3_task_21, eval=TRUE}
+with(tf$GradientTape() %as% first,
+  {
+    first$watch(x)
+    with(tf$GradientTape() %as% second,
+      {
+        second$watch(x)
+        y = f(x)
+        g = first$gradient(y, x)
+      }
+    )
+  }
+)
+
+(second$gradient(g, x))
+```
+
+What is happening here? Think about and discuss it.
+
+
+A more advanced example: *Linear regression*
+
+In this case we first simulate data following $\boldsymbol{y} = \boldsymbol{X} \boldsymbol{w} + \boldsymbol{\epsilon}$  ($\boldsymbol{\epsilon}$ follows a normal distribution == error).
+
+```{r chunk_chapter3_task_22, eval=TRUE}
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
+
+x = matrix(round(runif(500, -2, 2), 3), 100, 5)
+w = round(rnorm(5, 2, 1), 3)
+y = x %*% w + round(rnorm(100, 0, 0.25), 4)
+```
+
+In R we would do the following to fit a linear regression model:
+
+```{r chunk_chapter3_task_23, eval=TRUE}
+summary(lm(y~x))
+```
+
+Let's build our own model in TensorFlow.
+Here, we use now the variable data container type (remember they are mutable and we need this type for the weights ($\boldsymbol{w}$) of the regression model). We want our model to learn these weights.
+
+The input (predictors, independent variables or features, $\boldsymbol{X}$) and the observed (response, $\boldsymbol{y}$) are constant and will not be learned/optimized.
+
+```{r chunk_chapter3_task_24, eval=TRUE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
+
+x = matrix(round(runif(500, -2, 2), 3), 100, 5)
+w = round(rnorm(5, 2, 1), 3)
+y = x %*% w + round(rnorm(100, 0, 0.25), 4)
+
+# Weights we want to learn.
+# We know the real weights but in reality we wouldn't know them.
+# So use guessed ones.
+wTF = tf$Variable(matrix(rnorm(5, 0, 0.01), 5, 1))
+
+xTF = tf$constant(x)
+yTF = tf$constant(y)
+
+# We need an optimizer which updates the weights (wTF).
+optimizer = tf$keras$optimizers$Adamax(lr = 0.1)
+
+for(i in 1:100){
+  with(tf$GradientTape() %as% tape,
+    {
+      pred = tf$matmul(xTF, wTF)
+      loss = tf$sqrt(tf$reduce_mean(tf$square(yTF - pred)))
+    }
+  )
+
+  if(!i%%10){ k_print_tensor(loss, message = "Loss: ") }  # Every 10 times.
+  grads = tape$gradient(loss, wTF)
+  optimizer$apply_gradients(purrr::transpose(list(list(grads), list(wTF))))
+}
+
+k_print_tensor(wTF, message = "Resulting weights:\n")
+cat("Original weights: ", w, "\n")
+```
+
+Discuss the code, go through the code line by line and try to understand it.
+
+Additional exercise:
+
+Play around with the simulation, increase/decrease the number of weights, add an intercept (you also need an additional variable in model).
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter3_task_25, eval=TRUE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
+
+numberOfWeights = 3
+numberOfFeatures = 10000
+
+x = matrix(round(runif(numberOfFeatures * numberOfWeights, -2, 2), 3),
+           numberOfFeatures, numberOfWeights)
+w = round(rnorm(numberOfWeights, 2, 1), 3)
+intercept = round(rnorm(1, 3, .5), 3)
+y = intercept + x %*% w + round(rnorm(numberOfFeatures, 0, 0.25), 4)
+
+# Guessed weights and intercept.
+wTF = tf$Variable(matrix(rnorm(numberOfWeights, 0, 0.01), numberOfWeights, 1))
+interceptTF = tf$Variable(matrix(rnorm(1, 0, .5)), 1, 1) # Double, not float32.
+
+xTF = tf$constant(x)
+yTF = tf$constant(y)
+
+optimizer = tf$keras$optimizers$Adamax(lr = 0.05)
+
+for(i in 1:100){
+  with(tf$GradientTape(persistent = TRUE) %as% tape,
+    {
+      pred = tf$add(interceptTF, tf$matmul(xTF, wTF))
+      loss = tf$sqrt(tf$reduce_mean(tf$square(yTF - pred)))
+    }
+  )
+
+  if(!i%%10){ k_print_tensor(loss, message = "Loss: ") }  # Every 10 times.
+  grads = tape$gradient(loss, wTF)
+  optimizer$apply_gradients(purrr::transpose(list(list(grads), list(wTF))))
+  grads = tape$gradient(loss, interceptTF)
+  optimizer$apply_gradients(purrr::transpose(list(list(grads), list(interceptTF))))
+}
+
+k_print_tensor(wTF, message = "Resulting weights:\n")
+cat("Original weights: ", w, "\n")
+k_print_tensor(interceptTF, message = "Resulting intercept:\n")
+cat("Original intercept: ", intercept, "\n")
 ```
 
 ```{=html}
@@ -1036,7 +1286,7 @@ microbenchmark::microbenchmark(
 
 ## Introduction to PyTorch
   
-PyTorch is another famous library for deep learning. Like TensorFlow, Torch itself is written in C++ with an API in Python. In 2020, the RStudio team released R-Torch, and while R-TensorFlow calls the Python API in the background, the R-Torch API is built directly on the C++ Torch library! 
+PyTorch is another famous library for deep learning. Like TensorFlow, Torch itself is written in C++ with an API for Python. In 2020, the RStudio team released R-Torch, and while R-TensorFlow calls the Python API in the background, the R-Torch API is built directly on the C++ Torch library! 
   
 Useful links:
 
@@ -1309,7 +1559,7 @@ for(i in 1:steps){
 
 **5. Plot training history:**
  
-```{r chunk_chapter3_64, cache=TRUE}
+```{r chunk_chapter3_64, cache=TRUE, message=FALSE, warning=FALSE}
 plot(model_history)
 ```
   
@@ -1383,7 +1633,6 @@ par(oldpar)   #Reset par.
 ```
 
 So you see, building a neural network is very easy with Keras and you can already do it on your own.
-
 
 ```{=html}
   <hr/>
@@ -1463,13 +1712,73 @@ So you see, building a neural network is very easy with Keras and you can alread
       </script>
     </p>
   </details>
-  <hr/>
 ```
-
 
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+We will now build a regressor for the airquality data set with Keras. We want to predict the variable "Ozone".
+
+0. Load and prepare the data set:
+
+```{r chunk_chapter3_task_26, eval=TRUE}
+data = airquality
+```
+
+Explore the data with summary() and plot():
+
+```{r chunk_chapter3_task_27, eval=TRUE}
+summary(data)
+plot(data)
+```
+
+1. There are NAs in the data, which we have to remove because Keras cannot handle NAs.
+If you don't know how to remove NAs from a data.frame, use Google (e.g. with the query: "remove-rows-with-all-or-some-nas-missing-values-in-data-frame").
+
+2. Split the data in predictors ($\boldsymbol{X}$) and response ($\boldsymbol{y}$, Ozone) and scale the $\boldsymbol{X}$ matrix.
+
+3. Build sequential Keras model.
+
+4. Add hidden layers (input and output layer are already specified, you have to add hidden layers between them):
+
+```{r chunk_chapter3_task_28, eval=FALSE, purl=FALSE}
+model %>%
+  layer_dense(units = 20L, activation = "relu", input_shape = list(5L)) %>%
+   ....
+  layer_dense(units = 1L, activation = "linear")
+```
+
+* Why do we use 5L as input shape?
+* Why only one output node and "linear" activation layer?
+
+5. Compile model.
+
+```{r chunk_chapter3_task_29, eval=FALSE, purl=FALSE}
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(0.1))
+```
+
+What is the "mean_squared_error" loss?
+
+6. Fit model:
+
+Tip: Only matrices are accepted for $\boldsymbol{X}$ and $\boldsymbol{y}$ by Keras. R often drops a one column matrix into a vector (change it back to a matrix!)
+
+7. Plot training history.
+
+8. Create predictions.
+
+9. Compare your Keras model with a linear model:
+
+```{r chunk_chapter3_task_30, eval=FALSE, purl=FALSE}
+fit = lm(Ozone ~ ., data = data)
+pred_lm = predict(fit, data)
+rmse_lm = mean(sqrt((y - pred_lm)^2))
+rmse_keras = mean(sqrt((y - pred_keras)^2))
+print(rmse_lm)
+print(rmse_keras)
 ```
 
 ```{=html}
@@ -1478,6 +1787,92 @@ So you see, building a neural network is very easy with Keras and you can alread
       <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
     </summary>
     <p>
+```
+
+1. There are NAs in the data, which we have to remove because Keras cannot handle NAs.
+
+```{r chunk_chapter3_task_31, eval=TRUE}
+data = data[complete.cases(data),]  # Remove NAs.
+summary(data)
+```
+
+2. Split the data in predictors and response and scale the matrix.
+
+```{r chunk_chapter3_task_32, eval=TRUE}
+x = scale(data[,2:6])
+y = data[,1]
+```
+
+3. Build sequential Keras model.
+
+```{r chunk_chapter3_task_33, eval=TRUE}
+model = keras_model_sequential()
+```
+
+4. Add hidden layers (input and output layer are already specified, you have to add hidden layers between them).
+
+```{r chunk_chapter3_task_34, eval=TRUE}
+model %>%
+  layer_dense(units = 20L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 20L) %>%
+  layer_dense(units = 30L) %>%
+  layer_dense(units = 20L) %>%
+  layer_dense(units = 1L, activation = "linear")
+```
+
+We use 5L as input shape, because we have 5 predictors. Analogously, we use 1L for our 1d response.
+Because we do not want any compression or dilation, or other nonlinear effects, we use the simple linear layer (equal to no activation function at all). For more about activation functions, look for example <a href="https://en.wikipedia.org/wiki/Activation_function" target="_blank" rel="noopener">here</a>. Or wait for the next days.
+
+5. Compile model.
+
+```{r chunk_chapter3_task_35, eval=TRUE}
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(0.1))
+```
+
+The mean_squared_error is the ordinary least squares approach in regression analysis.
+
+6. Fit model:
+
+Tip: Only matrices are accepted for $\boldsymbol{X}$ and $\boldsymbol{y}$ by Keras. R often drops a one column matrix into a vector (change it back to a matrix!)
+
+7. Plot training history.
+
+8. Create predictions.
+
+9. Compare your Keras model with a linear model:
+
+```{r chunk_chapter3_task_300, eval=FALSE, purl=FALSE}
+fit = lm(Ozone ~ ., data = data)
+pred_lm = predict(fit, data)
+rmse_lm = mean(sqrt((y - pred_lm)^2))
+rmse_keras = mean(sqrt((y - pred_keras)^2))
+print(rmse_lm)
+print(rmse_keras)
+```
+
+
+```{=html}
+    </p>
+  </details>
+  <br/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter3_task_302, eval=TRUE}
+
 ```
 
 ```{=html}
