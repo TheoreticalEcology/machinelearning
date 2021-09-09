@@ -697,13 +697,323 @@ model_history18 =
   fit(x = X, y = Y, epochs = 150L, batch_size = 75L, shuffle = FALSE)
 
 plot(model_history18)
-
-
-####################
-####################
-
-# Play around with the parameters on your own!
 ```
+
+Play around with the parameters on your own!
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+  The following code is our working example for the next exercises:
+```
+
+```{r chunk_chapter4_task_2, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l1(10),
+             bias_regularizer = regularizer_l1(10))
+summary(model)
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(lr = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+
+l1 = model$get_weights()
+
+linear = lm(y~x)
+summary(linear)
+
+cat("Linear:     ", round(coef(linear), 3))
+# The last parameter is the intercept (first parameter in lm).
+cat("L1:         ", round(c(unlist(l1)[length(unlist(l1))],
+                            unlist(l1)[1:(length(unlist(l1))-1)]), 3))
+```
+
+What happens if you change the regularisation from $L1$ to $L2$?
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_3, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l2(10),
+             bias_regularizer = regularizer_l2(10))
+summary(model)
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(lr = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+
+l2 = model$get_weights()
+```
+```{r chunk_chapter4_task_4, message=FALSE, warning=FALSE, echo=FALSE}
+cat("Linear:     ", round(coef(linear), 3))
+cat("L1:         ", round(c(unlist(l1)[length(unlist(l1))],
+                            unlist(l1)[1:(length(unlist(l1))-1)]), 3))
+cat("L2:         ", round(c(unlist(l2)[length(unlist(l2))],
+                            unlist(l2)[1:(length(unlist(l2))-1)]), 3))
+```
+
+Weights 4 and 5 are strongly pushed towards zero with $L1$ regularization, but $L2$ regularization shrinks more in general.
+*Note*: The weights are not similar to the linear model! (But often, they keep their sign.)
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+  Try different regularisation strengths, try to push the weights to zero. What is the strategy to push the parameters to zero?
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+**Now with less regularization:**
+
+```{r chunk_chapter4_task_5, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l1(1),
+             bias_regularizer = regularizer_l1(1))
+summary(model)
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(lr = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+
+l1_lesser = model$get_weights()
+```
+```{r chunk_chapter4_task_6, message=FALSE, warning=FALSE, echo=FALSE}
+cat("Linear:     ", round(coef(linear), 3))
+cat("L1:         ", round(c(unlist(l1)[length(unlist(l1))],
+                            unlist(l1)[1:(length(unlist(l1))-1)]), 3))
+cat("L1, lesser: ", round(c(unlist(l1_lesser)[length(unlist(l1_lesser))],
+                            unlist(l1_lesser)[1:(length(unlist(l1_lesser))-1)]), 3))
+```
+
+```{r chunk_chapter4_task_7, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l2(1),
+             bias_regularizer = regularizer_l2(1))
+summary(model)
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(lr = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+
+l2_lesser = model$get_weights()
+```
+```{r chunk_chapter4_task_8, message=FALSE, warning=FALSE, echo=FALSE}
+cat("Linear:     ", round(coef(linear), 3))
+cat("L2:         ", round(c(unlist(l2)[length(unlist(l2))],
+                            unlist(l2)[1:(length(unlist(l2))-1)]), 3))
+cat("L2, lesser: ", round(c(unlist(l2_lesser)[length(unlist(l2_lesser))],
+                            unlist(l2_lesser)[1:(length(unlist(l2_lesser))-1)]), 3))
+```
+
+**And with more regularization:**
+
+```{r chunk_chapter4_task_9, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l1(25),
+             bias_regularizer = regularizer_l1(25))
+summary(model)
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(lr = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+
+l1_higher = model$get_weights()
+```
+```{r chunk_chapter4_task_10, message=FALSE, warning=FALSE, echo=FALSE}
+cat("Linear:     ", round(coef(linear), 3))
+cat("L1:         ", round(c(unlist(l1)[length(unlist(l1))],
+                            unlist(l1)[1:(length(unlist(l1))-1)]), 3))
+cat("L1, lesser: ", round(c(unlist(l1_lesser)[length(unlist(l1_lesser))],
+                            unlist(l1_lesser)[1:(length(unlist(l1_lesser))-1)]), 3))
+cat("L1, higher: ", round(c(unlist(l1_higher)[length(unlist(l1_higher))],
+                            unlist(l1_higher)[1:(length(unlist(l1_higher))-1)]), 3))
+```
+
+```{r chunk_chapter4_task_11, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l2(25),
+             bias_regularizer = regularizer_l2(25))
+summary(model)
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(lr = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+
+l2_higher = model$get_weights()
+```
+```{r chunk_chapter4_task_12, message=FALSE, warning=FALSE, echo=FALSE}
+cat("Linear:     ", round(coef(linear), 3))
+cat("L2:         ", round(c(unlist(l2)[length(unlist(l2))],
+                            unlist(l2)[1:(length(unlist(l2))-1)]), 3))
+cat("L2, lesser: ", round(c(unlist(l2_lesser)[length(unlist(l2_lesser))],
+                            unlist(l2_lesser)[1:(length(unlist(l2_lesser))-1)]), 3))
+cat("L2, higher: ", round(c(unlist(l2_higher)[length(unlist(l2_higher))],
+                            unlist(l2_higher)[1:(length(unlist(l2_higher))-1)]), 3))
+```
+
+For pushing weights towards zero, $L1$ regularization is used rather than $L2$.
+Higher regularization leads to smaller parameters (maybe in combination with smaller learning rates).
+
+Play aroundon your own!
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+Use a combination of $L1$ and a $L2$ regularization (there is a Keras function for this). How is this kind of regularization called and what is the advantage of this approach?
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_13, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	#Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l1_l2(10),
+             bias_regularizer = regularizer_l1_l2(10))
+summary(model)
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(lr = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+```
+
+This kind of regularization is called **Elastic net**. It is a combination of LASSO ($L1$) and Ridge. It is more flexible than $L1$ and less flexible than $L2$ and higher computational cost. Elastic net does shrinkage as well, but does not separate highly correlated parameters out that much.
 
 ```{=html}
     </p>
