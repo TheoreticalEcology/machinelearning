@@ -6,7 +6,7 @@ source("tests/utils.R")
 # For successful debugging, please name all chunks (chunk names+arguments will be used as names for tests)
 
 # 1. Specify Rmds to test:
-rmds = c("book/01_index.Rmd", "book/02_R-reminder.Rmd", "book/03-intro.Rmd", "book/04-fundamental.Rmd")
+rmds = c("book/index.Rmd", "book/02_R-reminder.Rmd", "book/03-intro.Rmd", "book/04-fundamental.Rmd")
 
 
 # 2. Create tests
