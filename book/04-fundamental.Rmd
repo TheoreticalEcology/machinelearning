@@ -2468,7 +2468,7 @@ test = data_sub[is.na(data_sub$survived),]
 Inner split:
 
 ```{r chunk_chapter4_53}
-indices = sample.int(nrow(train), 0.7*nrow(train))
+indices = sample.int(nrow(train), 0.7 * nrow(train))
 sub_train = train[indices,]
 sub_test = train[-indices,]
 ```
@@ -2609,6 +2609,7 @@ pred = model %>%
 
 All values > 0.5 will be set to 1 and values < 0.5 to zero.
 For the submission it is critical to change the predictions into a data.frame, select the second column (the probability to survive), and save it with the write.csv function:
+
 ```{r chunk_chapter4_60, eval=FALSE}
 write.csv(data.frame(y = pred[,2]), file = "Max_1.csv")
 ```
@@ -2637,6 +2638,7 @@ library(keras)
 library(tensorflow)
 library(tidyverse)
 library(randomForest)
+library(rpart)
 library(EcoData)
 set_random_seed(54321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
@@ -2666,7 +2668,9 @@ data = data %>% select(-body, -name, -ticket, -survived)
 
 data$pclass = as.factor(data$pclass)  # "pclass" makes only sense as a factor.
 
-for(i in 1:3){ print(sum(data$cabin[data$pclass==i]=="") / sum(data$pclass==i)) }
+for(i in 1:3){
+  print(sum(data$cabin[data$pclass == i] == "") / sum(data$pclass == i))
+  }
 
 # Most people have no cabin (21% in 1st, 92% in 2nd and 98% in 3rd class).
 # Dummy code the availability of a cabin.
@@ -2683,15 +2687,18 @@ data$cabin = (data$cabin != "") * 1
   tmp = tmp[-missingIndices,] # Leave samples that should be predicted.
   tmp$embarked = droplevels(tmp$embarked) # Remove unused levels ("").
   
-  # Random forests don't need scaling.
-  forest = randomForest(x = tmp[,1:7], y = tmp$embarked)
-  (prediction = predict(forest, toPredict))
+  # Random forests and simple regression trees don't need scaling.
+  # Use a simple regression tree instead of a random forest here,
+  # we have only 2 missing values.
+  # And a simple regression tree is easy to visualize.
+  regressionTree = rpart(embarked ~ ., data = tmp,
+                         control = rpart.control(minsplit = 10))
+  rpart.plot::rpart.plot(regressionTree)
+  prediction = predict(regressionTree, toPredict)
   
-  reprtree:::plot.getTree(forest)
-  
-  for(i in 1:length(prediction)){
-    index = which(rownames(data) == as.integer(names(prediction))[i])
-    data$embarked[index] = prediction[i]
+  for(i in 1:nrow(prediction)){
+    index = which(rownames(data) == as.integer(rownames(prediction))[i])
+    data$embarked[index] = colnames(prediction)[which.max(prediction[i,])]
   }
   
   data$embarked = droplevels(data$embarked) # Remove unused levels ("").
@@ -2892,7 +2899,7 @@ cat("Accuracy:\n")
   <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
 ```
 
-Now try your above solution (the exactly same one!) with another seed to check for overfitting (on the seed!) of your procedure.
+Now try your above solution (**the exactly same one!**) with another seed to check for overfitting (on the seed!) of your procedure.
 
 ```{=html}
   <details>
@@ -2902,7 +2909,7 @@ Now try your above solution (the exactly same one!) with another seed to check f
     <p>
 ```
 
-```{r chunk_chapter4_task_43, eval=False, purl=FALSE}
+```{r chunk_chapter4_task_43, message=FALSE, warning=FALSE, echo=FALSE}
 set_random_seed(123L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 model = keras_model_sequential()
@@ -2965,7 +2972,7 @@ Make predictions and submit them via our <a href="https://elearning.uni-regensbu
     <p>
 ```
 
-```{r chunk_chapter4_task_44, eval=False, purl=FALSE}
+```{r chunk_chapter4_task_44, eval=FALSE, purl=FALSE}
 prediction =
   model %>%
     predict(x = predict)
@@ -3081,9 +3088,8 @@ Very cool! Preprocessing + 10-fold cross-validation model evaluation in a few li
 Let's create the final predictions:
 
 ```{r chunk_chapter4_67__mlr2, eval=FALSE}
-preds = 
-  sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task, 
-                                                        row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
+preds = sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task,
+row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
 dim(preds)
 predictions = apply(preds, 1, mean)
 ```
@@ -3171,7 +3177,8 @@ Now we can wrap it normally into the 10-fold cross-validated setup as done previ
 set.seed(123)
 
 outer3 = mlr3::rsmp("cv", folds = 3L)
-result = mlr3::resample(transformed_task, learner_tuner, resampling = outer3, store_models = TRUE)
+result = mlr3::resample(transformed_task, learner_tuner,
+                        resampling = outer3, store_models = TRUE)
 
 # Calculate the average AUC of the holdouts.
 result$aggregate(measurement)
@@ -3182,9 +3189,8 @@ Yeah, we were able to improve the performance!
 Let's create the final predictions:
 
 ```{r chunk_chapter4_72, eval=FALSE}
-preds = 
-  sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task, 
-                                                        row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
+preds = sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task,
+row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
 dim(preds)
 predictions = apply(preds, 1, mean)
 ```
@@ -3270,9 +3276,8 @@ result$aggregate(measurement)
 Let's create the final predictions:
 
 ```{r chunk_chapter4_78, eval=FALSE}
-preds = 
-  sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task, 
-                                                        row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
+preds = sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task,
+row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
 dim(preds)
 predictions = apply(preds, 1, mean)
 ```
@@ -3283,7 +3288,7 @@ predictions = apply(preds, 1, mean)
 ```
 
 After reading the above chapter about the mlr package, try to transfer it to the titanic data set.
-Alternatively, you can also use other data sets from our challenge (e.g. the plant-pollinator data set, see the dataset chapter \@ref(datasets)).
+Alternatively, you can also use other data sets from our challenge (e.g. the plant-pollinator data set, see the data set chapter \@ref(datasets)).
 
 ```{=html}
   <details>
@@ -3293,7 +3298,7 @@ Alternatively, you can also use other data sets from our challenge (e.g. the pla
     <p>
 ```
 
-```{r chunk_chapter4_task_44, message=FALSE, warning=FALSE}
+```{r chunk_chapter4_task_45, message=FALSE, warning=FALSE}
 
 ```
 

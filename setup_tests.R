@@ -1,13 +1,17 @@
 source("tests/utils.R")
 
-
 #### INFO #####
-# All chunks will be tested within a testthat::test_that environment. To skip chunks, use purl=FALSE in chunk options
-# For successful debugging, please name all chunks (chunk names+arguments will be used as names for tests)
+# All chunks will be tested within a testthat::test_that environment.
+# To skip chunks, use purl=FALSE in chunk options.
+# For successful debugging, please name all chunks. 
+# Chunk names+arguments will be used as names for tests.
 
 # 1. Specify Rmds to test:
-rmds = c("book/index.Rmd", "book/02_R-reminder.Rmd", "book/03-intro.Rmd", "book/04-fundamental.Rmd")
-
+rmds = c("book/index.Rmd",
+         "book/02_R-reminder.Rmd",
+         "book/03-intro.Rmd",
+         "book/04-fundamental.Rmd"
+         )
 
 # 2. Create tests
 .n = sapply(rmds, create_test)
