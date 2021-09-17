@@ -2980,7 +2980,7 @@ prediction =
 # Take label with highest probability:
 prediction = (prediction[,1] < prediction[,2]) * 1
 
-write.csv(data.frame(y = prediction), file = "submission.csv")
+write.csv(data.frame(y = prediction), file = "submission_NN.csv")
 ```
 
 ```{=html}
@@ -3287,7 +3287,7 @@ predictions = apply(preds, 1, mean)
   <strong><span style="color: #0011AA; font-size:25px;">Optional bonus task</span></strong><br/>
 ```
 
-After reading the above chapter about the mlr package, try to transfer it to the titanic data set.
+After reading the above chapter about the mlr package, try to transfer it to the titanic data set (use the titanic_ml data set, this has already NAs for the values to predict).
 Alternatively, you can also use other data sets from our challenge (e.g. the plant-pollinator data set, see the data set chapter \@ref(datasets)).
 
 ```{=html}
@@ -3299,7 +3299,61 @@ Alternatively, you can also use other data sets from our challenge (e.g. the pla
 ```
 
 ```{r chunk_chapter4_task_45, message=FALSE, warning=FALSE}
+library(EcoData)
+library(tidyverse)
+library(mlr3)
+library(mlr3learners)
+library(mlr3pipelines)
+library(mlr3tuning)
+library(mlr3measures)
+set.seed(123)
 
+data(titanic_ml)
+str(titanic_ml)
+
+data = titanic_ml %>% select(-name, -ticket, -name, -body)
+data$pclass = as.factor(data$pclass)
+data$sex = as.factor(data$sex)
+data$survived = as.factor(data$survived)
+
+# Change easy things manually:
+data$embarked[data$embarked == ""] = "S"  # Fill in "empty" values.
+data$embarked = droplevels(as.factor(data$embarked)) # Remove unused levels ("").
+data$cabin = (data$cabin != "") * 1 # Dummy code the availability of a cabin.
+data$fare[is.na(data$fare)] = mean(data$fare, na.rm = TRUE)
+levels(data$home.dest)[levels(data$home.dest) == ""] = "unknown"
+levels(data$boat)[levels(data$boat) == ""] = "none"
+
+# Create a classification task.
+task = TaskClassif$new(id = "titanic", backend = data,
+                       target = "survived", positive = "1")
+task$missings()
+
+# Let's create the preprocessing graph.
+preprocessing = po("imputeoor") %>>% po("scale") %>>% po("encode") 
+
+# Run the task.
+transformed_task = preprocessing$train(task)[[1]]
+
+transformed_task$set_row_roles((1:nrow(data))[is.na(data$survived)], "validation")
+
+cv10 = mlr3::rsmp("cv", folds = 10L)
+rf = lrn("classif.ranger", predict_type = "prob")
+measurement =  msr("classif.auc")
+
+result = mlr3::resample(transformed_task, rf,
+                        resampling = cv10, store_models = TRUE)
+
+# Calculate the average AUC of the holdouts.
+result$aggregate(measurement)
+
+preds = sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task,
+row_ids = (1:nrow(data))[is.na(data$survived)])$data$prob[, "1", drop = FALSE])
+
+dim(preds)
+predictions = round(apply(preds, 1, mean))
+
+write.csv(data.frame(y = predictions), file = "submission_RF.csv")
 ```
 
 ```{=html}
