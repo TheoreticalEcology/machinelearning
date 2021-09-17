@@ -1455,7 +1455,7 @@ library(rpart.plot)
 data = airquality[complete.cases(airquality),]
 ```
 
-Fit and visualize a regression tree:
+Fit and visualize one(!) regression tree:
 
 ```{r chunk_chapter4_19}
 rt = rpart(Ozone~., data = data, control = rpart.control(minsplit = 10))
@@ -2636,7 +2636,7 @@ First, we should look at the data and do some feature engineering / selection. G
 library(keras)
 library(tensorflow)
 library(tidyverse)
-library(rpart)
+library(randomForest)
 library(EcoData)
 set_random_seed(54321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
@@ -2679,17 +2679,19 @@ data$cabin = (data$cabin != "") * 1
   tmp = data.frame(tmp[complete.cases(tmp),]) # Leave samples with missing values.
   
   missingIndices = which(tmp$embarked == "")
-  toPredict = tmp[missingIndices,]
+  toPredict = tmp[missingIndices, -8]
   tmp = tmp[-missingIndices,] # Leave samples that should be predicted.
+  tmp$embarked = droplevels(tmp$embarked) # Remove unused levels ("").
   
   # Random forests don't need scaling.
-  forest = rpart(embarked ~ ., data = tmp,
-                 control = rpart.control(minsplit = 10))
-  prediction = predict(forest, toPredict)
+  forest = randomForest(x = tmp[,1:7], y = tmp$embarked)
+  (prediction = predict(forest, toPredict))
   
-  for(i in 1:nrow(prediction)){
-    index = which(rownames(data) == as.integer(rownames(prediction))[i])
-    data$embarked[index] = colnames(prediction)[which.max(prediction[i,])]
+  reprtree:::plot.getTree(forest)
+  
+  for(i in 1:length(prediction)){
+    index = which(rownames(data) == as.integer(names(prediction))[i])
+    data$embarked[index] = prediction[i]
   }
   
   data$embarked = droplevels(data$embarked) # Remove unused levels ("").
@@ -2711,11 +2713,10 @@ levels(data$boat)[levels(data$boat) == ""] = "none"
   tmp = data %>% select(-home.dest) # Leave parameters with too many levels.
   
   missingIndices = which(is.na(tmp$age))
-  toPredict = tmp[missingIndices,]
+  toPredict = tmp[missingIndices, -3]
   tmp = tmp[-missingIndices,] # Leave samples that should be predicted.
   
-  forest = rpart(age ~ ., data = tmp, control = rpart.control(minsplit = 15))
-  rpart.plot::rpart.plot(forest)
+  forest = randomForest(x = tmp[,-3], y = tmp$age)
   prediction = predict(forest, toPredict)
   
   for(i in 1:length(prediction)){
@@ -2724,6 +2725,7 @@ levels(data$boat)[levels(data$boat) == ""] = "none"
   }
 
 str(data)
+data = as.data.frame(data)
 
 # One-hot encoding of "pclass", "sex", "cabin", "embarked", "boat" and "home.dest":
   for(element in c("pclass", "sex", "cabin", "embarked", "boat", "home.dest")){
@@ -2746,7 +2748,7 @@ str(data)
   }
 
 # Scale parameters (including one-hot encoded):
-data = scale(data)
+data = scale(as.matrix(data))
 
 # Split into training, test and prediction set:
 # Be careful! You need matrices, no data.frames!
@@ -2776,7 +2778,7 @@ Build a neural network to make predictions, and check performance on the hold-ou
 ```
 
 ```{r chunk_chapter4_task_41, message=FALSE, warning=FALSE, echo=FALSE}
-set_random_seed(54321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(4321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 model = keras_model_sequential()
 model %>%
@@ -2826,7 +2828,7 @@ Play around with model parameters, optimizer(learning_rate = ...), epochs = ...,
 
 **Hint**: There are also different activation functions like "linear", "softmax", "relu", "gelu", "selu", "elu", "exponential", "sigmoid", "tanh", "softplus", "softsign", etc. But be careful, this might be *very* computation-intensive (especially "tanh" or "softmax").
 
-You should get an accuracy of at least 90% .(Before looking into the solution...) Try to be better than the solution.
+You should get an accuracy of at least 90%. (Before looking into the solution...) Try to be better than the solution.
 
 
 ```{=html}
@@ -2838,20 +2840,83 @@ You should get an accuracy of at least 90% .(Before looking into the solution...
 ```
 
 ```{r chunk_chapter4_task_42, message=FALSE, warning=FALSE, echo=FALSE}
-set_random_seed(54321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(4321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 model = keras_model_sequential()
 model %>%
   layer_dense(units = 150L, input_shape = ncol(train), activation = "relu") %>%
   layer_dense(units = 50L, activation = "relu",
-              bias_regularizer = regularizer_l1_l2(2),
-              kernel_regularizer = regularizer_l1(.005)) %>%
+              bias_regularizer = regularizer_l1(1.5),
+              kernel_regularizer = regularizer_l2(.075)) %>%
   layer_dense(units = 20L, activation = "selu",
               bias_regularizer = regularizer_l1_l2(1),
               kernel_regularizer = regularizer_l1(.0025)) %>%
   layer_dense(units = 50L, activation = "gelu") %>%
   layer_dense(units = 20L, activation = "relu") %>%
-  layer_dense(units = 10L, activation = "elu") %>%
+  layer_dense(units = 7L, activation = "elu") %>%
+  layer_dense(units = 2L, activation = "softmax")
+
+model_history =
+  model %>%
+    compile(loss = loss_categorical_crossentropy,
+            optimizer = keras::optimizer_adamax(0.011))
+
+model_history =
+  model %>%
+    fit(x = train,   # Be careful! You need a matrix, no data.frame!
+        y = to_categorical(labelsTrain, num_classes = 2L), epochs = 75L,
+        batch_size = nrow(train) %/% 9,   # 10 batches per epoch (rounded).
+        validation_split = 0.2, shuffle = TRUE)
+
+plot(model_history)
+
+prediction =
+  model %>%
+    predict(x = test)
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+cat("Accuracy:\n")
+(accuracy = mean(prediction == labelsTest))
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Now try your above solution (the exactly same one!) with another seed to check for overfitting (on the seed!) of your procedure.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_43, eval=False, purl=FALSE}
+set_random_seed(123L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 150L, input_shape = ncol(train), activation = "relu") %>%
+  layer_dense(units = 50L, activation = "relu",
+              bias_regularizer = regularizer_l1(1.5),
+              kernel_regularizer = regularizer_l2(.075)) %>%
+  layer_dense(units = 20L, activation = "selu",
+              bias_regularizer = regularizer_l1_l2(1),
+              kernel_regularizer = regularizer_l1(.0025)) %>%
+  layer_dense(units = 50L, activation = "gelu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 7L, activation = "elu") %>%
   layer_dense(units = 2L, activation = "softmax")
 
 model_history =
@@ -2900,7 +2965,7 @@ Make predictions and submit them via our <a href="https://elearning.uni-regensbu
     <p>
 ```
 
-```{r chunk_chapter4_task_43, eval=False, purl=FALSE}
+```{r chunk_chapter4_task_44, eval=False, purl=FALSE}
 prediction =
   model %>%
     predict(x = predict)
