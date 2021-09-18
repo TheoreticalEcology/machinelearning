@@ -7,16 +7,15 @@ source("tests/utils.R")
 # Chunk names+arguments will be used as names for tests.
 
 # 1. Specify Rmds to test:
-rmds = c(
-  #"book/index.Rmd",
-  #"book/02_R-reminder.Rmd",
-  #"book/03-intro.Rmd",
-  #"book/04-fundamental.Rmd",
-  "book/05-Deep.Rmd",
-  #"book/06-xAI.Rmd",
-  #"book/07-GAN.Rmd",
-  #"book/08-Datasets.Rmd"
-)
+rmds = c("book/index.Rmd",
+         "book/02_R-reminder.Rmd",
+         "book/03-intro.Rmd",
+         "book/04-fundamental.Rmd",
+         "book/05-Deep.Rmd",
+         "book/06-xAI.Rmd",
+         "book/07-GAN.Rmd",
+         "book/08-Datasets.Rmd"
+)[c(5)]
 
 # 2. Create tests
 .n = sapply(rmds, create_test)
