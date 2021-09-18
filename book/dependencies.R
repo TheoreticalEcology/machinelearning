@@ -46,13 +46,15 @@ install.packages("tidyverse")
 install.packages("torchvision")
 install.packages("xgboost")
 
+devtools::install_github("andrie/deepviz", dependencies = TRUE,
+                         upgrade = "always")
 devtools::install_github(repo = "florianhartig/EcoData", subdir = "EcoData",
                          dependencies = TRUE, build_vignettes = FALSE)
 devtools::install_github('skinner927/reprtree')
 devtools::install_version("lavaanPlot", version = "0.6.0")
 
-torch::install_torch()
 reticulate::conda_install("r-reticulate", packages = "scipy", pip = TRUE)
 
+torch::install_torch()
 
 
