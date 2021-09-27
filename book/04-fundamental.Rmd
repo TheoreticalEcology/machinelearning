@@ -7,6 +7,7 @@
 
 ## Machine Learning Principles
 
+
 ### Optimization
 
 Out of Wikipedia: "An optimization problem is the problem of finding the best solution from all feasible solutions".
@@ -742,9 +743,10 @@ Play around with the parameters on your own!
   <br/><hr/>
 ```
 
+
 ## Artificial Neural Networks
 
-Now, we will come to artificial neural networks (ANNs), for which the topic of regularization is very important. We can specify the regularization in each layer via the kernel_regularization argument. 
+Now, we will come to artificial neural networks (ANNs), for which the topic of regularization is very important. We can specify the regularization in each layer via the kernel_regularization (and/or the bias_regularization) argument.
 
 ```{r chunk_chapter4_15, cache=TRUE, message=FALSE, warning=FALSE}
 library(tensorflow)
@@ -2557,11 +2559,11 @@ for(i in 1:500){
 We will predict the variable "survived" for the test set of the inner split and calculate the accuracy:
 
 ```{r chunk_chapter4_56}
-preds =
+pred =
   model %>%
     predict(x = as.matrix(sub_test[,-1]))
 
-predicted = ifelse(preds[,2] < 0.5, 0, 1) # Ternary operator.
+predicted = ifelse(pred[,2] < 0.5, 0, 1) # Ternary operator.
 observed = sub_test[,1]
 (accuracy = mean(predicted == observed))  # (...): Show output.
 ```
@@ -2599,7 +2601,7 @@ submit =
       select(-survived)
 ```
 
-We cannot assess the performance on the test split because the true survived ratio is unknown, however, we can now submit our predictions to the submission server at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a>.
+We cannot assess the performance on the test split because the true survival ratio is unknown, however, we can now submit our predictions to the submission server at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a>.
 To do so, we have to transform our survived probabilities into actual 0/1 predictions (probabilities are not allowed) and create a .csv file:
 
 ```{r chunk_chapter4_59}
@@ -2611,10 +2613,12 @@ All values > 0.5 will be set to 1 and values < 0.5 to zero.
 For the submission it is critical to change the predictions into a data.frame, select the second column (the probability to survive), and save it with the write.csv function:
 
 ```{r chunk_chapter4_60, eval=FALSE}
-write.csv(data.frame(y = pred[,2]), file = "Max_1.csv")
+write.csv(data.frame(y = ifelse(pred[,2] < 0.5, 0, 1)), file = "Max_1.csv")
 ```
 
-The file name is used as the ID on the submission server, so change it to whatever you want as long as you can identify yourself. 
+The file name is used as the ID on the submission server, so change it to whatever you want as long as you can identify yourself.
+
+<strong>Annotation: The AUC is (always) higher for probabilities than for 0/1 data (depending on the implementation and definition of the AUC). We expect you to upload 0/1 data (usage scenarios, no theoretical ones)! Hint for cheaters (or if you just forget conversion): Your upload is converted to 0/1 data according to ifelse(... < 0.5, 0, 1).</strong>
 
 ```{=html}
   <hr/>
@@ -3088,10 +3092,10 @@ Very cool! Preprocessing + 10-fold cross-validation model evaluation in a few li
 Let's create the final predictions:
 
 ```{r chunk_chapter4_67__mlr2, eval=FALSE}
-preds = sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task,
+pred = sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task,
 row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
-dim(preds)
-predictions = apply(preds, 1, mean)
+dim(pred)
+predictions = apply(pred, 1, mean)
 ```
 
 You could now submit the predictions <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a>.
@@ -3189,10 +3193,10 @@ Yeah, we were able to improve the performance!
 Let's create the final predictions:
 
 ```{r chunk_chapter4_72, eval=FALSE}
-preds = sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task,
+pred = sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task,
 row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
-dim(preds)
-predictions = apply(preds, 1, mean)
+dim(pred)
+predictions = apply(pred, 1, mean)
 ```
 
 
@@ -3276,10 +3280,10 @@ result$aggregate(measurement)
 Let's create the final predictions:
 
 ```{r chunk_chapter4_78, eval=FALSE}
-preds = sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task,
+pred = sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task,
 row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
-dim(preds)
-predictions = apply(preds, 1, mean)
+dim(pred)
+predictions = apply(pred, 1, mean)
 ```
 
 ```{=html}
@@ -3347,11 +3351,11 @@ result = mlr3::resample(transformed_task, rf,
 # Calculate the average AUC of the holdouts.
 result$aggregate(measurement)
 
-preds = sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task,
+pred = sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task,
 row_ids = (1:nrow(data))[is.na(data$survived)])$data$prob[, "1", drop = FALSE])
 
-dim(preds)
-predictions = round(apply(preds, 1, mean))
+dim(pred)
+predictions = round(apply(pred, 1, mean))
 
 write.csv(data.frame(y = predictions), file = "submission_RF.csv")
 ```

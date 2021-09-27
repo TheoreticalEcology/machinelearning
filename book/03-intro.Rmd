@@ -649,19 +649,23 @@ table(predict(m1), iris$Species)
 ```
 
 
-## Small Introduction Into the Underlying Mathematical Concepts of all Following Lessons - Optional
+## Small Introduction Into the Underlying Mathematical Concepts of all Following Lessons - Optional {#basicMath}
 
-If you want to know more about the underlying concepts of the following lessons, it is suggested to watch / view the following videos / sites:
+If are not yet familiar with the underlying concepts of neural networks and want to know more about that, it is suggested to read / view the following videos / sites. Consider the Links and videos with descriptions in parentheses as optional bonus.
 
-<strong>This might be useful to understand the further concepts in more depth.</strong>
-
-Consider the Links and videos with descriptions in parentheses as optional bonus.
+_**This might be useful to understand the further concepts in more depth.**_
 
 * (<a href="https://en.wikipedia.org/wiki/Newton%27s_method#Description" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Newton%27s_method#Description</a> (Especially the animated graphic is interesting).)
 
 * <a href="https://en.wikipedia.org/wiki/Gradient_descent#Description" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Gradient_descent#Description</a>
 
-* Gradient descent explained
+* <a href="https://mlfromscratch.com/neural-networks-explained/#/" target="_blank" rel="noopener">Neural networks (Backpropagation, etc.)</a>.
+
+* <a href="https://mlfromscratch.com/activation-functions-explained/#/" target="_blank" rel="noopener">Activation functions in detail</a> (requires the above as prerequisite).
+
+_**Videos about the topic**_:
+
+* **Gradient descent explained**
 
 ```{r chunk_chapter3_35, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -697,12 +701,60 @@ cat(
 )
 ```
 
-* Short explanation of entropy, cross entropy and Kullback–Leibler divergence
+* **Short explanation of entropy, cross entropy and Kullback–Leibler divergence**
 
 ```{r chunk_chapter3_38, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315"
   src="https://www.youtube.com/embed/ErfnhcEV1O8"
+  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
+  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+* **Deep Learning (chapter 1)**
+
+```{r chunk_chapter3_39, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315"
+  src="https://www.youtube.com/embed/aircAruvnKk"
+  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
+  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+* **How neural networks learn - Deep Learning (chapter 2)**
+
+```{r chunk_chapter3_40, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315"
+  src="https://www.youtube.com/embed/IHZwWFHWa-w"
+  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
+  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+* **Backpropagation - Deep Learning (chapter 3)**
+
+```{r chunk_chapter3_41, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315"
+  src="https://www.youtube.com/embed/Ilg3gGewQ5U"
+  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
+  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+* **Another video about backpropagation (extends the previous one) - Deep Learning (chapter 4)**
+
+```{r chunk_chapter3_42, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315"
+  src="https://www.youtube.com/embed/tIeHLnjs5U8"
   frameborder="0" allow="accelerometer; autoplay; clipboard-write;
   encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
   </iframe>'
@@ -716,7 +768,7 @@ One of the most commonly used frameworks for machine learning is **TensorFlow**.
 
 These advantages are nicely explained in the following video: 
   
-```{r chunk_chapter3_39, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+```{r chunk_chapter3_43, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315"
   src="https://www.youtube.com/embed/MotG3XI2qSs"
@@ -761,7 +813,7 @@ TensorFlow has two data containers (structures):
 
 To get started with TensorFlow, we have to load the library and check if the installation worked. 
 
-```{r chunk_chapter3_40}
+```{r chunk_chapter3_44}
 library(tensorflow)
 library(keras)
 
@@ -779,7 +831,7 @@ Don't worry about weird messages (they will only appear once at the start of the
 
 We now can define the variables and do some math with them:
 
-```{r chunk_chapter3_41}
+```{r chunk_chapter3_45}
 a = tf$constant(5)
 b = tf$constant(10)
 print(a)
@@ -794,7 +846,7 @@ Normal R methods such as print() are provided by the R package "tensorflow".
 
 The TensorFlow library (created by the RStudio team) built R methods for all common operations:
 
-```{r chunk_chapter3_42}
+```{r chunk_chapter3_46}
 `+.tensorflow.tensor` = function(a, b){ return(tf$add(a,b)) }
 # Mind the backticks.
 k_print_tensor(a+b)
@@ -802,7 +854,7 @@ k_print_tensor(a+b)
 
 Their operators also automatically transform R numbers into constant tensors when attempting to add a tensor to an R number:
 
-```{r chunk_chapter3_43}
+```{r chunk_chapter3_47}
 d = c + 5  # 5 is automatically converted to a tensor.
 print(d)
 ```
@@ -810,7 +862,7 @@ print(d)
 TensorFlow containers are objects, what means that they are not just simple variables of type numeric (class(5)), but they instead have so called methods. Methods are changing the state of a class (which for most of our purposes here is the values of the object).
 For instance, there is a method to transform the tensor object back to an R object:
 
-```{r chunk_chapter3_44}
+```{r chunk_chapter3_48}
 class(d)
 class(d$numpy())
 ```
@@ -838,7 +890,7 @@ The reason why TensorFlow is so explicit about types is that many GPUs (e.g. the
 
 But let us see in practice what we have to do with these types and how to specifcy them:
 
-```{r chunk_chapter3_45, eval=FALSE}
+```{r chunk_chapter3_49, eval=FALSE}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = "float32") 
 b = tf$constant(2.0, dtype = "float64")
@@ -847,7 +899,7 @@ c = m / b # Doesn't work! We try to divide float32/float64.
 
 So what went wrong here? We tried to divide a float32 by a float64 number, but we can only divide numbers of the same type!
 
-```{r chunk_chapter3_46, eval=TRUE}
+```{r chunk_chapter3_50, eval=TRUE}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = "float64")
 b = tf$constant(2.0, dtype = "float64")
@@ -856,7 +908,7 @@ c = m / b # Now it works.
 
 We can also specify the type of the object by providing an object e.g. tf$float64.
 
-```{r chunk_chapter3_47}
+```{r chunk_chapter3_51}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = tf$float64)
 ```
@@ -865,7 +917,7 @@ In TensorFlow, arguments often require exact/explicit data types:
 TensorFlow often expects integers as arguments. In R however an integer is normally saved as float. 
 Thus, we have to use an "L" after an integer to tell the R interpreter that it should be treated as an integer:
   
-```{r chunk_chapter3_48, eval=FALSE}
+```{r chunk_chapter3_52, eval=FALSE}
 is.integer(5)
 is.integer(5L)
 matrix(t(r_matrix), 5, 20, byrow = TRUE)
@@ -1355,7 +1407,7 @@ Useful links:
 
 To get started with Torch, we have to load the library and check if the installation worked. 
 
-```{r chunk_chapter3_49}
+```{r chunk_chapter3_53}
 library(torch)
 ```
 
@@ -1364,13 +1416,13 @@ library(torch)
 
 Unlike TensorFlow, Torch doesn't have two data containers for mutable and immutable variables. All variables are initialized via the torch_tensor function:
 
-```{r chunk_chapter3_50}
+```{r chunk_chapter3_54}
 a = torch_tensor(1.)
 ```
 
 To mark variables as mutable (and to track their operations for automatic differentiation) we have to set the argument 'requires_grad' to true in the torch_tensor function:
 
-```{r chunk_chapter3_51}
+```{r chunk_chapter3_55}
 mutable = torch_tensor(5, requires_grad = TRUE) # tf$Variable(...)
 immutable = torch_tensor(5, requires_grad = FALSE) # tf$constant(...)
 ```
@@ -1380,7 +1432,7 @@ immutable = torch_tensor(5, requires_grad = FALSE) # tf$constant(...)
 
 We now can define the variables and do some math with them:
 
-```{r chunk_chapter3_52}
+```{r chunk_chapter3_56}
 a = torch_tensor(5.)
 b = torch_tensor(10.)
 print(a)
@@ -1391,7 +1443,7 @@ print(c)
 
 The R-Torch package provides all common methods (an advantage over TensorFlow).
 
-```{r chunk_chapter3_53}
+```{r chunk_chapter3_57}
 a = torch_tensor(5.)
 b = torch_tensor(10.)
 print(a+b)
@@ -1401,14 +1453,14 @@ print(a*b)
 
 Their operators also automatically transform R numbers into tensors when attempting to add a tensor to a R number:
 
-```{r chunk_chapter3_54}
+```{r chunk_chapter3_58}
 d = a + 5  # 5 is automatically converted to a tensor.
 print(d)
 ```
 
 As for TensorFlow, we have to explicitly transform the tensors back to R:
 
-```{r chunk_chapter3_55}
+```{r chunk_chapter3_59}
 class(d)
 class(as.numeric(d))
 ```
@@ -1418,8 +1470,8 @@ class(as.numeric(d))
 
 Similar to TensorFlow:
 
-```{r chunk_chapter3_56, eval=FALSE}
-r_matrix = matrix(runif(10*10), 10,10)
+```{r chunk_chapter3_60, eval=FALSE}
+r_matrix = matrix(runif(10*10), 10, 10)
 m = torch_tensor(r_matrix, dtype = torch_float32()) 
 b = torch_tensor(2.0, dtype = torch_float64())
 c = m / b 
@@ -1438,7 +1490,7 @@ Keras is a powerful framework for building and training neural networks with a f
 
 The objective of this lesson is to familiarize yourself with Keras. If you have installed TensorFlow, Keras can be found within TensorFlow: tf.keras. However, the RStudio team has built an R package on top of tf.keras, and it is more convenient to use this. To load the Keras package, type
 
-```{r chunk_chapter3_57}
+```{r chunk_chapter3_61}
 library(keras)
 ```
 
@@ -1447,7 +1499,7 @@ library(keras)
 
 To show how Keras works, we will now build a small classifier to predict the three species of the iris data set. Load the necessary packages and data sets:
 
-```{r chunk_chapter3_58}
+```{r chunk_chapter3_62}
 library(keras)
 library(tensorflow)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
@@ -1459,7 +1511,7 @@ head(iris)
 For neural networks, it is beneficial to scale the predictors (scaling = centering and standardization, see ?scale).
 We also split our data into predictors (X) and response (Y = the three species).
 
-```{r chunk_chapter3_59, cache=TRUE}
+```{r chunk_chapter3_63, cache=TRUE}
 X = scale(iris[,1:4])
 Y = iris[,5]
 ```
@@ -1467,8 +1519,8 @@ Y = iris[,5]
 Additionally, Keras/TensorFlow cannot handle factors and we have to create contrasts (one-hot encoding).
 To do so, we have to specify the number of categories. This can be tricky for a beginner, because in other programming languages like Python and C++, arrays start at zero. Thus, when we would specify 3 as number of classes for our three species, we would have the classes 0,1,2,3. Keep this in mind.
 
-```{r chunk_chapter3_60, cache=TRUE}
-Y = to_categorical(as.integer(Y)-1L, 3)
+```{r chunk_chapter3_64, cache=TRUE}
+Y = to_categorical(as.integer(Y) - 1L, 3)
 head(Y) # 3 columns, one for each level of the response.
 ```
 
@@ -1476,7 +1528,7 @@ After having prepared the data, we will now see a typical workflow to specify a 
 
 **1. Initialize a sequential model in Keras:**
 
-```{r chunk_chapter3_61, cache=TRUE}
+```{r chunk_chapter3_65, cache=TRUE}
 model = keras_model_sequential()
 ```
 
@@ -1484,10 +1536,13 @@ A sequential Keras model is a higher order type of model within Keras and consis
 
 **2. Add hidden layers to the model (we will learn more about hidden layers during the next days).**
 
-When specifying the hidden layers, we also have to specify a so called activation function and the shape. 
-You can think of the activation function as decision for what is forwarded to the next neuron (but we will learn more about it later). The shape of the input is the number of predictors (here 4) and the shape of the output is the number of classes (here 3).
+When specifying the hidden layers, we also have to specify the shape and a so called _activation function_. 
+You can think of the activation function as decision for what is forwarded to the next neuron (but we will learn more about it later).
+If you want to know this topic in even more depth, consider watching the videos presented in section \@ref(basicMath).
 
-```{r chunk_chapter3_62, cache=TRUE}
+The shape of the input is the number of predictors (here 4) and the shape of the output is the number of classes (here 3).
+
+```{r chunk_chapter3_66, cache=TRUE}
 model %>%
   layer_dense(units = 20L, activation = "relu", input_shape = list(4L)) %>%
   layer_dense(units = 20L) %>%
@@ -1495,7 +1550,7 @@ model %>%
   layer_dense(units = 3L, activation = "softmax") 
 ```
 
-* softmax scales a potential multidimensional vector to the interval $(0, 1]$.
+* softmax scales a potential multidimensional vector to the interval $(0, 1]$ for each component. The sum of all components equals to 1. This might be very useful for example for handling probabilities.
 
 <details>
   <summary>
@@ -1505,7 +1560,7 @@ model %>%
   
     The Torch syntax is very similar, we will give a list of layers to the "nn_sequential" function. Here, we have to specify the softmax activation function as an extra layer:
     
-```{r chunk_chapter3_63}
+```{r chunk_chapter3_67}
 library(torch)
 torch_manual_seed(321L)
 set.seed(123)
@@ -1528,7 +1583,7 @@ model_torch =
     
 We will learn about other options later, so for now, do not worry about the "**learning_rate**" ("**lr**" in Torch or earlier in TensorFlow) argument, cross entropy or the optimizer.
 
-```{r chunk_chapter3_64, cache=TRUE}
+```{r chunk_chapter3_68, cache=TRUE}
 model %>%
   compile(loss = loss_categorical_crossentropy,
           keras::optimizer_adamax(learning_rate = 0.001))
@@ -1543,7 +1598,7 @@ summary(model)
   
     Specify optimizer and the parameters which will be trained (in our case the parameters of the network):
     
-```{r chunk_chapter3_65}
+```{r chunk_chapter3_69}
 optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 ```
 
@@ -1553,7 +1608,7 @@ optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 
 **4. Fit model in 30 iterations (epochs)**
     
-```{r chunk_chapter3_66, cache=TRUE}
+```{r chunk_chapter3_70, cache=TRUE}
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
@@ -1579,7 +1634,7 @@ model_history =
     5. Update weights.
     6. Go to step 1 and repeat.
     
-```{r chunk_chapter3_67}
+```{r chunk_chapter3_71}
 library(torch)
 torch_manual_seed(321L)
 set.seed(123)
@@ -1623,7 +1678,7 @@ for(i in 1:steps){
 
 **5. Plot training history:**
  
-```{r chunk_chapter3_68, cache=TRUE, message=FALSE, warning=FALSE}
+```{r chunk_chapter3_72, cache=TRUE, message=FALSE, warning=FALSE}
 plot(model_history)
 ```
   
@@ -1633,7 +1688,7 @@ plot(model_history)
   </summary>
   <p>
   
-```{r chunk_chapter3_69}
+```{r chunk_chapter3_73}
 plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
 ```
 
@@ -1644,19 +1699,19 @@ plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
 
 **6. Create predictions:**
 
-```{r chunk_chapter3_70, cache=TRUE}
+```{r chunk_chapter3_74, cache=TRUE}
 predictions = predict(model, X) # Probabilities for each class.
 ```
   
 Get probabilities:
 
-```{r chunk_chapter3_71, cache=TRUE}
+```{r chunk_chapter3_75, cache=TRUE}
 head(predictions) # Quasi-probabilities for each species.
 ```
   
 For each plant, we want to know for which species we got the highest probability:
 
-```{r chunk_chapter3_72, cache=TRUE}
+```{r chunk_chapter3_76, cache=TRUE}
 preds = apply(predictions, 1, which.max) 
 print(preds)
 ```
@@ -1667,7 +1722,7 @@ print(preds)
   </summary>
   <p>
 
-```{r chunk_chapter3_73}
+```{r chunk_chapter3_77}
 model_torch$eval()
 preds_torch = model_torch(torch_tensor(X))
 preds_torch = apply(preds_torch, 1, which.max) 
@@ -1681,19 +1736,19 @@ mean(preds_torch == as.integer(iris$Species))
 
 **7. Calculate Accuracy (how often we have been correct):**
 
-```{r chunk_chapter3_74, cache=TRUE}
+```{r chunk_chapter3_78, cache=TRUE}
 mean(preds == as.integer(iris$Species))
 ```
 
 **8. Plot predictions, to see if we have done a good job:**
 
-```{r chunk_chapter3_75, cache=TRUE}
+```{r chunk_chapter3_79, cache=TRUE}
 oldpar = par(mfrow = c(1, 2))
 plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species,
      main = "Observed")
 plot(iris$Sepal.Length, iris$Petal.Length, col = preds,
      main = "Predicted")
-par(oldpar)   #Reset par.
+par(oldpar)   # Reset par.
 ```
 
 So you see, building a neural network is very easy with Keras and you can already do it on your own.
@@ -1897,6 +1952,7 @@ model %>%
 
 We use 5L as input shape, because we have 5 predictors. Analogously, we use 1L for our 1d response.
 Because we do not want any compression or dilation, or other nonlinear effects, we use the simple linear layer (equal to no activation function at all). For more about activation functions, look for example <a href="https://en.wikipedia.org/wiki/Activation_function" target="_blank" rel="noopener">here</a>. Or wait for the next days.
+You may also have seen the previously shown link <a href="https://mlfromscratch.com/activation-functions-explained/#/" target="_blank" rel="noopener">about activation functions in more detail</a>.
 
 **5. Compile model.**
 

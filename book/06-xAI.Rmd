@@ -82,7 +82,7 @@ If there is no collinearity, you shouldn't see much difference between partial d
 
 The H-statistic can be used to find interactions between predictors. However, again, keep in mind that the H-statistic is sensible to correlation between predictors:
 
-```{r chunk_chapter6_6}
+```{r chunk_chapter6_6, message=FALSE, warning=FALSE}
 interact = Interaction$new(predictor, "lstat")
 plot(interact)
 ```
@@ -106,7 +106,7 @@ The global approach is to simplify the entire machine learning-black-box model v
 
 However, sometimes we are only interested in understanding how single predictions are generated. The LIME (Local interpretable model-agnostic explanations) approach explores the feature space around one observation and based on this locally fits a simpler model (e.g. a linear model):
 
-```{r chunk_chapter6_8}
+```{r chunk_chapter6_8, message=FALSE, warning=FALSE}
 lime.explain = LocalModel$new(predictor, x.interest = X[1,])
 lime.explain$results
 plot(lime.explain)
@@ -127,7 +127,7 @@ shapley$plot()
 
 xAI aims at explaining how predictions are being made. In general, xAI != causality. xAI methods measure which variables are used for predictions by the algorithm, or how far variables improve predictions. The important point to note here: If a variable causes something, we could also expect that it helps predicting the very thing. The opposite, however, is not generally true - very often it is possible that a variable that doesn't cause anything can predict something.
 
-In statistics courses (in particular, our course: Advanced Biostatistics), we discuss the issue of causality at full length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
+In statistics courses (in particular our course: Advanced Biostatistics), we discuss the issue of causality at full length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
 
 
 ### Causal Inference on Static Data
@@ -181,9 +181,9 @@ Task: understand why this is - remember:
 
 ### Structural Equation Models
 
-If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). SEMs are designed to estimate entire causal diagrams. There are two main SEM packages in R: For anything that is non-normal, you will currently have to estimate the directed acyclic graph (that depicts causal relations) piece-wise with CRAN package piecewiseSEM. Example for a vegetation data set:
+If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). Structural equation models are designed to estimate entire causal diagrams. There are two main SEM packages in R: For anything that is non-normal, you will currently have to estimate the directed acyclic graph (that depicts causal relations) piece-wise with CRAN package piecewiseSEM. Example for a vegetation data set:
 
-```{r chunk_chapter6_13}
+```{r chunk_chapter6_13, results='hide', message=FALSE, warning=FALSE}
 library(piecewiseSEM)
 
 mod = psem(
@@ -193,12 +193,12 @@ mod = psem(
  lm(cover ~ age + elev + hetero + abiotic, data = keeley)
 )
 summary(mod)
-# plot(mod)
+plot(mod)
 ```
 
-For linear structural equation models, we can estimate the entire directed acyclic graph at once. This also allows havinge unobserved variables in the directed acyclic graph. One of the most popular packages for this is lavaan.
+For linear structural equation models, we can estimate the entire directed acyclic graph at once. This also allows having unobserved variables in the directed acyclic graph. One of the most popular packages for this is lavaan.
 
-```{r chunk_chapter6_14}
+```{r chunk_chapter6_14, message=FALSE, warning=FALSE}
 library(lavaan)
 
 mod = "
@@ -213,7 +213,6 @@ summary(fit)
 The default plot options are not so nice as before.
 
 ```{r chunk_chapter6_15}
-# devtools::install_version("lavaanPlot", version = "0.6.0")
 library(lavaanPlot)
 
 lavaanPlot(model = fit)
@@ -233,15 +232,13 @@ semPaths(fit)
 But how to get the causal graph? In statistics, it is common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the _PC algorithm_. Here an example using the pcalg package:
 
 ```{r chunk_chapter6_17}
-# Bioconductor dependencies have to be installed by hand, e.g. 
-# BiocManager::install(c("Rgraphviz", "graph", "RBGL")
 library(pcalg)
 ```
 
 Loading the data:
 
 ```{r chunk_chapter6_18}
-data("gmG", package = "pcalg") ## Loads data sets gmG and gmG8.
+data("gmG", package = "pcalg") # Loads data sets gmG and gmG8.
 suffStat = list(C = cor(gmG8$x), n = nrow(gmG8$x))
 varNames = gmG8$g@nodes
 ```
@@ -267,7 +264,7 @@ Rgraphviz::plot(pc.gmG8 )
 
 When working with dynamic data, we can use an additional piece of information - the cause usually precedes the effect, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as _Granger causality_, or Granger methods. Here an example:
 
-```{r chunk_chapter6_21}
+```{r chunk_chapter6_21, message=FALSE, warning=FALSE}
 library(lmtest)
 
 ## What came first: the chicken or the egg?

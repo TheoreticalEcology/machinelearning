@@ -283,13 +283,11 @@ You can download the data set <a href="http://rhsbio7.uni-regensburg.de:8500" ta
 ```{r chunk_chapter8_26}
 library(tensorflow)
 library(keras)
-library(stringr)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 flower = EcoData::dataset_flower()
-train = flower$train
-test = flower$test
-labels_train = flower$labels
+train = flower$train/255
+test = flower$test/255
+labels = flower$labels
 ```
 
 Let's visualize a flower:
@@ -305,6 +303,8 @@ train[100,,,] %>%
 2. Build and train model:
 
 ```{r chunk_chapter8_28, eval=FALSE}
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
 model = keras_model_sequential()
 model %>% 
   layer_conv_2d(filters = 4L, kernel_size = 2L,
@@ -313,20 +313,16 @@ model %>%
   layer_flatten() %>% 
   layer_dense(units = 5L, activation = "softmax")
 
-model %>% 
-  compile(optimizer = keras::optimizer_adamax(0.01),
-          loss = keras::loss_categorical_crossentropy)
-
-
 ### Model fitting ###
+
 epochs = 50L
 batch_size = 25L
 steps = floor(dim(train)[1]/batch_size)
-generator = keras::flow_images_from_data(x = train/255 ,
-                                         y = keras::k_one_hot(labels_train, 5L),
+generator = keras::flow_images_from_data(x = train,
+                                         y = keras::k_one_hot(labels, 5L),
                                          batch_size = batch_size)
 
-optim = optimizer_adamax(0.01)
+optim = optimizer_adamax(learning_rate = 0.01)
 epoch_losses = c()
 
 for(e in 1:epochs){
@@ -352,14 +348,19 @@ for(e in 1:epochs){
 3. Predictions:
 
 ```{r chunk_chapter8_29, eval=FALSE}
-preds = model %>% predict(test/255)
-preds = apply(preds, 1, which.max)-1
-head(preds)
+# Prediction on training data:
+pred = apply(model %>% predict(train), 1, which.max)
+Metrics::accuracy(pred - 1L, labels)
+table(pred)
+
+# Prediction for the submission server:
+pred = model %>% predict(test) %>% apply(1, which.max) - 1L
+table(pred)
 ```
 
 4. Create submission csv:
 
 ```{r chunk_chapter8_30, eval=FALSE}
-write.csv(data.frame(y = preds), file = "cnn.csv")
+write.csv(data.frame(y = pred), file = "cnn.csv")
 ```
 

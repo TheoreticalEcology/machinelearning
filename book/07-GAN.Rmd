@@ -305,16 +305,16 @@ par(oldpar)
 data = EcoData::dataset_flower()
 test = data$test/255
 train = data$train/255
-train = abind::abind(list(train, test), along = 1L)
 ```
 
 Build the variational autoencoder:
 
 ```{r chunk_chapter7_21__VAEflower}
 encoded = 10L
-prior = tfp$distributions$Independent(tfp$distributions$Normal(loc=tf$zeros(encoded),
-                                                               scale=1.),
-                                      reinterpreted_batch_ndims = 1L)
+prior = tfp$distributions$Independent(
+  tfp$distributions$Normal(loc=tf$zeros(encoded), scale = 1.),
+  reinterpreted_batch_ndims = 1L
+)
 
 down_size_model = tf$keras$models$Sequential(list(
   tf$keras$layers$InputLayer(input_shape = c(80L, 80L, 3L)),
@@ -331,10 +331,12 @@ down_size_model = tf$keras$models$Sequential(list(
   tf$keras$layers$Flatten(),
   tf$keras$layers$Dense(units = tfp$layers$MultivariateNormalTriL$params_size(encoded),
                         activation = NULL),
-  tfp$layers$MultivariateNormalTriL(encoded,
-                                    activity_regularizer =
-                                      tfp$layers$KLDivergenceRegularizer(prior, weight = 0.0002))
+  tfp$layers$MultivariateNormalTriL(
+    encoded, 
+    activity_regularizer = tfp$layers$KLDivergenceRegularizer(prior, weight = 0.0002)
+  )
 ))
+
 up_size_model = tf$keras$models$Sequential(list(
   tf$keras$layers$InputLayer(input_shape = encoded),
   tf$keras$layers$Dense(units = 8192L, activation = "relu"),
@@ -531,7 +533,7 @@ ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE)
 loss_discriminator = function(real, fake){
  real_loss = ce(tf$ones_like(real), real)
  fake_loss = ce(tf$zeros_like(fake), fake)
- return(real_loss+fake_loss)
+ return(real_loss + fake_loss)
 }
 
 loss_generator = function(fake){
