@@ -189,27 +189,30 @@ coef(lm(Y~X))
 
 Regularization means adding information or structure to a system in order to solve an ill-posed optimization problem or to prevent overfitting. There are many ways of regularizing a machine learning model. The most important distinction is between _shrinkage estimators_ and estimators based on _model averaging_. 
 
-**Shrikage estimators** are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are *"shrunk"* to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also _Lasso_ or _LASSO_, where the penalty is proportional to the sum of absolute deviations ($L1$ penalty), and the _Tikhonov regularization_ aka _ridge regression_, where the penalty is proportional to the sum of squared distances from the reference ($L2$ penalty). Thus, the loss function that we optimize is given by
+**Shrikage estimators** are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are *"shrunk"* to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also _Lasso_ or _LASSO_, where the penalty is proportional to the sum of absolute deviations ($L1$ penalty), and the _Tikhonov regularization_ aka _Ridge regression_, where the penalty is proportional to the sum of squared distances from the reference ($L2$ penalty). Thus, the loss function that we optimize is given by
 
 $$
 loss = fit - \lambda \cdot d
 $$
+
 where fit refers to the standard loss function, $\lambda$ is the strength of the regularization, and $d$ is the chosen metric, e.g. $L1$ or$L2$:
+
 $$
 loss_{L1} = fit - \lambda \cdot \Vert weights \Vert_1
 $$
 $$
 loss_{L2} = fit - \lambda \cdot \Vert weights \Vert_2
 $$
+
 $\lambda$ and possibly d are typically optimized under cross-validation. $L1$ and $L2$ can be also combined what is then called _elastic net_ (see @zou2005).
 
 **Model averaging** refers to an entire set of techniques, including _boosting_, _bagging_ and other averaging techniques. The general principle is that predictions are made by combining (= averaging) several models. This is based on on the insight that it is often more efficient having many simpler models and average them, than one "super model". The reasons are complicated, and explained in more detail in @dormann2018.
 
 A particular important application of averaging is _boosting_, where the idea is that many weak learners are combined to a model average, resulting in a strong learner. Another related method is _bootstrap aggregating_, also called _bagging_. Idea here is to _boostrap_ (use random sampling with replacement ) the data, and average the bootstrapped predictions.
 
-To see how these techniques work in practice, let's first focus on LASSO and ridge regularization for weights in neural networks. We can imagine that the LASSO and ridge act similar to a rubber band on the weights that pulls them to zero if the data does not strongly push them away from zero. This leads to important weights, which are supported by the data, being estimated as different from zero, whereas unimportant model structures are reduced (shrunken) to zero.
+To see how these techniques work in practice, let's first focus on LASSO and Ridge regularization for weights in neural networks. We can imagine that the LASSO and Ridge act similar to a rubber band on the weights that pulls them to zero if the data does not strongly push them away from zero. This leads to important weights, which are supported by the data, being estimated as different from zero, whereas unimportant model structures are reduced (shrunken) to zero.
 
-LASSO $\left(penalty \propto \sum_{}^{} \mathrm{abs}(weights) \right)$ and ridge $\left(penalty \propto \sum_{}^{} weights^{2} \right)$ have slightly different properties. They are best understood if we express those as the effective prior preference they create on the parameters:
+LASSO $\left(penalty \propto \sum_{}^{} \mathrm{abs}(weights) \right)$ and Ridge $\left(penalty \propto \sum_{}^{} weights^{2} \right)$ have slightly different properties. They are best understood if we express those as the effective prior preference they create on the parameters:
 
 ```{r chunk_chapter4_10, echo = F}
 oldpar = par(mfrow = c(1, 2))
@@ -218,9 +221,9 @@ curve(dnorm(abs(x)), -5, 5, main = "Ridge prior")
 par(oldpar)
 ```
 
-As you can see, the LASSO creates a very strong preference towards exactly zero, but falls off less strongly towards the tails. This means that parameters tend to be estimated either to exactly zero, or, if not, they are more free than the ridge. For this reason, LASSO is often more interpreted as a model selection method. 
+As you can see, the LASSO creates a very strong preference towards exactly zero, but falls off less strongly towards the tails. This means that parameters tend to be estimated either to exactly zero, or, if not, they are more free than the Ridge. For this reason, LASSO is often more interpreted as a model selection method. 
 
-The ridge, on the other hand, has a certain area around zero where it is relatively indifferent about deviations from zero, thus rarely leading to exactly zero values. However, it will create a stronger shrinkage for values that deviate significantly from zero. 
+The Ridge, on the other hand, has a certain area around zero where it is relatively indifferent about deviations from zero, thus rarely leading to exactly zero values. However, it will create a stronger shrinkage for values that deviate significantly from zero. 
 
 We can implement the linear regression also in Keras, when we do not specify any hidden layers:
 
@@ -286,7 +289,7 @@ model_torch$parameters
 </details>
 <br/>
 
-TensorFlow and thus Keras also allow use using LASSO and ridge on the weights. 
+TensorFlow and thus Keras also allow use using LASSO and Ridge on the weights. 
 Lets see what happens when we put an $L1$ (LASSO) regularization on the weights:
 
 ```{r chunk_chapter4_13, cache=TRUE}
@@ -776,7 +779,10 @@ model %>%
              kernel_regularizer = regularizer_l1(penalty))
 
 model %>%
- compile(loss = loss_mean_squared_error, keras::optimizer_adamax(0.1))
+ compile(
+   loss = loss_mean_squared_error,
+   keras::optimizer_adamax(learning_rate = 0.1)
+  )
 
 model_history =
  model %>%
@@ -1179,7 +1185,7 @@ model %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(0.1))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.1))
 
 model_history =
   model %>%
@@ -1246,7 +1252,7 @@ model %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(0.1))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.1))
 
 model_history =
   model %>%
@@ -1279,7 +1285,7 @@ model %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(0.1))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.1))
 
 model_history =
   model %>%
@@ -1314,7 +1320,7 @@ model %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(0.2))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.2))
 
 model_history =
   model %>%
@@ -1347,7 +1353,7 @@ model %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(0.001))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.001))
 
 model_history =
   model %>%
@@ -1382,7 +1388,7 @@ model %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(0.001))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.001))
 
 model_history =
   model %>%
@@ -1417,7 +1423,7 @@ model %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(0.001))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.001))
 
 model_history =
   model %>%
@@ -2553,7 +2559,7 @@ summary(model)
 model_history =
 model %>%
   compile(loss = loss_categorical_crossentropy,
-          optimizer = keras::optimizer_adamax(0.01))
+          optimizer = keras::optimizer_adamax(learning_rate = 0.01))
 
 model_history =
   model %>%
@@ -2679,7 +2685,7 @@ The file name is used as the ID on the submission server, so change it to whatev
 
 The tasks below follow the above section about machine learning pipelines. We will use the titanic_ml data set from the EcoData package to see a pipeline. The goal is to predict if a passenger survives or not. 
 
-First, we should look at the data and do some feature engineering / selection. Give it a try ! (Ideas can be found <a href="https://www.kaggle.com/c/titanic/notebooks?sortBy=hotness&group=everyone&pageSize=20&competitionId=3136&language=R" target="_blank" rel="noopener">here</a>.)
+First, we should look at the data and do some feature engineering / selection. Give it a try! (Ideas can be found <a href="https://www.kaggle.com/c/titanic/notebooks?sortBy=hotness&group=everyone&pageSize=20&competitionId=3136&language=R" target="_blank" rel="noopener">here</a>.)
 
 ```{=html}
   <details>
@@ -2830,7 +2836,7 @@ predict = as.matrix(data[indicesPredict,])
   <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
 ```
 
-Build a neural network to make predictions, and check performance on the hold-out data. 
+Build a neural network to make predictions and check performance on the hold-out data. 
 
 ```{=html}
   <details>
@@ -2854,7 +2860,7 @@ model %>%
 model_history =
   model %>%
     compile(loss = loss_categorical_crossentropy,
-            optimizer = keras::optimizer_adamax(0.01))
+            optimizer = keras::optimizer_adamax(learning_rate = 0.01))
 
 model_history =
   model %>%
@@ -2889,7 +2895,8 @@ cat("Accuracy:\n")
 
 Play around with model parameters, optimizer(learning_rate = ...), epochs = ..., number of hidden nodes in layers: units = ..., regularization: kernel_regularizer = ..., bias_regularizer = ... **-** Try to maximize the model's accuracy for the hold-out data.
 
-**Hint**: There are also different activation functions like "linear", "softmax", "relu", "gelu", "selu", "elu", "exponential", "sigmoid", "tanh", "softplus", "softsign", etc. But be careful, this might be *very* computation-intensive (especially "tanh" or "softmax").
+**Hint**: There are also different activation functions like "linear", "softmax", "relu", "leaky_relu", "gelu", "selu", "elu", "exponential", "sigmoid", "tanh", "softplus", "softsign", etc. But be careful, this might be *very* computation-intensive (especially "gelu", tanh" or "softmax").
+Every activation function has its own properties, requirements (!), advantages and disadvantages. Choose them wisely!
 
 You should get an accuracy of at least 90%. (Before looking into the solution...) Try to be better than the solution.
 
@@ -2922,7 +2929,7 @@ model %>%
 model_history =
   model %>%
     compile(loss = loss_categorical_crossentropy,
-            optimizer = keras::optimizer_adamax(0.011))
+            optimizer = keras::optimizer_adamax(learning_rate = 0.011))
 
 model_history =
   model %>%
@@ -2985,7 +2992,7 @@ model %>%
 model_history =
   model %>%
     compile(loss = loss_categorical_crossentropy,
-            optimizer = keras::optimizer_adamax(0.011))
+            optimizer = keras::optimizer_adamax(learning_rate = 0.011))
 
 model_history =
   model %>%

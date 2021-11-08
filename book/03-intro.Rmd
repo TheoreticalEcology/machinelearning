@@ -761,6 +761,13 @@ cat(
 )
 ```
 
+### Caveat About Learning Rates and Activation Functions
+
+Depending on activation functions, it might occur that the network won't get updated, even with high learning rates (called *vanishing gradient*, especially for "sigmoid" functions).
+Furthermore, updates might overshoot (called *exploding gradients*) or activation functions will result in many zeros (especially for "relu", *dying relu*).
+
+In general, the first layers of a network tend to learn (much) more slowly than subsequent ones.
+
 
 ## Introduction to TensorFlow
 
@@ -1642,7 +1649,7 @@ set.seed(123)
 # Calculate number of training steps.
 epochs = 30
 batch_size = 20
-steps = round(nrow(X)/batch_size*epochs)
+steps = round(nrow(X)/batch_size * epochs)
 
 X_torch = torch_tensor(X)
 Y_torch = torch_tensor(apply(Y, 1, which.max)) 
@@ -1880,7 +1887,7 @@ model %>%
 
 ```{r chunk_chapter3_task_29, eval=FALSE, purl=FALSE}
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(0.05))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.05))
 ```
 
 What is the "mean_squared_error" loss?
@@ -1951,14 +1958,14 @@ model %>%
 ```
 
 We use 5L as input shape, because we have 5 predictors. Analogously, we use 1L for our 1d response.
-Because we do not want any compression or dilation, or other nonlinear effects, we use the simple linear layer (equal to no activation function at all). For more about activation functions, look for example <a href="https://en.wikipedia.org/wiki/Activation_function" target="_blank" rel="noopener">here</a>. Or wait for the next days.
+Because we do not want any compression, dilation or other nonlinear effects, we use the simple linear layer (equal to no activation function at all). For more about activation functions, look for example <a href="https://en.wikipedia.org/wiki/Activation_function" target="_blank" rel="noopener">here</a>. Or wait for the next days.
 You may also have seen the previously shown link <a href="https://mlfromscratch.com/activation-functions-explained/#/" target="_blank" rel="noopener">about activation functions in more detail</a>.
 
 **5. Compile model.**
 
 ```{r chunk_chapter3_task_36, eval=TRUE}
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(0.05))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.05))
 ```
 
 The mean_squared_error is the ordinary least squares approach in regression analysis.
@@ -2017,7 +2024,7 @@ model %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(0.05))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.05))
 
 model_history =
   model %>%
@@ -2061,7 +2068,7 @@ model %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(0.1))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.1))
 
 model_history =
   model %>%
@@ -2102,7 +2109,7 @@ model %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(0.01))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.01))
 
 model_history =
   model %>%

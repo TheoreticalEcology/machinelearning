@@ -1275,11 +1275,9 @@ Now, we will not use a sequential model but just a "keras_model" where we can sp
 ```{r chunk_chapter5_29, eval=TRUE}
 model = keras::keras_model(
   inputs = densenet$input,
-  outputs = layer_flatten(layer_dense(densenet$output,
-                                      units = 10L,
-                                      activation = "softmax"
-                                      )
-                          )
+  outputs = layer_flatten(
+    layer_dense(densenet$output, units = 10L, activation = "softmax")
+  )
 )
 
 # Notice that this snippet just creates one (!) new layer.
@@ -1804,6 +1802,15 @@ There is a (very) complex interplay of batch size, learning rate and optimizatio
 
 Most times, doing a longer training or increasing the batch size rather than decreasing the learning rate is recommended.
 But this is a matter of further research and also personal attitude. Of course, it also depends on the respective problem.
+
+
+#### Caveat About Learning Rates and Activation Functions (already mentioned in the intro)
+
+Depending on activation functions, it might occur that the network won't get updated, even with high learning rates (called *vanishing gradient*, especially for "sigmoid" functions).
+Furthermore, updates might overshoot (called *exploding gradients*) or activation functions will result in many zeros (especially for "relu", *dying relu*).
+
+In general, the first layers of a network tend to learn (much) more slowly than subsequent ones.
+
 
 ```{=html}
   <hr/>
