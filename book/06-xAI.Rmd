@@ -130,7 +130,7 @@ xAI aims at explaining how predictions are being made. In general, xAI != causal
 In statistics courses (in particular our course: Advanced Biostatistics), we discuss the issue of causality at full length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
 
 
-### Causal Inference on Static Data
+### Causal Inference on Static Data {#causalInference}
 
 Methods for causal inference depend on whether we have dynamic or static data. The latter is the more common case. With static data, the problem is confounding. If you have several correlated predictors, you can get spurious correlations between a given predictor and the response, although there is no causal effect in general.
 
@@ -277,4 +277,322 @@ grangertest(chicken ~ egg, order = 3, data = ChickEgg)
 ### Outlook for Machine Learning
 
 As we have seen, there are already a few methods / algorithms for discovering causality from large data sets, but the systematic transfer of these concepts to machine learning, in particular deep learning, is still at its infancy. At the moment, this field is actively researched and changes extremely fast, so we recommend using Google to see what is currently going on. Particular in business and industry, there is a large interest in learning about causal effect from large data sets. In our opinion, a great topic for young scientists to specialize on.
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Use one of the non-image based data sets (preferably Wine, which is also described in the data sets section \@ref(datasets) but wasn't used yet, but you can also use Nasa or Titanic) and fit a random forest. Explore / interpret the fitted model using iml (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>).
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter6_task_0, message=FALSE, warning=FALSE}
+library(randomForest)
+library("iml")
+set.seed(1234)
+
+data = as.data.frame(EcoData::wine)
+submission = data[which(is.na(data$quality)), -which(colnames(data) == "quality")]
+data = data[complete.cases(data), ] # Removes sumbmission data as well.
+
+# Remark: Features don't need to be scaled for regression trees.
+
+rf = randomForest(quality ~ ., data = data)
+pred = round(predict(rf, data))
+table(pred, data$quality)
+(accuracy = mean(pred == data$quality)) # Fits pretty well (on the training data...)
+
+# For submission:
+#write.csv(round(predict(rf, submission)), file = "wine_RF.csv")
+
+# Standard depiction of importance:
+rf$importance
+
+# IML:
+predictor = Predictor$new(
+    rf, data = data[,which(names(data) != "quality")], y = data$quality)
+
+# Mind: This is stochastical!
+importance = FeatureImp$new(predictor, loss = "mae")
+
+plot(importance)
+
+# Comparison between standard importance and IML importance:
+importanceRf = rownames(rf$importance)[order(rf$importance, decreasing = TRUE)]
+importanceIML = importance$results[1]
+comparison = cbind(importanceIML, importanceRf)
+colnames(comparison) = c("IML", "RF")
+as.matrix(comparison)
+```
+
+Mind that feature importance, and the random forest's variable importance are related but not equal!
+Variable importance is a measure for determining importance while creating the forest (i.e. for fitting). Feature importance is a measure for how important a variable is for prediction.
+
+Maybe you want to see other explanation methods as well. Surely you can use the other techniques of this section on your own.
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+As we show in section \@ref(causalInference) of this chapter, a random forest will split variable importance across collinear predictors, while a linear regression model (lm()) can identify which predictor is causally affecting the response (at least in theory, if all confounders are controlled). What about a boosted regression tree or an artificial neural network? Take the random forest example and add a boosted regression tree (easier, you can use for example https://rdrr.io/cran/xgboost/man/xgb.importance.html) or an artificial neural network, and have a look if those are better than the random forest at identifying causal predictors. 
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter6_task_1, message=FALSE, warning=FALSE}
+library(xgboost)
+set.seed(1234)
+
+data = as.data.frame(EcoData::wine)
+submission = data[which(is.na(data$quality)), -which(colnames(data) == "quality")]
+data = data[complete.cases(data), ] # Removes sumbmission data as well.
+
+data_xg = xgb.DMatrix(
+  data = as.matrix(data[,which(names(data) != "quality")]),
+  label = data$quality
+)
+brt = xgboost(data_xg, nrounds = 24)
+
+pred = round(predict(brt, newdata = data_xg)) # Only integers are allowed.
+table(pred, data$quality)
+(accuracy = mean(pred == data$quality)) # Fits very well (on the training data...)
+
+# For submission:
+#write.csv(round(predict(rf, submission)), file = "wine_RF.csv")
+
+# Look at variable importance:
+xgboost::xgb.importance(model = brt)
+```
+
+Every method yields slightly different results, but the main ingredient is alcohol (and sulphates).
+
+```{=html}
+    </p>
+  </details>
+  <br/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+If you're done with the previous tasks and have still time and appetite, improve the submissions for our competition, in particular for the Wine data set. Possible ideas:
+
+* Use MLR framework (section \@ref(mlr)).
+
+* Try Transfer learning (section \@ref(transfer)). This was the winner of last years challenge.
+
+* Search on kaggle for more ideas / try to copy the ideas. This was the winner two years ago.
+
+A little example for the (unbalanced!) Wine data set
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter6_task_2, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(123L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+readin = function(percentageTest = 0.2, aggregate = 0){
+    # Parameter "aggregate" packs the classes with very low abundances into one.
+    # If "aggregate" equals to NA, NaN, Null, 0 or FALSE, no aggregation is performed.
+    # Else, the given number is the boundary.
+    # Every class with less elements than the boundary is aggregated into one.
+    
+    # WARNING: These classes cannot be distinguished from then on!
+    # Using the predictions for submission needs further processing!
+    
+    # Just for random selection of features, independent of the amount of function calls.
+    set.seed(12345)
+    
+    train = as.data.frame(EcoData::wine)
+    indicesTrain = which(!is.na(train$quality))
+    labelsTrain = train$quality[indicesTrain]
+    labelsTrain = labelsTrain - min(labelsTrain)  # Start at 0 (for softmax).
+    train = train[, -which(colnames(train) == "quality")]
+    
+    if(!is.na(aggregate) & aggregate){
+        indices = names(table(labelsTrain)[
+            table(labelsTrain) < aggregate & table(labelsTrain) > 0
+        ])
+        if(length(indices)){
+            labelsTrain[labelsTrain %in% indices] = -1
+            labelsTrain = as.factor(labelsTrain)
+            levels(labelsTrain) = 1:length(levels(labelsTrain)) - 1
+            labelsTrain = as.integer(labelsTrain)
+        }
+    }
+    
+    # Impute missing values (before any splitting, to get the highest power):
+    train = missRanger::missRanger(
+        data = train,
+        maxiter = 10L,
+        seed = 123,
+        num.trees = 200L
+    )
+    
+    # Separate submission data (mind scaling!):
+    submission = scale(train[-indicesTrain,])
+    train = scale(train[indicesTrain,])
+    
+    # Very asymmetric training data:
+    cat(paste0("Size of training set: ", length(labelsTrain), "\n"))
+    print(table(labelsTrain))
+    
+    # Split into training and test set:
+    len = nrow(train)
+    indicesTest = sample(x = 1:len, size = percentageTest * len, replace = FALSE)
+    test = as.data.frame(train[indicesTest,])
+    labelsTest = labelsTrain[indicesTest]
+    train = as.data.frame(train[-indicesTest,])
+    labelsTrain = labelsTrain[-indicesTest]
+    
+    
+    return(list(
+        "labelsTrain" = labelsTrain,
+        "labelsTest" = labelsTest,
+        "train" = train,
+        "test" = test,
+        "submission" = submission
+    ))
+}
+
+retVal = readin(aggregate = 0)
+labelsTrain = retVal[["labelsTrain"]]
+labelsTest = retVal[["labelsTest"]]
+train = retVal[["train"]]
+test = retVal[["test"]]
+submission = retVal[["submission"]]
+rm(retVal)
+
+classNumber = length(table(labelsTrain))
+
+model = keras_model_sequential()
+model %>%
+    layer_dense(units = 200L, activation = "leaky_relu",
+    kernel_regularizer = regularizer_l2(0.00035),
+    input_shape = ncol(train)) %>%
+    layer_dropout(0.45) %>%
+    layer_dense(units = 100L, activation = "relu",
+    ias_regularizer = regularizer_l1_l2(0.5)) %>%
+    layer_dropout(0.2) %>%
+    layer_dense(units = 100L, activation = "leaky_relu",
+    kernel_regularizer = regularizer_l2(0.00035),
+    bias_regularizer = regularizer_l1_l2(0.1)) %>%
+    layer_dropout(0.25) %>%
+    layer_dense(units = 50L, activation = "gelu") %>%
+    layer_dense(units = 25L, activation = "elu") %>%
+    layer_dropout(0.35) %>%
+    # We need probabilities. So we use the softmax function.
+    # Remember, the labels MUST start at 0!
+    layer_dense(units = classNumber, activation = "softmax")
+
+model %>%
+    compile(loss = loss_binary_crossentropy,
+            optimizer = optimizer_adamax(learning_rate = 0.015))
+
+model_history = 
+    model %>% # Mind the matrix property (no data.frame)!
+        fit(x = as.matrix(train), y = k_one_hot(labelsTrain, classNumber),
+            epochs = 80L, batch = 12L, shuffle = TRUE)
+
+plot(model_history)
+
+pred = predict(model, as.matrix(test)) %>% apply(1, which.max) - 1
+Metrics::accuracy(pred, labelsTest)
+table(pred, labelsTest)
+```
+
+Recognize overfitting of your model selection strategy by changing the seed few times (while keeping the model constant) and increase the percentage of test data.
+Furthermore, consider fitting a random forest for good quality as well.
+
+For the final predictions, we use the whole data set without holdouts:
+
+```{r chunk_chapter6_task_3, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+retVal = readin(percentageTest = 0, aggregate = 0)
+retVal = readin(aggregate = 0)
+labelsTrain = retVal[["labelsTrain"]]
+labelsTest = retVal[["labelsTest"]]
+train = retVal[["train"]]
+test = retVal[["test"]]
+submission = retVal[["submission"]]
+rm(retVal)
+
+classNumber = length(table(labelsTrain))
+
+model = keras_model_sequential()
+model %>%
+    layer_dense(units = 200L, activation = "leaky_relu",
+    kernel_regularizer = regularizer_l2(0.00035),
+    input_shape = ncol(train)) %>%
+    layer_dropout(0.45) %>%
+    layer_dense(units = 100L, activation = "relu",
+    ias_regularizer = regularizer_l1_l2(0.5)) %>%
+    layer_dropout(0.2) %>%
+    layer_dense(units = 100L, activation = "leaky_relu",
+    kernel_regularizer = regularizer_l2(0.00035),
+    bias_regularizer = regularizer_l1_l2(0.1)) %>%
+    layer_dropout(0.25) %>%
+    layer_dense(units = 50L, activation = "gelu") %>%
+    layer_dense(units = 25L, activation = "elu") %>%
+    layer_dropout(0.35) %>%
+    # We need probabilities. So we use the softmax function.
+    # Remember, the labels MUST start at 0!
+    layer_dense(units = classNumber, activation = "softmax")
+
+model %>%
+    compile(loss = loss_binary_crossentropy,
+            optimizer = optimizer_adamax(learning_rate = 0.015))
+
+model_history = 
+    model %>% # Mind the matrix property (no data.frame)!
+        fit(x = as.matrix(train), y = k_one_hot(labelsTrain, classNumber),
+            epochs = 80L, batch = 12L, shuffle = TRUE)
+
+plot(model_history)
+
+pred = predict(model, as.matrix(test)) %>% apply(1, which.max) - 1
+Metrics::accuracy(pred, labelsTest)
+table(pred, labelsTest)
+
+# Reverse subtraction (for start at 0) and create submission file.
+write.csv(pred + min(as.data.frame(EcoData::wine)$quality, na.rm = TRUE),
+          file = "wine_NN.csv")
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/>
+```
 

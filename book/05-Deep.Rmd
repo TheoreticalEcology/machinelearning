@@ -2042,15 +2042,15 @@ getData = function(oversample = TRUE, undersample = FALSE){
     newIndices = which(newIndices)
     
     train <<- trainLocal[newIndices,,,]
-    labels <<- labelsLocal[newIndices]
+    flowerLabels <<- labelsLocal[newIndices]
     
-    print(table(labels))
+    print(table(flowerLabels))
     return()
   }
   
   if(!oversample){
     train <<- trainLocal
-    labels <<- labelsLocal
+    flowerLabels <<- labelsLocal
     return()
   }
   
@@ -2069,9 +2069,9 @@ getData = function(oversample = TRUE, undersample = FALSE){
   }
   
   train <<- trainLocal
-  labels <<- labelsLocal
+  flowerLabels <<- labelsLocal
   
-  print(table(labels))
+  print(table(flowerLabels))
 }
 ```
 
@@ -2080,7 +2080,7 @@ Read in for example the following way:
 ```{r chunk_chapter5_task_5, message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
 if(!exists("done")){  # Do not calculate this more often than 1 time.
   train = c()
-  labels = c()
+  flowerLabels = c()
   getData(oversample = FALSE, undersample = FALSE)
   done = 1
 }
@@ -2102,7 +2102,7 @@ set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 if(!exists("doneWithTest")){  # Do not calculate this more often than 1 time.
   train = c()
-  labels = c()
+  flowerLabels = c()
   getData(oversample = FALSE, undersample = FALSE)
   doneWithTest = 1
 }
@@ -2139,14 +2139,14 @@ model %>%
           optimizer = optimizer_adamax(learning_rate = 0.011))
 
 model %>%
-  fit(x = train, y = to_categorical(matrix(labels, ncol = 1L), 5L),
+  fit(x = train, y = to_categorical(matrix(flowerLabels, ncol = 1L), 5L),
       epochs = 50L, batch_size = 100L, shuffle = TRUE, validation_split = 0.2)
 
 pred = model %>% predict(train)
 pred_classes = apply(pred, 1, which.max)
 print(table(pred_classes))
 
-Metrics::accuracy(pred_classes - 1L, labels)
+Metrics::accuracy(pred_classes - 1L, flowerLabels)
 
 #pred_classes = model %>% predict(EcoData::dataset_flower()$test/255) %>%
 #  apply(1, which.max) - 1L  # Do not forget "/255" and  "- 1L"!!
@@ -2167,7 +2167,7 @@ set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 if(!exists("doneWithoutTest")){  # Do not calculate this more often than 1 time.
   train = c()
-  labels = c()
+  flowerLabels = c()
   getData(oversample = FALSE, undersample = FALSE)
   doneWithoutTest = 1
 }
@@ -2204,13 +2204,13 @@ model %>%
           optimizer = optimizer_adamax(learning_rate = 0.011))
 
 model %>%
-  fit(x = train, y = to_categorical(matrix(labels, ncol = 1L), 5L),
+  fit(x = train, y = to_categorical(matrix(flowerLabels, ncol = 1L), 5L),
       epochs = 50L, batch_size = 100L, shuffle = TRUE)
 
 pred_classes = apply(model %>% predict(train), 1, which.max)
 print(table(pred_classes))
 
-Metrics::accuracy(pred_classes - 1L, labels)
+Metrics::accuracy(pred_classes - 1L, flowerLabels)
 
 pred_classes = model %>% predict(EcoData::dataset_flower()$test/255) %>%
   apply(1, which.max) - 1L  # Do not forget "/255" and  "- 1L"!!

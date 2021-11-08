@@ -15,7 +15,7 @@ rmds = c("book/index.Rmd",
          "book/06-xAI.Rmd",
          "book/07-GAN.Rmd",
          "book/08-Datasets.Rmd"
-)[c(4, 5, 6, 8)]
+)[c(1, 4, 5, 6, 8)]
 
 # 2. Create tests
 .n = sapply(rmds, create_test)
