@@ -2041,7 +2041,7 @@ getData = function(oversample = TRUE, undersample = FALSE){
     
     newIndices = which(newIndices)
     
-    train <<- trainLocal[newIndices,,,]
+    trainingSet <<- trainLocal[newIndices,,,]
     flowerLabels <<- labelsLocal[newIndices]
     
     print(table(flowerLabels))
@@ -2049,7 +2049,7 @@ getData = function(oversample = TRUE, undersample = FALSE){
   }
   
   if(!oversample){
-    train <<- trainLocal
+    trainingSet <<- trainLocal
     flowerLabels <<- labelsLocal
     return()
   }
@@ -2068,7 +2068,7 @@ getData = function(oversample = TRUE, undersample = FALSE){
     labelsLocal = c(labelsLocal, rep(as.integer(i - 1), missing))
   }
   
-  train <<- trainLocal
+  trainingSet <<- trainLocal
   flowerLabels <<- labelsLocal
   
   print(table(flowerLabels))
@@ -2079,7 +2079,7 @@ Read in for example the following way:
 
 ```{r chunk_chapter5_task_5, message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
 if(!exists("done")){  # Do not calculate this more often than 1 time.
-  train = c()
+  trainingSet = c()
   flowerLabels = c()
   getData(oversample = FALSE, undersample = FALSE)
   done = 1
@@ -2099,9 +2099,8 @@ library(keras)
 library(tensorflow)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
-
 if(!exists("doneWithTest")){  # Do not calculate this more often than 1 time.
-  train = c()
+  trainingSet = c()
   flowerLabels = c()
   getData(oversample = FALSE, undersample = FALSE)
   doneWithTest = 1
@@ -2133,16 +2132,15 @@ model %>%
   layer_dropout(0.3) %>% 
   layer_dense(units = 5L, activation = "softmax")
 
-
 model %>%
   compile(loss = loss_categorical_crossentropy,
           optimizer = optimizer_adamax(learning_rate = 0.011))
 
 model %>%
-  fit(x = train, y = to_categorical(matrix(flowerLabels, ncol = 1L), 5L),
+  fit(x = trainingSet, y = to_categorical(matrix(flowerLabels, ncol = 1L), 5L),
       epochs = 50L, batch_size = 100L, shuffle = TRUE, validation_split = 0.2)
 
-pred = model %>% predict(train)
+pred = model %>% predict(trainingSet)
 pred_classes = apply(pred, 1, which.max)
 print(table(pred_classes))
 
@@ -2166,7 +2164,7 @@ library(tensorflow)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 if(!exists("doneWithoutTest")){  # Do not calculate this more often than 1 time.
-  train = c()
+  trainingSet = c()
   flowerLabels = c()
   getData(oversample = FALSE, undersample = FALSE)
   doneWithoutTest = 1
@@ -2198,16 +2196,15 @@ model %>%
   layer_dropout(0.3) %>% 
   layer_dense(units = 5L, activation = "softmax")
 
-
 model %>%
   compile(loss = loss_categorical_crossentropy,
           optimizer = optimizer_adamax(learning_rate = 0.011))
 
 model %>%
-  fit(x = train, y = to_categorical(matrix(flowerLabels, ncol = 1L), 5L),
+  fit(x = trainingSet, y = to_categorical(matrix(flowerLabels, ncol = 1L), 5L),
       epochs = 50L, batch_size = 100L, shuffle = TRUE)
 
-pred_classes = apply(model %>% predict(train), 1, which.max)
+pred_classes = apply(model %>% predict(trainingSet), 1, which.max)
 print(table(pred_classes))
 
 Metrics::accuracy(pred_classes - 1L, flowerLabels)

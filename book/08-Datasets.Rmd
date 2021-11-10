@@ -35,7 +35,7 @@ summary(titanic)
 
 2. Impute missing values (not our response variable!):
 
-```{r chunk_chapter8_2}
+```{r chunk_chapter8_2, message=FALSE, warning=FALSE}
 library(missRanger)
 library(dplyr)
 set.seed(123)
@@ -101,7 +101,7 @@ summary(plant_poll)
 2. Impute missing values (not our response variable!)
 We will select only a few predictors here (you can work with all predictors of course).
 
-```{r chunk_chapter8_9}
+```{r chunk_chapter8_9, message=FALSE, warning=FALSE}
 library(missRanger)
 library(dplyr)
 set.seed(123)
@@ -167,12 +167,11 @@ summary(wine)
 
 2. Impute missing values (not our response variable!).
 
-```{r chunk_chapter8_15}
+```{r chunk_chapter8_15, message=FALSE, warning=FALSE}
 library(missRanger)
 library(dplyr)
 set.seed(123)
 
-#wine_imputed = titanic %>% select(-name, -ticket, -cabin, -boat, -home.dest)
 wine_imputed = missRanger::missRanger(data = wine %>% select(-quality))
 wine_imputed$quality = wine$quality
 ```
@@ -186,7 +185,7 @@ test = wine_imputed[is.na(wine$quality), ]
 
 4. Train model:
 
-```{r chunk_chapter8_17}
+```{r chunk_chapter8_17, message=FALSE, warning=FALSE}
 library(ranger)
 set.seed(123)
 
@@ -225,7 +224,7 @@ summary(nasa)
 
 2. Impute missing values (not our response variable!):
 
-```{r chunk_chapter8_21}
+```{r chunk_chapter8_21, message=FALSE, warning=FALSE}
 library(missRanger)
 library(dplyr)
 set.seed(123)
@@ -244,7 +243,7 @@ test = nasa_imputed[is.na(nasa$Hazardous), ]
 
 4. Train model:
 
-```{r chunk_chapter8_23}
+```{r chunk_chapter8_23, message=FALSE, warning=FALSE}
 library(ranger)
 set.seed(123)
 
@@ -280,9 +279,10 @@ You can download the data set <a href="http://rhsbio7.uni-regensburg.de:8500" ta
 
 1. Load data set:
 
-```{r chunk_chapter8_26}
+```{r chunk_chapter8_26, message=FALSE, warning=FALSE}
 library(tensorflow)
 library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 train = EcoData::dataset_flower()$train/255
 test = EcoData::dataset_flower()$test/255
@@ -301,8 +301,6 @@ train[100,,,] %>%
 2. Build and train model:
 
 ```{r chunk_chapter8_28, eval=FALSE}
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
 model = keras_model_sequential()
 model %>% 
   layer_conv_2d(filters = 4L, kernel_size = 2L,

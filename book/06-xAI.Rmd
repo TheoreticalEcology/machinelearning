@@ -465,6 +465,16 @@ readin = function(percentageTest = 0.2, aggregate = 0){
     cat(paste0("Size of training set: ", length(labelsTrain), "\n"))
     print(table(labelsTrain))
     
+    if(percentageTest == 0){
+      return(list(
+        "labelsTrain" = labelsTrain,
+        "labelsTest" = list(),
+        "train" = train,
+        "test" = list(),
+        "submission" = submission
+      ))
+    }
+    
     # Split into training and test set:
     len = nrow(train)
     indicesTest = sample(x = 1:len, size = percentageTest * len, replace = FALSE)
@@ -472,7 +482,6 @@ readin = function(percentageTest = 0.2, aggregate = 0){
     labelsTest = labelsTrain[indicesTest]
     train = as.data.frame(train[-indicesTest,])
     labelsTrain = labelsTrain[-indicesTest]
-    
     
     return(list(
         "labelsTrain" = labelsTrain,
@@ -500,7 +509,7 @@ model %>%
     input_shape = ncol(train)) %>%
     layer_dropout(0.45) %>%
     layer_dense(units = 100L, activation = "relu",
-    ias_regularizer = regularizer_l1_l2(0.5)) %>%
+    bias_regularizer = regularizer_l1_l2(0.5)) %>%
     layer_dropout(0.2) %>%
     layer_dense(units = 100L, activation = "leaky_relu",
     kernel_regularizer = regularizer_l2(0.00035),
@@ -524,6 +533,12 @@ model_history =
 
 plot(model_history)
 
+# Accuracy on training set (!)
+pred = predict(model, as.matrix(train)) %>% apply(1, which.max) - 1
+Metrics::accuracy(pred, labelsTrain)
+table(pred, labelsTrain)
+
+# Accuracy on test set
 pred = predict(model, as.matrix(test)) %>% apply(1, which.max) - 1
 Metrics::accuracy(pred, labelsTest)
 table(pred, labelsTest)
@@ -540,7 +555,6 @@ library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 retVal = readin(percentageTest = 0, aggregate = 0)
-retVal = readin(aggregate = 0)
 labelsTrain = retVal[["labelsTrain"]]
 labelsTest = retVal[["labelsTest"]]
 train = retVal[["train"]]
@@ -557,7 +571,7 @@ model %>%
     input_shape = ncol(train)) %>%
     layer_dropout(0.45) %>%
     layer_dense(units = 100L, activation = "relu",
-    ias_regularizer = regularizer_l1_l2(0.5)) %>%
+    bias_regularizer = regularizer_l1_l2(0.5)) %>%
     layer_dropout(0.2) %>%
     layer_dense(units = 100L, activation = "leaky_relu",
     kernel_regularizer = regularizer_l2(0.00035),
@@ -581,9 +595,10 @@ model_history =
 
 plot(model_history)
 
-pred = predict(model, as.matrix(test)) %>% apply(1, which.max) - 1
-Metrics::accuracy(pred, labelsTest)
-table(pred, labelsTest)
+# Accuracy on training set (!)
+pred = predict(model, as.matrix(train)) %>% apply(1, which.max) - 1
+Metrics::accuracy(pred, labelsTrain)
+table(pred, labelsTrain)
 
 # Reverse subtraction (for start at 0) and create submission file.
 write.csv(pred + min(as.data.frame(EcoData::wine)$quality, na.rm = TRUE),
