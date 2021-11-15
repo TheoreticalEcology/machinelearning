@@ -1250,17 +1250,21 @@ data = keras::dataset_cifar10()
 train = data$train
 test = data$test
 
+rm(data)
+
 image = train$x[5,,,]
 image %>%
- image_to_array() %>%
- `/`(., 255) %>%
- as.raster() %>%
+  image_to_array() %>%
+  `/`(., 255) %>%
+  as.raster() %>%
   plot()
 
 train_x = array(train$x/255, c(dim(train$x)))
 test_x = array(test$x/255, c(dim(test$x)))
 train_y = to_categorical(train$y, 10)
 test_y = to_categorical(test$y, 10)
+
+rm(train, test, data)
 ```
 
 Keras provides download functions for all famous architectures/convolutional neural network models which are already trained on the imagenet data set (another famous data set). These trained networks come already without their top layer, so we have to set include_top to false and change the input shape.
@@ -1840,7 +1844,6 @@ You see that the very simple models tend to overfit.
 ```{r chunk_chapter5_task_3, message=FALSE, warning=FALSE}
 library(tensorflow)
 library(keras)
-
 
 flowerCNN = function(
   networkSize = c("small", "medium", "big")[3],
