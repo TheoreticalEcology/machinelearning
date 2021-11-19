@@ -388,7 +388,7 @@ library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
-data(iris)
+iris = datasets::iris
 X = scale(iris[,1:4])
 Y = iris[,5]
 Y = keras::k_one_hot(as.integer(Y)-1L, 3)
@@ -3328,7 +3328,7 @@ print(learner_tuner)
 set.seed(123)
 
 outer3 = mlr3::rsmp("cv", folds = 3L)
-result = mlr3::resample(transformed_task, learner_tuner_over
+result = mlr3::resample(transformed_task, learner_tuner_over,
                         resampling = outer3, store_models = TRUE)
 
 # Calculate the average AUC of the holdouts.
@@ -3405,19 +3405,19 @@ cv10 = mlr3::rsmp("cv", folds = 10L)
 rf = lrn("classif.ranger", predict_type = "prob")
 measurement =  msr("classif.auc")
 
-result = mlr3::resample(transformed_task, rf,
-                        resampling = cv10, store_models = TRUE)
-
-# Calculate the average AUC of the holdouts.
-result$aggregate(measurement)
-
-pred = sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task,
-row_ids = (1:nrow(data))[is.na(data$survived)])$data$prob[, "1", drop = FALSE])
-
-dim(pred)
-predictions = round(apply(pred, 1, mean))
-
-write.csv(data.frame(y = predictions), file = "submission_RF.csv")
+# result = mlr3::resample(transformed_task, rf,
+#                         resampling = cv10, store_models = TRUE)
+# 
+# # Calculate the average AUC of the holdouts.
+# result$aggregate(measurement)
+# 
+# pred = sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task,
+# row_ids = (1:nrow(data))[is.na(data$survived)])$data$prob[, "1", drop = FALSE])
+# 
+# dim(pred)
+# predictions = round(apply(pred, 1, mean))
+# 
+# write.csv(data.frame(y = predictions), file = "submission_RF.csv")
 ```
 
 ```{=html}
