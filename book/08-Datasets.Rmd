@@ -1,0 +1,362 @@
+# Data sets {#datasets}
+
+```{=html}
+<!-- Put this here (right after the first markdown headline) and only here for each document! -->
+<script src="./scripts/multipleChoice.js"></script>
+```
+
+You can download the data sets we use in the course <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a> (ignore browser warnings) or by installing the EcoData package:
+
+```{r chunk_chapter8_0, eval=FALSE}
+devtools::install_github(repo = "florianhartig/EcoData", subdir = "EcoData",
+                         dependencies = TRUE, build_vignettes = FALSE)
+```
+
+
+## Titanic
+
+The data set is a collection of Titanic passengers with information about their age, class, sex, and their survival status. The competition is simple here: Train a machine learning model and predict the survival probability.
+
+The Titanic data set is very well explored and serves as a stepping stone in many machine learning careers. For inspiration and data exploration notebooks, check out this <a href="https://www.kaggle.com/c/titanic/data" target="_blank" rel="noopener">kaggle competition</a>.
+
+**Response variable:** "survived"
+
+A minimal working example:
+
+1. Load data set:
+
+```{r chunk_chapter8_1}
+library(EcoData)
+
+data(titanic_ml)
+titanic = titanic_ml
+summary(titanic)
+```
+
+2. Impute missing values (not our response variable!):
+
+```{r chunk_chapter8_2, message=FALSE, warning=FALSE}
+library(missRanger)
+library(dplyr)
+set.seed(123)
+
+titanic_imputed = titanic %>% select(-name, -ticket, -cabin, -boat, -home.dest)
+titanic_imputed = missRanger::missRanger(data = titanic_imputed %>%
+                                           select(-survived))
+titanic_imputed$survived = titanic$survived
+```
+
+3. Split into training and test set:
+
+```{r chunk_chapter8_3}
+train = titanic_imputed[!is.na(titanic$survived), ]
+test = titanic_imputed[is.na(titanic$survived), ]
+```
+
+4. Train model:
+
+```{r chunk_chapter8_4}
+model = glm(survived~., data = train, family = binomial())
+```
+
+5. Predictions:
+
+```{r chunk_chapter8_5}
+preds = predict(model, data = test, type = "response")
+head(preds)
+```
+
+6. Create submission csv:
+
+```{r chunk_chapter8_6, eval=FALSE}
+write.csv(data.frame(y = preds), file = "glm.csv")
+```
+
+And submit the csv on <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a>.
+
+
+## Plant-pollinator Database
+
+The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower).
+We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>.
+
+```{r chunk_chapter8_7, echo=FALSE}
+knitr::include_graphics("./images/TM.png")
+```
+
+**Response variable:** "interaction"
+
+A minimal working example:
+
+1. Load data set:
+
+```{r chunk_chapter8_8}
+library(EcoData)
+
+data(plantPollinator_df)
+plant_poll = plantPollinator_df
+summary(plant_poll)
+```
+
+2. Impute missing values (not our response variable!)
+We will select only a few predictors here (you can work with all predictors of course).
+
+```{r chunk_chapter8_9, message=FALSE, warning=FALSE}
+library(missRanger)
+library(dplyr)
+set.seed(123)
+
+plant_poll_imputed = plant_poll %>% select(diameter,
+                                           corolla,
+                                           tongue,
+                                           body,
+                                           interaction)
+plant_poll_imputed = missRanger::missRanger(data = plant_poll_imputed %>%
+                                              select(-interaction))
+plant_poll_imputed$interaction = plant_poll$interaction
+```
+
+3. Split into training and test set:
+
+```{r chunk_chapter8_10}
+train = plant_poll_imputed[!is.na(plant_poll_imputed$interaction), ]
+test = plant_poll_imputed[is.na(plant_poll_imputed$interaction), ]
+```
+
+4. Train model:
+
+```{r chunk_chapter8_11}
+model = glm(interaction~., data = train, family = binomial())
+```
+
+5. Predictions:
+
+```{r chunk_chapter8_12}
+preds = predict(model, newdata = test, type = "response")
+head(preds)
+```
+
+6. Create submission csv:
+
+```{r chunk_chapter8_13, eval=FALSE}
+write.csv(data.frame(y = preds), file = "glm.csv")
+```
+
+
+## Wine
+
+The data set is a collection of wines of different quality. The aim is to predict the quality of the wine based on physiochemical predictors. 
+
+For inspiration and data exploration notebooks, check out this <a href="https://www.kaggle.com/uciml/red-wine-quality-cortez-et-al-2009" target="_blank" rel="noopener">kaggle competition</a>.
+For instance, check out this very nice <a href="https://www.kaggle.com/aditimulye/red-wine-quality-assesment-starter-pack" target="_blank" rel="noopener">notebook</a> which removes a few problems from the data. 
+
+**Response variable:** "quality"
+
+We could theoretically use a regression model for this task but we will stick with a classification model.
+
+A minimal working example:
+
+1. Load data set:
+
+```{r chunk_chapter8_14}
+library(EcoData)
+
+data(wine)
+summary(wine)
+```
+
+2. Impute missing values (not our response variable!).
+
+```{r chunk_chapter8_15, message=FALSE, warning=FALSE}
+library(missRanger)
+library(dplyr)
+set.seed(123)
+
+wine_imputed = missRanger::missRanger(data = wine %>% select(-quality))
+wine_imputed$quality = wine$quality
+```
+
+3. Split into training and test set:
+
+```{r chunk_chapter8_16}
+train = wine_imputed[!is.na(wine$quality), ]
+test = wine_imputed[is.na(wine$quality), ]
+```
+
+4. Train model:
+
+```{r chunk_chapter8_17, message=FALSE, warning=FALSE}
+library(ranger)
+set.seed(123)
+
+rf = ranger(quality~., data = train, classification = TRUE)
+```
+
+5. Predictions:
+
+```{r chunk_chapter8_18}
+preds = predict(rf, data = test)$predictions
+head(preds)
+```
+
+6. Create submission csv:
+
+```{r chunk_chapter8_19, eval=FALSE}
+write.csv(data.frame(y = preds), file = "rf.csv")
+```
+
+
+## Nasa
+
+A collection about asteroids and their characteristics from kaggle. The aim is to predict whether the asteroids are hazardous or not. 
+For inspiration and data exploration notebooks, check out this <a href="https://www.kaggle.com/shrutimehta/nasa-asteroids-classification" target="_blank" rel="noopener">kaggle competition</a>.
+
+**Response variable:** "Hazardous"
+
+1. Load data set:
+
+```{r chunk_chapter8_20}
+library(EcoData)
+
+data(nasa)
+summary(nasa)
+```
+
+2. Impute missing values (not our response variable!):
+
+```{r chunk_chapter8_21, message=FALSE, warning=FALSE}
+library(missRanger)
+library(dplyr)
+set.seed(123)
+
+nasa_imputed = missRanger::missRanger(data = nasa %>% select(-Hazardous),
+                                      maxiter = 1, num.trees = 5L)
+nasa_imputed$Hazardous = nasa$Hazardous
+```
+
+3. Split into training and test set:
+
+```{r chunk_chapter8_22}
+train = nasa_imputed[!is.na(nasa$Hazardous), ]
+test = nasa_imputed[is.na(nasa$Hazardous), ]
+```
+
+4. Train model:
+
+```{r chunk_chapter8_23, message=FALSE, warning=FALSE}
+library(ranger)
+set.seed(123)
+
+rf = ranger(Hazardous~., data = train, classification = TRUE,
+            probability = TRUE)
+```
+
+5. Predictions:
+
+```{r chunk_chapter8_24}
+preds = predict(rf, data = test)$predictions[,2]
+head(preds)
+```
+
+6. Create submission csv:
+
+```{r chunk_chapter8_25, eval=FALSE}
+write.csv(data.frame(y = preds), file = "rf.csv")
+```
+
+
+## Flower
+
+A collection of over 4000 flower images of 5 plant species. The data set is from <a href="https://www.kaggle.com/alxmamaev/flowers-recognition" target="_blank" rel="noopener">kaggle</a> but we downsampled the images from $320*240$ to $80*80$ pixels. 
+You can download the data set <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a>.
+
+**Notes:**
+
+* Check out convolutional neural network notebooks on kaggle (they are often written in Python but you can still copy the architectures), e.g. <a href="https://www.kaggle.com/alirazaaliqadri/flower-recognition-tensorflow-keras-sequential" target="_blank" rel="noopener">this one</a>.
+* Last year's winners have used a transfer learning approach (they achieved around 70% accuracy), check out this <a href="https://www.kaggle.com/stpeteishii/flower-name-classify-densenet201" target="_blank" rel="noopener">notebook</a>, see also the section about transfer learning \@ref(transfer).
+
+**Response variable:** "Plant species"
+
+1. Load data set:
+
+```{r chunk_chapter8_26, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+train = EcoData::dataset_flower()$train/255
+test = EcoData::dataset_flower()$test/255
+labels = EcoData::dataset_flower()$labels
+```
+
+Let's visualize a flower:
+
+```{r chunk_chapter8_27}
+train[100,,,] %>%
+  image_to_array() %>%
+  as.raster() %>%
+  plot()
+```
+
+2. Build and train model:
+
+```{r chunk_chapter8_28, eval=FALSE}
+model = keras_model_sequential()
+model %>% 
+  layer_conv_2d(filters = 4L, kernel_size = 2L,
+                input_shape = list(80L, 80L, 3L)) %>% 
+  layer_max_pooling_2d() %>% 
+  layer_flatten() %>% 
+  layer_dense(units = 5L, activation = "softmax")
+
+### Model fitting ###
+
+epochs = 50L
+batch_size = 25L
+steps = floor(dim(train)[1]/batch_size)
+generator = keras::flow_images_from_data(x = train,
+                                         y = keras::k_one_hot(labels, 5L),
+                                         batch_size = batch_size)
+
+optim = optimizer_adamax(learning_rate = 0.01)
+epoch_losses = c()
+
+for(e in 1:epochs){
+  epoch_loss = c()
+  for(s in 1:steps){
+    batch = reticulate::iter_next(generator)
+    with(tf$GradientTape() %as% tape,
+      {
+        pred = model(batch[[1]])
+        loss = keras::loss_categorical_crossentropy(batch[[2]], pred)
+        loss = tf$reduce_mean(loss)
+      }
+    )
+    gradients = tape$gradient(target = loss, sources = model$weights)
+    optim$apply_gradients(purrr::transpose(list(gradients, model$weights)))
+    epoch_loss = c(epoch_loss, loss$numpy())
+  }
+  epoch_losses = c(epoch_losses, epoch_loss)
+  cat("Epoch: ", e, " Loss: ", mean(epoch_losses), " \n")
+}
+```
+
+3. Predictions:
+
+```{r chunk_chapter8_29, eval=FALSE}
+# Prediction on training data:
+pred = apply(model %>% predict(train), 1, which.max)
+Metrics::accuracy(pred - 1L, labels)
+table(pred)
+
+# Prediction for the submission server:
+pred = model %>% predict(test) %>% apply(1, which.max) - 1L
+table(pred)
+```
+
+4. Create submission csv:
+
+```{r chunk_chapter8_30, eval=FALSE}
+write.csv(data.frame(y = pred), file = "cnn.csv")
+```
+

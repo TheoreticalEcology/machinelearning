@@ -1,0 +1,444 @@
+# Reminders About Basic Operations in R {#reminder}
+
+```{=html}
+<!-- Put this here (right after the first markdown headline) and only here for each document! -->
+<script src="./scripts/multipleChoice.js"></script>
+```
+
+## Your R System
+
+In this course, we work with the combination of R + RStudio.
+
+* R is the calculation engine that performs the computations.
+* RStudio is the editor that helps you sending inputs to R and collect outputs.
+
+Make sure you have a recent version of R + RStudio installed on your computer.
+
+If you have never used RStudio, <a href="https://videocampus.sachsen.de/video/First-steps-with-R-and-RStudio/528e5d164219f2d07e32a51736c3f7d1" target="_blank" rel="noopener">here</a> is an introductory video.
+
+
+## Data types in R
+
+The following subchapters introduce / remind you of R data types.
+
+
+### Test Your Knowledge
+
+Discuss with your partner(s) - what is the meaning / structure / properties of the following data types in R:
+
+* Atomic types (which atomic types exist)
+* list
+* vector
+* data.frame
+* matrix
+* array
+
+
+### Iris Data
+
+What is the data type of the iris data set? Explore using the following commands:
+
+```{r chunk_chapter2_0, eval=FALSE}
+iris
+
+class(iris)
+dim(iris)
+str(iris)
+```
+
+
+### Dynamic typing
+
+R is a dynamically typed language, which means that the type of variables is determined automatically depending on what values you supply. Try this:
+
+```{r chunk_chapter2_1, eval=FALSE}
+x = 1
+class(x)
+x = "dog"
+class(x)
+```
+
+This also works if a data set already exists, i.e. if you assign a different value, the type will automatically be changed. Look at what happens if we assign a character value to a previously numeric column in a data.frame:
+
+```{r chunk_chapter2_2, eval=FALSE}
+iris$Sepal.Length[2] = "dog"
+str(iris)
+```
+
+Note that all numeric values are changed to characters as well. You can try to force back the values to numeric by:
+
+```{r chunk_chapter2_3, eval=FALSE}
+iris$Sepal.Length = as.numeric(iris$Sepal.Length)
+```
+
+Have a look at what this does to the values in iris$Sepal.Length.
+
+Note:
+The actions above operate on a local copy of the iris data set. You don't overwrite the base data and can use it again in a new R session or reset it with "data(iris)".
+
+## Data selection, Slicing and Subsetting
+
+In this chapter, we will discuss data selection, slicing and subsetting.
+
+
+### Subsetting and Slicing for Single Data Types
+
+We often want to select only a subset of our data. You can generally subset from data structures using indices and TRUE/FALSE (or T/F).
+Here for a vector:
+
+```{r chunk_chapter2_4, eval=FALSE, purl=FALSE}
+vector[1] # First element.
+vector[1:3] # Elements 1,2,3.
+vector[c(1,5,6)] # Elements 1,5,6.
+vector[c(T,T,F,F,T)] # Elements 1,2,5.
+```
+
+If you use TRUE/FALSE, you must specify a truth value for every (!) position.
+
+```{r chunk_chapter2_5, eval=FALSE, purl=FALSE}
+vector = c(1,2,3,4,5)
+vector[c(T,F)] # Does NOT work!
+```
+
+
+For a list, it's basically the same, except the following points:
+
+* Elements in lists usually have a name, so you can also access those via "list$name".
+* Lists accessed with [] return a list. If you want to select a single element, you have to access it via [[]], as in "list[[2]]".
+
+For data.frames and other objects with im > 2, the same is true, except that you have several indices.
+
+```{r chunk_chapter2_6, eval=FALSE, purl=FALSE}
+matrix[1,2] # Element in first row, second column.
+matrix[1:2,] # First two rows, all columns.
+matrix[,c(T,F,T)] # All rows, 1st and 3rd column.
+```
+
+The syntax "matrix[1,]" is also called slicing, for obvious reasons. 
+
+Data.frames are the same as matrices, except that, like with lists of vectors, you can also access columns via names as in "data.frame$column".
+
+
+### Logic and Slicing
+
+Slicing is very powerful if you combine it with logical operators, such as "&" (logical and), "|" (logical or), "==" (equal), "!=" (not equal), "<=", ">", etc. Here are a few examples:
+
+```{r chunk_chapter2_7}
+iris[iris$Species == "virginica", ]
+```
+
+Note that this is identical to the following:
+
+```{r chunk_chapter2_8}
+subset(iris, Species == "virginica") 
+```
+
+You can also combine several logical commands:
+
+```{r chunk_chapter2_9}
+iris[iris$Species == "virginica" & iris$Sepal.Length > 7, ]
+```
+
+Note that this works element-wise!
+
+
+## Applying Functions and Aggregates Across a Data set
+
+In this chapter, we discuss the most basic functions in R for calculating means, averages or apply other functions across a data set.
+
+
+### Functions
+
+Maybe this is a good time to remind you about functions. The two basic options we use in R are:
+
+* Variables / data structures.
+* Functions.
+
+We have already used variables / data structures. Variables have a name and if you type this name in R, you get the values that are inside the respective data structure. 
+
+Functions are algorithms that are called like:
+
+```{r chunk_chapter2_10, eval=FALSE, purl=FALSE}
+function(variable)
+```
+
+For example, you can do:
+
+```{r chunk_chapter2_11, eval=FALSE, purl=FALSE}
+summary(iris)
+```
+
+If you want to know what the summary function does, type "?summary", or put your mouse on the function and press "F1".
+
+To be able to work properly with data, you have to know how to define your own functions. This works like the following:
+
+```{r chunk_chapter2_12}
+squareValue = function(x){
+  temp = x * x 
+  return(temp)
+}
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
+  <ol>
+    <li>Try what happens if you type in &quot;squareValue(2)&quot;.</li>
+    <li>Write a function for multiplying 2 values. Hint - this should start with &quot;function(x1, x2)&quot;.</li>
+    <li>Change the first line of the &quot;squareValue&quot; function to &quot;function(x = 3)&quot; and try out the following commands: &quot;squareValue(2)&quot;, &quot;squareValue()&quot; - What is the sense of this syntax?</li>
+  </ol>
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{=html}
+  <strong><span style="font-size:20px;">1</span></strong>
+```
+```{r chunk_chapter2_task_0, eval=TRUE}
+multiply = function(x1, x2){
+  return(x1 * x2)
+}
+```
+
+```{=html}
+  <strong><span style="font-size:20px;">2</span></strong>
+```
+```{r chunk_chapter2_task_1, eval=TRUE}
+squareValue(2)
+```
+
+```{=html}
+  <strong><span style="font-size:20px;">3</span></strong>
+```
+```{r chunk_chapter2_task_2, eval=TRUE}
+squareValue = function(x = 3){
+  temp = x * x 
+  return(temp)
+}
+
+squareValue(2)
+
+squareValue()
+```
+
+The given value (3 in the example above) is the *default value*. This value is used automatically, if no value is supplied for the respective variable.
+Default values can be specified for all variables, but you should put them to the end of the function definition.
+Hint: in R, it is always useful to name the parameters when using functions.
+
+Look at the following example:
+
+```{r chunk_chapter2_task_3, error=TRUE, purl=FALSE}
+testFunction = function(a = 1, b, c = 3){
+  return(a * b + c)
+}
+
+testFunction()
+
+testFunction(10)
+
+testFunction(10, 20)
+
+testFunction(10, 20, 30)
+
+testFunction(b = 10, c = 20, a = 30)
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
+### The apply() Function
+
+Now that we know functions, we can introduce functions that use functions. One of the most important is the apply function. The apply function applies a function of a data structure, typically a matrix or data.frame. 
+
+Try the following:
+
+```{r chunk_chapter2_13, eval=FALSE}
+apply(iris[,1:4], 2, mean)
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
+  <ol>
+    <li>Check the help of apply to understand what this does.</li>
+    <li>Why is the first result of &quot;apply(iris[,1:4], 2, mean)&quot; NA? Check the help of mean to understand this.</li>
+    <li>Try &quot;apply(iris[,1:4], 1, mean)&quot;. Think about what changed here.</li>
+    <li>What would happen if you use &quot;iris&quot; instead of &quot;iris[,1:4]&quot;?.</li>
+  </ol>
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{=html}
+  <strong><span style="font-size:20px;">1</span></strong>
+```
+```{r chunk_chapter2_task_4, eval=FALSE}
+?apply
+```
+
+```{=html}
+  <strong><span style="font-size:20px;">2</span></strong>
+```
+
+Remember, what we have done above (if you run this part separately, execute the following lines again):
+
+```{r chunk_chapter2_task_5, eval=TRUE, purl=FALSE}
+iris$Sepal.Length[2] = "Hund"
+iris$Sepal.Length = as.numeric(iris$Sepal.Length)
+```
+
+```{r chunk_chapter2_task_6, eval=TRUE}
+apply(iris[,1:4], 2, mean)
+```
+
+Taking the mean of a character sequence is not possible, so the result is NA (**N**ot **A**vailable, missing value(s)).
+
+But you can skip missing values with the option "na.rm = TRUE" of the "mean" function. To use it with the "apply" function, pass the argument(s) after.
+
+```{r chunk_chapter2_task_7, eval=TRUE}
+apply(iris[,1:4], 2, mean, na.rm = T)
+```
+
+```{=html}
+  <strong><span style="font-size:20px;">3</span></strong>
+```
+```{r chunk_chapter2_task_8, eval=TRUE}
+apply(iris[,1:4], 1, mean)
+```
+
+Arrays (and thus matrices, data.frame(s), etc.) have several dimensions. For a simple $2D$ array (or matrix), the first dimension is the rows and the second dimension is the columns. The second parameter of the "apply" function specifies the dimension of which the mean should be computed. If you use $1$, you demand the row means (150), if you use $2$, you request the column means (5, resp. 4).
+
+```{=html}
+  <strong><span style="font-size:20px;">4</span></strong>
+```
+```{r chunk_chapter2_task_9, eval=TRUE, purl=FALSE}
+apply(iris, 2, mean)
+```
+
+The 5th column is "Species". These values are not numeric. So the whole data.frame is taken as a data.frame full of characters.
+
+```{r chunk_chapter2_task_10, eval=TRUE}
+apply(iris[,1:4], 2, str)
+apply(iris, 2, str)
+```
+
+Remark: the "NULL" statement is the return value of apply. "str" returns nothing (but prints something out), so the returned vector (or array, list, ...) is empty, just like:
+
+```{r chunk_chapter2_task_11, eval=TRUE}
+c()
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
+### The aggregate() Function
+
+aggregate() calculates a function per grouping variable. Try out this example:
+
+```{r chunk_chapter2_14, eval=FALSE}
+aggregate(. ~ Species, data = iris, FUN = max)
+```
+
+Note that max is the function to get the maximum value, and has nothing to do with your lecturer, who should be spelled Max. 
+
+The dot is general R syntax and usually refers to "use all columns in the data set".
+
+
+## Plotting
+
+The following two commands are identical:
+
+* plot(iris\$Sepal.Length, iris\$Sepal.Width)
+* plot(Sepal.Width ~ Sepal.Length, data = iris)
+
+The second option is preferable, because it allows you to subset data easier.
+
+```{r chunk_chapter2_15}
+plot(Sepal.Width ~ Sepal.Length, data = iris[iris$Species == "versicolor", ])
+```
+
+The plot command will use the standard plot depending on the type of variable supplied. For example, if the x axis is a factor, a boxplot will be produced.
+
+```{r chunk_chapter2_16}
+plot(Sepal.Width ~ Species, data = iris)
+```
+
+You can change color, size, shape etc. and this is often useful for visualization.
+
+```{r chunk_chapter2_17}
+plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species,
+     cex = iris$Petal.Length)
+```
+
+More on plots in R in this short video:
+
+```{r chunk_chapter2_18, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315"
+  src="https://www.youtube.com/embed/UXeJ1bNYCos"
+  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
+  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+
+## Additional Resources
+
+As additional R resources for self-study, we recommend:
+
+
+### Books
+
+* The PDF <a href="https://cran.r-project.org/doc/manuals/R-intro.pdf" target="_blank" rel="noopener">An introduction to R</a>.
+* <a href="http://faculty.marshall.usc.edu/gareth-james/" target="_blank" rel="noopener">An Introduction to Statistical Learning</a> - A simplified version version of a classic machine learning textbook, free PDF for download.
+* <a href="https://www.statmethods.net/" target="_blank" rel="noopener">Quick R</a> - Good site as a reference with code examples for most standard tasks.
+* Ebook <a href="https://rstudio-education.github.io/hopr/" target="_blank" rel="noopener">Hands on Programming with R</a>.
+
+
+### Instructional videos
+
+* YouTube - R Programming Tutorial - Learn the Basics of Statistical Computing (approx 2h, goes through most basics).
+
+```{r chunk_chapter2_19, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315"
+  src="https://www.youtube.com/embed/_V8eKsto3Ug" title="YouTube video player"
+  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
+  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+* YouTube - Statistics with R, Tutorials by MarinStatsLectures - Lots of smaller videos for particular topics. 
+
+```{r chunk_chapter2_20, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315"
+  src="https://www.youtube.com/embed/riONFzJdXcs?list=PLqzoL9-eJTNBDdKgJgJzaQcY6OXmsXAHU"
+  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
+  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
