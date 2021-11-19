@@ -1,0 +1,3428 @@
+# Fundamental Principles and Techniques {#fundamental}
+
+```{=html}
+<!-- Put this here (right after the first markdown headline) and only here for each document! -->
+<script src="./scripts/multipleChoice.js"></script>
+```
+
+## Machine Learning Principles
+
+
+### Optimization
+
+Out of Wikipedia: "An optimization problem is the problem of finding the best solution from all feasible solutions".
+
+Why do we need this "optimization"?
+
+Somehow, we need to tell the algorithm what it should learn. To do so we have the so called **loss function**, which expresses what our goal is. But we also need to find the configurations where the loss function attains its minimum. This is the job of the optimizer. Thus, an optimization consists of:
+
+* A **loss function** (e.g. we tell the algorithm in each training step how many observations were misclassified) guides the training of machine learning algorithms.
+
+* The **optimizer**, which tries to update the weights of the machine learning algorithms in a way that the loss function is minimized.
+
+Calculating the global optimum analytically is a non-trivial problem and thus a bunch of diverse optimization algorithms evolved.
+
+Some optimization algorithms are inspired by biological systems e.g. ants, bees or even slimes. These optimizers are explained in the following video, have a look:
+
+```{r chunk_chapter4_0, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/X-iSQQgOd1A"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+```{=html}
+  <hr/>
+  <details>
+  	<summary>
+  		<strong><span style="color: #0011AA; font-size:25px;">Questions</span></strong>
+  	</summary>
+  	<p>
+      <script>
+        makeMultipleChoiceForm(
+  				'In the lecture, it was said that, during training, machine learning parameters are optimised to get a good fit (loss function) to training data. Which of the following statements about loss functions is correct?',
+  				'checkbox',
+  				[
+  					{
+  						'answer':'A loss function measures the difference between the (current) machine learning model prediction and the data.',
+  						'correct':true,
+  						'explanationIfSelected':'',
+  						'explanationIfNotSelected':'',
+  						'explanationGeneral':''
+  					},
+  					{
+  						'answer':'When we specify a simple line as our machine learning model, all loss functions will lead to the same line.',
+  						'correct':false,
+  						'explanationIfSelected':'',
+  						'explanationIfNotSelected':'',
+  						'explanationGeneral':''
+  					},
+  					{
+  						'answer':'Cross-Entropy and Kullback–Leibler divergence are common loss functions.',
+  						'correct':true,
+  						'explanationIfSelected':'',
+  						'explanationIfNotSelected':'',
+  						'explanationGeneral':''
+  					},
+  					{
+  						'answer':'For regression, there is only one sensible loss function, and this is the mean squared error.',
+  						'correct':false,
+  						'explanationIfSelected':'',
+  						'explanationIfNotSelected':'',
+  						'explanationGeneral':''
+            }
+          ],
+          ''
+        );
+      </script>
+    </p>
+  </details>
+  <hr/>
+```
+
+
+#### Small Optimization Example
+
+As an easy example for an optimization we can think of a quadratic function:
+
+```{r chunk_chapter4_1}
+func = function(x){ return(x^2) }
+```
+
+This function is so easy, we can randomly probe it and identify the optimum by plotting.
+
+```{r chunk_chapter4_2}
+set.seed(123)
+
+a = rnorm(100)
+plot(a, func(a))
+```
+
+The minimal value is at $x = 0$ (to be honest, we can calculate this analytically in this simple case).
+
+We can also use an optimizer with the optim-function (the first argument is the starting value):
+
+```{r chunk_chapter4_3}
+set.seed(123)
+
+opt = optim(1.0, func, method = "Brent", lower = -100, upper = 100)
+print(opt$par)
+```
+
+opt$par will return the best values found by the optimizer, which is really close to zero :)
+
+
+### Advanced Optimization Example
+
+Optimization is also done when fitting a linear regression model. Thereby, we optimize the weights (intercept and slope). Just using lm(y~x) is too simple. We want to do this by hand to also better understand what optimization is and how it works.
+
+As an example we take the airquality data set. First, we have to be sure to have no NAs in there. Then we split into response (Ozone) and predictors (Month, Day, Solar.R, Wind, Temp). Additionally it is beneficial for the optimizer, when the different predictors have the same support, and thus we scale them. 
+
+```{r chunk_chapter4_4}
+data = airquality[complete.cases(airquality$Ozone) & complete.cases(airquality$Solar.R),]
+X = scale(data[,-1])
+Y = data$Ozone
+```
+
+The model we want to optimize: $Ozone = Solar.R \cdot X1 + Wind \cdot X2 + Temp \cdot X3 + Month \cdot X4 + Day \cdot X5 + X6$
+
+We assume that the residuals are normally distributed, and our loss function to be the mean squared error: $\mathrm{mean}(predicted~ozone - true~ozone)^{2}$
+
+Our task is now to find the parameters $X1,\dots,X6$ for which this loss function is minimal. Therefore, we implement a function, that takes parameters and returns the loss.
+
+```{r chunk_chapter4_5}
+linear_regression = function(w){
+  pred = w[1]*X[,1] + # Solar.R
+         w[2]*X[,2] + # Wind
+         w[3]*X[,3] + # Temp
+         w[4]*X[,4] + # Month
+         w[5]*X[,5] +
+         w[6]         # or X * w[1:5]^T + w[6]
+  # loss  = MSE, we want to find the optimal weights 
+  # to minimize the sum of squared residuals.
+  loss = mean((pred - Y)^2)
+  return(loss)
+}
+```
+
+For example we can sample some weights and see how the loss changes with this weights.
+
+```{r chunk_chapter4_6}
+set.seed(123)
+
+linear_regression(runif(6))
+```
+
+We can try to find the optimum by bruteforce (what means we will use a random set of weights and see for which the loss function is minimal):
+
+```{r chunk_chapter4_7}
+set.seed(123)
+
+random_search = matrix(runif(6*5000, -10, 10), 5000, 6)
+losses = apply(random_search, 1, linear_regression)
+plot(losses, type = "l")
+random_search[which.min(losses),]
+```
+
+In most cases, bruteforce isn't a good approach. It might work well with only a few parameters, but with increasing complexity and more parameters it will take a long time. Furthermore it is not guaranteed that it finds a stable solution on continuous data.
+
+In R the optim function helps computing the optimum faster.
+
+```{r chunk_chapter4_8}
+opt = optim(runif(6, -1, 1), linear_regression)
+opt$par
+```
+
+In the background, mostly some _gradient descent_ methods are used.
+
+By comparing the weights from the optimizer to the estimated weights of the lm() function, we see that our self-written code obtains the same weights as the lm. Keep in mind, that our simple method uses random numbers thus the results might differ each run (without setting the seed).
+
+```{r chunk_chapter4_9}
+coef(lm(Y~X))
+```
+
+
+### Regularization
+
+Regularization means adding information or structure to a system in order to solve an ill-posed optimization problem or to prevent overfitting. There are many ways of regularizing a machine learning model. The most important distinction is between _shrinkage estimators_ and estimators based on _model averaging_. 
+
+**Shrikage estimators** are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are *"shrunk"* to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also _Lasso_ or _LASSO_, where the penalty is proportional to the sum of absolute deviations ($L1$ penalty), and the _Tikhonov regularization_ aka _Ridge regression_, where the penalty is proportional to the sum of squared distances from the reference ($L2$ penalty). Thus, the loss function that we optimize is given by
+
+$$
+loss = fit - \lambda \cdot d
+$$
+
+where fit refers to the standard loss function, $\lambda$ is the strength of the regularization, and $d$ is the chosen metric, e.g. $L1$ or$L2$:
+
+$$
+loss_{L1} = fit - \lambda \cdot \Vert weights \Vert_1
+$$
+$$
+loss_{L2} = fit - \lambda \cdot \Vert weights \Vert_2
+$$
+
+$\lambda$ and possibly d are typically optimized under cross-validation. $L1$ and $L2$ can be also combined what is then called _elastic net_ (see @zou2005).
+
+**Model averaging** refers to an entire set of techniques, including _boosting_, _bagging_ and other averaging techniques. The general principle is that predictions are made by combining (= averaging) several models. This is based on on the insight that it is often more efficient having many simpler models and average them, than one "super model". The reasons are complicated, and explained in more detail in @dormann2018.
+
+A particular important application of averaging is _boosting_, where the idea is that many weak learners are combined to a model average, resulting in a strong learner. Another related method is _bootstrap aggregating_, also called _bagging_. Idea here is to _boostrap_ (use random sampling with replacement ) the data, and average the bootstrapped predictions.
+
+To see how these techniques work in practice, let's first focus on LASSO and Ridge regularization for weights in neural networks. We can imagine that the LASSO and Ridge act similar to a rubber band on the weights that pulls them to zero if the data does not strongly push them away from zero. This leads to important weights, which are supported by the data, being estimated as different from zero, whereas unimportant model structures are reduced (shrunken) to zero.
+
+LASSO $\left(penalty \propto \sum_{}^{} \mathrm{abs}(weights) \right)$ and Ridge $\left(penalty \propto \sum_{}^{} weights^{2} \right)$ have slightly different properties. They are best understood if we express those as the effective prior preference they create on the parameters:
+
+```{r chunk_chapter4_10, echo = F}
+oldpar = par(mfrow = c(1, 2))
+curve(dexp(abs(x)), -5, 5, main = "LASSO prior")
+curve(dnorm(abs(x)), -5, 5, main = "Ridge prior")
+par(oldpar)
+```
+
+As you can see, the LASSO creates a very strong preference towards exactly zero, but falls off less strongly towards the tails. This means that parameters tend to be estimated either to exactly zero, or, if not, they are more free than the Ridge. For this reason, LASSO is often more interpreted as a model selection method. 
+
+The Ridge, on the other hand, has a certain area around zero where it is relatively indifferent about deviations from zero, thus rarely leading to exactly zero values. However, it will create a stronger shrinkage for values that deviate significantly from zero. 
+
+We can implement the linear regression also in Keras, when we do not specify any hidden layers:
+
+```{r chunk_chapter4_11, cache=TRUE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+X = scale(data[,-1])
+Y = data$Ozone
+# L1/L2 on linear model.
+
+model = keras_model_sequential()
+model %>%
+ layer_dense(units = 1L, activation = "linear", input_shape = list(dim(X)[2]))
+summary(model)
+
+model %>%
+ compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5),
+         metrics = c(metric_mean_squared_error))
+
+model_history =
+ model %>%
+ fit(x = X, y = Y, epochs = 100L, batch_size = 20L, shuffle = TRUE)
+
+unconstrained = model$get_weights()
+summary(lm(Y~X))
+coef(lm(Y~X))
+```
+
+<details>
+  <summary>
+    **<span style="color: #CC2FAA;">Torch</span>**
+  </summary>
+  <p>
+  
+```{r chunk_chapter4_12}
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(X)[2], out_features = 1L)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+X_torch = torch_tensor(X)
+Y_torch = torch_tensor(matrix(Y, ncol = 1L), dtype = torch_float32())
+for(i in 1:500){
+  indices = sample.int(nrow(X), 20L)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_mse_loss(pred, Y_torch[indices,,drop = FALSE])
+  loss$sum()$backward()
+  opt$step()
+}
+coef(lm(Y~X))
+model_torch$parameters
+```
+
+  </p>
+</details>
+<br/>
+
+TensorFlow and thus Keras also allow use using LASSO and Ridge on the weights. 
+Lets see what happens when we put an $L1$ (LASSO) regularization on the weights:
+
+```{r chunk_chapter4_13, cache=TRUE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+model = keras_model_sequential()
+model %>% # Remind the penalty lambda that is set to 10 here.
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(X)[2]), 
+              kernel_regularizer = regularizer_l1(10),
+              bias_regularizer = regularizer_l1(10))
+summary(model)
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5),
+          metrics = c(metric_mean_squared_error))
+
+model_history =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+
+l1 = model$get_weights()
+summary(lm(Y~X))
+coef(lm(Y~X))
+cbind(unlist(l1), unlist(unconstrained))
+```
+
+One can clearly see that parameters are pulled towards zero because of the regularization.
+
+<details>
+  <summary>
+    **<span style="color: #CC2FAA;">Torch</span>**
+  </summary>
+  <p>
+  
+    In Torch, we have to specify the regularization on our own when calculating the loss.
+    
+```{r chunk_chapter4_14}
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(X)[2], out_features = 1L)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+X_torch = torch_tensor(X)
+Y_torch = torch_tensor(matrix(Y, ncol = 1L), dtype = torch_float32())
+for(i in 1:500){
+  indices = sample.int(nrow(X), 20L)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_mse_loss(pred, Y_torch[indices,,drop = FALSE])
+  
+  # Add L1:
+  for(i in 1:length(model_torch$parameters)){
+    # Remind the penalty lambda that is set to 10 here.
+    loss = loss + model_torch$parameters[[i]]$abs()$sum()*10.0
+  }
+  
+  loss$sum()$backward()
+  opt$step()
+}
+coef(lm(Y~X))
+model_torch$parameters
+```
+
+  </p>
+</details>
+<br/>
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
+  In our linear regression model for the airquality dataset we only had to optimize 6 parameters/weights...
+... in neural networks, we have to optimize thousands, up to billions of weights.
+You can surlely imagine that the surface of the loss function is very complex, with many local optima. 
+Finding a global optimum is almost impossible, most of the times we are only searching for good local optima.
+
+The learning rate of the optimizers defines the step size in which the weights of the neural network are updated:
+
+<ul>
+  <li>Too high learning rates and optima might be jumped over.</li>
+  <li>Too low learning rates and we might be land in local optima or it might take too long.</li>
+</ul> 
+
+Below, there is the code for the iris dataset.
+
+Try out different learning rates, very high and very low learning rates, can you see a difference?
+```
+
+```{r chunk_chapter4_task_0}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+iris = datasets::iris
+X = scale(iris[,1:4])
+Y = iris[,5]
+Y = keras::k_one_hot(as.integer(Y)-1L, 3)
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 20L, activation = "relu", input_shape = list(4L)) %>%
+  layer_dense(units = 20L) %>%
+  layer_dense(units = 20L) %>%
+  layer_dense(units = 3L, activation = "softmax")
+# Softmax scales to (0, 1]; 3 output nodes for 3 response classes/labels.
+# The labels MUST start at 0!
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.5),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history)
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_1, cache=TRUE, message=FALSE, warning=FALSE}
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.005),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history2 =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history2)
+
+##########  -> (very) Low learning rate: May take (very) long 
+#           (and may need very many epochs) and get stuck in local optima.
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.00001),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history3 =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history3)
+
+keras::reset_states(model)
+
+# Try higher epoch number
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.00001),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history4 =
+  model %>%
+  fit(x = X, y = Y, epochs = 200L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history4)
+
+##########  -> (very) High learning rate (may skip optimum).
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 3),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history5 =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history5)
+
+##########  -> Higher epoch number (possibly better fitting, maybe overfitting).
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 3),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history6 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history6)
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.5),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history7 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history7)
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.00001),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history8 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history8)
+
+##########  -> Lower batch size.
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 3),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history9 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 5L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history9)
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.5),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history10 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 5L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history10)
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.00001),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history11 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 5L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history11)
+
+##########  -> Higher batch size (faster but less accurate).
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 3),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history12 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 50L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history12)
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.5),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history13 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 50L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history13)
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.00001),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history14 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 50L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+
+plot(model_history14)
+
+####################
+####################
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.05),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history15 =
+  model %>%
+  fit(x = X, y = Y, epochs = 150L, batch_size = 50L, shuffle = TRUE)
+
+plot(model_history15)
+
+##########  -> shuffle = FALSE (some kind of overfitting)
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.05),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history16 =
+  model %>%
+  fit(x = X, y = Y, epochs = 150L, batch_size = 50L, shuffle = FALSE)
+
+plot(model_history16)
+
+##########  -> shuffle = FALSE + lower batch size
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.05),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history17 =
+  model %>%
+  fit(x = X, y = Y, epochs = 150L, batch_size = 5L, shuffle = FALSE)
+
+plot(model_history17)
+
+##########  -> shuffle = FALSE + higher batch size
+#           (Many samples are taken at once, so no "hopping" any longer.)
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.05),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history18 =
+  model %>%
+  fit(x = X, y = Y, epochs = 150L, batch_size = 75L, shuffle = FALSE)
+
+plot(model_history18)
+```
+
+Play around with the parameters on your own!
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
+## Artificial Neural Networks
+
+Now, we will come to artificial neural networks (ANNs), for which the topic of regularization is very important. We can specify the regularization in each layer via the kernel_regularization (and/or the bias_regularization) argument.
+
+```{r chunk_chapter4_15, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+summary(data)
+data = data[complete.cases(data),] # Remove NAs.
+summary(data)
+
+X = scale(data[,2:6])
+Y = data[,1]
+
+model = keras_model_sequential()
+penalty = 0.1
+model %>%
+  layer_dense(units = 100L, activation = "relu",
+             input_shape = list(5L),
+             kernel_regularizer = regularizer_l1(penalty)) %>%
+  layer_dense(units = 100L, activation = "relu",
+             kernel_regularizer = regularizer_l1(penalty) ) %>%
+  layer_dense(units = 100L, activation = "relu",
+             kernel_regularizer = regularizer_l1(penalty)) %>%
+ # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear",
+             kernel_regularizer = regularizer_l1(penalty))
+
+model %>%
+ compile(
+   loss = loss_mean_squared_error,
+   keras::optimizer_adamax(learning_rate = 0.1)
+  )
+
+model_history =
+ model %>%
+ fit(x = X, y = matrix(Y, ncol = 1L), epochs = 100L,
+     batch_size = 20L, shuffle = TRUE, validation_split = 0.2)
+
+plot(model_history)
+weights = lapply(model$weights, function(w) w$numpy() )
+fields::image.plot(weights[[1]])
+```
+
+<details>
+  <summary>
+    **<span style="color: #CC2FAA;">Torch</span>**
+  </summary>
+  <p>
+  
+    Again, we have to do the regularization on our own:
+
+```{r chunk_chapter4_16}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(X)[2], out_features = 100L),
+  nn_relu(),
+  nn_linear(100L, 100L),
+  nn_relu(),
+  nn_linear(100L, 100L),
+  nn_relu(),
+  nn_linear(100L, 1L),
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.1)
+
+X_torch = torch_tensor(X)
+Y_torch = torch_tensor(matrix(Y, ncol = 1L), dtype = torch_float32())
+for(i in 1:500){
+  indices = sample.int(nrow(X), 20L)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_mse_loss(pred, Y_torch[indices,,drop = FALSE])
+  
+  # Add L1 (only on the 'kernel weights'):
+  for(i in seq(1, 8, by = 2)){
+    loss = loss + model_torch$parameters[[i]]$abs()$sum()*0.1
+  }
+  
+  loss$sum()$backward()
+  opt$step()
+}
+```
+
+Let's visualize the first (input) layer:
+
+```{r chunk_chapter4_17}
+fields::image.plot(as.matrix(model_torch$parameters$`0.weight`))
+```
+
+  </p>
+</details>
+<br/>
+
+Additionally to the usual $L1$ and $L2$ regularization there is another regularization: the so called **dropout-layer** (we will learn about this in more detail later).
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+The following code is our working example for the next exercises:
+
+```{r chunk_chapter4_task_2, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l1(10),
+             bias_regularizer = regularizer_l1(10))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+
+l1 = model$get_weights()
+
+linear = lm(y~x)
+summary(linear)
+
+cat("Linear:     ", round(coef(linear), 3))
+# The last parameter is the intercept (first parameter in lm).
+cat("L1:         ", round(c(unlist(l1)[length(unlist(l1))],
+                            unlist(l1)[1:(length(unlist(l1)) - 1 )]), 3))
+```
+
+What happens if you change the regularization from $L1$ to $L2$?
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_3, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l2(10),
+             bias_regularizer = regularizer_l2(10))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+
+l2 = model$get_weights()
+```
+
+```{r chunk_chapter4_task_4, message=FALSE, warning=FALSE, echo=FALSE}
+cat("Linear:     ", round(coef(linear), 3))
+cat("L1:         ", round(c(unlist(l1)[length(unlist(l1))],
+                            unlist(l1)[1:(length(unlist(l1)) - 1 )]), 3))
+cat("L2:         ", round(c(unlist(l2)[length(unlist(l2))],
+                            unlist(l2)[1:(length(unlist(l2)) - 1 )]), 3))
+```
+
+Weights 4 and 5 are strongly pushed towards zero with $L1$ regularization, but $L2$ regularization shrinks more in general.
+*Note*: The weights are not similar to the linear model! (But often, they keep their sign.)
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Try different regularization strengths, try to push the weights to zero. What is the strategy to push the parameters to zero?
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+**Now with less regularization:**
+
+```{r chunk_chapter4_task_5, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l1(1),
+             bias_regularizer = regularizer_l1(1))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+
+l1_lesser = model$get_weights()
+```
+```{r chunk_chapter4_task_6, message=FALSE, warning=FALSE, echo=FALSE}
+cat("Linear:     ", round(coef(linear), 3))
+cat("L1:         ", round(c(unlist(l1)[length(unlist(l1))],
+                            unlist(l1)[1:(length(unlist(l1)) - 1 )]), 3))
+cat("L1, lesser: ", round(c(unlist(l1_lesser)[length(unlist(l1_lesser))],
+                            unlist(l1_lesser)[1:(length(unlist(l1_lesser)) - 1 )]), 3))
+```
+
+```{r chunk_chapter4_task_7, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l2(1),
+             bias_regularizer = regularizer_l2(1))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+
+l2_lesser = model$get_weights()
+```
+```{r chunk_chapter4_task_8, message=FALSE, warning=FALSE, echo=FALSE}
+cat("Linear:     ", round(coef(linear), 3))
+cat("L2:         ", round(c(unlist(l2)[length(unlist(l2))],
+                            unlist(l2)[1:(length(unlist(l2)) - 1 )]), 3))
+cat("L2, lesser: ", round(c(unlist(l2_lesser)[length(unlist(l2_lesser))],
+                            unlist(l2_lesser)[1:(length(unlist(l2_lesser)) - 1 )]), 3))
+```
+
+**And with more regularization:**
+
+```{r chunk_chapter4_task_9, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l1(25),
+             bias_regularizer = regularizer_l1(25))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+
+l1_higher = model$get_weights()
+```
+```{r chunk_chapter4_task_10, message=FALSE, warning=FALSE, echo=FALSE}
+cat("Linear:     ", round(coef(linear), 3))
+cat("L1:         ", round(c(unlist(l1)[length(unlist(l1))],
+                            unlist(l1)[1:(length(unlist(l1)) - 1 )]), 3))
+cat("L1, lesser: ", round(c(unlist(l1_lesser)[length(unlist(l1_lesser))],
+                            unlist(l1_lesser)[1:(length(unlist(l1_lesser)) - 1 )]), 3))
+cat("L1, higher: ", round(c(unlist(l1_higher)[length(unlist(l1_higher))],
+                            unlist(l1_higher)[1:(length(unlist(l1_higher)) - 1 )]), 3))
+```
+
+```{r chunk_chapter4_task_11, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l2(25),
+             bias_regularizer = regularizer_l2(25))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+
+l2_higher = model$get_weights()
+```
+
+```{r chunk_chapter4_task_12, message=FALSE, warning=FALSE, echo=FALSE}
+cat("Linear:     ", round(coef(linear), 3))
+cat("L2:         ", round(c(unlist(l2)[length(unlist(l2))],
+                            unlist(l2)[1:(length(unlist(l2)) - 1 )]), 3))
+cat("L2, lesser: ", round(c(unlist(l2_lesser)[length(unlist(l2_lesser))],
+                            unlist(l2_lesser)[1:(length(unlist(l2_lesser)) - 1 )]), 3))
+cat("L2, higher: ", round(c(unlist(l2_higher)[length(unlist(l2_higher))],
+                            unlist(l2_higher)[1:(length(unlist(l2_higher)) - 1 )]), 3))
+```
+
+For pushing weights towards zero, $L1$ regularization is used rather than $L2$.
+Higher regularization leads to smaller parameters (maybe in combination with smaller learning rates).
+
+Play around on your own! Ask questions if you have any.
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Use a combination of $L1$ and a $L2$ regularization (there is a Keras function for this). How is this kind of regularization called and what is the advantage of this approach?
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_13, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l1_l2(10),
+             bias_regularizer = regularizer_l1_l2(10))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+```
+
+This kind of regularization is called **Elastic net**. It is a combination of LASSO ($L1$) and Ridge. It is more flexible than $L1$ and less flexible than $L2$ and higher computational cost. Elastic net does shrinkage as well, but does not separate highly correlated parameters out that much.
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+In Keras you can tell the model to keep a specific percentage of the data as holdout (validation_split argument in the fit function):
+
+```{r chunk_chapter4_task_14, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+data = data[complete.cases(data),]
+x = scale(data[,2:6])
+y = data[,1]
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 100L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 100L) %>%
+  layer_dense(units = 100L) %>%
+  # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear")
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.1))
+
+model_history =
+  model %>%
+    fit(x = x, y = matrix(y, ncol = 1L), epochs = 50L, batch_size = 20L,
+        shuffle = TRUE, validation_split = 0.2)
+
+plot(model_history)
+```
+
+Run the code and view the loss for the train and the validation (test) set in the viewer panel. What happens with the validation loss? Why?
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+The training loss keeps decreasing, but the validation loss increases after a time. This increase in validation loss is due to overfitting.
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Add $L1$ / $L2$ regularization to the neural network above and try to keep the test loss close to the training loss. Try a little higher epoch number!
+
+Explain the strategy that helps to achieve this. 
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+**Adding regularization (**$L1$ **and** $L2$**):**
+
+```{r chunk_chapter4_task_15, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+data = data[complete.cases(data),]
+x = scale(data[,2:6])
+y = data[,1]
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 100L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear")
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.1))
+
+model_history =
+  model %>%
+    fit(x = x, y = matrix(y, ncol = 1L), epochs = 150L, batch_size = 20L,
+        shuffle = TRUE, validation_split = 0.2)
+
+plot(model_history)
+```
+
+**Adding higher regularization (**$L1$ **and** $L2$**):**
+
+```{r chunk_chapter4_task_16, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+data = data[complete.cases(data),]
+x = scale(data[,2:6])
+y = data[,1]
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 100L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(15),
+              bias_regularizer = regularizer_l1(2)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(15),
+              bias_regularizer = regularizer_l1(2)) %>%
+  # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear")
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.1))
+
+model_history =
+  model %>%
+    fit(x = x, y = matrix(y, ncol = 1L), epochs = 150L, batch_size = 20L,
+        shuffle = TRUE, validation_split = 0.2)
+
+plot(model_history)
+```
+
+*Keep in mind: With higher regularization, both the training and the validation loss keep relatively high!*
+
+**Adding normal regularization (**$L1$ **and** $L2$**) and use a larger learning rate:**
+
+```{r chunk_chapter4_task_17, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+data = data[complete.cases(data),]
+x = scale(data[,2:6])
+y = data[,1]
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 100L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear")
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.2))
+
+model_history =
+  model %>%
+    fit(x = x, y = matrix(y, ncol = 1L), epochs = 150L, batch_size = 20L,
+        shuffle = TRUE, validation_split = 0.2)
+
+plot(model_history)
+```
+
+**Adding normal regularization (**$L1$ **and** $L2$**) and use a very low learning rate:**
+
+```{r chunk_chapter4_task_18, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+data = data[complete.cases(data),]
+x = scale(data[,2:6])
+y = data[,1]
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 100L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear")
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.001))
+
+model_history =
+  model %>%
+    fit(x = x, y = matrix(y, ncol = 1L), epochs = 150L, batch_size = 20L,
+        shuffle = TRUE, validation_split = 0.2)
+
+plot(model_history)
+```
+
+Look at the constantly lower validation loss.
+
+**Adding low regularization (**$L1$ **and** $L2$**) and use a very low learning rate:**
+
+```{r chunk_chapter4_task_19, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+data = data[complete.cases(data),]
+x = scale(data[,2:6])
+y = data[,1]
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 100L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(.5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(.5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear")
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.001))
+
+model_history =
+  model %>%
+    fit(x = x, y = matrix(y, ncol = 1L), epochs = 150L, batch_size = 20L,
+        shuffle = TRUE, validation_split = 0.2)
+
+plot(model_history)
+```
+
+This was a good example for **early stopping**.
+
+**Taking the example from above, but without shuffling:**
+
+```{r chunk_chapter4_task_20, cache=TRUE, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+data = data[complete.cases(data),]
+x = scale(data[,2:6])
+y = data[,1]
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 100L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(.5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(.5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear")
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.001))
+
+model_history =
+  model %>%
+    fit(x = x, y = matrix(y, ncol = 1L), epochs = 150L, batch_size = 20L,
+        shuffle = FALSE, validation_split = 0.2)
+
+plot(model_history)
+```
+
+Play around with regularization kind ($L1$, $L2$, $L1,L2$) strength and the learning rate also on your own!
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
+## Tree-based Machine Learning Algorithms
+
+Famous machine learning algorithms such as _Random Forest_ and _Gradient Boosted trees_ are based on classification and regression trees.
+**Hint**: Tree-based algorithms are not distance based and thus do not need scaling.
+
+
+If you want to know a little bit more about the concepts described in the following - like decision, classification and regression trees as well as random forests - you might watch the following videos:
+
+* <a href="https://www.youtube.com/watch?v=7VeUPuFGJHk" target="_blank" rel="noopener">Decision trees</a>
+
+```{r chunk_chapter4_18, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/7VeUPuFGJHk"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+* <a href="https://www.youtube.com/watch?v=g9c66TUylZ4" target="_blank" rel="noopener">Regression trees</a>
+```{r chunk_chapter4_19, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/g9c66TUylZ4"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+* <a href="https://www.youtube.com/watch?v=J4Wdy0Wc_xQ" target="_blank" rel="noopener">Random forests</a>
+```{r chunk_chapter4_20, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/J4Wdy0Wc_xQ"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+* <a href="https://www.youtube.com/watch?v=D0efHEJsfHo" target="_blank" rel="noopener">Pruning trees</a>
+```{r chunk_chapter4_21, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/D0efHEJsfHo"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+After watching these videos, you should know what the different hyperparameters are doing and how to prevent trees / forests from doing something you don't want.
+
+
+### Classification and Regression Trees
+
+Tree-based models in general use a series of if-then rules to generate predictions from one or more decision trees.
+In this lecture, we will explore regression and classification trees by the example of the airquality data set. There is one important hyperparameter for regression trees: "minsplit".
+
+* It controls the depth of tree (see the help of rpart for a description).
+* It controls the complexity of the tree and can thus also be seen as a regularization parameter.
+
+We first prepare and visualize the data and afterwards fit a decision tree. 
+
+```{r chunk_chapter4_22, results='hide', message=FALSE, warning=FALSE}
+library(rpart)
+library(rpart.plot)
+
+data = airquality[complete.cases(airquality),]
+```
+
+Fit and visualize one(!) regression tree:
+
+```{r chunk_chapter4_23}
+rt = rpart(Ozone~., data = data, control = rpart.control(minsplit = 10))
+rpart.plot(rt)
+```
+
+Visualize the predictions:
+
+```{r chunk_chapter4_24}
+pred = predict(rt, data)
+plot(data$Temp, data$Ozone)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+```
+
+The angular form of the prediction line is typical for regression trees and is a weakness of it.
+
+
+### Random Forest
+
+To overcome this weakness, a random forest uses an ensemble of regression/classification trees. Thus, the random forest is in principle nothing else than a normal regression/classification tree, but it uses the idea of the *"wisdom of the crowd"* : By asking many people (regression/classification trees) one can make a more informed decision (prediction/classification). When you want to buy a new phone for example you also wouldn't go directly into the shop, but search in the internet and ask your friends and family.  
+
+There are two randomization steps with the random forest that are responsible for their success:
+
+* Bootstrap samples for each tree (we will sample observations with replacement from the data set. For the phone this is like not everyone has experience about each phone).
+* At each split, we will sample a subset of predictors that is then considered as potential splitting criterion (for the phone this is like that not everyone has the same decision criteria).
+Annotation: While building a decision tree (random forests consist of many decision trees), one splits the data at some point according to their features. For example if you have females and males, big and small people in a crowd, you con split this crowd by gender and then by size or by size and then by gender to build a decision tree.
+
+Applying the random forest follows the same principle as for the methods before: We visualize the data (we have already done this so often for the airquality data set, thus we skip it here), fit the algorithm and then plot the outcomes.
+
+Fit a random forest and visualize the predictions:
+
+```{r chunk_chapter4_25, message=FALSE, warning=FALSE}
+library(randomForest)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+
+rf = randomForest(Ozone~., data = data)
+pred = predict(rf, data)
+plot(Ozone~Temp, data = data)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+```
+
+One advantage of random forests is that we will get an importance of variables. At each split in each tree, the improvement in the split-criterion is the importance measure attributed to the splitting variable, and is accumulated over all the trees in the forest separately for each variable. Thus the variable importance shows us how important a variable is averaged over all trees.
+
+```{r chunk_chapter4_26}
+rf$importance
+```
+
+There are several important hyperparameters in a random forest that we can tune to get better results:
+
+* Similar to the minsplit parameter in regression and classification trees, the hyperparameter "nodesize" controls for complexity $\rightarrow$ Minimum size of terminal nodes in the tree. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
+* mtry: Number of features randomly sampled as candidates at each split.
+
+
+### Boosted Regression Trees
+
+Random forests fit hundreds of trees independent of each other. Here, the idea of a boosted regression tree comes in. Maybe we could learn from the errors the previous weak learners made and thus enhance the performance of the algorithm. 
+
+A boosted regression tree (BRT) starts with a simple regression tree (weak learner) and then sequentially fits additional trees to improve the results.
+There are two different strategies to do so:
+
+* _AdaBoost_: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.
+* _Gradient boosting_ (state of the art): Each sequential model will be fit on the residual errors of the previous model.
+
+We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix.
+
+```{r chunk_chapter4_27, cache=TRUE, results='hide', message=FALSE, warning=FALSE}
+library(xgboost)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+```
+
+```{r chunk_chapter4_28__BRT1, cache=TRUE}
+data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
+brt = xgboost(data_xg, nrounds = 16L)
+```
+
+The parameter "nrounds" controls how many sequential trees we fit, in our example this was 16. When we predict on new data, we can limit the number of trees used to prevent overfitting (remember: each new tree tries to improve the predictions of the previous trees). 
+
+Let us visualize the predictions for different numbers of trees:
+
+```{r chunk_chapter4_29__BRT2, cache=TRUE}
+oldpar = par(mfrow = c(2, 2))
+for(i in 1:4){
+  pred = predict(brt, newdata = data_xg, ntreelimit = i)
+  plot(data$Temp, data$Ozone, main = i)
+  lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+}
+par(oldpar)
+```
+
+There are also other ways to control for complexity of the boosted regression tree algorithm:
+
+* max_depth: Maximum depth of each tree.
+* shrinkage (each tree will get a weight and the weight will decrease with the number of trees).
+
+When having specified the final model, we can obtain the importance of the variables like for random forests:
+
+```{r chunk_chapter4_30__BRT3, cache=TRUE}
+xgboost::xgb.importance(model = brt)
+sqrt(mean((data$Ozone - pred)^2)) # RMSE
+data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
+```
+
+One important strength of xgboost is that we can directly do a cross-validation (which is independent of the boosted regression tree itself!) and specify its properties with the parameter "n-fold":
+
+```{r chunk_chapter4_31__BRT4, cache=TRUE}
+set.seed(123)
+
+brt = xgboost(data_xg, nrounds = 5L)
+brt_cv = xgboost::xgb.cv(data = data_xg, nfold = 3L,
+                         nrounds = 3L, nthreads = 4L)
+print(brt_cv)
+```
+
+Annotation: The original data set is randomly partitioned into $n$ equal sized subsamples. Each time, the model is trained on $n - 1$ subsets (training set) and tested on the left out set (test set) to judge the performance.
+
+If we do three-folded cross-validation, we actually fit three different boosted regression tree models (xgboost models) on $\approx 67\%$ of the data points. Afterwards, we judge the performance on the respective holdout. This now tells us how well the model performed.
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+We will use the following code snippet to see the influence of mincut on trees.
+
+```{r chunk_chapter4_task_21, eval=FALSE}
+library(tree)
+set.seed(123)
+
+data = airquality
+rt = tree(Ozone~., data = data,
+          control = tree.control(mincut = 1L, nobs = nrow(data)))
+
+plot(rt)
+text(rt)
+pred = predict(rt, data)
+plot(data$Temp, data$Ozone)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+sqrt(mean((data$Ozone - pred)^2)) # RMSE
+```
+
+Try different mincut parameters and see what happens.
+(Compare the root mean squared error for different mincut parameters and explain what you see.
+Compare predictions for different mincut parameters and explain what happens.)
+What was wrong in the snippet above?
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_22}
+library(tree)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+
+doTask = function(mincut){
+  rt = tree(Ozone~., data = data,
+            control = tree.control(mincut = mincut, nobs = nrow(data)))
+
+  pred = predict(rt, data)
+  plot(data$Temp, data$Ozone,
+       main = paste0(
+         "mincut: ", mincut,
+         "\nRMSE: ", round(sqrt(mean((data$Ozone - pred)^2)), 2)
+      )
+  )
+  lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+}
+
+for(i in c(1, 2, 3, 5, 10, 15, 25, 50, 54, 55, 56, 57, 75, 100)){ doTask(i) }
+```
+Approximately at mincut = 15, prediction is the best (mind overfitting). After mincut = 56, the prediction has no information at all and the RMSE stays constant.
+
+Mind the complete cases of the airquality data set, that was the error.
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+We will use the following code snippet to explore a random forest:
+
+```{r chunk_chapter4_task_23, message=FALSE, warning=FALSE}
+library(randomForest)
+set.seed(123)
+
+airquality[complete.cases(airquality),]
+
+rf = randomForest(Ozone~., data = data)
+
+pred = predict(rf, data)
+importance(rf)
+cat("RMSE: ", sqrt(mean((data$Ozone - pred)^2)), "\n")
+
+plot(data$Temp, data$Ozone)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+```
+
+Try different values for the nodesize and mtry and describe how the predictions depend on these parameters.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_24, message=FALSE, warning=FALSE}
+library(randomForest)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+
+
+for(nodesize in c(1, 5, 15, 50, 100)){
+  for(mtry in c(1, 3, 5)){
+    rf = randomForest(Ozone~., data = data, mtry = mtry, nodesize = nodesize)
+    
+    pred = predict(rf, data)
+    
+    plot(data$Temp, data$Ozone, main = paste0(
+        "mtry: ", mtry, "    nodesize: ", nodesize,
+        "\nRMSE: ", round(sqrt(mean((data$Ozone - pred)^2)), 2)
+      )
+    )
+    lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+  }
+}
+```
+
+Higher numbers for mtry smooth the prediction curve and yield less overfitting. The same holds for the nodesize.
+In other words: The bigger the nodesize, the smaller the trees and the more bias/less variance.
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+```{r chunk_chapter4_task_25, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
+library(xgboost)
+library(animation)
+set.seed(123)
+
+x1 = seq(-3, 3, length.out = 100)
+x2 = seq(-3, 3, length.out = 100)
+x = expand.grid(x1, x2)
+y = apply(x, 1, function(t) exp(-t[1]^2 - t[2]^2))
+
+
+image(matrix(y, 100, 100), main = "Original image", axes = FALSE, las = 2)
+axis(1, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1))
+axis(2, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+
+
+model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
+                         nrounds = 500L, verbose = 0L)
+pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
+               ntreelimit = 10L)
+
+saveGIF(
+  {
+    for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
+      pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
+                     ntreelimit = i)
+      image(matrix(pred, 100, 100), main = paste0("Trees: ", i),
+            axes = FALSE, las = 2)
+      axis(1, at = seq(0, 1, length.out = 10),
+           labels = round(seq(-3, 3, length.out = 10), 1))
+      axis(2, at = seq(0, 1, length.out = 10),
+           labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+    }
+  },
+  movie.name = "boosting.gif", autobrowse = FALSE
+)
+```
+```{r chunk_chapter4_task_26, message=FALSE, warning=FALSE, echo=FALSE, purl=FALSE}
+knitr::include_graphics("./images/boosting.gif")
+```
+
+Run the above code and play with different parameters for xgboost (especially with parameters that control the complexity) and describe what you see!
+
+Tip: have a look at the boosting.gif.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_27, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
+library(xgboost)
+library(animation)
+set.seed(123)
+
+x1 = seq(-3, 3, length.out = 100)
+x2 = seq(-3, 3, length.out = 100)
+x = expand.grid(x1, x2)
+y = apply(x, 1, function(t) exp(-t[1]^2 - t[2]^2))
+
+image(matrix(y, 100, 100), main = "Original image", axes = FALSE, las = 2)
+axis(1, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1))
+axis(2, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+
+for(eta in c(.1, .3, .5, .7, .9)){
+  for(max_depth in c(3, 6, 10, 20)){
+    model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
+                             max_depth = max_depth, eta = eta,
+                             nrounds = 500, verbose = 0L)
+  
+    saveGIF(
+      {
+        for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
+          pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
+                         ntreelimit = i)
+          image(matrix(pred, 100, 100),
+                main = paste0("eta: ", eta,
+                              "    max_depth: ", max_depth,
+                              "    Trees: ", i),
+                axes = FALSE, las = 2)
+          axis(1, at = seq(0, 1, length.out = 10),
+               labels = round(seq(-3, 3, length.out = 10), 1))
+          axis(2, at = seq(0, 1, length.out = 10),
+               labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+        }
+      },
+      movie.name = paste0("boosting_", max_depth, "_", eta, ".gif"),
+      autobrowse = FALSE
+    )
+  }
+}
+```
+
+As the possibilities scale extremely, you must vary some parameters on yourself.
+You may use for example the following parameters: "eta", "gamma", "max_depth", "min_child_weight", "subsample", "colsample_bytree", "num_parallel_tree", "monotone_constraints" or "interaction_constraints". Or you look into the documentation:
+
+```{r chunk_chapter4_task_28, eval=FALSE, purl=FALSE}
+?xgboost::xgboost
+```
+
+Just some examples:
+
+```{r chunk_chapter4_task_29, message=FALSE, warning=FALSE, echo=FALSE, purl=FALSE}
+knitr::include_graphics("./images/boosting_3_0.1.gif")
+knitr::include_graphics("./images/boosting_6_0.7.gif")
+knitr::include_graphics("./images/boosting_20_0.9.gif")
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+We implemented a simple boosted regression tree using R just for fun.
+Go through the code line by line and try to understand it. Ask, if you have any questions you cannot solve.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">...</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_30, message=FALSE, warning=FALSE}
+library(tree)
+set.seed(123)
+
+depth = 1L
+
+#### Simulate Data
+x = runif(1000, -5, 5)
+y = x * sin(x) * 2 + rnorm(1000, 0, cos(x) + 1.8)
+data = data.frame(x = x, y = y)
+plot(y~x)
+
+#### Helper function for single tree fit.
+get_model = function(x, y){
+  control = tree.control(nobs = length(x), mincut = 20L)
+  model = tree(y~x, data.frame(x = x, y = y), control = control)
+  pred = predict(model, data.frame(x = x, y = y))
+  return(list(model = model, pred = pred))
+}
+
+#### Boost function.
+get_boosting_model = function(depth){
+  pred = NULL
+  m_list = list()
+  for(i in 1:depth){
+    if(i == 1){
+      m = get_model(x, y)
+      pred = m$pred
+    }else{
+      y_res = y - pred
+      m = get_model(x, y_res)
+      pred = pred + m$pred
+    }
+    m_list[[i]] = m$model
+  }
+  model_list <<- m_list  # This writes outside function scope!
+  return(pred)
+}
+
+### Main.
+pred = get_boosting_model(10L)[order(data$x)]
+
+length(model_list)
+plot(model_list[[1]])
+
+plot(y~x)
+lines(x = data$x[order(data$x)], get_boosting_model(1L)[order(data$x)],
+      col = 'red', lwd = 2)
+lines(x = data$x[order(data$x)], get_boosting_model(100L)[order(data$x)],
+      col = 'green', lwd = 2)
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
+## Distance-based Algorithms
+
+In this chapter, we introduce support-vector machines (SVMs) and other distance-based methods
+**Hint**: Distance-based models need scaling!
+
+
+### K-Nearest-Neighbor
+
+K-nearest-neighbor (kNN) is a simple algorithm that stores all the available cases and classifies the new data based on a similarity measure. It is mostly used to classify a data point based on how its $k$ nearest neighbors are classified.
+
+Let us first see an example:
+
+```{r chunk_chapter4_32}
+x = scale(iris[,1:4])
+y = iris[,5]
+plot(x[-100,1], x[-100, 3], col = y)
+points(x[100,1], x[100, 3], col = "blue", pch = 18, cex = 1.3)
+```
+
+Which class would you decide for the blue point? What are the classes of the nearest points? Well, this procedure is used by the k-nearest-neighbors classifier and thus there is actually no "real" learning in a k-nearest-neighbors classification.
+
+For applying a k-nearest-neighbors classification, we first have to scale the data set, because we deal with distances and want the same influence of all predictors. Imagine one variable has values from -10.000 to 10.000 and another from -1 to 1. Then the influence of the first variable on the distance to the other points is much stronger than the influence of the second variable.
+On the iris data set, we have to split the data into training and test set on our own. Then we will follow the usual pipeline. 
+
+```{r chunk_chapter4_33}
+data = iris
+data[,1:4] = apply(data[,1:4],2, scale)
+indices = sample.int(nrow(data), 0.7*nrow(data))
+train = data[indices,]
+test = data[-indices,]
+```
+
+Fit model and create predictions:
+
+```{r chunk_chapter4_34}
+library(kknn)
+set.seed(123)
+
+knn = kknn(Species~., train = train, test = test)
+summary(knn)
+table(test$Species, fitted(knn))
+```
+
+
+### Support Vector Machines (SVMs)
+
+Support vectors machines have a different approach. They try to divide the predictor space into sectors for each class. To do so, a support-vector machine fits the parameters of a hyperplane (a $n-1$ dimensional subspace in a $n$-dimensional space) in the predictor space by optimizing the distance between the hyperplane and the nearest point from each class. 
+
+Fitting a support-vector machine:
+
+```{r chunk_chapter4_35}
+library(e1071)
+
+data = iris
+data[,1:4] = apply(data[,1:4], 2, scale)
+indices = sample.int(nrow(data), 0.7*nrow(data))
+train = data[indices,]
+test = data[-indices,]
+
+sm = svm(Species~., data = train, kernel = "linear")
+pred = predict(sm, newdata = test)
+```
+
+```{r chunk_chapter4_36}
+oldpar = par(mfrow = c(1, 2))
+plot(test$Sepal.Length, test$Petal.Length,
+     col =  pred, main = "predicted")
+plot(test$Sepal.Length, test$Petal.Length,
+     col =  test$Species, main = "observed")
+par(oldpar)
+
+mean(pred == test$Species) # Accuracy.
+```
+
+Support-vector machines can only work on linearly separable problems. (A problem is called linearly separable if there exists at least one line in the plane with all of the points of one class on one side of the hyperplane and all the points of the others classes on the other side).
+
+If this is not possible, we however, can use the so called *kernel trick*, which maps the predictor space into a (higher dimensional) space in which the problem is linear separable. After having identified the boundaries in the higher-dimensional space, we can project them back into the original dimensions.
+
+```{r chunk_chapter4_37, eval=FALSE, purl=FALSE}
+x1 = seq(-3, 3, length.out = 100)
+x2 = seq(-3, 3, length.out = 100)
+x = expand.grid(x1, x2)
+y = apply(X, 1, function(t) exp(-t[1]^2 - t[2]^2))
+y = ifelse(1/(1+exp(-y)) < 0.62, 0, 1)
+
+image(matrix(y, 100, 100))
+animation::saveGIF(
+  {
+    for(i in c("truth", "linear", "radial", "sigmoid")){
+      if(i == "truth"){
+        image(matrix(y, 100,100),
+        main = "Ground truth", axes = FALSE, las = 2)
+      }else{
+        sv = e1071::svm(x = x, y = factor(y), kernel = i)
+        image(matrix(as.numeric(as.character(predict(sv, x))), 100, 100),
+        main = paste0("Kernel: ", i), axes = FALSE, las = 2)
+        axis(1, at = seq(0,1, length.out = 10),
+        labels = round(seq(-3, 3, length.out = 10), 1))
+        axis(2, at = seq(0,1, length.out = 10),
+        labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+      }
+    }
+  },
+  movie.name = "svm.gif", autobrowse = FALSE
+)
+```
+
+```{r chunk_chapter4_38, message=FALSE, warning=FALSE, echo=FALSE, purl=FALSE}
+knitr::include_graphics("./images/svm.gif")
+```
+
+As you have seen, this does not work with every kernel. Hence, the problem is to find the actual correct kernel, which is again an optimization procedure and can thus be approximated.
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+We will use the Sonar data set to explore support-vector machines and k-neartest-neighbor classifier.
+
+```{r chunk_chapter4_task_31}
+library(mlbench)
+set.seed(123)
+
+data(Sonar)
+data = Sonar
+indices = sample.int(nrow(Sonar), 0.5 * nrow(Sonar))
+```
+
+Split the Sonar data set from the mlbench library into training- and testset with 50% in each group. Is this a useful split?
+The response variable is "class". So you are trying to classify the class.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_32}
+library(mlbench)
+set.seed(123)
+
+data(Sonar)
+data = Sonar
+#str(data)
+
+# Do not forget scaling! This may be done implicitly by most functions.
+# Here, it's done explicitly for teaching purposes.
+data = cbind.data.frame(
+  scale(data[,-length(data)]),
+  "class" = data[,length(data)]
+)
+
+n = length(data[,1])
+indicesTrain = sample.int(n, (n+1) %/% 2) # Take (at least) 50 % of the data.
+
+train = data[indicesTrain,]
+test = data[-indicesTrain,]
+
+labelsTrain = train[,length(train)]
+labelsTest = test[,length(test)]
+```
+
+Until you have strong reasons for that, 50/50 is no really good decision. You waste data/power.
+Do not forget scaling!
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Fit a standard k-nearest-neighbor classifier and a support vector machine with a linear kernel (check help), and report what fitted better.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_33}
+library(e1071)
+library(kknn)
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "rectangular")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
+predSVM = predict(sm, newdata = test)
+```
+
+```{r chunk_chapter4_task_34, echo=FALSE}
+contingency = table(predKNN, labelsTest)
+cat("K-nearest-neighbor, standard (rectangular) kernel:\n\n")
+print(contingency)
+cat("Correctly classified: ", contingency[1, 1] + contingency[2, 2],
+    " / ", sum(contingency))
+```
+
+```{r chunk_chapter4_task_35, echo=FALSE}
+contingency = table(predSVM, labelsTest)
+cat("Support-vector machine, linear kernel:\n\n")
+print(contingency)
+cat("Correctly classified: ", contingency[1, 1] + contingency[2, 2],
+    " / ", sum(contingency))
+```
+
+K-nearest neighbor fitted (slightly) better.
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Calculate accuracies of both algorithms.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_36}
+(accKNN = mean(predKNN == labelsTest))
+(accSVM = mean(predSVM == labelsTest))
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Fit again with different kernels and compare accuracies.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_37}
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "optimal")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "radial")
+predSVM = predict(sm, newdata = test)
+
+(accKNN = mean(predKNN == labelsTest))
+(accSVM = mean(predSVM == labelsTest))
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Try the fit again with a different seed for training and test set generation.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_38}
+set.seed(42)
+
+data = Sonar
+data = cbind.data.frame(
+  scale(data[,-length(data)]),
+  "class" = data[,length(data)]
+)
+
+n = length(data[,1])
+indicesTrain = sample.int(n, (n+1) %/% 2)
+
+train = data[indicesTrain,]
+test = data[-indicesTrain,]
+
+labelsTrain = train[,length(train)]
+labelsTest = test[,length(test)]
+
+#####
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "rectangular")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
+predSVM = predict(sm, newdata = test)
+
+(accKNN = mean(predKNN == labelsTest))
+(accSVM = mean(predSVM == labelsTest))
+
+#####
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "optimal")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "radial")
+predSVM = predict(sm, newdata = test)
+
+(accKNN = mean(predKNN == labelsTest))
+(accSVM = mean(predSVM == labelsTest))
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
+## The Standard Machine Learning Pipeline at the Eexample of the Titanic Data set
+
+Before we specialize on any tuning, it is important to understand that machine learning always consists of a pipeline of actions. 
+
+The typical machine learning workflow consist of:
+
+* Data cleaning and exploration (EDA = explorative data analysis) for example with tidyverse.
+* Preprocessing and feature selection.
+* Splitting data set into training and test set for evaluation.
+* Model fitting.
+* Model evaluation.
+* New predictions.
+
+Here is an (optional) video that explains the entire pipeline from a slightly different perspective:
+
+```{r chunk_chapter4_39, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/nKW8Ndu7Mjw"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+In the following example, we use tidyverse, a collection of R packages for data science / data manipulation mainly developed by Hadley Wickham. A video that explains the basics can be found here :
+
+```{r chunk_chapter4_40, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/nRtp7wSEtJA"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+Another good reference is "**R for data science**" by Hadley Wickham: <a href="https://r4ds.had.co.nz/" target="_blank" rel="noopener"></a>.
+
+For this lecture you need the Titanic data set provided by us. You can find it in GRIPS (datasets.RData in the data set and submission section) or at <a href="http://rhsbio6.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio6.uni-regensburg.de:8500</a>.
+
+We have split the data set already into training and test/prediction data sets (the test/prediction split has one column less than the train split, as the result is not known a priori).
+
+
+### Data Cleaning
+
+Load necessary libraries:
+
+```{r chunk_chapter4_41, message=FALSE}
+library(keras)
+library(tensorflow)
+library(tidyverse)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+```
+
+Load data set:
+
+```{r chunk_chapter4_42}
+library(EcoData)
+data(titanic_ml)
+data = titanic_ml
+```
+
+Standard summaries:
+
+```{r chunk_chapter4_43}
+str(data)
+summary(data)
+head(data)
+```
+
+The name variable consists of 1309 unique factors (there are 1309 observations...):
+
+```{r chunk_chapter4_44}
+length(unique(data$name))
+```
+
+However, there is a title in each name. Let's extract the titles:
+
+1. We will extract all names and split each name after each comma ",".
+2. We will split the second split of the name after a point "." and extract the titles.
+
+```{r chunk_chapter4_45}
+first_split = sapply(data$name,
+                     function(x) stringr::str_split(x, pattern = ",")[[1]][2])
+titles = sapply(first_split,
+                function(x) strsplit(x, ".",fixed = TRUE)[[1]][1])
+```
+
+We get 18 unique titles:
+
+```{r chunk_chapter4_46}
+table(titles)
+```
+
+A few titles have a very low occurrence rate:
+
+```{r chunk_chapter4_47}
+titles = stringr::str_trim((titles))
+titles %>%
+ fct_count()
+```
+
+We will combine titles with low occurrences into one title, which we can easily do with the forcats package.
+
+```{r chunk_chapter4_48}
+titles2 =
+  forcats::fct_collapse(titles,
+                        officer = c("Capt", "Col", "Major", "Dr", "Rev"),
+                        royal = c("Jonkheer", "Don", "Sir",
+                                  "the Countess", "Dona", "Lady"),
+                        miss = c("Miss", "Mlle"),
+                        mrs = c("Mrs", "Mme", "Ms")
+                        )
+```
+
+We can count titles again to see the new number of titles:
+
+```{r chunk_chapter4_49}
+titles2 %>%  
+   fct_count()
+```
+
+Add new title variable to data set:
+
+```{r chunk_chapter4_50}
+data =
+  data %>%
+    mutate(title = titles2)
+```
+
+As a second example, we will explore and clean the numeric "age" variable.
+
+Explore the variable:
+
+```{r chunk_chapter4_51}
+summary(data)
+sum(is.na(data$age)) / nrow(data)
+```
+
+20% NAs!
+Either we remove all observations with NAs, or we impute (fill) the missing values, e.g. with the median age. However, age itself might depend on other variables such as sex, class and title. We want to fill the NAs with the median age of these groups.
+In tidyverse we can easily "group" the data, i.e. we will nest the observations (here: group_by after sex, pclass and title).
+After grouping, all operations (such as our median(age....)) will be done within the specified groups.
+ 
+```{r chunk_chapter4_52}
+data =
+  data %>%
+    group_by(sex, pclass, title) %>%
+    mutate(age2 = ifelse(is.na(age), median(age, na.rm = TRUE), age)) %>%
+    mutate(fare2 = ifelse(is.na(fare), median(fare, na.rm = TRUE), fare)) %>%
+    ungroup()
+```
+ 
+
+### Preprocessing and Feature Selection
+
+We want to use Keras in our example, but it cannot handle factors and requires the data to be scaled.
+
+Normally, one would do this for all predictors, but as we only show the pipeline here, we have sub-selected a bunch of predictors and do this only for them.
+We first scale the numeric predictors and change the factors with only two groups/levels into integers (this can be handled by Keras).
+
+```{r chunk_chapter4_53}
+data_sub =
+  data %>%
+    select(survived, sex, age2, fare2, title, pclass) %>%
+    mutate(age2 = scales::rescale(age2, c(0, 1)),
+           fare2 = scales::rescale(fare2, c(0, 1))) %>%
+    mutate(sex = as.integer(sex) - 1L,
+           title = as.integer(title) - 1L, pclass = as.integer(pclass - 1L))
+```
+
+Factors with more than two levels should be **one hot encoded** (Make columns for every different factor level and write 1 in the respective column for every taken feature value and 0 else. For example: $\{red, green, green, blue, red\} \rightarrow \{(0,0,1), (0,1,0), (0,1,0), (1,0,0), (0,0,1)\}$):
+
+```{r chunk_chapter4_54}
+one_title = k_one_hot(data_sub$title, length(unique(data$title)))$numpy()
+colnames(one_title) = levels(data$title)
+
+one_sex = k_one_hot(data_sub$sex, length(unique(data$sex)))$numpy()
+colnames(one_sex) = levels(data$sex)
+
+one_pclass = k_one_hot(data_sub$pclass,  length(unique(data$pclass)))$numpy()
+colnames(one_pclass) = paste0(1:length(unique(data$pclass)), "pclass")
+```
+
+And we have to add the dummy encoded variables to the data set:
+
+```{r chunk_chapter4_55}
+data_sub = cbind(data.frame(survived= data_sub$survived),
+                 one_title, one_sex, age = data_sub$age2,
+                 fare = data_sub$fare2, one_pclass)
+head(data_sub)
+```
+
+
+### Split Data for Training and Testing
+
+The splitting consists of two splits:
+
+* An outer split (the original split, remember we got a training and test split without the response "survived").
+* An inner split (we will split the training data set further into another training and test split with known response).
+The inner split is important to assess the model's performance and potential overfitting.
+
+Outer split:
+
+```{r chunk_chapter4_56}
+train = data_sub[!is.na(data_sub$survived),]
+test = data_sub[is.na(data_sub$survived),]
+```
+
+Inner split:
+
+```{r chunk_chapter4_57}
+indices = sample.int(nrow(train), 0.7 * nrow(train))
+sub_train = train[indices,]
+sub_test = train[-indices,]
+```
+
+What is the difference between the two splits? (Tip: have a look at the variable survived.)
+
+
+### Model Fitting
+
+In the next step we will fit a Keras model on the training data of the inner split:
+
+```{r chunk_chapter4_58}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 20L, input_shape = ncol(sub_train) - 1L,
+              activation = "relu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  # Output layer consists of the 1-hot encoded variable "survived" -> 2 units.
+  layer_dense(units = 2L, activation = "softmax")
+
+summary(model)
+
+model_history =
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer = keras::optimizer_adamax(learning_rate = 0.01))
+
+model_history =
+  model %>%
+    fit(x = as.matrix(sub_train[,-1]),
+        y = to_categorical(sub_train[,1], num_classes = 2L),
+        epochs = 100L, batch_size = 32L,
+        validation_split = 0.2,   #Again a test set used by the algorithm.
+        shuffle = TRUE)
+
+plot(model_history)
+```
+
+<details>
+  <summary>
+    **<span style="color: #CC2FAA;">Torch</span>**
+  </summary>
+  <p>
+  
+```{r chunk_chapter4_59}
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(sub_train[,-1])[2], out_features = 20L),
+  nn_relu(),
+  nn_linear(20L, 20L),
+  nn_relu(),
+  nn_linear(20L, 2L)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.01)
+
+X_torch = torch_tensor(as.matrix(sub_train[,-1])) 
+Y_torch = torch_tensor(sub_train[,1]+1, dtype = torch_long())
+for(i in 1:500){
+  indices = sample.int(nrow(sub_train), 20L)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_cross_entropy(pred, Y_torch[indices], reduction = "mean")
+  print(loss)
+  loss$backward()
+  opt$step()
+}
+```
+
+    Note: the "nnf_cross_entropy" expects predictions on the scale of the linear predictors (the loss function itself will apply the softmax!).
+    
+  </p>
+</details>
+<br/>
+
+
+### Model Evaluation
+
+We will predict the variable "survived" for the test set of the inner split and calculate the accuracy:
+
+```{r chunk_chapter4_60}
+pred =
+  model %>%
+    predict(x = as.matrix(sub_test[,-1]))
+
+predicted = ifelse(pred[,2] < 0.5, 0, 1) # Ternary operator.
+observed = sub_test[,1]
+(accuracy = mean(predicted == observed))  # (...): Show output.
+```
+
+<details>
+  <summary>
+    **<span style="color: #CC2FAA;">Torch</span>**
+  </summary>
+  <p>
+
+```{r chunk_chapter4_61}
+model_torch$eval()
+preds_torch = nnf_softmax(model_torch(torch_tensor(as.matrix(sub_test[,-1]))),
+                          dim = 2L)
+preds_torch = as.matrix(preds_torch)
+preds_torch = apply(preds_torch, 1, which.max)
+(accuracy = mean(preds_torch - 1 == observed))
+```
+
+    Now we have to use the softmax function.
+    
+  </p>
+</details>
+<br/>
+
+
+### Predictions and Submission
+
+When we are satisfied with the performance of our model in the inner split, we will create predictions for the test data of the outer split.
+To do so, we take all observations that belong to the outer test split (use the filter function) and remove the survived (NAs) columns:
+
+```{r chunk_chapter4_62}
+submit = 
+  test %>% 
+      select(-survived)
+```
+
+We cannot assess the performance on the test split because the true survival ratio is unknown, however, we can now submit our predictions to the submission server at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a>.
+To do so, we have to transform our survived probabilities into actual 0/1 predictions (probabilities are not allowed) and create a .csv file:
+
+```{r chunk_chapter4_63}
+pred = model %>% 
+  predict(as.matrix(submit))
+```
+
+All values > 0.5 will be set to 1 and values < 0.5 to zero.
+For the submission it is critical to change the predictions into a data.frame, select the second column (the probability to survive), and save it with the write.csv function:
+
+```{r chunk_chapter4_64, eval=FALSE}
+write.csv(data.frame(y = ifelse(pred[,2] < 0.5, 0, 1)), file = "Max_1.csv")
+```
+
+The file name is used as the ID on the submission server, so change it to whatever you want as long as you can identify yourself.
+
+<strong>Annotation: The AUC is (always) higher for probabilities than for 0/1 data (depending on the implementation and definition of the AUC). We expect you to upload 0/1 data (usage scenarios, no theoretical ones)! Hint for cheaters (or if you just forget conversion): Your upload is converted to 0/1 data according to ifelse(... < 0.5, 0, 1).</strong>
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+The tasks below follow the above section about machine learning pipelines. We will use the titanic_ml data set from the EcoData package to see a pipeline. The goal is to predict if a passenger survives or not. 
+
+First, we should look at the data and do some feature engineering / selection. Give it a try! (Ideas can be found <a href="https://www.kaggle.com/c/titanic/notebooks?sortBy=hotness&group=everyone&pageSize=20&competitionId=3136&language=R" target="_blank" rel="noopener">here</a>.)
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_39, message=FALSE, warning=FALSE}
+library(keras)
+library(tensorflow)
+library(tidyverse)
+library(randomForest)
+library(rpart)
+library(EcoData)
+set_random_seed(54321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data(titanic_ml)
+data = titanic_ml
+```
+
+```{r chunk_chapter4_task_40}
+str(data)
+
+indicesPredict = which(is.na(titanic_ml$survived))
+indicesTrain = which(!is.na(titanic_ml$survived))
+subset = sample(length(indicesTrain), length(indicesTrain) * 0.7, replace = F)
+indicesTest = sort(indicesTrain[-subset]) # Mind order of instructions!
+indicesTrain = sort(indicesTrain[subset])
+
+# Determine labels. As they are fixed from now on, samples must not be left!
+# Impute when necessary. 
+labelsTrain = data$survived[indicesTrain]
+labelsTest = data$survived[indicesTest]
+
+# Parameter "body" has nearly no information).
+# Parameter "name" was already processed above.
+# Parameter "ticket" may include (other) information, but leave it out for now.
+# Parameter "survived" is the target variable.
+data = data %>% select(-body, -name, -ticket, -survived)
+
+data$pclass = as.factor(data$pclass)  # "pclass" makes only sense as a factor.
+
+for(i in 1:3){
+  print(sum(data$cabin[data$pclass == i] == "") / sum(data$pclass == i))
+  }
+
+# Most people have no cabin (21% in 1st, 92% in 2nd and 98% in 3rd class).
+# Dummy code the availability of a cabin.
+# This is NOT one-hot encoding! Dummy coded variables use n-1 variables!
+data$cabin = (data$cabin != "") * 1
+
+# Impute values for parameter "embarked":
+  # Leave parameters with too many levels or causal inverse ones (assumed).
+  tmp = data %>% select(-boat, -home.dest)
+  tmp = data.frame(tmp[complete.cases(tmp),]) # Leave samples with missing values.
+  
+  missingIndices = which(tmp$embarked == "")
+  toPredict = tmp[missingIndices, -8]
+  tmp = tmp[-missingIndices,] # Leave samples that should be predicted.
+  tmp$embarked = droplevels(tmp$embarked) # Remove unused levels ("").
+  
+  # Random forests and simple regression trees don't need scaling.
+  # Use a simple regression tree instead of a random forest here,
+  # we have only 2 missing values.
+  # And a simple regression tree is easy to visualize.
+  regressionTree = rpart(embarked ~ ., data = tmp,
+                         control = rpart.control(minsplit = 10))
+  rpart.plot::rpart.plot(regressionTree)
+  prediction = predict(regressionTree, toPredict)
+  
+  for(i in 1:nrow(prediction)){
+    index = which(rownames(data) == as.integer(rownames(prediction))[i])
+    data$embarked[index] = colnames(prediction)[which.max(prediction[i,])]
+  }
+  
+  data$embarked = droplevels(data$embarked) # Remove unused levels ("").
+
+table(data$pclass)
+sum(table(data$pclass))
+sum(table(data$home.dest))
+sum(is.na(data$home.dest))
+# "pclass", "sex", "sibsp", "parch", "boat" and "home.dest" have no missing values.
+
+summary(data$fare)
+# Parameter "fare" has 1 NA entry. Impute the mean.
+data$fare[is.na(data$fare)] = mean(data$fare, na.rm = TRUE)
+
+levels(data$home.dest)[levels(data$home.dest) == ""] = "unknown"
+levels(data$boat)[levels(data$boat) == ""] = "none"
+
+# Impute values for "age":
+  tmp = data %>% select(-home.dest) # Leave parameters with too many levels.
+  
+  missingIndices = which(is.na(tmp$age))
+  toPredict = tmp[missingIndices, -3]
+  tmp = tmp[-missingIndices,] # Leave samples that should be predicted.
+  
+  forest = randomForest(x = tmp[,-3], y = tmp$age)
+  prediction = predict(forest, toPredict)
+  
+  for(i in 1:length(prediction)){
+    index = which(rownames(data) == as.integer(names(prediction))[i])
+    data$age[index] = prediction[i]
+  }
+
+str(data)
+data = as.data.frame(data)
+
+# One-hot encoding of "pclass", "sex", "cabin", "embarked", "boat" and "home.dest":
+  for(element in c("pclass", "sex", "cabin", "embarked", "boat", "home.dest")){
+    # Build integer representation:
+    # This MUST start at 0, otherwise, the encoding is wrong!!
+      integers = as.integer(data[[element]])
+      integers = integers - min(integers)
+    
+    # Determine number of classes:
+    num_classes = length(levels(as.factor(data[[element]])))
+    
+    # Encode:
+    encoded = k_one_hot(integers, num_classes)$numpy()
+    
+    # Copy factor names.
+    colnames(encoded) = paste0(element, "_", levels(as.factor(data[[element]])))
+    
+    data = data %>% select(-all_of(element))  # Remove original column.
+    data = cbind.data.frame(data, encoded)  # Plug in new (encoded) columns.
+  }
+
+# Scale parameters (including one-hot encoded):
+data = scale(as.matrix(data))
+
+# Split into training, test and prediction set:
+# Be careful! You need matrices, no data.frames!
+train = as.matrix(data[indicesTrain,])
+test = as.matrix(data[indicesTest,])
+predict = as.matrix(data[indicesPredict,])
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Build a neural network to make predictions and check performance on the hold-out data. 
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_41, message=FALSE, warning=FALSE, echo=FALSE}
+set_random_seed(4321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 20L, input_shape = ncol(train), activation = "relu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 2L, activation = "softmax")
+
+model_history =
+  model %>%
+    compile(loss = loss_categorical_crossentropy,
+            optimizer = keras::optimizer_adamax(learning_rate = 0.01))
+
+model_history =
+  model %>%
+    fit(x = train,   # Be careful! You need a matrix, no data.frame!
+        y = to_categorical(labelsTrain, num_classes = 2L), epochs = 60L,
+        batch_size = 60,
+        validation_split = 0.2, shuffle = TRUE)
+
+plot(model_history)
+
+prediction =
+  model %>%
+    predict(x = test)
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+cat("Accuracy:\n")
+(accuracy = mean(prediction == labelsTest))
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Play around with model parameters, optimizer(learning_rate = ...), epochs = ..., number of hidden nodes in layers: units = ..., regularization: kernel_regularizer = ..., bias_regularizer = ... **-** Try to maximize the model's accuracy for the hold-out data.
+
+**Hint**: There are a lot different activation functions like "linear", "softmax", "relu", "leaky_relu", "gelu", "selu", "elu", "exponential", "sigmoid", "tanh", "softplus", "softsign", etc. But be careful, this might be *very* computation-intensive (especially "gelu", tanh" or "softmax").
+Every activation function has its own properties, requirements (!), advantages and disadvantages. Choose them wisely!
+
+You should get an accuracy of at least 90%. (Before looking into the solution...) Try to be better than the solution.
+
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_42, message=FALSE, warning=FALSE, echo=FALSE}
+set_random_seed(4321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 150L, input_shape = ncol(train), activation = "relu") %>%
+  layer_dense(units = 50L, activation = "relu",
+              bias_regularizer = regularizer_l1(1.5),
+              kernel_regularizer = regularizer_l2(.075)) %>%
+  layer_dense(units = 20L, activation = "selu",
+              bias_regularizer = regularizer_l1_l2(1),
+              kernel_regularizer = regularizer_l1(.0025)) %>%
+  layer_dense(units = 50L, activation = "gelu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 7L, activation = "elu") %>%
+  layer_dense(units = 2L, activation = "softmax")
+
+model_history =
+  model %>%
+    compile(loss = loss_categorical_crossentropy,
+            optimizer = keras::optimizer_adamax(learning_rate = 0.011))
+
+model_history =
+  model %>%
+    fit(x = train,   # Be careful! You need a matrix, no data.frame!
+        y = to_categorical(labelsTrain, num_classes = 2L), epochs = 75L,
+        batch_size = nrow(train) %/% 9,   # 10 batches per epoch (rounded).
+        validation_split = 0.2, shuffle = TRUE)
+
+plot(model_history)
+
+prediction =
+  model %>%
+    predict(x = test)
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+cat("Accuracy:\n")
+(accuracy = mean(prediction == labelsTest))
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Now try your above solution (**the exactly same one!**) with another seed to check for overfitting (on the seed!) of your procedure.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_43, message=FALSE, warning=FALSE, echo=FALSE}
+set_random_seed(123L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 150L, input_shape = ncol(train), activation = "relu") %>%
+  layer_dense(units = 50L, activation = "relu",
+              bias_regularizer = regularizer_l1(1.5),
+              kernel_regularizer = regularizer_l2(.075)) %>%
+  layer_dense(units = 20L, activation = "selu",
+              bias_regularizer = regularizer_l1_l2(1),
+              kernel_regularizer = regularizer_l1(.0025)) %>%
+  layer_dense(units = 50L, activation = "gelu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 7L, activation = "elu") %>%
+  layer_dense(units = 2L, activation = "softmax")
+
+model_history =
+  model %>%
+    compile(loss = loss_categorical_crossentropy,
+            optimizer = keras::optimizer_adamax(learning_rate = 0.011))
+
+model_history =
+  model %>%
+    fit(x = train,   # Be careful! You need a matrix, no data.frame!
+        y = to_categorical(labelsTrain, num_classes = 2L), epochs = 75L,
+        batch_size = nrow(train) %/% 9,   # 10 batches per epoch (rounded).
+        validation_split = 0.2, shuffle = TRUE)
+
+plot(model_history)
+
+prediction =
+  model %>%
+    predict(x = test)
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+cat("Accuracy:\n")
+(accuracy = mean(prediction == labelsTest))
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Make predictions and submit them via our <a href="https://elearning.uni-regensburg.de/mod/page/view.php?id=1150717" target="_blank" rel="noopener">submission server</a>.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_44, eval=FALSE, purl=FALSE}
+prediction =
+  model %>%
+    predict(x = predict)
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+write.csv(data.frame(y = prediction), file = "submission_NN.csv")
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
+## Bonus - Machine Learning Pipelines with mlr3 {#mlr}
+
+As we have seen today, many of the machine learning algorithms are distributed over several packages but the general machine learning pipeline is very similar for all models: feature engineering, feature selection, hyperparameter tuning and cross-validation. 
+
+The idea of the mlr3 framework is now to provide a general machine learning interface which you can use to build reproducible and automatic machine learning pipelines. The key features of mlr3 are:
+
+* All common machine learning packages are integrated into mlr3, you can easily switch between different machine learning algorithms.
+* A common 'language'/workflow to specify machine learning pipelines.
+* Support for different cross-validation strategies.
+* Hyperparameter tuning for all supported machine learning algorithms.
+* Ensemble models.
+
+Useful links:
+
+* <a href="https://mlr3book.mlr-org.com/" target="_blank" rel="noopener">mlr3-book</a> (still in work)
+* <a href="https://mlr3.mlr-org.com/" target="_blank" rel="noopener">mlr3 website</a>
+* <a href="https://cheatsheets.mlr-org.com/mlr3.pdf" target="_blank" rel="noopener">mlr3 cheatsheet</a>
+
+
+### mlr3 - The Basic Workflow
+
+The mlr3 package actually consists of several packages for different tasks (e.g. mlr3tuning for hyperparameter tuning, mlr3pipelines for data preparation pipes). But let's start with the basic workflow:
+
+```{r chunk_chapter4_65, message=FALSE}
+library(EcoData)
+library(tidyverse)
+library(mlr3)
+library(mlr3learners)
+library(mlr3pipelines)
+library(mlr3tuning)
+library(mlr3measures)
+data(nasa)
+str(nasa)
+```
+
+Let's drop time, name and ID variable and create a classification task:
+
+```{r chunk_chapter4_66}
+data = nasa %>% select(-Orbit.Determination.Date,
+                       -Close.Approach.Date, -Name, -Neo.Reference.ID)
+data$Hazardous = as.factor(data$Hazardous)
+
+# Create a classification task.
+task = TaskClassif$new(id = "nasa", backend = data,
+                       target = "Hazardous", positive = "1")
+```
+
+Create a generic pipeline of data transformation (imputation $\rightarrow$ scaling $\rightarrow$ encoding of categorical variables):
+
+```{r chunk_chapter4_67}
+set.seed(123)
+
+# Let's create the preprocessing graph.
+preprocessing = po("imputeoor") %>>% po("scale") %>>% po("encode") 
+
+# Run the task.
+transformed_task = preprocessing$train(task)[[1]]
+
+transformed_task$missings()
+```
+
+We can even visualize the preprocessing graph:
+
+```{r chunk_chapter4_68}
+preprocessing$plot()
+```
+
+Now, to test our model (random forest) 10-fold cross-validated, we will do:
+
+* Specify the missing target rows as validation so that they will be ignored.
+* Specify the cross-validation, the learner (the machine learning model we want to use), and the measurement (AUC).
+* Run (benchmark) our model.
+
+```{r chunk_chapter4_69__mlr1}
+set.seed(123)
+
+transformed_task$data()
+transformed_task$set_row_roles((1:nrow(data))[is.na(data$Hazardous)],
+                               "validation")
+
+cv10 = mlr3::rsmp("cv", folds = 10L)
+rf = lrn("classif.ranger", predict_type = "prob")
+measurement =  msr("classif.auc")
+```
+
+```{r chunk_chapter4_70, eval=FALSE}
+result = mlr3::resample(transformed_task,
+                        rf, resampling = cv10, store_models = TRUE)
+
+# Calculate the average AUC of the holdouts.
+result$aggregate(measurement)
+```
+
+Very cool! Preprocessing + 10-fold cross-validation model evaluation in a few lines of code!
+
+Let's create the final predictions:
+
+```{r chunk_chapter4_71__mlr2, eval=FALSE}
+pred = sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task,
+row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
+dim(pred)
+predictions = apply(pred, 1, mean)
+```
+
+You could now submit the predictions <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a>.
+
+But we are still not happy with the results, let's do some hyperparameter tuning!
+
+
+### mlr3 - Hyperparameter Tuning
+
+Machine learning algorithms have a varying number of hyperparameters which can (!) have a high impact on the predictive performance. To list a few hyperparameters:
+
+**Random Forest**
+
+* mtry
+* Minimal node size
+
+**K-nearest-neighbors classification**
+
+* Kernel
+* Number of neighbors
+* Distance metric
+
+**Boosted Regression Tree**
+
+* nrounds
+* Maximum depth
+* alpha
+* booster
+* eta
+* gamma
+* lambda
+
+With mlr3, we can easily extend the above example to do hyperparameter tuning within nested cross-validation (the tuning has its own inner cross-validation).
+
+Print the hyperparameter space of our random forest learner:
+
+```{r chunk_chapter4_72}
+rf$param_set
+```
+
+
+Define the hyperparameter space of the random forest:
+
+```{r chunk_chapter4_73__mlr3}
+library(paradox)
+
+rf_pars = 
+    paradox::ParamSet$new(
+      list(paradox::ParamInt$new("min.node.size", lower = 1, upper = 30L),
+           paradox::ParamInt$new("mtry", lower = 1, upper = 30L),
+           paradox::ParamLgl$new("regularization.usedepth", default = TRUE)))
+print(rf_pars)
+```
+
+To set up the tuning pipeline we need:
+
+* Inner cross-validation resampling object.
+* Tuning criterion (e.g. AUC).
+* Tuning method (e.g. random or block search).
+* Tuning terminator (When should we stop tuning? E.g. after $n$ iterations).
+
+```{r chunk_chapter4_74__mlr4}
+set.seed(123)
+
+inner3 = mlr3::rsmp("cv", folds = 3L)
+measurement =  msr("classif.auc")
+tuner =  mlr3tuning::tnr("random_search") 
+terminator = mlr3tuning::trm("evals", n_evals = 5L)
+rf = lrn("classif.ranger", predict_type = "prob")
+
+learner_tuner = AutoTuner$new(learner = rf, 
+                              measure = measurement, 
+                              tuner = tuner, 
+                              terminator = terminator,
+                              search_space = rf_pars,
+                              resampling = inner3)
+print(learner_tuner)
+```
+
+Now we can wrap it normally into the 10-fold cross-validated setup as done previously:
+
+```{r chunk_chapter4_75, eval=FALSE}
+set.seed(123)
+
+outer3 = mlr3::rsmp("cv", folds = 3L)
+result = mlr3::resample(transformed_task, learner_tuner,
+                        resampling = outer3, store_models = TRUE)
+
+# Calculate the average AUC of the holdouts.
+result$aggregate(measurement)
+```
+
+Yeah, we were able to improve the performance!
+
+Let's create the final predictions:
+
+```{r chunk_chapter4_76, eval=FALSE}
+pred = sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task,
+row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
+dim(pred)
+predictions = apply(pred, 1, mean)
+```
+
+
+### mlr3 - Hyperparameter Tuning with Oversampling
+
+Let's go one step back, maybe you have noticed that our classes are unbalanced:
+
+```{r chunk_chapter4_77}
+table(data$Hazardous)
+```
+
+Many machine learning algorithms have problems with unbalanced data because if the imbalance is too strong it is cheaper for the algorithm to focus on only one class (e.g. by predicting only 0s or 1s). You need to keep in mind that machine learning algorithms are greedy and their main focus is to minimize the loss function.
+
+There are few techniques to correct for imbalance:
+
+* Oversampling (oversample the undersampled class).
+* Undersampling (undersample the oversampled class).
+* SMOTE _Synthetic Minority Over-sampling Technique_ (very briefly, we will use a k-nearest-neighbors classification to create new samples around our undersampled class).
+
+Here, we will use oversampling which we can do by extending our random forest learner:
+
+```{r chunk_chapter4_78}
+set.seed(123)
+
+rf_over = po("classbalancing", id = "over", adjust = "minor") %>>% rf
+
+# However rf_over is now a "graph",
+# but we can easily transform it back into a learner:
+rf_over_learner = GraphLearner$new(rf_over)
+print(rf_over_learner)
+```
+
+The learner has now a new feature space:
+
+```{r chunk_chapter4_79}
+rf_over_learner$param_set
+```
+
+We can also tune the oversampling rate!
+
+```{r chunk_chapter4_80}
+set.seed(123)
+
+rf_pars_over = 
+    paradox::ParamSet$new(
+      list(paradox::ParamInt$new("over.ratio", lower = 1, upper = 7L),
+           paradox::ParamInt$new("classif.ranger.min.node.size",
+                                 lower = 1, upper = 30L),
+           paradox::ParamInt$new("classif.ranger.mtry", lower = 1,
+                                 upper = 30L),
+           paradox::ParamLgl$new("classif.ranger.regularization.usedepth",
+                                 default = TRUE)))
+
+inner3 = mlr3::rsmp("cv", folds = 3L)
+measurement =  msr("classif.auc")
+tuner =  mlr3tuning::tnr("random_search") 
+terminator = mlr3tuning::trm("evals", n_evals = 5L)
+
+learner_tuner_over = AutoTuner$new(learner = rf_over_learner, 
+                                   measure = measurement, 
+                                   tuner = tuner, 
+                                   terminator = terminator,
+                                   search_space = rf_pars_over,
+                                   resampling = inner3)
+print(learner_tuner)
+```
+
+```{r chunk_chapter4_81, eval=FALSE}
+set.seed(123)
+
+outer3 = mlr3::rsmp("cv", folds = 3L)
+result = mlr3::resample(transformed_task, learner_tuner_over,
+                        resampling = outer3, store_models = TRUE)
+
+# Calculate the average AUC of the holdouts.
+result$aggregate(measurement)
+```
+
+5 iterations in the hyperspace is not very much...
+
+Let's create the final predictions:
+
+```{r chunk_chapter4_82, eval=FALSE}
+pred = sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task,
+row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
+dim(pred)
+predictions = apply(pred, 1, mean)
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Optional bonus task</span></strong><br/>
+```
+
+After reading the above chapter about the mlr package, try to transfer it to the titanic data set (use the titanic_ml data set, this has already NAs for the values to predict).
+Alternatively, you can also use other data sets from our challenge (e.g. the plant-pollinator data set, see the data set chapter \@ref(datasets)).
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter4_task_45, message=FALSE, warning=FALSE}
+library(EcoData)
+library(tidyverse)
+library(mlr3)
+library(mlr3learners)
+library(mlr3pipelines)
+library(mlr3tuning)
+library(mlr3measures)
+set.seed(123)
+
+data(titanic_ml)
+str(titanic_ml)
+
+data = titanic_ml %>% select(-name, -ticket, -name, -body)
+data$pclass = as.factor(data$pclass)
+data$sex = as.factor(data$sex)
+data$survived = as.factor(data$survived)
+
+# Change easy things manually:
+data$embarked[data$embarked == ""] = "S"  # Fill in "empty" values.
+data$embarked = droplevels(as.factor(data$embarked)) # Remove unused levels ("").
+data$cabin = (data$cabin != "") * 1 # Dummy code the availability of a cabin.
+data$fare[is.na(data$fare)] = mean(data$fare, na.rm = TRUE)
+levels(data$home.dest)[levels(data$home.dest) == ""] = "unknown"
+levels(data$boat)[levels(data$boat) == ""] = "none"
+
+# Create a classification task.
+task = TaskClassif$new(id = "titanic", backend = data,
+                       target = "survived", positive = "1")
+task$missings()
+
+# Let's create the preprocessing graph.
+preprocessing = po("imputeoor") %>>% po("scale") %>>% po("encode") 
+
+# Run the task.
+transformed_task = preprocessing$train(task)[[1]]
+
+transformed_task$set_row_roles((1:nrow(data))[is.na(data$survived)], "validation")
+
+cv10 = mlr3::rsmp("cv", folds = 10L)
+rf = lrn("classif.ranger", predict_type = "prob")
+measurement =  msr("classif.auc")
+
+# result = mlr3::resample(transformed_task, rf,
+#                         resampling = cv10, store_models = TRUE)
+# 
+# # Calculate the average AUC of the holdouts.
+# result$aggregate(measurement)
+# 
+# pred = sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task,
+# row_ids = (1:nrow(data))[is.na(data$survived)])$data$prob[, "1", drop = FALSE])
+# 
+# dim(pred)
+# predictions = round(apply(pred, 1, mean))
+# 
+# write.csv(data.frame(y = predictions), file = "submission_RF.csv")
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
