@@ -1270,7 +1270,7 @@ test_x = array(test$x/255, c(dim(test$x)))
 train_y = to_categorical(train$y, 10)
 test_y = to_categorical(test$y, 10)
 
-rm(train, test, data)
+rm(train, test)
 ```
 
 Keras provides download functions for all famous architectures/convolutional neural network models which are already trained on the imagenet data set (another famous data set). These trained networks come already without their top layer, so we have to set include_top to false and change the input shape.
@@ -2051,17 +2051,17 @@ getData = function(oversample = TRUE, undersample = FALSE){
     
     newIndices = which(newIndices)
     
-    trainingSet <<- trainLocal[newIndices,,,]
-    flowerLabels <<- labelsLocal[newIndices]
+    trainingSet <- trainLocal[newIndices,,,]
+    flowerLabels <- labelsLocal[newIndices]
     
     print(table(flowerLabels))
-    return()
+    return(list(trainingSet, flowerLabels, trainLocal))
   }
   
   if(!oversample){
-    trainingSet <<- trainLocal
-    flowerLabels <<- labelsLocal
-    return()
+    trainingSet <- trainLocal
+    flowerLabels <- labelsLocal
+    return(list(trainingSet, flowerLabels, trainLocal))
   }
   
   n = round(max(table(labelsLocal)) + 14) # Number of samples to extend each class to.
@@ -2072,16 +2072,18 @@ getData = function(oversample = TRUE, undersample = FALSE){
     indices = which(labelsLocal == i - 1)  # Indices of all elements of class i.
     newIndices = sample(indices, missing, replace = TRUE)
     
-    trainLocal <<- abind::abind(trainLocal, trainLocal[newIndices,,,], along = 1)
+    trainLocal <- abind::abind(trainLocal, trainLocal[newIndices,,,], along = 1)
     # As only new indices are added, there is no confusion with using the old ones.
     
     labelsLocal = c(labelsLocal, rep(as.integer(i - 1), missing))
   }
   
-  trainingSet <<- trainLocal
-  flowerLabels <<- labelsLocal
+  trainingSet <- trainLocal
+  flowerLabels <- labelsLocal
   
   print(table(flowerLabels))
+  
+  return(list(trainingSet, flowerLabels, trainLocal))
 }
 ```
 
@@ -2091,7 +2093,10 @@ Read in for example the following way:
 if(!exists("done")){  # Do not calculate this more often than 1 time.
   trainingSet = c()
   flowerLabels = c()
-  getData(oversample = FALSE, undersample = FALSE)
+  data = getData(oversample = FALSE, undersample = FALSE)
+  trainingSet = data[[1]]
+  flowerLabels = data[[2]]
+  trainLocal = data[[3]]
   done = 1
 }
 ```
@@ -2112,7 +2117,10 @@ set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 if(!exists("doneWithTest")){  # Do not calculate this more often than 1 time.
   trainingSet = c()
   flowerLabels = c()
-  getData(oversample = FALSE, undersample = FALSE)
+  data = getData(oversample = FALSE, undersample = FALSE)
+  trainingSet = data[[1]]
+  flowerLabels = data[[2]]
+  trainLocal = data[[3]]
   doneWithTest = 1
 }
 
@@ -2176,7 +2184,10 @@ set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 if(!exists("doneWithoutTest")){  # Do not calculate this more often than 1 time.
   trainingSet = c()
   flowerLabels = c()
-  getData(oversample = FALSE, undersample = FALSE)
+  data = getData(oversample = FALSE, undersample = FALSE)
+  trainingSet = data[[1]]
+  flowerLabels = data[[2]]
+  trainLocal = data[[3]]
   doneWithoutTest = 1
 }
 
