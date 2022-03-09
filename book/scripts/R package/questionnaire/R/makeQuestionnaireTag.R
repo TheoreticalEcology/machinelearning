@@ -1,7 +1,7 @@
 
 #' Build a questionnaire tag
 #'
-#' Build the questionnaire tag, ready to be inserted in a HTML document.
+#' Build the questionnaire tag, ready to be inserted in an HTML document.
 makeQuestionnaireTag = function(){
   print("As R is bad, it terminates program execution when you press ESC. so don't press ESC...")
 
@@ -12,7 +12,7 @@ makeQuestionnaireTag = function(){
 
   repeat{
     kind = readline(prompt = "Specify kind of question (0: text, 1: radiobutton, 2: checkbox): ")
-    if(kind %in% c(0, 1, 2, "text", "radio", "radiobutton", "radiobutton", "checkbox", "checkboxes")){ break }
+    if(kind %in% c(0, 1, 2, "text", "radio", "radiobutton", "radiobuttons", "checkbox", "checkboxes")){ break }
   }
   if(kind %in% c(0, "text")){ kind = "text" }
   else if(kind %in% c(1, "radio", "radiobutton", "radiobuttons)")){ kind = "radio" }
