@@ -304,6 +304,8 @@ biplot(pcTraits, xlim = c(-0.25, 0.25), ylim = c(-0.25, 0.25))
 
 You can cluster the results of this ordination, ordinate before clustering, or superimpose one on the other. 
 
+### Exercises
+
 ```{=html}
   <hr/>
   <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
@@ -935,6 +937,8 @@ tf$reshape(r_matrix, shape = c(5L, 20L))$numpy()
 
 Skipping the "L" is one of the most common errors when using R-TensorFlow!
 
+### Exercises
+
 ```{=html}
   <hr/>
   <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
@@ -1449,7 +1453,7 @@ c = a$add(b)
 print(c)
 ```
 
-The R-Torch package provides all common methods (an advantage over TensorFlow).
+The R-Torch package provides all common R methods (an advantage over TensorFlow).
 
 ```{r chunk_chapter3_57}
 a = torch_tensor(5.)
@@ -1488,6 +1492,442 @@ c = m / b
 But here's a difference! With TensorFlow we would get an error, but with R-Torch, m is automatically casted to a double (float64). However, this is still bad practice!
   
 During the course we will try to provide the corresponding PyTorch code snippets for all Keras/TensorFlow examples.
+
+### Exercises
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
+```
+
+Rewrite the following expressions (a to g) in torch:
+
+```{r chunk_chapter3_task_torch_6, eval=TRUE}
+x = 100:1
+y = as.double(100:1)
+
+# a)
+min(x)
+
+# b)
+mean(x)
+
+# c) Tip: Use Google!
+which.max(x)
+
+# d) 
+which.min(x)
+
+# e) Tip: Use Google! 
+order(x)
+
+# f) Tip: See tf$reshape.
+m = matrix(y, 10, 10) # Mind: We use y here! (Float)
+m_2 = abs(m %*% t(m))  # m %*% m is the normal matrix multiplication.
+m_2_log = log(m_2)
+print(m_2_log)
+
+# g) Custom mean function i.e. rewrite the function using TensorFlow. 
+mean_R = function(y){
+  result = sum(y) / length(y)
+  return(result)
+}
+
+mean_R(y) == mean(y)	# Test for equality.
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter3_task_torch_7, eval=TRUE}
+library(torch)
+
+
+x = 100:1
+y = as.double(100:1)
+
+# a)    min(x)
+torch_min(x) # Integer!
+torch_min(y) # Float!
+
+# b)    mean(x)
+# Check out the difference here:
+mean(x)
+mean(y)
+torch_mean(torch_tensor(x, dtype = torch_float32()))  # Integer! Why?
+torch_mean(y)  # Float!
+
+# c)    which.max(x)
+torch_argmax(x)
+torch_argmax(y)
+
+# d)    which.min(x)
+torch_argmin(x)
+
+# e)    order(x)
+torch_argsort(x)
+
+# f)
+# m = matrix(y, 10, 10)
+# m_2 = abs(m %*% m)
+# m_2_log = log(m_2)
+
+# Mind: We use y here! 
+mTorch = torch_reshape(y, c(10, 10))
+mTorch2 = torch_abs(torch_matmul(mTorch, torch_t(mTorch))) # hard to read!
+
+# Better:
+mTorch2 = mTorch$matmul( mTorch$t() )$abs()
+mTorch2_log = mTorch$log()
+
+print(mTorch2_log)
+
+# g)    # Custom mean function
+mean_Torch = function(y){
+  result = torch_sum(y)
+  return( result / length(y) )  # If y is an R object.
+}
+mean_Torch(y) == mean(y)
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+This exercise compares the speed of R to torch
+The first exercise is to rewrite the following function in torch:
+
+```{r chunk_chapter3_task_torch_8, eval=TRUE}
+do_something_R = function(x = matrix(0.0, 10L, 10L)){
+  mean_per_row = apply(x, 1, mean)
+  result = x - mean_per_row
+  return(result)
+}
+```
+
+Here, we provide a skeleton for a TensorFlow function:
+
+```{r chunk_chapter3_task_torch_9, eval=FALSE, purl=FALSE}
+do_something_torch= function(x = matrix(0.0, 10L, 10L)){
+   ...
+}
+```
+
+We can compare the speed using the Microbenchmark package:
+
+```{r chunk_chapter3_task_torch_10, eval=FALSE, purl=FALSE}
+test = matrix(0.0, 100L, 100L)
+microbenchmark::microbenchmark(do_something_R(test), do_something_torch(test))
+```
+
+Try different matrix sizes for the test matrix and compare the speed.
+
+Tip: Have a look at the the torch_mean documentation and the "dim" argument.
+
+<br/>
+
+Compare the following with different matrix sizes:
+
+* test = matrix(0.0, 1000L, 500L)
+* testTorch = torch_tensor(test)
+
+Also try the following:
+
+```{r chunk_chapter3_task_torch_11, eval=FALSE, purl=FALSE}
+microbenchmark::microbenchmark(
+   torch_matmul(testTorch, testTorch$t()), # Torch style.
+   test %*% t(test)  # R style.
+)
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter3_task_torch_12, eval=TRUE}
+do_something_torch = function(x = matrix(0.0, 10L, 10L)){
+  x = torch_tensor(x)  # Remember, this is a local copy!
+  mean_per_row = torch_mean(x, dim = 1)
+  result = x - mean_per_row
+  return(result)
+}
+```
+
+```{r chunk_chapter3_task_torch_13, eval=TRUE}
+test = matrix(0.0, 100L, 100L)
+microbenchmark::microbenchmark(do_something_R(test), do_something_torch(test))
+
+test = matrix(0.0, 1000L, 500L)
+microbenchmark::microbenchmark(do_something_R(test), do_something_torch(test))
+```
+
+Why is R faster (the first time)?
+
+* a) The R functions we used (apply, mean, "-") are also implemented in C.
+* b) The problem is not large enough and torch has an overhead.
+
+<br/>
+
+```{r chunk_chapter3_task_torch_14, eval=TRUE}
+test = matrix(0.0, 1000L, 500L)
+testTorch = torch_tensor(test)
+
+microbenchmark::microbenchmark(
+   torch_matmul(testTorch, testTorch$t()), # Torch style.
+   test %*% t(test)  # R style.
+)
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Google to find out how to write the following tasks in torch:
+
+```{r chunk_chapter3_task_torch_15, eval=TRUE}
+A = matrix(c(1, 2, 0, 0, 2, 0, 2, 5, 3), 3, 3)
+
+# i)
+solve(A)  # Solve equation AX = B. If just A  is given, invert it.
+
+# j)
+diag(A) # Diagonal of A, if no matrix is given, construct diagonal matrix.
+
+# k)
+diag(diag(A)) # Diagonal matrix with entries diag(A).
+
+# l)
+eigen(A)
+
+# m)
+det(A)
+```
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter3_task_torch_16, eval=TRUE}
+library(torch)
+
+A = matrix(c(1., 2., 0., 0., 2., 0., 2., 5., 3.), 3, 3)
+# Do not use the "L" form here!
+
+# i)    solve(A)
+linalg_inv(A)
+
+# j)    diag(A)
+torch_diag(A)
+
+# k)    diag(diag(A))
+tf$linalg$diag(tf$linalg$diag_part(A))
+torch_diag(A)$diag()
+
+# l)    eigen(A)
+linalg_eigh(A)
+
+# m)    det(A)
+linalg_det(A)
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+```
+
+Torch supports automatic differentiation (analytical and not numerical!). 
+Let's have a look at the function $f(x) = 5 x^2 + 3$ with derivative $f'(x) = 10x$.
+So for $f'(5)$ we will get $10$.
+
+Let's do this in torch Define the function:
+
+```{r chunk_chapter3_task_torch_17, eval=TRUE}
+f = function(x){ return(5.0 * torch_pow(x, 2.) + 3.0) }
+```
+
+We want to calculate the derivative for $x = 2.0$:
+
+```{r chunk_chapter3_task_torch_18, eval=TRUE}
+x = torch_tensor(2.0, requires_grad = TRUE)
+```
+
+To do automatic differentiation, we have to forward $x$ through the function and call the \$backward() method of the result:
+
+```{r chunk_chapter3_task_torch_19, eval=TRUE}
+y = f(x)
+y$backward(retain_graph=TRUE )
+
+```
+
+To print the gradient:
+
+```{r chunk_chapter3_task_torch_20, eval=TRUE}
+x$grad
+```
+
+We can also calculate the second order derivative $f''(x) = 10$:
+
+```{r chunk_chapter3_task_torch_21, eval=TRUE}
+x = torch_tensor(2.0, requires_grad = TRUE)
+y = f(x)
+grad = torch::autograd_grad(y, x, retain_graph = TRUE, create_graph = TRUE)[[1]] # first
+(torch::autograd_grad(grad, x, retain_graph = TRUE, create_graph = TRUE)[[1]]) # second
+
+```
+
+What is happening here? Think about and discuss it.
+
+
+A more advanced example: *Linear regression*
+
+In this case we first simulate data following $\boldsymbol{y} = \boldsymbol{X} \boldsymbol{w} + \boldsymbol{\epsilon}$  ($\boldsymbol{\epsilon}$ follows a normal distribution == error).
+
+```{r chunk_chapter3_task_torch_22, eval=TRUE}
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+x = matrix(round(runif(500, -2, 2), 3), 100, 5)
+w = round(rnorm(5, 2, 1), 3)
+y = x %*% w + round(rnorm(100, 0, 0.25), 4)
+```
+
+In R we would do the following to fit a linear regression model:
+
+```{r chunk_chapter3_task_torch_23, eval=TRUE}
+summary(lm(y~x))
+```
+
+Let's build our own model in TensorFlow.
+Here, we use now the variable data container type (remember they are mutable and we need this type for the weights ($\boldsymbol{w}$) of the regression model). We want our model to learn these weights.
+
+The input (predictors, independent variables or features, $\boldsymbol{X}$) and the observed (response, $\boldsymbol{y}$) are constant and will not be learned/optimized.
+
+```{r chunk_chapter3_task_torch_24, eval=TRUE}
+library(torch)
+torch::torch_manual_seed(42L)
+
+x = matrix(round(runif(500, -2, 2), 3), 100, 5)
+w = round(rnorm(5, 2, 1), 3)
+y = x %*% w + round(rnorm(100, 0, 0.25), 4)
+
+# Weights we want to learn.
+# We know the real weights but in reality we wouldn't know them.
+# So use guessed ones.
+wTorch = torch_tensor(matrix(rnorm(5, 0, 0.01), 5, 1), requires_grad = TRUE)
+
+xTorch = torch_tensor(x)
+yTorch = torch_tensor(y)
+
+# We need an optimizer which updates the weights (wTF).
+optimizer = optim_adam(params = list(wTorch), lr = 0.1)
+
+for(i in 1:100){
+  pred = xTorch$matmul(wTorch)
+  loss = (yTorch - pred)$pow(2.0)$mean()$sqrt()
+
+  if(!i%%10){ print(paste0("Loss: ", as.numeric(loss)))}  # Every 10 times.
+  loss$backward()
+  optimizer$step() # do optimization step
+  optimizer$zero_grad() # reset gradients
+}
+cat("Inferred weights: ", round(as.numeric(wTorch), 3), "\n")
+cat("Original weights: ", w, "\n")
+```
+
+Discuss the code, go through the code line by line and try to understand it.
+
+Additional exercise:
+
+Play around with the simulation, increase/decrease the number of weights, add an intercept (you also need an additional variable in model).
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+```{r chunk_chapter3_task_torch_25, eval=TRUE}
+library(torch)
+torch::torch_manual_seed(42L)
+
+numberOfWeights = 3
+numberOfFeatures = 10000
+
+x = matrix(round(runif(numberOfFeatures * numberOfWeights, -2, 2), 3),
+           numberOfFeatures, numberOfWeights)
+w = round(rnorm(numberOfWeights, 2, 1), 3)
+intercept = round(rnorm(1, 3, .5), 3)
+y = intercept + x %*% w + round(rnorm(numberOfFeatures, 0, 0.25), 4)
+
+# Guessed weights and intercept.
+wTorch = torch_tensor(matrix(rnorm(numberOfWeights, 0, 0.01), numberOfWeights, 1), requires_grad = TRUE)
+interceptTorch = torch_tensor(matrix(rnorm(1, 0, .5), 1, 1), requires_grad = TRUE) # Double, not float32.
+
+xTorch = torch_tensor(x)
+yTorch = torch_tensor(y)
+
+# We need an optimizer which updates the weights (wTF).
+optimizer = optim_adam(params = list(wTorch, interceptTorch), lr = 0.1)
+
+for(i in 1:100){
+  pred = xTorch$matmul(wTorch)$add(interceptTorch)
+  loss = (yTorch - pred)$pow(2.0)$mean()$sqrt()
+
+  if(!i%%10){ print(paste0("Loss: ", as.numeric(loss)))}  # Every 10 times.
+  loss$backward()
+  optimizer$step() # do optimization step
+  optimizer$zero_grad() # reset gradients
+}
+cat("Inferred weights: ", round(as.numeric(wTorch), 3), "\n")
+cat("Original weights: ", w, "\n")
+
+cat("Inferred intercept: ", round(as.numeric(interceptTorch), 3), "\n")
+cat("Original intercept: ", intercept, "\n")
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
+
+
 
 
 ## First Steps With the Keras Framework
