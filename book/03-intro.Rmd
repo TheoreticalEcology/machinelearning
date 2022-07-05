@@ -5,6 +5,24 @@
 <script src="./scripts/multipleChoice.js"></script>
 ```
 
+
+```{r, include=FALSE}
+# example R options set globally
+options(width = 60)
+
+# example chunk options set globally
+knitr::opts_chunk$set(
+  comment = "#>",
+  collapse = TRUE,
+  fig.align = 'center',
+  cache=TRUE,
+  out.width="100%"
+)
+
+xaringanExtra::use_panelset()
+```
+
+
 There are three basic machine learning tasks:
 
 * Supervised learning
@@ -34,7 +52,7 @@ cat(
 
 In unsupervised learning, we  want to identify patterns in data without having any examples (supervision) about what the correct patterns / classes are. As an example, consider the iris data set. Here, we have 150 observations of 4 floral traits:
 
-```{r chunk_chapter3_1__iris_plot, fig.width=10, fig.height=4}
+```{r chunk-chapter3-1-iris-plot, fig.width=10, fig.height=4, fig.cap="Trait distributions of iris dataset"}
 iris = datasets::iris
 colors = hcl.colors(3)
 traits = as.matrix(iris[,1:4]) 
@@ -47,7 +65,7 @@ segments(100.5, 0, 100.5, 5, col = "black", lwd = 2)
 
 The observations are from 3 species and indeed those species tend to have different traits, meaning that the observations form 3 clusters. 
 
-```{r chunk_chapter3_2}
+```{r chunk-chapter3-2, fig.cap="Scatterplots for trait-trait combinations."}
 pairs(traits, pch = as.integer(species), col = colors[as.integer(species)])
 ```
 
@@ -67,7 +85,7 @@ Merges / splits are done according to linkage criterion, which measures distance
 
 Here an example
 
-```{r chunk_chapter3_3}
+```{r chunk-chapter3-3, fig.cap="Results of hierarchical clustering. Red rectangle is drawn around the corresponding clusters."}
 set.seed(123)
 
 #Reminder: traits = as.matrix(iris[,1:4]).
@@ -75,13 +93,14 @@ set.seed(123)
 d = dist(traits)
 hc = hclust(d, method = "complete")
 
-plot(hc)
+plot(hc, main="")
 rect.hclust(hc, k = 3)  # Draw rectangles around the branches.
 ```
 
 Same plot, but with colors for true species identity
 
-```{r chunk_chapter3_4}
+
+```{r chunk-chapter3-4, fig.cap="Results of hierarchical clustering. Colors correspond to the three species classes."}
 library(ape)
 
 plot(as.phylo(hc), 
@@ -93,7 +112,7 @@ hcRes3 = cutree(hc, k = 3)   #Cut a dendrogram tree into groups.
 
 Calculate confusion matrix. Note we are switching labels here so that it fits to the species.
 
-```{r chunk_chapter3_5}
+```{r chunk_chapter3_5, results="hide"}
 tmp = hcRes3
 tmp[hcRes3 == 2] = 3
 tmp[hcRes3 == 3] = 2
@@ -101,18 +120,30 @@ hcRes3 = tmp
 table(hcRes3, species)
 ```
 
+```{r chunk-chapter3-5-kable, echo=FALSE}
+knitr::kable(table(hcRes3, species), caption = "Confusion matrix for predicted and observed species classes.")
+```
+
+
 Note that results might change if you choose a different agglomeration method, distance metric or scale of your variables. Compare, e.g. to this example:
 
-```{r chunk_chapter3_6}
+```{r chunk-chapter3-6-a, fig.cap="Results of hierarchical clustering. Colors correspond to the three species classes. Different agglomeration method"}
 hc = hclust(d, method = "ward.D2")
 
 plot(as.phylo(hc), 
      tip.color = colors[as.integer(species)], 
      direction = "downwards")
+```
 
+```{r, chunk-chapter3-6-b, results="hide"}
 hcRes3 = cutree(hc, k = 3)   #Cut a dendrogram tree into groups.
 table(hcRes3, species)
 ```
+
+```{r chunk-chapter3-6-kable, echo=FALSE}
+knitr::kable(table(hcRes3, species), caption = "Confusion matrix for predicted and observed species classes.")
+```
+
 
 Which method is best? 
 
@@ -1928,8 +1959,6 @@ cat("Original intercept: ", intercept, "\n")
 
 
 
-
-
 ## First Steps With the Keras Framework
 
 We have seen that we can use TensorFlow directly out of R, and we could use this knowledge to implement a neural network in TensorFlow directly in R. However, this can be quite cumbersome. For simple problems, it is usually faster to use a higher-level API that helps us with implementing the machine learning models in TensorFlow. The most common of those is Keras.
@@ -1943,13 +1972,14 @@ library(keras)
 ```
 
 
-### Example Workflow in Keras
+### Example Workflow in Keras and Torch
 
 To show how Keras works, we will now build a small classifier to predict the three species of the iris data set. Load the necessary packages and data sets:
 
 ```{r chunk_chapter3_62}
 library(keras)
 library(tensorflow)
+library(torch)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 data(iris)
@@ -1972,7 +2002,7 @@ Y = to_categorical(as.integer(Y) - 1L, 3)
 head(Y) # 3 columns, one for each level of the response.
 ```
 
-After having prepared the data, we will now see a typical workflow to specify a model in Keras. 
+After having prepared the data, we will now see a typical workflow to specify a model in Keras/Torch. 
 
 **1. Initialize a sequential model in Keras:**
 
@@ -1990,6 +2020,11 @@ If you want to know this topic in even more depth, consider watching the videos 
 
 The shape of the input is the number of predictors (here 4) and the shape of the output is the number of classes (here 3).
 
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 ```{r chunk_chapter3_66, cache=TRUE}
 model %>%
   layer_dense(units = 20L, activation = "relu", input_shape = list(4L)) %>%
@@ -1998,21 +2033,14 @@ model %>%
   layer_dense(units = 3L, activation = "softmax") 
 ```
 
-* softmax scales a potential multidimensional vector to the interval $(0, 1]$ for each component. The sum of all components equals 1. This might be very useful for example for handling probabilities. **Ensure ther the labels start at 0! Otherwise the softmax function does not work well!**
+:::
 
-<details>
-  <summary>
-    **<span style="color: #CC2FAA;">Torch</span>**
-  </summary>
-  <p>
+::: {.panel}
+[torch]{.panel-name}
   
-    The Torch syntax is very similar, we will give a list of layers to the "nn_sequential" function. Here, we have to specify the softmax activation function as an extra layer:
+The Torch syntax is very similar, we will give a list of layers to the "nn_sequential" function. Here, we have to specify the softmax activation function as an extra layer:
     
 ```{r chunk_chapter3_67}
-library(torch)
-torch_manual_seed(321L)
-set.seed(123)
-
 model_torch = 
   nn_sequential(
     nn_linear(4L, 20L),
@@ -2023,13 +2051,22 @@ model_torch =
   )
 ```
 
-  </p>
-</details>
-<br/>
+:::
+
+:::::
+
+* softmax scales a potential multidimensional vector to the interval $(0, 1]$ for each component. The sum of all components equals 1. This might be very useful for example for handling probabilities. **Ensure ther the labels start at 0! Otherwise the softmax function does not work well!**
+
+
 
 **3. Compile the model with a loss function (here: cross entropy) and an optimizer (here: Adamax).**
     
 We will learn about other options later, so for now, do not worry about the "**learning_rate**" ("**lr**" in Torch or earlier in TensorFlow) argument, cross entropy or the optimizer.
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 ```{r chunk_chapter3_68, cache=TRUE}
 model %>%
@@ -2037,22 +2074,24 @@ model %>%
           keras::optimizer_adamax(learning_rate = 0.001))
 summary(model)
 ```
+
+
+:::
+
+::: {.panel}
+[torch]{.panel-name}
   
-<details>
-  <summary>
-    **<span style="color: #CC2FAA;">Torch</span>**
-  </summary>
-  <p>
-  
-    Specify optimizer and the parameters which will be trained (in our case the parameters of the network):
+Specify optimizer and the parameters which will be trained (in our case the parameters of the network):
     
 ```{r chunk_chapter3_69}
 optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 ```
 
-  </p>
-</details>
-<br/>
+:::
+
+:::::
+
+
 
 **4. Fit model in 30 iterations (epochs)**
     
@@ -2727,9 +2766,14 @@ Remarks:
 This is a downside of stochastic gradient descent.
 * A positive thing about stochastic gradient descent is, that local valleys or hills may be left and global ones can be found instead.
 
+
 ```{=html}
     </p>
   </details>
   <br/><hr/>
 ```
+
+
+
+
 
