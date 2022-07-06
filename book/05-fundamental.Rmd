@@ -460,8 +460,8 @@ set.seed(123)
 
 iris = datasets::iris
 X = scale(iris[,1:4])
-Y = iris[,5]
-Y = as.integer(Y)
+Yt = iris[,5]
+Yt = as.integer(Yt)
 
 model_torch = nn_sequential(
   nn_linear(in_features = dim(X)[2], out_features = 20L),
@@ -476,7 +476,7 @@ opt = optim_adam(params = model_torch$parameters, lr = 0.5)
 
 batch_size = 20L
 X_torch = torch_tensor(X)
-Y_torch = torch_tensor(Y, dtype = torch_long())
+Y_torch = torch_tensor(Yt, dtype = torch_long())
 losses = rep(NA, 500)
 for(i in 1:500){
   indices = sample.int(nrow(X), batch_size)
@@ -835,7 +835,7 @@ opt = optim_adam(params = model_torch$parameters, lr = 0.5)
 
 batch_size = 20L
 X_torch = torch_tensor(X)
-Y_torch = torch_tensor(Y, dtype = torch_long())
+Y_torch = torch_tensor(Yt, dtype = torch_long())
 losses = rep(NA, 500)
 for(i in 1:500){
   indices = sample.int(nrow(X), batch_size)
@@ -858,7 +858,7 @@ opt = optim_adam(params = model_torch$parameters, lr = 5.5)
 
 batch_size = 20L
 X_torch = torch_tensor(X)
-Y_torch = torch_tensor(Y, dtype = torch_long())
+Y_torch = torch_tensor(Yt, dtype = torch_long())
 losses = rep(NA, 500)
 for(i in 1:500){
   indices = sample.int(nrow(X), batch_size)
@@ -881,7 +881,7 @@ opt = optim_adam(params = model_torch$parameters, lr = 15.5)
 
 batch_size = 20L
 X_torch = torch_tensor(X)
-Y_torch = torch_tensor(Y, dtype = torch_long())
+Y_torch = torch_tensor(Yt, dtype = torch_long())
 losses = rep(NA, 500)
 for(i in 1:500){
   indices = sample.int(nrow(X), batch_size)
@@ -974,10 +974,8 @@ fields::image.plot(weights[[1]])
 
 Again, we have to do the regularization on our own in Torch:
 
-```{r chunk_chapter4_16}
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+```{r chunk_chapter4_16_torch}
+library(torch)
 
 model_torch = nn_sequential(
   nn_linear(in_features = dim(X)[2], out_features = 100L),
@@ -1220,12 +1218,14 @@ for(i in 1:500){
 l2_torch = model_torch$parameters
 
 linear = lm(y~x)
-summary(linear)
+```
 
+```{r chunk_chapter4_task_3_torch_msg, message=FALSE, warning=FALSE, echo=FALSE}
 cat("Linear:     ", round(coef(linear), 3))
 cat("L1:         ", round(c(as.numeric( l1_torch$`0.bias` ),as.numeric( l1_torch$`0.weight` )), 3))
 cat("L2:         ", round(c(as.numeric( l2_torch$`0.bias` ),as.numeric( l2_torch$`0.weight` )), 3))
 ```
+
 
 :::
 
@@ -1378,8 +1378,9 @@ for(i in 1:500){
 l1_torch_lesser = model_torch$parameters
 
 linear = lm(y~x)
-summary(linear)
+```
 
+```{r chunk_chapter4_task_5_torch_msg, message=FALSE, warning=FALSE, echo=FALSE}
 cat("Linear:     ", round(coef(linear), 3))
 cat("L1:         ", round(c(as.numeric( l1_torch$`0.bias` ),as.numeric( l1_torch$`0.weight` )), 3))
 cat("L1 lesser:         ", round(c(as.numeric( l1_torch_lesser$`0.bias` ),as.numeric( l1_torch_lesser$`0.weight` )), 3))
@@ -1426,8 +1427,9 @@ for(i in 1:500){
 l2_torch_lesser = model_torch$parameters
 
 linear = lm(y~x)
-summary(linear)
+```
 
+```{r chunk_chapter4_task_6_torch_msg, message=FALSE, warning=FALSE, echo=FALSE}
 cat("Linear:     ", round(coef(linear), 3))
 cat("L2:         ", round(c(as.numeric( l2_torch$`0.bias` ),as.numeric( l2_torch$`0.weight` )), 3))
 cat("L2 lesser:         ", round(c(as.numeric( l2_torch_lesser$`0.bias` ),as.numeric( l2_torch_lesser$`0.weight` )), 3))
@@ -1471,6 +1473,7 @@ plot(model_history)
 
 l1_higher = model$get_weights()
 ```
+
 ```{r chunk_chapter4_task_10, message=FALSE, warning=FALSE, echo=FALSE}
 cat("Linear:     ", round(coef(linear), 3))
 cat("L1:         ", round(c(unlist(l1)[length(unlist(l1))],
@@ -1563,14 +1566,14 @@ for(i in 1:500){
 l1_torch_higher = model_torch$parameters
 
 linear = lm(y~x)
-summary(linear)
+```
 
+```{r chunk_chapter4_task_10_torch_msg, message=FALSE, warning=FALSE, echo=FALSE}
 cat("Linear:     ", round(coef(linear), 3))
 cat("L1:         ", round(c(as.numeric( l1_torch$`0.bias` ),as.numeric( l1_torch$`0.weight` )), 3))
 cat("L1 lesser:         ", round(c(as.numeric( l1_torch_lesser$`0.bias` ),as.numeric( l1_torch_lesser$`0.weight` )), 3))
 cat("L1 higher:         ", round(c(as.numeric( l1_torch_higher$`0.bias` ),as.numeric( l1_torch_higher$`0.weight` )), 3))
 ```
-
 
 
 ```{r chunk_chapter4_task_11_torch, cache=TRUE, message=FALSE, warning=FALSE}
@@ -1613,7 +1616,9 @@ l2_torch_higher = model_torch$parameters
 
 linear = lm(y~x)
 summary(linear)
+```
 
+```{r chunk_chapter4_task_11_torch_msg, message=FALSE, warning=FALSE, echo=FALSE}
 cat("Linear:     ", round(coef(linear), 3))
 cat("L2:         ", round(c(as.numeric( l2_torch$`0.bias` ),as.numeric( l2_torch$`0.weight` )), 3))
 cat("L2 lesser:         ", round(c(as.numeric( l2_torch_lesser$`0.bias` ),as.numeric( l2_torch_lesser$`0.weight` )), 3))
@@ -1651,6 +1656,14 @@ Use a combination of $L1$ and a $L2$ regularization (there is a Keras function f
     <p>
 ```
 
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+
+
 ```{r chunk_chapter4_task_13, cache=TRUE, message=FALSE, warning=FALSE}
 library(tensorflow)
 library(keras)
@@ -1678,6 +1691,57 @@ plot(model_history)
 
 This kind of regularization is called **Elastic net**. It is a combination of LASSO ($L1$) and Ridge. It is more flexible than $L1$ and less flexible than $L2$ and higher computational cost. Elastic net does shrinkage as well, but does not separate highly correlated parameters out that much.
 
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
+```{r chunk_chapter4_task_13_torch, cache=TRUE, message=FALSE, warning=FALSE}
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+X_torch = torch_tensor(x)
+Y_torch = torch_tensor(matrix(y, ncol = 1L), dtype = torch_float32())
+lambda = torch_tensor(25.)
+for(i in 1:500){
+  indices = sample.int(nrow(x), 20L)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_mse_loss(pred, Y_torch[indices,,drop = FALSE])
+  
+  ## add L1 regularization
+  
+  for(i in 1:length(model_torch$parameters)) {
+     # if(stringr::str_detect(names(model_torch$parameters)[[i]], "weight")) {
+      loss = loss + lambda*torch_norm(model_torch$parameters[[i]], 2)
+      loss = loss + lambda*torch_norm(model_torch$parameters[[i]], 1)
+     # }
+  }
+  
+  loss$sum()$backward()
+  opt$step()
+}
+```
+
+:::
+
+:::::
+
+
+
 ```{=html}
     </p>
   </details>
@@ -1685,8 +1749,14 @@ This kind of regularization is called **Elastic net**. It is a combination of LA
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
 ```
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 In Keras you can tell the model to keep a specific percentage of the data as holdout (validation_split argument in the fit function):
 
@@ -1719,6 +1789,33 @@ model_history =
 plot(model_history)
 ```
 
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+As you might have noticed, there is no fit function in torch and we would have to write the fit/training function on our own. However there is a new package called 'cito' (based on torch) that allows to do everything we need in one line of code.
+
+```{r chunk_chapter4_task_14_cito, cache=TRUE, message=FALSE, warning=FALSE}
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2)
+```
+
+:::
+
+:::::
+
 Run the code and view the loss for the train and the validation (test) set in the viewer panel. What happens with the validation loss? Why?
 
 ```{=html}
@@ -1738,10 +1835,10 @@ The training loss keeps decreasing, but the validation loss increases after a ti
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">5. Task</span></strong><br/>
 ```
 
-Add $L1$ / $L2$ regularization to the neural network above and try to keep the test loss close to the training loss. Try a little higher epoch number!
+Add $L1$ / $L2$ regularization to the neural network above and try to keep the test loss close to the training loss. Try higher epoch numbers!
 
 Explain the strategy that helps to achieve this. 
 
@@ -1754,6 +1851,13 @@ Explain the strategy that helps to achieve this.
 ```
 
 **Adding regularization (**$L1$ **and** $L2$**):**
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 ```{r chunk_chapter4_task_15, cache=TRUE, message=FALSE, warning=FALSE}
 library(tensorflow)
@@ -1786,7 +1890,41 @@ model_history =
 plot(model_history)
 ```
 
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+```{r chunk_chapter4_task_15_cito, cache=TRUE, message=FALSE, warning=FALSE}
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 5.,
+            alpha = 0.5)
+```
+
+
+:::
+
+:::::
+
+
 **Adding higher regularization (**$L1$ **and** $L2$**):**
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 ```{r chunk_chapter4_task_16, cache=TRUE, message=FALSE, warning=FALSE}
 library(tensorflow)
@@ -1819,9 +1957,44 @@ model_history =
 plot(model_history)
 ```
 
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+```{r chunk_chapter4_task_16_cito, cache=TRUE, message=FALSE, warning=FALSE}
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 15.,
+            alpha = 0.5)
+
+```
+
+:::
+
+:::::
+
+
 *Keep in mind: With higher regularization, both the training and the validation loss keep relatively high!*
 
 **Adding normal regularization (**$L1$ **and** $L2$**) and use a larger learning rate:**
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 ```{r chunk_chapter4_task_17, cache=TRUE, message=FALSE, warning=FALSE}
 library(tensorflow)
@@ -1854,7 +2027,45 @@ model_history =
 plot(model_history)
 ```
 
+
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+
+```{r chunk_chapter4_task_17_cito, cache=TRUE, message=FALSE, warning=FALSE}
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 5.,
+            lr = 0.2,
+            alpha = 0.5)
+```
+
+
+:::
+
+:::::
+
+
 **Adding normal regularization (**$L1$ **and** $L2$**) and use a very low learning rate:**
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 ```{r chunk_chapter4_task_18, cache=TRUE, message=FALSE, warning=FALSE}
 library(tensorflow)
@@ -1887,9 +2098,44 @@ model_history =
 plot(model_history)
 ```
 
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+```{r chunk_chapter4_task_18_cito, cache=TRUE, message=FALSE, warning=FALSE}
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 5.,
+            lr = 0.001,
+            alpha = 0.5)
+```
+
+
+:::
+
+:::::
+
 Look at the constantly lower validation loss.
 
 **Adding low regularization (**$L1$ **and** $L2$**) and use a very low learning rate:**
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 ```{r chunk_chapter4_task_19, cache=TRUE, message=FALSE, warning=FALSE}
 library(tensorflow)
@@ -1922,9 +2168,45 @@ model_history =
 plot(model_history)
 ```
 
-This was a good example for **early stopping**.
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+
+```{r chunk_chapter4_task_19_cito, cache=TRUE, message=FALSE, warning=FALSE}
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 0.5,
+            lr = 0.001,
+            alpha = 0.5)
+```
+
+
+:::
+
+:::::
+
+
 
 **Taking the example from above, but without shuffling:**
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 ```{r chunk_chapter4_task_20, cache=TRUE, message=FALSE, warning=FALSE}
 library(tensorflow)
@@ -1957,6 +2239,39 @@ model_history =
 plot(model_history)
 ```
 
+
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+
+```{r chunk_chapter4_task_20_cito, cache=TRUE, message=FALSE, warning=FALSE}
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 0.5,
+            lr = 0.001,
+            alpha = 0.5)
+```
+
+
+:::
+
+:::::
+
+
+
 Play around with regularization kind ($L1$, $L2$, $L1,L2$) strength and the learning rate also on your own!
 
 ```{=html}
@@ -1976,6 +2291,7 @@ If you want to know a little bit more about the concepts described in the follow
 
 * <a href="https://www.youtube.com/watch?v=7VeUPuFGJHk" target="_blank" rel="noopener">Decision trees</a>
 
+<br>
 ```{r chunk_chapter4_18, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315" 
@@ -1985,8 +2301,9 @@ cat(
   </iframe>'
 )
 ```
-
+<br>
 * <a href="https://www.youtube.com/watch?v=g9c66TUylZ4" target="_blank" rel="noopener">Regression trees</a>
+<br>
 ```{r chunk_chapter4_19, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315" 
@@ -1996,8 +2313,9 @@ cat(
   </iframe>'
 )
 ```
-
+<br>
 * <a href="https://www.youtube.com/watch?v=J4Wdy0Wc_xQ" target="_blank" rel="noopener">Random forests</a>
+<br>
 ```{r chunk_chapter4_20, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315" 
@@ -2007,8 +2325,9 @@ cat(
   </iframe>'
 )
 ```
-
+<br>
 * <a href="https://www.youtube.com/watch?v=D0efHEJsfHo" target="_blank" rel="noopener">Pruning trees</a>
+<br>
 ```{r chunk_chapter4_21, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315" 
@@ -2018,7 +2337,7 @@ cat(
   </iframe>'
 )
 ```
-
+<br>
 After watching these videos, you should know what the different hyperparameters are doing and how to prevent trees / forests from doing something you don't want.
 
 
@@ -2161,9 +2480,11 @@ Annotation: The original data set is randomly partitioned into $n$ equal sized s
 
 If we do three-folded cross-validation, we actually fit three different boosted regression tree models (xgboost models) on $\approx 67\%$ of the data points. Afterwards, we judge the performance on the respective holdout. This now tells us how well the model performed.
 
+### Exercises
+
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
 ```
 
 We will use the following code snippet to see the influence of mincut on trees.
@@ -2231,7 +2552,7 @@ Mind the complete cases of the airquality data set, that was the error.
 
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
 ```
 
 We will use the following code snippet to explore a random forest:
@@ -2240,7 +2561,7 @@ We will use the following code snippet to explore a random forest:
 library(randomForest)
 set.seed(123)
 
-airquality[complete.cases(airquality),]
+data = airquality[complete.cases(airquality),]
 
 rf = randomForest(Ozone~., data = data)
 
@@ -2296,7 +2617,7 @@ In other words: The bigger the nodesize, the smaller the trees and the more bias
 
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br/>
 ```
 
 ```{r chunk_chapter4_task_25, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
@@ -2421,7 +2742,7 @@ knitr::include_graphics("./images/boosting_20_0.9.gif")
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
 ```
 
 We implemented a simple boosted regression tree using R just for fun.
@@ -2430,7 +2751,7 @@ Go through the code line by line and try to understand it. Ask, if you have any 
 ```{=html}
   <details>
     <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">...</span></strong>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary>
     <p>
 ```
@@ -2607,9 +2928,13 @@ knitr::include_graphics("./images/svm.gif")
 
 As you have seen, this does not work with every kernel. Hence, the problem is to find the actual correct kernel, which is again an optimization procedure and can thus be approximated.
 
+
+### Exercises
+
+
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
 ```
 
 We will use the Sonar data set to explore support-vector machines and k-neartest-neighbor classifier.
@@ -2669,7 +2994,7 @@ Do not forget scaling!
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
 ```
 
 Fit a standard k-nearest-neighbor classifier and a support vector machine with a linear kernel (check help), and report what fitted better.
@@ -2719,7 +3044,7 @@ K-nearest neighbor fitted (slightly) better.
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br/>
 ```
 
 Calculate accuracies of both algorithms.
@@ -2744,7 +3069,7 @@ Calculate accuracies of both algorithms.
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
 ```
 
 Fit again with different kernels and compare accuracies.
@@ -2776,7 +3101,7 @@ predSVM = predict(sm, newdata = test)
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">5. Task</span></strong><br/>
 ```
 
 Try the fit again with a different seed for training and test set generation.

@@ -518,7 +518,6 @@ Try out different learning rates, very high and very low learning rates, can you
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-#> Loaded Tensorflow version 2.9.1
 
 iris = datasets::iris
 X = scale(iris[,1:4])
@@ -568,8 +567,8 @@ set.seed(123)
 
 iris = datasets::iris
 X = scale(iris[,1:4])
-Y = iris[,5]
-Y = as.integer(Y)
+Yt = iris[,5]
+Yt = as.integer(Yt)
 
 model_torch = nn_sequential(
   nn_linear(in_features = dim(X)[2], out_features = 20L),
@@ -584,7 +583,7 @@ opt = optim_adam(params = model_torch$parameters, lr = 0.5)
 
 batch_size = 20L
 X_torch = torch_tensor(X)
-Y_torch = torch_tensor(Y, dtype = torch_long())
+Y_torch = torch_tensor(Yt, dtype = torch_long())
 losses = rep(NA, 500)
 for(i in 1:500){
   indices = sample.int(nrow(X), batch_size)
@@ -637,7 +636,7 @@ model_history2 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>           0.04000897           0.98666668
+#>           0.04047703           0.98000002
 
 plot(model_history2)
 ```
@@ -664,7 +663,7 @@ model_history3 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>            0.0399975            0.9866667
+#>           0.04046927           0.98000002
 
 plot(model_history3)
 ```
@@ -689,7 +688,7 @@ model_history4 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>           0.03996202           0.98666668
+#>           0.04043195           0.98000002
 
 plot(model_history4)
 ```
@@ -715,7 +714,7 @@ model_history5 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>            1.3998153            0.9666666
+#>            1.1026534            0.3333333
 
 plot(model_history5)
 ```
@@ -741,7 +740,7 @@ model_history6 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>            7.6132493            0.3333333
+#>            1.1415949            0.3333333
 
 plot(model_history6)
 ```
@@ -767,7 +766,7 @@ model_history7 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>            1.2877126            0.3333333
+#>            1.0997989            0.3333333
 
 plot(model_history7)
 ```
@@ -793,7 +792,7 @@ model_history8 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>            1.1118358            0.3333333
+#>            1.0997801            0.3333333
 
 plot(model_history8)
 ```
@@ -819,7 +818,7 @@ model_history9 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>            1.2418699            0.3333333
+#>            1.1278787            0.3333333
 
 plot(model_history9)
 ```
@@ -845,7 +844,7 @@ model_history10 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>            1.1917901            0.3333333
+#>            1.1229721            0.3333333
 
 plot(model_history10)
 ```
@@ -871,7 +870,7 @@ model_history11 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>            1.1628621            0.3333333
+#>            1.1222010            0.3333333
 
 plot(model_history11)
 ```
@@ -897,7 +896,7 @@ model_history12 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>            1.1135705            0.3333333
+#>            1.1011598            0.3333333
 
 plot(model_history12)
 ```
@@ -923,7 +922,7 @@ model_history13 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>            1.1114935            0.3333333
+#>            1.0986328            0.3333333
 
 plot(model_history13)
 ```
@@ -949,7 +948,7 @@ model_history14 =
 model %>%
   evaluate(X, Y)
 #>                 loss categorical_accuracy 
-#>            1.1036538            0.3333333
+#>            1.0986325            0.3333333
 
 plot(model_history14)
 ```
@@ -1055,7 +1054,7 @@ opt = optim_adam(params = model_torch$parameters, lr = 0.5)
 
 batch_size = 20L
 X_torch = torch_tensor(X)
-Y_torch = torch_tensor(Y, dtype = torch_long())
+Y_torch = torch_tensor(Yt, dtype = torch_long())
 losses = rep(NA, 500)
 for(i in 1:500){
   indices = sample.int(nrow(X), batch_size)
@@ -1083,7 +1082,7 @@ opt = optim_adam(params = model_torch$parameters, lr = 5.5)
 
 batch_size = 20L
 X_torch = torch_tensor(X)
-Y_torch = torch_tensor(Y, dtype = torch_long())
+Y_torch = torch_tensor(Yt, dtype = torch_long())
 losses = rep(NA, 500)
 for(i in 1:500){
   indices = sample.int(nrow(X), batch_size)
@@ -1111,7 +1110,7 @@ opt = optim_adam(params = model_torch$parameters, lr = 15.5)
 
 batch_size = 20L
 X_torch = torch_tensor(X)
-Y_torch = torch_tensor(Y, dtype = torch_long())
+Y_torch = torch_tensor(Yt, dtype = torch_long())
 losses = rep(NA, 500)
 for(i in 1:500){
   indices = sample.int(nrow(X), batch_size)
@@ -1245,9 +1244,7 @@ Again, we have to do the regularization on our own in Torch:
 
 
 ```r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+library(torch)
 
 model_torch = nn_sequential(
   nn_linear(in_features = dim(X)[2], out_features = 100L),
@@ -1554,37 +1551,15 @@ for(i in 1:500){
 l2_torch = model_torch$parameters
 
 linear = lm(y~x)
-summary(linear)
-#> 
-#> Call:
-#> lm(formula = y ~ x)
-#> 
-#> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#> -37.014 -12.284  -3.302   8.454  95.348 
-#> 
-#> Coefficients:
-#>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   42.099      1.980  21.264  < 2e-16 ***
-#> xSolar.R       4.583      2.135   2.147   0.0341 *  
-#> xWind        -11.806      2.293  -5.149 1.23e-06 ***
-#> xTemp         18.067      2.610   6.922 3.66e-10 ***
-#> xMonth        -4.479      2.230  -2.009   0.0471 *  
-#> xDay           2.385      2.000   1.192   0.2358    
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> 
-#> Residual standard error: 20.86 on 105 degrees of freedom
-#> Multiple R-squared:  0.6249,	Adjusted R-squared:  0.6071 
-#> F-statistic: 34.99 on 5 and 105 DF,  p-value: < 2.2e-16
+```
 
-cat("Linear:     ", round(coef(linear), 3))
+
+```
 #> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
-cat("L1:         ", round(c(as.numeric( l1_torch$`0.bias` ),as.numeric( l1_torch$`0.weight` )), 3))
 #> L1:          37.266 0.779 -6.594 14.665 -0.067 0.048
-cat("L2:         ", round(c(as.numeric( l2_torch$`0.bias` ),as.numeric( l2_torch$`0.weight` )), 3))
 #> L2:          37.334 4.262 -8.593 14.167 -2.081 0.365
 ```
+
 
 :::
 
@@ -1748,35 +1723,12 @@ for(i in 1:500){
 l1_torch_lesser = model_torch$parameters
 
 linear = lm(y~x)
-summary(linear)
-#> 
-#> Call:
-#> lm(formula = y ~ x)
-#> 
-#> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#> -37.014 -12.284  -3.302   8.454  95.348 
-#> 
-#> Coefficients:
-#>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   42.099      1.980  21.264  < 2e-16 ***
-#> xSolar.R       4.583      2.135   2.147   0.0341 *  
-#> xWind        -11.806      2.293  -5.149 1.23e-06 ***
-#> xTemp         18.067      2.610   6.922 3.66e-10 ***
-#> xMonth        -4.479      2.230  -2.009   0.0471 *  
-#> xDay           2.385      2.000   1.192   0.2358    
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> 
-#> Residual standard error: 20.86 on 105 degrees of freedom
-#> Multiple R-squared:  0.6249,	Adjusted R-squared:  0.6071 
-#> F-statistic: 34.99 on 5 and 105 DF,  p-value: < 2.2e-16
+```
 
-cat("Linear:     ", round(coef(linear), 3))
+
+```
 #> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
-cat("L1:         ", round(c(as.numeric( l1_torch$`0.bias` ),as.numeric( l1_torch$`0.weight` )), 3))
 #> L1:          37.266 0.779 -6.594 14.665 -0.067 0.048
-cat("L1 lesser:         ", round(c(as.numeric( l1_torch_lesser$`0.bias` ),as.numeric( l1_torch_lesser$`0.weight` )), 3))
 #> L1 lesser:          41.631 3.814 -9.777 17.704 -3.5 0.993
 ```
 
@@ -1822,35 +1774,12 @@ for(i in 1:500){
 l2_torch_lesser = model_torch$parameters
 
 linear = lm(y~x)
-summary(linear)
-#> 
-#> Call:
-#> lm(formula = y ~ x)
-#> 
-#> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#> -37.014 -12.284  -3.302   8.454  95.348 
-#> 
-#> Coefficients:
-#>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   42.099      1.980  21.264  < 2e-16 ***
-#> xSolar.R       4.583      2.135   2.147   0.0341 *  
-#> xWind        -11.806      2.293  -5.149 1.23e-06 ***
-#> xTemp         18.067      2.610   6.922 3.66e-10 ***
-#> xMonth        -4.479      2.230  -2.009   0.0471 *  
-#> xDay           2.385      2.000   1.192   0.2358    
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> 
-#> Residual standard error: 20.86 on 105 degrees of freedom
-#> Multiple R-squared:  0.6249,	Adjusted R-squared:  0.6071 
-#> F-statistic: 34.99 on 5 and 105 DF,  p-value: < 2.2e-16
+```
 
-cat("Linear:     ", round(coef(linear), 3))
+
+```
 #> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
-cat("L2:         ", round(c(as.numeric( l2_torch$`0.bias` ),as.numeric( l2_torch$`0.weight` )), 3))
 #> L2:          37.334 4.262 -8.593 14.167 -2.081 0.365
-cat("L2 lesser:         ", round(c(as.numeric( l2_torch_lesser$`0.bias` ),as.numeric( l2_torch_lesser$`0.weight` )), 3))
 #> L2 lesser:          41.624 4.172 -10.056 17.798 -4.058 1.171
 ```
 
@@ -1898,6 +1827,7 @@ plot(model_history)
 
 l1_higher = model$get_weights()
 ```
+
 
 ```
 #> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
@@ -1993,40 +1923,15 @@ for(i in 1:500){
 l1_torch_higher = model_torch$parameters
 
 linear = lm(y~x)
-summary(linear)
-#> 
-#> Call:
-#> lm(formula = y ~ x)
-#> 
-#> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#> -37.014 -12.284  -3.302   8.454  95.348 
-#> 
-#> Coefficients:
-#>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   42.099      1.980  21.264  < 2e-16 ***
-#> xSolar.R       4.583      2.135   2.147   0.0341 *  
-#> xWind        -11.806      2.293  -5.149 1.23e-06 ***
-#> xTemp         18.067      2.610   6.922 3.66e-10 ***
-#> xMonth        -4.479      2.230  -2.009   0.0471 *  
-#> xDay           2.385      2.000   1.192   0.2358    
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> 
-#> Residual standard error: 20.86 on 105 degrees of freedom
-#> Multiple R-squared:  0.6249,	Adjusted R-squared:  0.6071 
-#> F-statistic: 34.99 on 5 and 105 DF,  p-value: < 2.2e-16
-
-cat("Linear:     ", round(coef(linear), 3))
-#> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
-cat("L1:         ", round(c(as.numeric( l1_torch$`0.bias` ),as.numeric( l1_torch$`0.weight` )), 3))
-#> L1:          37.266 0.779 -6.594 14.665 -0.067 0.048
-cat("L1 lesser:         ", round(c(as.numeric( l1_torch_lesser$`0.bias` ),as.numeric( l1_torch_lesser$`0.weight` )), 3))
-#> L1 lesser:          41.631 3.814 -9.777 17.704 -3.5 0.993
-cat("L1 higher:         ", round(c(as.numeric( l1_torch_higher$`0.bias` ),as.numeric( l1_torch_higher$`0.weight` )), 3))
-#> L1 higher:          29.636 0.123 -1.257 10.496 -0.013 0.032
 ```
 
+
+```
+#> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
+#> L1:          37.266 0.779 -6.594 14.665 -0.067 0.048
+#> L1 lesser:          41.631 3.814 -9.777 17.704 -3.5 0.993
+#> L1 higher:          29.636 0.123 -1.257 10.496 -0.013 0.032
+```
 
 
 
@@ -2092,14 +1997,13 @@ summary(linear)
 #> Residual standard error: 20.86 on 105 degrees of freedom
 #> Multiple R-squared:  0.6249,	Adjusted R-squared:  0.6071 
 #> F-statistic: 34.99 on 5 and 105 DF,  p-value: < 2.2e-16
+```
 
-cat("Linear:     ", round(coef(linear), 3))
+
+```
 #> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
-cat("L2:         ", round(c(as.numeric( l2_torch$`0.bias` ),as.numeric( l2_torch$`0.weight` )), 3))
 #> L2:          37.334 4.262 -8.593 14.167 -2.081 0.365
-cat("L2 lesser:         ", round(c(as.numeric( l2_torch_lesser$`0.bias` ),as.numeric( l2_torch_lesser$`0.weight` )), 3))
 #> L2 lesser:          41.624 4.172 -10.056 17.798 -4.058 1.171
-cat("L2 higher:         ", round(c(as.numeric( l2_torch_higher$`0.bias` ),as.numeric( l2_torch_higher$`0.weight` )), 3))
 #> L2 higher:          30.026 3.192 -5.988 9.622 -0.353 -0.043
 ```
 
@@ -2135,6 +2039,14 @@ Use a combination of $L1$ and a $L2$ regularization (there is a Keras function f
 ```
 
 
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+
+
+
 ```r
 library(tensorflow)
 library(keras)
@@ -2164,6 +2076,58 @@ plot(model_history)
 
 This kind of regularization is called **Elastic net**. It is a combination of LASSO ($L1$) and Ridge. It is more flexible than $L1$ and less flexible than $L2$ and higher computational cost. Elastic net does shrinkage as well, but does not separate highly correlated parameters out that much.
 
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
+
+```r
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+X_torch = torch_tensor(x)
+Y_torch = torch_tensor(matrix(y, ncol = 1L), dtype = torch_float32())
+lambda = torch_tensor(25.)
+for(i in 1:500){
+  indices = sample.int(nrow(x), 20L)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_mse_loss(pred, Y_torch[indices,,drop = FALSE])
+  
+  ## add L1 regularization
+  
+  for(i in 1:length(model_torch$parameters)) {
+     # if(stringr::str_detect(names(model_torch$parameters)[[i]], "weight")) {
+      loss = loss + lambda*torch_norm(model_torch$parameters[[i]], 2)
+      loss = loss + lambda*torch_norm(model_torch$parameters[[i]], 1)
+     # }
+  }
+  
+  loss$sum()$backward()
+  opt$step()
+}
+```
+
+:::
+
+:::::
+
+
+
 ```{=html}
     </p>
   </details>
@@ -2171,8 +2135,14 @@ This kind of regularization is called **Elastic net**. It is a combination of LA
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
 ```
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 In Keras you can tell the model to keep a specific percentage of the data as holdout (validation_split argument in the fit function):
 
@@ -2208,6 +2178,71 @@ plot(model_history)
 
 <img src="05-fundamental_files/figure-html/chunk_chapter4_task_14-1.png" width="100%" style="display: block; margin: auto;" />
 
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+As you might have noticed, there is no fit function in torch and we would have to write the fit/training function on our own. However there is a new package called 'cito' (based on torch) that allows to do everything we need in one line of code.
+
+
+```r
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2)
+#> Loss at epoch 1: training: 2727.625, validation: 2943.772, lr: 0.01000
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_14_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 2219.949, validation: 1751.822, lr: 0.01000
+#> Loss at epoch 3: training: 1161.460, validation: 749.765, lr: 0.01000
+#> Loss at epoch 4: training: 839.385, validation: 670.991, lr: 0.01000
+#> Loss at epoch 5: training: 503.821, validation: 247.064, lr: 0.01000
+#> Loss at epoch 6: training: 397.692, validation: 237.813, lr: 0.01000
+#> Loss at epoch 7: training: 404.759, validation: 279.735, lr: 0.01000
+#> Loss at epoch 8: training: 385.765, validation: 499.828, lr: 0.01000
+#> Loss at epoch 9: training: 403.803, validation: 410.069, lr: 0.01000
+#> Loss at epoch 10: training: 364.150, validation: 302.399, lr: 0.01000
+#> Loss at epoch 11: training: 363.741, validation: 311.543, lr: 0.01000
+#> Loss at epoch 12: training: 335.237, validation: 395.540, lr: 0.01000
+#> Loss at epoch 13: training: 324.224, validation: 366.540, lr: 0.01000
+#> Loss at epoch 14: training: 305.847, validation: 297.235, lr: 0.01000
+#> Loss at epoch 15: training: 306.413, validation: 302.437, lr: 0.01000
+#> Loss at epoch 16: training: 300.281, validation: 346.101, lr: 0.01000
+#> Loss at epoch 17: training: 298.922, validation: 336.537, lr: 0.01000
+#> Loss at epoch 18: training: 294.127, validation: 308.364, lr: 0.01000
+#> Loss at epoch 19: training: 291.176, validation: 316.795, lr: 0.01000
+#> Loss at epoch 20: training: 284.996, validation: 336.547, lr: 0.01000
+#> Loss at epoch 21: training: 280.721, validation: 319.395, lr: 0.01000
+#> Loss at epoch 22: training: 276.327, validation: 304.193, lr: 0.01000
+#> Loss at epoch 23: training: 272.264, validation: 314.108, lr: 0.01000
+#> Loss at epoch 24: training: 267.946, validation: 317.537, lr: 0.01000
+#> Loss at epoch 25: training: 263.750, validation: 305.008, lr: 0.01000
+#> Loss at epoch 26: training: 259.456, validation: 306.201, lr: 0.01000
+#> Loss at epoch 27: training: 254.371, validation: 314.152, lr: 0.01000
+#> Loss at epoch 28: training: 249.940, validation: 309.370, lr: 0.01000
+#> Loss at epoch 29: training: 244.954, validation: 310.888, lr: 0.01000
+#> Loss at epoch 30: training: 239.748, validation: 317.827, lr: 0.01000
+#> Loss at epoch 31: training: 234.382, validation: 316.355, lr: 0.01000
+#> Loss at epoch 32: training: 228.147, validation: 317.936, lr: 0.01000
+```
+
+:::
+
+:::::
+
 Run the code and view the loss for the train and the validation (test) set in the viewer panel. What happens with the validation loss? Why?
 
 ```{=html}
@@ -2227,10 +2262,10 @@ The training loss keeps decreasing, but the validation loss increases after a ti
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">5. Task</span></strong><br/>
 ```
 
-Add $L1$ / $L2$ regularization to the neural network above and try to keep the test loss close to the training loss. Try a little higher epoch number!
+Add $L1$ / $L2$ regularization to the neural network above and try to keep the test loss close to the training loss. Try higher epoch numbers!
 
 Explain the strategy that helps to achieve this. 
 
@@ -2243,6 +2278,13 @@ Explain the strategy that helps to achieve this.
 ```
 
 **Adding regularization (**$L1$ **and** $L2$**):**
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 
 ```r
@@ -2278,7 +2320,79 @@ plot(model_history)
 
 <img src="05-fundamental_files/figure-html/chunk_chapter4_task_15-1.png" width="100%" style="display: block; margin: auto;" />
 
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+
+```r
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 5.,
+            alpha = 0.5)
+#> Loss at epoch 1: training: 5132.135, validation: 4803.128, lr: 0.01000
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_15_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 4037.754, validation: 4055.183, lr: 0.01000
+#> Loss at epoch 3: training: 3452.531, validation: 3794.270, lr: 0.01000
+#> Loss at epoch 4: training: 3333.292, validation: 3802.902, lr: 0.01000
+#> Loss at epoch 5: training: 3276.066, validation: 3594.412, lr: 0.01000
+#> Loss at epoch 6: training: 3033.098, validation: 3234.983, lr: 0.01000
+#> Loss at epoch 7: training: 2651.150, validation: 2627.195, lr: 0.01000
+#> Loss at epoch 8: training: 2032.167, validation: 1708.311, lr: 0.01000
+#> Loss at epoch 9: training: 1506.195, validation: 1635.094, lr: 0.01000
+#> Loss at epoch 10: training: 1518.036, validation: 1269.873, lr: 0.01000
+#> Loss at epoch 11: training: 1225.803, validation: 1164.637, lr: 0.01000
+#> Loss at epoch 12: training: 1197.830, validation: 1069.938, lr: 0.01000
+#> Loss at epoch 13: training: 1067.111, validation: 1020.187, lr: 0.01000
+#> Loss at epoch 14: training: 1013.407, validation: 1091.277, lr: 0.01000
+#> Loss at epoch 15: training: 980.605, validation: 935.250, lr: 0.01000
+#> Loss at epoch 16: training: 931.649, validation: 868.834, lr: 0.01000
+#> Loss at epoch 17: training: 907.558, validation: 848.919, lr: 0.01000
+#> Loss at epoch 18: training: 865.158, validation: 883.693, lr: 0.01000
+#> Loss at epoch 19: training: 852.313, validation: 852.561, lr: 0.01000
+#> Loss at epoch 20: training: 828.706, validation: 792.463, lr: 0.01000
+#> Loss at epoch 21: training: 810.910, validation: 770.522, lr: 0.01000
+#> Loss at epoch 22: training: 789.190, validation: 780.262, lr: 0.01000
+#> Loss at epoch 23: training: 773.155, validation: 772.059, lr: 0.01000
+#> Loss at epoch 24: training: 759.146, validation: 743.177, lr: 0.01000
+#> Loss at epoch 25: training: 746.524, validation: 727.122, lr: 0.01000
+#> Loss at epoch 26: training: 733.988, validation: 725.905, lr: 0.01000
+#> Loss at epoch 27: training: 723.263, validation: 720.861, lr: 0.01000
+#> Loss at epoch 28: training: 714.193, validation: 709.049, lr: 0.01000
+#> Loss at epoch 29: training: 705.598, validation: 696.874, lr: 0.01000
+#> Loss at epoch 30: training: 695.459, validation: 694.254, lr: 0.01000
+#> Loss at epoch 31: training: 687.815, validation: 687.747, lr: 0.01000
+#> Loss at epoch 32: training: 680.873, validation: 680.050, lr: 0.01000
+```
+
+
+:::
+
+:::::
+
+
 **Adding higher regularization (**$L1$ **and** $L2$**):**
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 
 ```r
@@ -2314,9 +2428,81 @@ plot(model_history)
 
 <img src="05-fundamental_files/figure-html/chunk_chapter4_task_16-1.png" width="100%" style="display: block; margin: auto;" />
 
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+
+```r
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 15.,
+            alpha = 0.5)
+#> Loss at epoch 1: training: 9552.711, validation: 8833.547, lr: 0.01000
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_16_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 6291.424, validation: 6609.855, lr: 0.01000
+#> Loss at epoch 3: training: 4579.450, validation: 5919.222, lr: 0.01000
+#> Loss at epoch 4: training: 4309.572, validation: 6043.946, lr: 0.01000
+#> Loss at epoch 5: training: 4259.564, validation: 5675.108, lr: 0.01000
+#> Loss at epoch 6: training: 3825.695, validation: 5207.552, lr: 0.01000
+#> Loss at epoch 7: training: 3425.054, validation: 5009.489, lr: 0.01000
+#> Loss at epoch 8: training: 3317.930, validation: 4927.411, lr: 0.01000
+#> Loss at epoch 9: training: 3175.219, validation: 4710.522, lr: 0.01000
+#> Loss at epoch 10: training: 2984.521, validation: 4582.708, lr: 0.01000
+#> Loss at epoch 11: training: 2884.176, validation: 4484.433, lr: 0.01000
+#> Loss at epoch 12: training: 2782.358, validation: 4367.329, lr: 0.01000
+#> Loss at epoch 13: training: 2683.173, validation: 4267.801, lr: 0.01000
+#> Loss at epoch 14: training: 2615.296, validation: 4177.524, lr: 0.01000
+#> Loss at epoch 15: training: 2514.327, validation: 4042.495, lr: 0.01000
+#> Loss at epoch 16: training: 2414.864, validation: 3891.489, lr: 0.01000
+#> Loss at epoch 17: training: 2278.778, validation: 3689.674, lr: 0.01000
+#> Loss at epoch 18: training: 2108.258, validation: 3383.650, lr: 0.01000
+#> Loss at epoch 19: training: 1878.854, validation: 3008.444, lr: 0.01000
+#> Loss at epoch 20: training: 1694.769, validation: 2751.500, lr: 0.01000
+#> Loss at epoch 21: training: 1668.852, validation: 2631.541, lr: 0.01000
+#> Loss at epoch 22: training: 1638.752, validation: 2559.595, lr: 0.01000
+#> Loss at epoch 23: training: 1553.259, validation: 2487.396, lr: 0.01000
+#> Loss at epoch 24: training: 1476.663, validation: 2376.811, lr: 0.01000
+#> Loss at epoch 25: training: 1405.264, validation: 2221.899, lr: 0.01000
+#> Loss at epoch 26: training: 1332.830, validation: 2051.245, lr: 0.01000
+#> Loss at epoch 27: training: 1261.815, validation: 1904.627, lr: 0.01000
+#> Loss at epoch 28: training: 1205.749, validation: 1804.344, lr: 0.01000
+#> Loss at epoch 29: training: 1164.656, validation: 1711.746, lr: 0.01000
+#> Loss at epoch 30: training: 1126.807, validation: 1653.241, lr: 0.01000
+#> Loss at epoch 31: training: 1095.497, validation: 1604.578, lr: 0.01000
+#> Loss at epoch 32: training: 1068.875, validation: 1576.547, lr: 0.01000
+```
+
+:::
+
+:::::
+
+
 *Keep in mind: With higher regularization, both the training and the validation loss keep relatively high!*
 
 **Adding normal regularization (**$L1$ **and** $L2$**) and use a larger learning rate:**
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 
 ```r
@@ -2352,7 +2538,83 @@ plot(model_history)
 
 <img src="05-fundamental_files/figure-html/chunk_chapter4_task_17-1.png" width="100%" style="display: block; margin: auto;" />
 
+
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+
+
+```r
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 5.,
+            lr = 0.2,
+            alpha = 0.5)
+#> Loss at epoch 1: training: 16327.440, validation: 9144.548, lr: 0.20000
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_17_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 8257.439, validation: 10667.663, lr: 0.20000
+#> Loss at epoch 3: training: 9044.628, validation: 9300.070, lr: 0.20000
+#> Loss at epoch 4: training: 10603.996, validation: 13365.126, lr: 0.20000
+#> Loss at epoch 5: training: 12835.686, validation: 12399.452, lr: 0.20000
+#> Loss at epoch 6: training: 11700.891, validation: 11565.099, lr: 0.20000
+#> Loss at epoch 7: training: 11422.474, validation: 11568.539, lr: 0.20000
+#> Loss at epoch 8: training: 11357.537, validation: 11374.830, lr: 0.20000
+#> Loss at epoch 9: training: 10686.151, validation: 10641.263, lr: 0.20000
+#> Loss at epoch 10: training: 10102.818, validation: 11116.869, lr: 0.20000
+#> Loss at epoch 11: training: 10570.798, validation: 10257.980, lr: 0.20000
+#> Loss at epoch 12: training: 9340.195, validation: 9118.415, lr: 0.20000
+#> Loss at epoch 13: training: 8630.348, validation: 9357.287, lr: 0.20000
+#> Loss at epoch 14: training: 8727.984, validation: 8561.631, lr: 0.20000
+#> Loss at epoch 15: training: 7800.990, validation: 7962.877, lr: 0.20000
+#> Loss at epoch 16: training: 7334.145, validation: 7406.061, lr: 0.20000
+#> Loss at epoch 17: training: 6769.643, validation: 6981.447, lr: 0.20000
+#> Loss at epoch 18: training: 6306.741, validation: 6560.812, lr: 0.20000
+#> Loss at epoch 19: training: 5819.032, validation: 6281.702, lr: 0.20000
+#> Loss at epoch 20: training: 5548.384, validation: 5723.558, lr: 0.20000
+#> Loss at epoch 21: training: 5083.281, validation: 5456.334, lr: 0.20000
+#> Loss at epoch 22: training: 4798.322, validation: 5083.321, lr: 0.20000
+#> Loss at epoch 23: training: 4363.521, validation: 4730.824, lr: 0.20000
+#> Loss at epoch 24: training: 4066.876, validation: 4505.259, lr: 0.20000
+#> Loss at epoch 25: training: 3808.684, validation: 4172.278, lr: 0.20000
+#> Loss at epoch 26: training: 3513.810, validation: 3944.718, lr: 0.20000
+#> Loss at epoch 27: training: 3254.075, validation: 3783.761, lr: 0.20000
+#> Loss at epoch 28: training: 3112.667, validation: 3505.463, lr: 0.20000
+#> Loss at epoch 29: training: 2900.247, validation: 3282.843, lr: 0.20000
+#> Loss at epoch 30: training: 2720.389, validation: 3258.859, lr: 0.20000
+#> Loss at epoch 31: training: 2549.015, validation: 3055.973, lr: 0.20000
+#> Loss at epoch 32: training: 2407.888, validation: 2907.814, lr: 0.20000
+```
+
+
+:::
+
+:::::
+
+
 **Adding normal regularization (**$L1$ **and** $L2$**) and use a very low learning rate:**
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 
 ```r
@@ -2388,9 +2650,82 @@ plot(model_history)
 
 <img src="05-fundamental_files/figure-html/chunk_chapter4_task_18-1.png" width="100%" style="display: block; margin: auto;" />
 
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+
+```r
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 5.,
+            lr = 0.001,
+            alpha = 0.5)
+#> Loss at epoch 1: training: 5269.452, validation: 6856.531, lr: 0.00100
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_18_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 5116.475, validation: 6706.862, lr: 0.00100
+#> Loss at epoch 3: training: 4968.938, validation: 6562.477, lr: 0.00100
+#> Loss at epoch 4: training: 4826.538, validation: 6422.984, lr: 0.00100
+#> Loss at epoch 5: training: 4689.030, validation: 6288.589, lr: 0.00100
+#> Loss at epoch 6: training: 4556.492, validation: 6158.768, lr: 0.00100
+#> Loss at epoch 7: training: 4428.344, validation: 6033.175, lr: 0.00100
+#> Loss at epoch 8: training: 4304.363, validation: 5911.759, lr: 0.00100
+#> Loss at epoch 9: training: 4184.625, validation: 5794.792, lr: 0.00100
+#> Loss at epoch 10: training: 4069.390, validation: 5682.192, lr: 0.00100
+#> Loss at epoch 11: training: 3958.662, validation: 5574.551, lr: 0.00100
+#> Loss at epoch 12: training: 3852.800, validation: 5471.527, lr: 0.00100
+#> Loss at epoch 13: training: 3751.311, validation: 5372.250, lr: 0.00100
+#> Loss at epoch 14: training: 3653.724, validation: 5277.475, lr: 0.00100
+#> Loss at epoch 15: training: 3560.818, validation: 5187.348, lr: 0.00100
+#> Loss at epoch 16: training: 3472.308, validation: 5101.110, lr: 0.00100
+#> Loss at epoch 17: training: 3387.640, validation: 5019.347, lr: 0.00100
+#> Loss at epoch 18: training: 3308.011, validation: 4942.825, lr: 0.00100
+#> Loss at epoch 19: training: 3233.465, validation: 4871.195, lr: 0.00100
+#> Loss at epoch 20: training: 3163.757, validation: 4804.116, lr: 0.00100
+#> Loss at epoch 21: training: 3098.194, validation: 4740.721, lr: 0.00100
+#> Loss at epoch 22: training: 3036.596, validation: 4681.640, lr: 0.00100
+#> Loss at epoch 23: training: 2979.298, validation: 4626.847, lr: 0.00100
+#> Loss at epoch 24: training: 2926.640, validation: 4576.861, lr: 0.00100
+#> Loss at epoch 25: training: 2878.261, validation: 4530.707, lr: 0.00100
+#> Loss at epoch 26: training: 2833.971, validation: 4488.954, lr: 0.00100
+#> Loss at epoch 27: training: 2794.252, validation: 4451.900, lr: 0.00100
+#> Loss at epoch 28: training: 2759.278, validation: 4419.588, lr: 0.00100
+#> Loss at epoch 29: training: 2728.856, validation: 4391.416, lr: 0.00100
+#> Loss at epoch 30: training: 2702.543, validation: 4367.263, lr: 0.00100
+#> Loss at epoch 31: training: 2680.425, validation: 4347.477, lr: 0.00100
+#> Loss at epoch 32: training: 2662.657, validation: 4332.176, lr: 0.00100
+```
+
+
+:::
+
+:::::
+
 Look at the constantly lower validation loss.
 
 **Adding low regularization (**$L1$ **and** $L2$**) and use a very low learning rate:**
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 
 ```r
@@ -2426,9 +2761,83 @@ plot(model_history)
 
 <img src="05-fundamental_files/figure-html/chunk_chapter4_task_19-1.png" width="100%" style="display: block; margin: auto;" />
 
-This was a good example for **early stopping**.
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+
+
+```r
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 0.5,
+            lr = 0.001,
+            alpha = 0.5)
+#> Loss at epoch 1: training: 2785.256, validation: 4461.933, lr: 0.00100
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_19_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 2764.665, validation: 4439.806, lr: 0.00100
+#> Loss at epoch 3: training: 2744.952, validation: 4417.255, lr: 0.00100
+#> Loss at epoch 4: training: 2724.453, validation: 4392.339, lr: 0.00100
+#> Loss at epoch 5: training: 2701.842, validation: 4363.474, lr: 0.00100
+#> Loss at epoch 6: training: 2675.523, validation: 4328.545, lr: 0.00100
+#> Loss at epoch 7: training: 2643.902, validation: 4284.910, lr: 0.00100
+#> Loss at epoch 8: training: 2604.654, validation: 4229.163, lr: 0.00100
+#> Loss at epoch 9: training: 2555.259, validation: 4157.910, lr: 0.00100
+#> Loss at epoch 10: training: 2492.967, validation: 4067.148, lr: 0.00100
+#> Loss at epoch 11: training: 2414.684, validation: 3952.364, lr: 0.00100
+#> Loss at epoch 12: training: 2317.212, validation: 3809.021, lr: 0.00100
+#> Loss at epoch 13: training: 2197.632, validation: 3632.981, lr: 0.00100
+#> Loss at epoch 14: training: 2053.995, validation: 3420.942, lr: 0.00100
+#> Loss at epoch 15: training: 1885.708, validation: 3171.264, lr: 0.00100
+#> Loss at epoch 16: training: 1694.612, validation: 2885.631, lr: 0.00100
+#> Loss at epoch 17: training: 1486.422, validation: 2569.979, lr: 0.00100
+#> Loss at epoch 18: training: 1271.472, validation: 2236.279, lr: 0.00100
+#> Loss at epoch 19: training: 1065.475, validation: 1903.281, lr: 0.00100
+#> Loss at epoch 20: training: 887.979, validation: 1595.156, lr: 0.00100
+#> Loss at epoch 21: training: 756.957, validation: 1336.443, lr: 0.00100
+#> Loss at epoch 22: training: 679.964, validation: 1143.067, lr: 0.00100
+#> Loss at epoch 23: training: 646.783, validation: 1014.218, lr: 0.00100
+#> Loss at epoch 24: training: 632.946, validation: 934.839, lr: 0.00100
+#> Loss at epoch 25: training: 615.736, validation: 887.774, lr: 0.00100
+#> Loss at epoch 26: training: 587.875, validation: 862.232, lr: 0.00100
+#> Loss at epoch 27: training: 555.525, validation: 852.343, lr: 0.00100
+#> Loss at epoch 28: training: 527.259, validation: 852.554, lr: 0.00100
+#> Loss at epoch 29: training: 507.079, validation: 856.364, lr: 0.00100
+#> Loss at epoch 30: training: 494.097, validation: 857.859, lr: 0.00100
+#> Loss at epoch 31: training: 485.339, validation: 853.622, lr: 0.00100
+#> Loss at epoch 32: training: 478.174, validation: 843.091, lr: 0.00100
+```
+
+
+:::
+
+:::::
+
+
 
 **Taking the example from above, but without shuffling:**
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 
 ```r
@@ -2464,6 +2873,77 @@ plot(model_history)
 
 <img src="05-fundamental_files/figure-html/chunk_chapter4_task_20-1.png" width="100%" style="display: block; margin: auto;" />
 
+
+:::
+
+::: {.panel}
+[Torch/Cito]{.panel-name}
+
+
+
+```r
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 0.5,
+            lr = 0.001,
+            alpha = 0.5)
+#> Loss at epoch 1: training: 2773.660, validation: 4447.097, lr: 0.00100
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_20_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 2753.505, validation: 4424.402, lr: 0.00100
+#> Loss at epoch 3: training: 2733.339, validation: 4400.437, lr: 0.00100
+#> Loss at epoch 4: training: 2711.919, validation: 4373.605, lr: 0.00100
+#> Loss at epoch 5: training: 2688.443, validation: 4342.518, lr: 0.00100
+#> Loss at epoch 6: training: 2661.633, validation: 4305.334, lr: 0.00100
+#> Loss at epoch 7: training: 2630.030, validation: 4259.715, lr: 0.00100
+#> Loss at epoch 8: training: 2592.129, validation: 4203.264, lr: 0.00100
+#> Loss at epoch 9: training: 2546.073, validation: 4133.199, lr: 0.00100
+#> Loss at epoch 10: training: 2489.672, validation: 4046.369, lr: 0.00100
+#> Loss at epoch 11: training: 2420.598, validation: 3939.109, lr: 0.00100
+#> Loss at epoch 12: training: 2336.382, validation: 3807.776, lr: 0.00100
+#> Loss at epoch 13: training: 2234.494, validation: 3648.567, lr: 0.00100
+#> Loss at epoch 14: training: 2112.579, validation: 3457.830, lr: 0.00100
+#> Loss at epoch 15: training: 1968.943, validation: 3233.022, lr: 0.00100
+#> Loss at epoch 16: training: 1803.127, validation: 2973.368, lr: 0.00100
+#> Loss at epoch 17: training: 1616.633, validation: 2680.866, lr: 0.00100
+#> Loss at epoch 18: training: 1413.959, validation: 2361.715, lr: 0.00100
+#> Loss at epoch 19: training: 1203.601, validation: 2027.241, lr: 0.00100
+#> Loss at epoch 20: training: 998.642, validation: 1695.477, lr: 0.00100
+#> Loss at epoch 21: training: 816.526, validation: 1390.225, lr: 0.00100
+#> Loss at epoch 22: training: 676.153, validation: 1136.702, lr: 0.00100
+#> Loss at epoch 23: training: 590.657, validation: 954.504, lr: 0.00100
+#> Loss at epoch 24: training: 557.162, validation: 844.222, lr: 0.00100
+#> Loss at epoch 25: training: 553.440, validation: 786.745, lr: 0.00100
+#> Loss at epoch 26: training: 551.202, validation: 758.592, lr: 0.00100
+#> Loss at epoch 27: training: 535.683, validation: 745.901, lr: 0.00100
+#> Loss at epoch 28: training: 509.958, validation: 744.851, lr: 0.00100
+#> Loss at epoch 29: training: 484.200, validation: 753.425, lr: 0.00100
+#> Loss at epoch 30: training: 465.173, validation: 767.165, lr: 0.00100
+#> Loss at epoch 31: training: 453.676, validation: 780.266, lr: 0.00100
+#> Loss at epoch 32: training: 447.075, validation: 788.140, lr: 0.00100
+```
+
+
+:::
+
+:::::
+
+
+
 Play around with regularization kind ($L1$, $L2$, $L1,L2$) strength and the learning rate also on your own!
 
 ```{=html}
@@ -2483,33 +2963,37 @@ If you want to know a little bit more about the concepts described in the follow
 
 * <a href="https://www.youtube.com/watch?v=7VeUPuFGJHk" target="_blank" rel="noopener">Decision trees</a>
 
+<br>
 <iframe width="560" height="315" 
   src="https://www.youtube.com/embed/7VeUPuFGJHk"
   frameborder="0" allow="accelerometer; autoplay; encrypted-media;
   gyroscope; picture-in-picture" allowfullscreen>
   </iframe>
-
+<br>
 * <a href="https://www.youtube.com/watch?v=g9c66TUylZ4" target="_blank" rel="noopener">Regression trees</a>
+<br>
 <iframe width="560" height="315" 
   src="https://www.youtube.com/embed/g9c66TUylZ4"
   frameborder="0" allow="accelerometer; autoplay; encrypted-media;
   gyroscope; picture-in-picture" allowfullscreen>
   </iframe>
-
+<br>
 * <a href="https://www.youtube.com/watch?v=J4Wdy0Wc_xQ" target="_blank" rel="noopener">Random forests</a>
+<br>
 <iframe width="560" height="315" 
   src="https://www.youtube.com/embed/J4Wdy0Wc_xQ"
   frameborder="0" allow="accelerometer; autoplay; encrypted-media;
   gyroscope; picture-in-picture" allowfullscreen>
   </iframe>
-
+<br>
 * <a href="https://www.youtube.com/watch?v=D0efHEJsfHo" target="_blank" rel="noopener">Pruning trees</a>
+<br>
 <iframe width="560" height="315" 
   src="https://www.youtube.com/embed/D0efHEJsfHo"
   frameborder="0" allow="accelerometer; autoplay; encrypted-media;
   gyroscope; picture-in-picture" allowfullscreen>
   </iframe>
-
+<br>
 After watching these videos, you should know what the different hyperparameters are doing and how to prevent trees / forests from doing something you don't want.
 
 
@@ -2657,10 +3141,10 @@ for(i in 1:4){
   plot(data$Temp, data$Ozone, main = i)
   lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 }
-#> [09:24:50] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
-#> [09:24:50] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
-#> [09:24:50] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
-#> [09:24:50] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
+#> [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
+#> [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
+#> [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
+#> [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
 ```
 
 <img src="05-fundamental_files/figure-html/chunk_chapter4_29__BRT2-1.png" width="100%" style="display: block; margin: auto;" />
@@ -2719,9 +3203,11 @@ Annotation: The original data set is randomly partitioned into $n$ equal sized s
 
 If we do three-folded cross-validation, we actually fit three different boosted regression tree models (xgboost models) on $\approx 67\%$ of the data points. Afterwards, we judge the performance on the respective holdout. This now tells us how well the model performed.
 
+### Exercises
+
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
 ```
 
 We will use the following code snippet to see the influence of mincut on trees.
@@ -2793,7 +3279,7 @@ Mind the complete cases of the airquality data set, that was the error.
 
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
 ```
 
 We will use the following code snippet to explore a random forest:
@@ -2803,119 +3289,7 @@ We will use the following code snippet to explore a random forest:
 library(randomForest)
 set.seed(123)
 
-airquality[complete.cases(airquality),]
-#>     Ozone Solar.R Wind Temp Month Day
-#> 1      41     190  7.4   67     5   1
-#> 2      36     118  8.0   72     5   2
-#> 3      12     149 12.6   74     5   3
-#> 4      18     313 11.5   62     5   4
-#> 7      23     299  8.6   65     5   7
-#> 8      19      99 13.8   59     5   8
-#> 9       8      19 20.1   61     5   9
-#> 12     16     256  9.7   69     5  12
-#> 13     11     290  9.2   66     5  13
-#> 14     14     274 10.9   68     5  14
-#> 15     18      65 13.2   58     5  15
-#> 16     14     334 11.5   64     5  16
-#> 17     34     307 12.0   66     5  17
-#> 18      6      78 18.4   57     5  18
-#> 19     30     322 11.5   68     5  19
-#> 20     11      44  9.7   62     5  20
-#> 21      1       8  9.7   59     5  21
-#> 22     11     320 16.6   73     5  22
-#> 23      4      25  9.7   61     5  23
-#> 24     32      92 12.0   61     5  24
-#> 28     23      13 12.0   67     5  28
-#> 29     45     252 14.9   81     5  29
-#> 30    115     223  5.7   79     5  30
-#> 31     37     279  7.4   76     5  31
-#> 38     29     127  9.7   82     6   7
-#> 40     71     291 13.8   90     6   9
-#> 41     39     323 11.5   87     6  10
-#> 44     23     148  8.0   82     6  13
-#> 47     21     191 14.9   77     6  16
-#> 48     37     284 20.7   72     6  17
-#> 49     20      37  9.2   65     6  18
-#> 50     12     120 11.5   73     6  19
-#> 51     13     137 10.3   76     6  20
-#> 62    135     269  4.1   84     7   1
-#> 63     49     248  9.2   85     7   2
-#> 64     32     236  9.2   81     7   3
-#> 66     64     175  4.6   83     7   5
-#> 67     40     314 10.9   83     7   6
-#> 68     77     276  5.1   88     7   7
-#> 69     97     267  6.3   92     7   8
-#> 70     97     272  5.7   92     7   9
-#> 71     85     175  7.4   89     7  10
-#> 73     10     264 14.3   73     7  12
-#> 74     27     175 14.9   81     7  13
-#> 76      7      48 14.3   80     7  15
-#> 77     48     260  6.9   81     7  16
-#> 78     35     274 10.3   82     7  17
-#> 79     61     285  6.3   84     7  18
-#> 80     79     187  5.1   87     7  19
-#> 81     63     220 11.5   85     7  20
-#> 82     16       7  6.9   74     7  21
-#> 85     80     294  8.6   86     7  24
-#> 86    108     223  8.0   85     7  25
-#> 87     20      81  8.6   82     7  26
-#> 88     52      82 12.0   86     7  27
-#> 89     82     213  7.4   88     7  28
-#> 90     50     275  7.4   86     7  29
-#> 91     64     253  7.4   83     7  30
-#> 92     59     254  9.2   81     7  31
-#> 93     39      83  6.9   81     8   1
-#> 94      9      24 13.8   81     8   2
-#> 95     16      77  7.4   82     8   3
-#> 99    122     255  4.0   89     8   7
-#> 100    89     229 10.3   90     8   8
-#> 101   110     207  8.0   90     8   9
-#> 104    44     192 11.5   86     8  12
-#> 105    28     273 11.5   82     8  13
-#> 106    65     157  9.7   80     8  14
-#> 108    22      71 10.3   77     8  16
-#> 109    59      51  6.3   79     8  17
-#> 110    23     115  7.4   76     8  18
-#> 111    31     244 10.9   78     8  19
-#> 112    44     190 10.3   78     8  20
-#> 113    21     259 15.5   77     8  21
-#> 114     9      36 14.3   72     8  22
-#> 116    45     212  9.7   79     8  24
-#> 117   168     238  3.4   81     8  25
-#> 118    73     215  8.0   86     8  26
-#> 120    76     203  9.7   97     8  28
-#> 121   118     225  2.3   94     8  29
-#> 122    84     237  6.3   96     8  30
-#> 123    85     188  6.3   94     8  31
-#> 124    96     167  6.9   91     9   1
-#> 125    78     197  5.1   92     9   2
-#> 126    73     183  2.8   93     9   3
-#> 127    91     189  4.6   93     9   4
-#> 128    47      95  7.4   87     9   5
-#> 129    32      92 15.5   84     9   6
-#> 130    20     252 10.9   80     9   7
-#> 131    23     220 10.3   78     9   8
-#> 132    21     230 10.9   75     9   9
-#> 133    24     259  9.7   73     9  10
-#> 134    44     236 14.9   81     9  11
-#> 135    21     259 15.5   76     9  12
-#> 136    28     238  6.3   77     9  13
-#> 137     9      24 10.9   71     9  14
-#> 138    13     112 11.5   71     9  15
-#> 139    46     237  6.9   78     9  16
-#> 140    18     224 13.8   67     9  17
-#> 141    13      27 10.3   76     9  18
-#> 142    24     238 10.3   68     9  19
-#> 143    16     201  8.0   82     9  20
-#> 144    13     238 12.6   64     9  21
-#> 145    23      14  9.2   71     9  22
-#> 146    36     139 10.3   81     9  23
-#> 147     7      49 10.3   69     9  24
-#> 148    14      20 16.6   63     9  25
-#> 149    30     193  6.9   70     9  26
-#> 151    14     191 14.3   75     9  28
-#> 152    18     131  8.0   76     9  29
-#> 153    20     223 11.5   68     9  30
+data = airquality[complete.cases(airquality),]
 
 rf = randomForest(Ozone~., data = data)
 
@@ -2983,7 +3357,7 @@ In other words: The bigger the nodesize, the smaller the trees and the more bias
 
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br/>
 ```
 
 
@@ -3105,7 +3479,7 @@ Just some examples:
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
 ```
 
 We implemented a simple boosted regression tree using R just for fun.
@@ -3114,7 +3488,7 @@ Go through the code line by line and try to understand it. Ask, if you have any 
 ```{=html}
   <details>
     <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">...</span></strong>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary>
     <p>
 ```
@@ -3373,9 +3747,13 @@ animation::saveGIF(
 
 As you have seen, this does not work with every kernel. Hence, the problem is to find the actual correct kernel, which is again an optimization procedure and can thus be approximated.
 
+
+### Exercises
+
+
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
 ```
 
 We will use the Sonar data set to explore support-vector machines and k-neartest-neighbor classifier.
@@ -3437,7 +3815,7 @@ Do not forget scaling!
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
 ```
 
 Fit a standard k-nearest-neighbor classifier and a support vector machine with a linear kernel (check help), and report what fitted better.
@@ -3492,7 +3870,7 @@ K-nearest neighbor fitted (slightly) better.
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br/>
 ```
 
 Calculate accuracies of both algorithms.
@@ -3520,7 +3898,7 @@ Calculate accuracies of both algorithms.
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
 ```
 
 Fit again with different kernels and compare accuracies.
@@ -3555,7 +3933,7 @@ predSVM = predict(sm, newdata = test)
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">5. Task</span></strong><br/>
 ```
 
 Try the fit again with a different seed for training and test set generation.
