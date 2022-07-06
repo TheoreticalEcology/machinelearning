@@ -132,109 +132,14 @@ Slicing is very powerful if you combine it with logical operators, such as "&" (
 
 
 ```r
-iris[iris$Species == "virginica", ]
-#>     Sepal.Length Sepal.Width Petal.Length Petal.Width
-#> 101          6.3         3.3          6.0         2.5
-#> 102          5.8         2.7          5.1         1.9
-#> 103          7.1         3.0          5.9         2.1
-#> 104          6.3         2.9          5.6         1.8
-#> 105          6.5         3.0          5.8         2.2
-#> 106          7.6         3.0          6.6         2.1
-#> 107          4.9         2.5          4.5         1.7
-#> 108          7.3         2.9          6.3         1.8
-#> 109          6.7         2.5          5.8         1.8
-#> 110          7.2         3.6          6.1         2.5
-#> 111          6.5         3.2          5.1         2.0
-#> 112          6.4         2.7          5.3         1.9
-#> 113          6.8         3.0          5.5         2.1
-#> 114          5.7         2.5          5.0         2.0
-#> 115          5.8         2.8          5.1         2.4
-#> 116          6.4         3.2          5.3         2.3
-#> 117          6.5         3.0          5.5         1.8
-#> 118          7.7         3.8          6.7         2.2
-#> 119          7.7         2.6          6.9         2.3
-#> 120          6.0         2.2          5.0         1.5
-#> 121          6.9         3.2          5.7         2.3
-#> 122          5.6         2.8          4.9         2.0
-#> 123          7.7         2.8          6.7         2.0
-#> 124          6.3         2.7          4.9         1.8
-#> 125          6.7         3.3          5.7         2.1
-#> 126          7.2         3.2          6.0         1.8
-#> 127          6.2         2.8          4.8         1.8
-#> 128          6.1         3.0          4.9         1.8
-#> 129          6.4         2.8          5.6         2.1
-#> 130          7.2         3.0          5.8         1.6
-#> 131          7.4         2.8          6.1         1.9
-#> 132          7.9         3.8          6.4         2.0
-#> 133          6.4         2.8          5.6         2.2
-#> 134          6.3         2.8          5.1         1.5
-#> 135          6.1         2.6          5.6         1.4
-#> 136          7.7         3.0          6.1         2.3
-#> 137          6.3         3.4          5.6         2.4
-#> 138          6.4         3.1          5.5         1.8
-#> 139          6.0         3.0          4.8         1.8
-#> 140          6.9         3.1          5.4         2.1
-#> 141          6.7         3.1          5.6         2.4
-#> 142          6.9         3.1          5.1         2.3
-#> 143          5.8         2.7          5.1         1.9
-#> 144          6.8         3.2          5.9         2.3
-#> 145          6.7         3.3          5.7         2.5
-#> 146          6.7         3.0          5.2         2.3
-#> 147          6.3         2.5          5.0         1.9
-#> 148          6.5         3.0          5.2         2.0
-#> 149          6.2         3.4          5.4         2.3
-#> 150          5.9         3.0          5.1         1.8
-#>       Species
-#> 101 virginica
-#> 102 virginica
-#> 103 virginica
-#> 104 virginica
-#> 105 virginica
-#> 106 virginica
-#> 107 virginica
-#> 108 virginica
-#> 109 virginica
-#> 110 virginica
-#> 111 virginica
-#> 112 virginica
-#> 113 virginica
-#> 114 virginica
-#> 115 virginica
-#> 116 virginica
-#> 117 virginica
-#> 118 virginica
-#> 119 virginica
-#> 120 virginica
-#> 121 virginica
-#> 122 virginica
-#> 123 virginica
-#> 124 virginica
-#> 125 virginica
-#> 126 virginica
-#> 127 virginica
-#> 128 virginica
-#> 129 virginica
-#> 130 virginica
-#> 131 virginica
-#> 132 virginica
-#> 133 virginica
-#> 134 virginica
-#> 135 virginica
-#> 136 virginica
-#> 137 virginica
-#> 138 virginica
-#> 139 virginica
-#> 140 virginica
-#> 141 virginica
-#> 142 virginica
-#> 143 virginica
-#> 144 virginica
-#> 145 virginica
-#> 146 virginica
-#> 147 virginica
-#> 148 virginica
-#> 149 virginica
-#> 150 virginica
+head(iris[iris$Species == "virginica", ])
+#>     Sepal.Length Sepal.Width Petal.Length Petal.Width   Species
+#> 101          6.3         3.3          6.0         2.5 virginica
+#> 102          5.8         2.7          5.1         1.9 virginica
+#> 103          7.1         3.0          5.9         2.1 virginica
+#> 104          6.3         2.9          5.6         1.8 virginica
+#> 105          6.5         3.0          5.8         2.2 virginica
+#> 106          7.6         3.0          6.6         2.1 virginica
 ```
 
 Note that this is identical to the following:
@@ -242,141 +147,71 @@ Note that this is identical to the following:
 
 ```r
 subset(iris, Species == "virginica") 
-#>     Sepal.Length Sepal.Width Petal.Length Petal.Width
-#> 101          6.3         3.3          6.0         2.5
-#> 102          5.8         2.7          5.1         1.9
-#> 103          7.1         3.0          5.9         2.1
-#> 104          6.3         2.9          5.6         1.8
-#> 105          6.5         3.0          5.8         2.2
-#> 106          7.6         3.0          6.6         2.1
-#> 107          4.9         2.5          4.5         1.7
-#> 108          7.3         2.9          6.3         1.8
-#> 109          6.7         2.5          5.8         1.8
-#> 110          7.2         3.6          6.1         2.5
-#> 111          6.5         3.2          5.1         2.0
-#> 112          6.4         2.7          5.3         1.9
-#> 113          6.8         3.0          5.5         2.1
-#> 114          5.7         2.5          5.0         2.0
-#> 115          5.8         2.8          5.1         2.4
-#> 116          6.4         3.2          5.3         2.3
-#> 117          6.5         3.0          5.5         1.8
-#> 118          7.7         3.8          6.7         2.2
-#> 119          7.7         2.6          6.9         2.3
-#> 120          6.0         2.2          5.0         1.5
-#> 121          6.9         3.2          5.7         2.3
-#> 122          5.6         2.8          4.9         2.0
-#> 123          7.7         2.8          6.7         2.0
-#> 124          6.3         2.7          4.9         1.8
-#> 125          6.7         3.3          5.7         2.1
-#> 126          7.2         3.2          6.0         1.8
-#> 127          6.2         2.8          4.8         1.8
-#> 128          6.1         3.0          4.9         1.8
-#> 129          6.4         2.8          5.6         2.1
-#> 130          7.2         3.0          5.8         1.6
-#> 131          7.4         2.8          6.1         1.9
-#> 132          7.9         3.8          6.4         2.0
-#> 133          6.4         2.8          5.6         2.2
-#> 134          6.3         2.8          5.1         1.5
-#> 135          6.1         2.6          5.6         1.4
-#> 136          7.7         3.0          6.1         2.3
-#> 137          6.3         3.4          5.6         2.4
-#> 138          6.4         3.1          5.5         1.8
-#> 139          6.0         3.0          4.8         1.8
-#> 140          6.9         3.1          5.4         2.1
-#> 141          6.7         3.1          5.6         2.4
-#> 142          6.9         3.1          5.1         2.3
-#> 143          5.8         2.7          5.1         1.9
-#> 144          6.8         3.2          5.9         2.3
-#> 145          6.7         3.3          5.7         2.5
-#> 146          6.7         3.0          5.2         2.3
-#> 147          6.3         2.5          5.0         1.9
-#> 148          6.5         3.0          5.2         2.0
-#> 149          6.2         3.4          5.4         2.3
-#> 150          5.9         3.0          5.1         1.8
-#>       Species
-#> 101 virginica
-#> 102 virginica
-#> 103 virginica
-#> 104 virginica
-#> 105 virginica
-#> 106 virginica
-#> 107 virginica
-#> 108 virginica
-#> 109 virginica
-#> 110 virginica
-#> 111 virginica
-#> 112 virginica
-#> 113 virginica
-#> 114 virginica
-#> 115 virginica
-#> 116 virginica
-#> 117 virginica
-#> 118 virginica
-#> 119 virginica
-#> 120 virginica
-#> 121 virginica
-#> 122 virginica
-#> 123 virginica
-#> 124 virginica
-#> 125 virginica
-#> 126 virginica
-#> 127 virginica
-#> 128 virginica
-#> 129 virginica
-#> 130 virginica
-#> 131 virginica
-#> 132 virginica
-#> 133 virginica
-#> 134 virginica
-#> 135 virginica
-#> 136 virginica
-#> 137 virginica
-#> 138 virginica
-#> 139 virginica
-#> 140 virginica
-#> 141 virginica
-#> 142 virginica
-#> 143 virginica
-#> 144 virginica
-#> 145 virginica
-#> 146 virginica
-#> 147 virginica
-#> 148 virginica
-#> 149 virginica
-#> 150 virginica
+#>     Sepal.Length Sepal.Width Petal.Length Petal.Width   Species
+#> 101          6.3         3.3          6.0         2.5 virginica
+#> 102          5.8         2.7          5.1         1.9 virginica
+#> 103          7.1         3.0          5.9         2.1 virginica
+#> 104          6.3         2.9          5.6         1.8 virginica
+#> 105          6.5         3.0          5.8         2.2 virginica
+#> 106          7.6         3.0          6.6         2.1 virginica
+#> 107          4.9         2.5          4.5         1.7 virginica
+#> 108          7.3         2.9          6.3         1.8 virginica
+#> 109          6.7         2.5          5.8         1.8 virginica
+#> 110          7.2         3.6          6.1         2.5 virginica
+#> 111          6.5         3.2          5.1         2.0 virginica
+#> 112          6.4         2.7          5.3         1.9 virginica
+#> 113          6.8         3.0          5.5         2.1 virginica
+#> 114          5.7         2.5          5.0         2.0 virginica
+#> 115          5.8         2.8          5.1         2.4 virginica
+#> 116          6.4         3.2          5.3         2.3 virginica
+#> 117          6.5         3.0          5.5         1.8 virginica
+#> 118          7.7         3.8          6.7         2.2 virginica
+#> 119          7.7         2.6          6.9         2.3 virginica
+#> 120          6.0         2.2          5.0         1.5 virginica
+#> 121          6.9         3.2          5.7         2.3 virginica
+#> 122          5.6         2.8          4.9         2.0 virginica
+#> 123          7.7         2.8          6.7         2.0 virginica
+#> 124          6.3         2.7          4.9         1.8 virginica
+#> 125          6.7         3.3          5.7         2.1 virginica
+#> 126          7.2         3.2          6.0         1.8 virginica
+#> 127          6.2         2.8          4.8         1.8 virginica
+#> 128          6.1         3.0          4.9         1.8 virginica
+#> 129          6.4         2.8          5.6         2.1 virginica
+#> 130          7.2         3.0          5.8         1.6 virginica
+#> 131          7.4         2.8          6.1         1.9 virginica
+#> 132          7.9         3.8          6.4         2.0 virginica
+#> 133          6.4         2.8          5.6         2.2 virginica
+#> 134          6.3         2.8          5.1         1.5 virginica
+#> 135          6.1         2.6          5.6         1.4 virginica
+#> 136          7.7         3.0          6.1         2.3 virginica
+#> 137          6.3         3.4          5.6         2.4 virginica
+#> 138          6.4         3.1          5.5         1.8 virginica
+#> 139          6.0         3.0          4.8         1.8 virginica
+#> 140          6.9         3.1          5.4         2.1 virginica
+#> 141          6.7         3.1          5.6         2.4 virginica
+#> 142          6.9         3.1          5.1         2.3 virginica
+#> 143          5.8         2.7          5.1         1.9 virginica
+#> 144          6.8         3.2          5.9         2.3 virginica
+#> 145          6.7         3.3          5.7         2.5 virginica
+#> 146          6.7         3.0          5.2         2.3 virginica
+#> 147          6.3         2.5          5.0         1.9 virginica
+#> 148          6.5         3.0          5.2         2.0 virginica
+#> 149          6.2         3.4          5.4         2.3 virginica
+#> 150          5.9         3.0          5.1         1.8 virginica
 ```
 
 You can also combine several logical commands:
 
 
 ```r
-iris[iris$Species == "virginica" & iris$Sepal.Length > 7, ]
-#>     Sepal.Length Sepal.Width Petal.Length Petal.Width
-#> 103          7.1         3.0          5.9         2.1
-#> 106          7.6         3.0          6.6         2.1
-#> 108          7.3         2.9          6.3         1.8
-#> 110          7.2         3.6          6.1         2.5
-#> 118          7.7         3.8          6.7         2.2
-#> 119          7.7         2.6          6.9         2.3
-#> 123          7.7         2.8          6.7         2.0
-#> 126          7.2         3.2          6.0         1.8
-#> 130          7.2         3.0          5.8         1.6
-#> 131          7.4         2.8          6.1         1.9
-#> 132          7.9         3.8          6.4         2.0
-#> 136          7.7         3.0          6.1         2.3
-#>       Species
-#> 103 virginica
-#> 106 virginica
-#> 108 virginica
-#> 110 virginica
-#> 118 virginica
-#> 119 virginica
-#> 123 virginica
-#> 126 virginica
-#> 130 virginica
-#> 131 virginica
-#> 132 virginica
-#> 136 virginica
+head(iris[iris$Species == "virginica" & iris$Sepal.Length > 7, ])
+#>     Sepal.Length Sepal.Width Petal.Length Petal.Width   Species
+#> 103          7.1         3.0          5.9         2.1 virginica
+#> 106          7.6         3.0          6.6         2.1 virginica
+#> 108          7.3         2.9          6.3         1.8 virginica
+#> 110          7.2         3.6          6.1         2.5 virginica
+#> 118          7.7         3.8          6.7         2.2 virginica
+#> 119          7.7         2.6          6.9         2.3 virginica
 ```
 
 Note that this works element-wise!
@@ -422,9 +257,10 @@ squareValue = function(x){
 }
 ```
 
+### Exercise
+
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
   <ol>
     <li>Try what happens if you type in &quot;squareValue(2)&quot;.</li>
     <li>Write a function for multiplying 2 values. Hint - this should start with &quot;function(x1, x2)&quot;.</li>
@@ -435,13 +271,13 @@ squareValue = function(x){
 ```{=html}
   <details>
     <summary>
-      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary>
     <p>
 ```
 
 ```{=html}
-  <strong><span style="font-size:20px;">1</span></strong>
+  <strong><span style="font-size:18px;">1</span></strong>
 ```
 
 ```r
@@ -451,7 +287,7 @@ multiply = function(x1, x2){
 ```
 
 ```{=html}
-  <strong><span style="font-size:20px;">2</span></strong>
+  <strong><span style="font-size:18px;">2</span></strong>
 ```
 
 ```r
@@ -460,7 +296,7 @@ squareValue(2)
 ```
 
 ```{=html}
-  <strong><span style="font-size:20px;">3</span></strong>
+  <strong><span style="font-size:18px;">3</span></strong>
 ```
 
 ```r
@@ -522,9 +358,10 @@ Try the following:
 apply(iris[,1:4], 2, mean)
 ```
 
+### Exercise
+
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:25px;">Tasks</span></strong><br/>
   <ol>
     <li>Check the help of apply to understand what this does.</li>
     <li>Why is the first result of &quot;apply(iris[,1:4], 2, mean)&quot; NA? Check the help of mean to understand this.</li>
@@ -536,13 +373,13 @@ apply(iris[,1:4], 2, mean)
 ```{=html}
   <details>
     <summary>
-      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary>
     <p>
 ```
 
 ```{=html}
-  <strong><span style="font-size:20px;">1</span></strong>
+  <strong><span style="font-size:18px;">1</span></strong>
 ```
 
 ```r
@@ -550,7 +387,7 @@ apply(iris[,1:4], 2, mean)
 ```
 
 ```{=html}
-  <strong><span style="font-size:20px;">2</span></strong>
+  <strong><span style="font-size:18px;">2</span></strong>
 ```
 
 Remember, what we have done above (if you run this part separately, execute the following lines again):
@@ -581,56 +418,43 @@ apply(iris[,1:4], 2, mean, na.rm = T)
 ```
 
 ```{=html}
-  <strong><span style="font-size:20px;">3</span></strong>
+  <strong><span style="font-size:18px;">3</span></strong>
 ```
 
 ```r
 apply(iris[,1:4], 1, mean)
-#>   [1] 2.550    NA 2.350 2.350 2.550 2.850 2.425 2.525 2.225
-#>  [10] 2.400 2.700 2.500 2.325 2.125 2.800 3.000 2.750 2.575
-#>  [19] 2.875 2.675 2.675 2.675 2.350 2.650 2.575 2.450 2.600
-#>  [28] 2.600 2.550 2.425 2.425 2.675 2.725 2.825 2.425 2.400
-#>  [37] 2.625 2.500 2.225 2.550 2.525 2.100 2.275 2.675 2.800
-#>  [46] 2.375 2.675 2.350 2.675 2.475 4.075 3.900 4.100 3.275
-#>  [55] 3.850 3.575 3.975 2.900 3.850 3.300 2.875 3.650 3.300
-#>  [64] 3.775 3.350 3.900 3.650 3.400 3.600 3.275 3.925 3.550
-#>  [73] 3.800 3.700 3.725 3.850 3.950 4.100 3.725 3.200 3.200
-#>  [82] 3.150 3.400 3.850 3.600 3.875 4.000 3.575 3.500 3.325
-#>  [91] 3.425 3.775 3.400 2.900 3.450 3.525 3.525 3.675 2.925
-#> [100] 3.475 4.525 3.875 4.525 4.150 4.375 4.825 3.400 4.575
-#> [109] 4.200 4.850 4.200 4.075 4.350 3.800 4.025 4.300 4.200
-#> [118] 5.100 4.875 3.675 4.525 3.825 4.800 3.925 4.450 4.550
-#> [127] 3.900 3.950 4.225 4.400 4.550 5.025 4.250 3.925 3.925
-#> [136] 4.775 4.425 4.200 3.900 4.375 4.450 4.350 3.875 4.550
-#> [145] 4.550 4.300 3.925 4.175 4.325 3.950
+#>   [1] 2.550    NA 2.350 2.350 2.550 2.850 2.425 2.525 2.225 2.400 2.700 2.500 2.325 2.125
+#>  [15] 2.800 3.000 2.750 2.575 2.875 2.675 2.675 2.675 2.350 2.650 2.575 2.450 2.600 2.600
+#>  [29] 2.550 2.425 2.425 2.675 2.725 2.825 2.425 2.400 2.625 2.500 2.225 2.550 2.525 2.100
+#>  [43] 2.275 2.675 2.800 2.375 2.675 2.350 2.675 2.475 4.075 3.900 4.100 3.275 3.850 3.575
+#>  [57] 3.975 2.900 3.850 3.300 2.875 3.650 3.300 3.775 3.350 3.900 3.650 3.400 3.600 3.275
+#>  [71] 3.925 3.550 3.800 3.700 3.725 3.850 3.950 4.100 3.725 3.200 3.200 3.150 3.400 3.850
+#>  [85] 3.600 3.875 4.000 3.575 3.500 3.325 3.425 3.775 3.400 2.900 3.450 3.525 3.525 3.675
+#>  [99] 2.925 3.475 4.525 3.875 4.525 4.150 4.375 4.825 3.400 4.575 4.200 4.850 4.200 4.075
+#> [113] 4.350 3.800 4.025 4.300 4.200 5.100 4.875 3.675 4.525 3.825 4.800 3.925 4.450 4.550
+#> [127] 3.900 3.950 4.225 4.400 4.550 5.025 4.250 3.925 3.925 4.775 4.425 4.200 3.900 4.375
+#> [141] 4.450 4.350 3.875 4.550 4.550 4.300 3.925 4.175 4.325 3.950
 ```
 
 Arrays (and thus matrices, data.frame(s), etc.) have several dimensions. For a simple $2D$ array (or matrix), the first dimension is the rows and the second dimension is the columns. The second parameter of the "apply" function specifies the dimension of which the mean should be computed. If you use $1$, you demand the row means (150), if you use $2$, you request the column means (5, resp. 4).
 
 ```{=html}
-  <strong><span style="font-size:20px;">4</span></strong>
+  <strong><span style="font-size:18px;">4</span></strong>
 ```
 
 ```r
 apply(iris, 2, mean)
-#> Warning in mean.default(newX[, i], ...): argument is not
-#> numeric or logical: returning NA
+#> Warning in mean.default(newX[, i], ...): argument is not numeric or logical: returning NA
 
-#> Warning in mean.default(newX[, i], ...): argument is not
-#> numeric or logical: returning NA
+#> Warning in mean.default(newX[, i], ...): argument is not numeric or logical: returning NA
 
-#> Warning in mean.default(newX[, i], ...): argument is not
-#> numeric or logical: returning NA
+#> Warning in mean.default(newX[, i], ...): argument is not numeric or logical: returning NA
 
-#> Warning in mean.default(newX[, i], ...): argument is not
-#> numeric or logical: returning NA
+#> Warning in mean.default(newX[, i], ...): argument is not numeric or logical: returning NA
 
-#> Warning in mean.default(newX[, i], ...): argument is not
-#> numeric or logical: returning NA
-#> Sepal.Length  Sepal.Width Petal.Length  Petal.Width 
-#>           NA           NA           NA           NA 
-#>      Species 
-#>           NA
+#> Warning in mean.default(newX[, i], ...): argument is not numeric or logical: returning NA
+#> Sepal.Length  Sepal.Width Petal.Length  Petal.Width      Species 
+#>           NA           NA           NA           NA           NA
 ```
 
 The 5th column is "Species". These values are not numeric. So the whole data.frame is taken as a data.frame full of characters.
@@ -644,11 +468,11 @@ apply(iris[,1:4], 2, str)
 #>  num [1:150] 0.2 0.2 0.2 0.2 0.2 0.4 0.3 0.2 0.2 0.1 ...
 #> NULL
 apply(iris, 2, str)
-#>  chr [1:150] "5.1" NA "4.7" "4.6" "5.0" "5.4" "4.6" ...
-#>  chr [1:150] "3.5" "3.0" "3.2" "3.1" "3.6" "3.9" "3.4" ...
-#>  chr [1:150] "1.4" "1.4" "1.3" "1.5" "1.4" "1.7" "1.4" ...
-#>  chr [1:150] "0.2" "0.2" "0.2" "0.2" "0.2" "0.4" "0.3" ...
-#>  chr [1:150] "setosa" "setosa" "setosa" "setosa" ...
+#>  chr [1:150] "5.1" NA "4.7" "4.6" "5.0" "5.4" "4.6" "5.0" "4.4" "4.9" "5.4" "4.8" ...
+#>  chr [1:150] "3.5" "3.0" "3.2" "3.1" "3.6" "3.9" "3.4" "3.4" "2.9" "3.1" "3.7" "3.4" ...
+#>  chr [1:150] "1.4" "1.4" "1.3" "1.5" "1.4" "1.7" "1.4" "1.5" "1.4" "1.5" "1.5" "1.6" ...
+#>  chr [1:150] "0.2" "0.2" "0.2" "0.2" "0.2" "0.4" "0.3" "0.2" "0.2" "0.1" "0.2" "0.2" ...
+#>  chr [1:150] "setosa" "setosa" "setosa" "setosa" "setosa" "setosa" "setosa" "setosa" ...
 #> NULL
 ```
 

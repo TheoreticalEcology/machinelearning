@@ -1,5 +1,5 @@
 # example R options set globally
-options(width = 60)
+options(width = 90)
 
 # example chunk options set globally
 knitr::opts_chunk$set(
