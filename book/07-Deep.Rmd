@@ -6,10 +6,19 @@
 ```
 
 ```{r, include=FALSE}
+# example R options set globally
+options(width = 90)
+
+# example chunk options set globally
 knitr::opts_chunk$set(
+  comment = "#>",
+  collapse = TRUE,
   fig.align = 'center',
-  collapse = TRUE
+  cache=TRUE,
+  out.width="100%"
 )
+
+xaringanExtra::use_panelset()
 ```
 
 
@@ -118,7 +127,7 @@ cat(
 See also the blog post linked with the Youtube video with accompanying code. Moreover, here is an <a href="https://nlpforhackers.io/keras-intro/" target="_blank" rel="noopener">article</a> that shows how natural language processing works with Keras, however, written in Python. As a challenge, you can take the code and implement it in R.
 
 
-## Case Study: Dropout and Early Stopping in a Deep Neural Network
+## Case Study: Dropout and Early Stopping in DNNs
 
 Regularization in deep neural networks is very important because of the problem of overfitting. Standard regularization from statistics like $L1$ and $L2$ regularization are often fuzzy and require a lot of tuning. There are more stable and robust methods:
 
@@ -159,6 +168,11 @@ Y = to_categorical(as.matrix(Y), 2)
 
 **Early stopping**
 
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 ```{r chunk_chapter5_4}
 library(tensorflow)
 library(keras)
@@ -184,10 +198,122 @@ model_history =
 plot(model_history)
 ```
 
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+```{r chunk_chapter5_4_torch}
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+model_torch = nn_sequential(
+  nn_linear(ncol(X), 50L),
+  nn_relu(),
+  nn_linear(50L, 50L),
+  nn_relu(), 
+  nn_linear(50L, 50L),
+  nn_relu(), 
+  nn_linear(50L, 2L)
+)
+
+YT = apply(Y, 1, which.max)
+
+dataset_nasa = dataset(
+  name = "nasa",
+  initialize = function(nasa){
+    self$X = nasa$X
+    self$Y = nasa$Y
+  },
+  .getitem = function(i){
+    X = self$X[i,,drop = FALSE] %>% torch_tensor()
+    Y = self$Y[i] %>% torch_tensor()
+    list(X, Y)
+  },
+  .length = function(){
+    nrow(self$X)
+  })
+
+train_dl = dataloader(dataset_nasa(list(X = X[1:400,], Y = YT[1:400])), 
+                      batch_size = 32, shuffle = TRUE)
+test_dl = dataloader(dataset_nasa(list(X = X[101:500,], Y = YT[101:500])), 
+                      batch_size = 32)
+
+model_torch$train()
+
+opt = optim_adam(model_torch$parameters, 0.01)
+
+train_losses = c()
+test_losses = c()
+for(epoch in 1:50){
+  train_loss = c()
+  test_loss = c()
+  coro::loop(
+    for(batch in train_dl){
+      opt$zero_grad()
+      pred = model_torch(batch[[1]]$squeeze())
+      loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(), reduction = "mean")
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  
+  coro::loop(
+    for(batch in test_dl){
+      pred = model_torch(batch[[1]]$squeeze())
+      loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(), reduction = "mean")
+      test_loss = c(test_loss, loss$item())
+    }
+  )
+
+  train_losses = c(train_losses, mean(train_loss))
+  test_losses = c(test_losses, mean(test_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
+}
+
+matplot(cbind(train_losses, test_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", col = c("darkblue", "darkred"),
+       lty = 1, pch = c(15, 16), legend = c("Train loss", "Val loss") )
+```
+
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+```{r chunk_chapter5_4_cito}
+library(cito)
+data_train = data.frame(target = apply(Y, 1, which.max)-1, X)
+model_cito = dnn(
+  target~., 
+  data = data_train,
+  loss = "binomial",
+  validation = 0.4,
+  hidden = rep(50L, 3L),
+  activation = rep("relu", 3),
+)
+```
+
+:::
+
+:::::
+
 The validation loss first decreases but then starts increasing again, can you explain this behavior?
 $\rightarrow$ Overfitting!
 
 Let's try an $L1+L2$ regularization:
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 ```{r chunk_chapter5_5}
 library(tensorflow)
@@ -218,7 +344,126 @@ model_history =
 plot(model_history)
 ```
 
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+```{r chunk_chapter5_5_torch}
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+model_torch = nn_sequential(
+  nn_linear(ncol(X), 50L),
+  nn_relu(),
+  nn_linear(50L, 50L),
+  nn_relu(), 
+  nn_linear(50L, 50L),
+  nn_relu(), 
+  nn_linear(50L, 2L)
+)
+
+YT = apply(Y, 1, which.max)
+
+dataset_nasa = dataset(
+  name = "nasa",
+  initialize = function(nasa){
+    self$X = nasa$X
+    self$Y = nasa$Y
+  },
+  .getitem = function(i){
+    X = self$X[i,,drop = FALSE] %>% torch_tensor()
+    Y = self$Y[i] %>% torch_tensor()
+    list(X, Y)
+  },
+  .length = function(){
+    nrow(self$X)
+  })
+
+train_dl = dataloader(dataset_nasa(list(X = X[1:400,], Y = YT[1:400])), 
+                      batch_size = 32, shuffle = TRUE)
+test_dl = dataloader(dataset_nasa(list(X = X[101:500,], Y = YT[101:500])), 
+                      batch_size = 32)
+
+model_torch$train()
+
+opt = optim_adam(model_torch$parameters, 0.01)
+
+train_losses = c()
+test_losses = c()
+for(epoch in 1:50){
+  train_loss = c()
+  test_loss = c()
+  coro::loop(
+    for(batch in train_dl){
+      opt$zero_grad()
+      pred = model_torch(batch[[1]]$squeeze())
+      loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(), reduction = "mean")
+      l1 = 0
+      for(p in model_torch$parameters) l1 = l1 + torch_norm(p, 1)
+      l2 = 0
+      for(p in model_torch$parameters) l2 = l2 + torch_norm(p, 2)
+      loss = loss + 0.001*l1 + 0.001*l2
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  
+  coro::loop(
+    for(batch in test_dl){
+      pred = model_torch(batch[[1]]$squeeze())
+      loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(), reduction = "mean")
+      test_loss = c(test_loss, loss$item())
+    }
+  )
+
+  train_losses = c(train_losses, mean(train_loss))
+  test_losses = c(test_losses, mean(test_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
+}
+
+matplot(cbind(train_losses, test_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", col = c("darkblue", "darkred"),
+       lty = 1, pch = c(15, 16), legend = c("Train loss", "Val loss") )
+```
+
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+```{r chunk_chapter5_5_cito}
+library(cito)
+data_train = data.frame(target = apply(Y, 1, which.max)-1, X)
+model_cito = dnn(
+  target~., 
+  data = data_train,
+  loss = "binomial",
+  validation = 0.4,
+  hidden = rep(50L, 3L),
+  activation = rep("relu", 3),
+  lambda = 0.001,
+  alpha = 0.5
+)
+```
+
+
+:::
+
+:::::
+
 Better, but the validation loss still starts increasing after 40 epochs. We can use early stopping to end the training before the validation loss starts increasing again!
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 ```{r chunk_chapter5_6}
 library(tensorflow)
@@ -252,11 +497,149 @@ model_history =
 plot(model_history)
 ```
 
+
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+```{r chunk_chapter5_6_torch}
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+model_torch = nn_sequential(
+  nn_linear(ncol(X), 50L),
+  nn_relu(),
+  nn_linear(50L, 50L),
+  nn_relu(), 
+  nn_linear(50L, 50L),
+  nn_relu(), 
+  nn_linear(50L, 2L)
+)
+
+YT = apply(Y, 1, which.max)
+
+dataset_nasa = dataset(
+  name = "nasa",
+  initialize = function(nasa){
+    self$X = nasa$X
+    self$Y = nasa$Y
+  },
+  .getitem = function(i){
+    X = self$X[i,,drop = FALSE] %>% torch_tensor()
+    Y = self$Y[i] %>% torch_tensor()
+    list(X, Y)
+  },
+  .length = function(){
+    nrow(self$X)
+  })
+
+train_dl = dataloader(dataset_nasa(list(X = X[1:400,], Y = YT[1:400])), 
+                      batch_size = 32, shuffle = TRUE)
+test_dl = dataloader(dataset_nasa(list(X = X[101:500,], Y = YT[101:500])), 
+                      batch_size = 32)
+
+model_torch$train()
+
+opt = optim_adam(model_torch$parameters, 0.01)
+
+train_losses = c()
+test_losses = c()
+early_epoch = 0
+min_loss = Inf
+patience = 5
+for(epoch in 1:50){
+  if(early_epoch >= patience){ break }
+  train_loss = c()
+  test_loss = c()
+  coro::loop(
+    for(batch in train_dl){
+      opt$zero_grad()
+      pred = model_torch(batch[[1]]$squeeze())
+      loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(), reduction = "mean")
+      l1 = 0
+      for(p in model_torch$parameters) l1 = l1 + torch_norm(p, 1)
+      l2 = 0
+      for(p in model_torch$parameters) l2 = l2 + torch_norm(p, 2)
+      loss = loss + 0.001*l1 + 0.001*l2
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  
+  coro::loop(
+    for(batch in test_dl){
+      pred = model_torch(batch[[1]]$squeeze())
+      loss = nnf_cross_entropy(pred, batch[[2]]$squeeze(), reduction = "mean")
+      test_loss = c(test_loss, loss$item())
+    }
+  )
+  
+    ### Early stopping ###
+  if(mean(test_loss) < min_loss){
+    min_loss = mean(test_loss)
+    early_epoch = 0
+  } else {
+    early_epoch = early_epoch + 1
+  }
+  ###
+
+  train_losses = c(train_losses, mean(train_loss))
+  test_losses = c(test_losses, mean(test_loss))
+  if(!epoch%%5) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
+}
+
+matplot(cbind(train_losses, test_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", col = c("darkblue", "darkred"),
+       lty = 1, pch = c(15, 16), legend = c("Train loss", "Val loss") )
+```
+
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+```{r chunk_chapter5_6_cito}
+library(cito)
+data_train = data.frame(target = apply(Y, 1, which.max)-1, X)
+model_cito = dnn(
+  target~., 
+  data = data_train,
+  loss = "binomial",
+  validation = 0.4,
+  hidden = rep(50L, 3L),
+  activation = rep("relu", 3),
+  lambda = 0.001,
+  alpha = 0.5,
+  early_stopping = 5.
+)
+```
+
+
+:::
+
+:::::
+
+
+
 Patience is the number of epochs to wait before aborting the training. 
 
 **Dropout - another type of regularization**
 
 @dropout suggests a dropout rate of 50% for internal hidden layers and 20% for the input layer. One advantage of dropout is that the training is more independent of the number of epochs i.e. the validation loss usually doesn't start to increase after several epochs. 
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 ```{r chunk_chapter5_7}
 library(tensorflow)
@@ -289,13 +672,10 @@ plot(model_history)
 
 Of course, you can still combine early stopping and dropout, which is normally a good idea since it improves training efficiency (e.g. you could start with 1000 epochs and you know training will be aborted if it doesn't improve anymore).
 
-<details>
-  <summary>
-    **<span style="color: #CC2FAA;">Torch</span>**
-  </summary>
-  <p>
-  
-    Dropout and early stopping with Torch:
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
 
 ```{r chunk_chapter5_8}
 library(torch)
@@ -392,13 +772,36 @@ legend("topright", bty = "n", col = c("darkblue", "darkred"),
        lty = 1, pch = c(15, 16), legend = c("Train loss", "Val loss") )
 ```
 
-  </p>
-</details>
-<br/>
+:::
 
+::: {.panel}
+[Cito]{.panel-name}
+
+```{r chunk_chapter5_7_cito}
+library(cito)
+data_train = data.frame(target = apply(Y, 1, which.max)-1, X)
+model_cito = dnn(
+  target~., 
+  data = data_train,
+  loss = "binomial",
+  validation = 0.4,
+  hidden = rep(50L, 3L),
+  activation = rep("relu", 3),
+  dropout = 0.5,
+  early_stopping = 5.
+)
+```
+
+
+:::
+
+:::::
+
+
+### Exercises
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
 ```
 
 In this section, we will go through tuning a "deep" neural network, using the NASA data set from kaggle (available via EcoData, see data description via help). You can start immediately, or get inspiration by reading section above ("Case study: dropout and early stopping in a deep neural network").
@@ -531,7 +934,7 @@ Go trough the code line by line and try to understand it. Especially have a focu
 
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
 ```
 
 Use early stopping and dropout (i.e. use these options, we explained in the book now) within the same algorithm from above and compare them.
@@ -542,7 +945,7 @@ In the end, submit predictions to the <a href="http://rhsbio7.uni-regensburg.de:
 ```{=html}
   <details>
     <summary>
-      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary>
     <p>
 ```
@@ -763,11 +1166,11 @@ write.csv(data.frame(y = pred), file = "submission_DNN_optimal.csv")
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br/>
 ```
 
 
-## Case Study: Fitting a Convolutional Neural Network on MNIST
+## Case Study: Fitting a CNN on MNIST
 
 We will show the use of convolutional neural networks with the MNIST data set. This data set is maybe one of the most famous image data sets. It consists of 60,000 handwritten digits from 0-9.
 
@@ -817,6 +1220,12 @@ Most times, we would have at least 3 color channels, for example RGB (red, green
 
 To build our convolutional model, we have to specify a kernel. In our case, we will use 16 convolutional kernels (filters) of size $2\times2$. These are 2D kernels because our images are 2D. For movies for example, one would use 3D kernels (the third dimension would correspond to time and not to the color channels).
 
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+
 ```{r chunk_chapter5_13}
 model = keras_model_sequential()
 model %>%
@@ -831,50 +1240,11 @@ model %>%
 summary(model)
 ```
 
-We additionally used a pooling layer for downsizing the resulting feature maps.
-Without further specification, a $2\times2$ pooling layer is taken automatically.
-Pooling layers take the input feature map and divide it into (in our case) parts of $2\times2$ size. Then the respective pooling operation is executed.
-For every input map/layer, you get one (downsized) output map/layer.
+:::
 
-As we are using the max pooling layer (there are sever other methods like the mean pooling), only the maximum value of these 4 parts is taken and forwarded further.
-Example input:
+::: {.panel}
+[Torch]{.panel-name}
 
-```{}
-1   2   |   5   8   |   3   6
-6   5   |   2   4   |   8   1
-------------------------------
-9   4   |   3   7   |   2   5
-0   3   |   2   7   |   4   9
-```
-
-We use max pooling for every field:
-
-```{}
-max(1, 2, 6, 5)   |   max(5, 8, 2, 4)   |   max(3, 6, 8, 1)
------------------------------------------------------------
-max(9, 4, 0, 3)   |   max(3, 7, 2, 7)   |   max(2, 5, 4, 9)
-```
-
-So the resulting pooled information is:
-
-```{}
-6   |   8   |   8
-------------------
-9   |   7   |   9
-```
-
-In this example, a $4\times6$ layer was transformed to a $2\times3$ layer and thus downsized.
-This is similar to the biological process called _lateral inhibition_ where active neurons inhibit the activity of neighboring neurons.
-It's a loss of information but often very useful for aggregating information and prevent overfitting.
-
-After another convolutional and pooling layer we flatten the output. That means the following dense layer treats the previous layer as a full layer (so the dense layer is connected to all weights from the last feature maps). You can imagine that like reshaping a matrix (2D) to a simple 1D vector. Then the full vector is used.
-Having flattened the layer, we can simply use our typical output layer.
-
-<details>
-  <summary>
-    **<span style="color: #CC2FAA;">Torch</span>**
-  </summary>
-  <p>
   
     Prepare/download data:
 
@@ -984,9 +1354,55 @@ net = nn_module(
 )
 ```
 
-  </p>
-</details>
-<br/>
+
+:::
+
+:::::
+
+We additionally used a pooling layer for downsizing the resulting feature maps.
+Without further specification, a $2\times2$ pooling layer is taken automatically.
+Pooling layers take the input feature map and divide it into (in our case) parts of $2\times2$ size. Then the respective pooling operation is executed.
+For every input map/layer, you get one (downsized) output map/layer.
+
+As we are using the max pooling layer (there are sever other methods like the mean pooling), only the maximum value of these 4 parts is taken and forwarded further.
+Example input:
+
+```{}
+1   2   |   5   8   |   3   6
+6   5   |   2   4   |   8   1
+------------------------------
+9   4   |   3   7   |   2   5
+0   3   |   2   7   |   4   9
+```
+
+We use max pooling for every field:
+
+```{}
+max(1, 2, 6, 5)   |   max(5, 8, 2, 4)   |   max(3, 6, 8, 1)
+-----------------------------------------------------------
+max(9, 4, 0, 3)   |   max(3, 7, 2, 7)   |   max(2, 5, 4, 9)
+```
+
+So the resulting pooled information is:
+
+```{}
+6   |   8   |   8
+------------------
+9   |   7   |   9
+```
+
+In this example, a $4\times6$ layer was transformed to a $2\times3$ layer and thus downsized.
+This is similar to the biological process called _lateral inhibition_ where active neurons inhibit the activity of neighboring neurons.
+It's a loss of information but often very useful for aggregating information and prevent overfitting.
+
+After another convolutional and pooling layer we flatten the output. That means the following dense layer treats the previous layer as a full layer (so the dense layer is connected to all weights from the last feature maps). You can imagine that like reshaping a matrix (2D) to a simple 1D vector. Then the full vector is used.
+Having flattened the layer, we can simply use our typical output layer.
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 The rest is as usual: First we compile the model.
 
@@ -1019,13 +1435,12 @@ model %>%
   )
 ```
 
-<details>
-  <summary>
-    **<span style="color: #CC2FAA;">Torch</span>**
-  </summary>
-  <p>
+:::
 
-    Train model:
+::: {.panel}
+[Torch]{.panel-name}
+
+Train model:
 
 ```{r chunk_chapter5_23, eval=FALSE}
 library(torch)
@@ -1051,7 +1466,7 @@ for(e in 1:3){
 }
 ```
 
-    Evaluation:
+Evaluation:
 
 ```{r chunk_chapter5_24, eval=FALSE}
 model_torch$eval()
@@ -1077,9 +1492,10 @@ test_accuracy =  correct/total
 test_accuracy
 ```
 
-  </p>
-</details>
-<br/>
+:::
+
+:::::
+
 
 
 ## Advanced Training Techniques 
@@ -1094,6 +1510,12 @@ The idea is that a convolutional neural network learns specific structures such 
 Luckily, it is very easy to use data augmentation in Keras.
 
 To show this, we will use our flower data set. We have to define a generator object (a specific object which infinitely draws samples from our data set). In the generator we can turn on the data augmentation.
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 ```{r chunk_chapter5_25, eval=FALSE}
 library(tensorflow)
@@ -1168,13 +1590,12 @@ table(pred)
 
 Using data augmentation we can artificially increase the number of images.
 
-<details>
-  <summary>
-    **<span style="color: #CC2FAA;">Torch</span>**
-  </summary>
-  <p>
+:::
 
-    In Torch, we have to change the transform function (but only for the train dataloader):
+::: {.panel}
+[Torch]{.panel-name}
+
+In Torch, we have to change the transform function (but only for the train dataloader):
 
 ```{r chunk_chapter5_26, eval=FALSE}
 library(torch)
@@ -1238,10 +1659,9 @@ test_accuracy =  correct/total
 print(test_accuracy)
 ```
 
-  </p>
-</details>
-<br/>
+:::
 
+:::::
 
 ### Transfer Learning {#transfer}
 
@@ -1251,7 +1671,12 @@ The main idea of transfer learning is that all the convolutional layers have mai
 The convolutional layers learn structures such as edges in images and only the top layer, the dense layer is the actual classifier of the convolutional neural network for a specific task.
 Thus, one could think that we could only train the top layer as classifier. To do so, it will be confronted by sets of different edges/structures and has to decide the label based on these.
 
-Again, this sounds very complicated but it is again quite easy with Keras.
+Again, this sounds very complicated but it is again quite easy with Keras and Torch.
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 We will do this now with the CIFAR10 data set, so we have to prepare the data:
 
@@ -1335,13 +1760,10 @@ model %>%
 
 We have seen, that transfer learning can easily be done using Keras.
 
-<details>
-  <summary>
-    **<span style="color: #CC2FAA;">Torch</span>**
-  </summary>
-  <p>
+:::
 
-    In Torch, we have to change the transform function (but only for the train dataloader):
+::: {.panel}
+[Torch]{.panel-name}
 
 ```{r chunk_chapter5_32, eval=FALSE}
 library(torchvision)
@@ -1407,9 +1829,10 @@ test_accuracy =  correct/total
 print(test_accuracy)
 ```
 
-  </p>
-</details>
-<br/>
+:::
+
+:::::
+
 
 **Flower data set**
 
@@ -1473,7 +1896,7 @@ pred = apply(pred, 1, which.max) - 1
 ```
 
 
-### Influence of Batch Size and Learning Rate
+### Batch Size and Learning Rate
 
 In this chapter, the influence of batch size and learning rate is explored using the MNIST data set.
 If you are more interested in this topic (you should be), read this 
@@ -1830,10 +2253,11 @@ Furthermore, updates might overshoot (called *exploding gradients*) or activatio
 
 In general, the first layers of a network tend to learn (much) more slowly than subsequent ones.
 
+### Exercise
 
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:25px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
 ```
 
 The next exercise is on the flower data set in the Ecodata package.
@@ -1845,7 +2269,7 @@ In the end, submit your predictions to the submission server. If you have extra 
 ```{=html}
   <details>
     <summary>
-      <strong><span style="color: #0011AA; font-size:25px;">Solution</span></strong>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary>
     <p>
 ```

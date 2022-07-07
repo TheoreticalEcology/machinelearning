@@ -249,6 +249,13 @@ What is the difference between the two splits? (Tip: have a look at the variable
 
 In the next step we will fit a Keras model on the training data of the inner split:
 
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+
 ```{r chunk_chapter4_58}
 library(tensorflow)
 library(keras)
@@ -281,11 +288,11 @@ model_history =
 plot(model_history)
 ```
 
-<details>
-  <summary>
-    **<span style="color: #CC2FAA;">Torch</span>**
-  </summary>
-  <p>
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
   
 ```{r chunk_chapter4_59}
 library(torch)
@@ -308,22 +315,46 @@ for(i in 1:500){
   opt$zero_grad()
   pred = model_torch(X_torch[indices, ])
   loss = nnf_cross_entropy(pred, Y_torch[indices], reduction = "mean")
-  print(loss)
   loss$backward()
   opt$step()
 }
 ```
 
-    Note: the "nnf_cross_entropy" expects predictions on the scale of the linear predictors (the loss function itself will apply the softmax!).
+Note: the "nnf_cross_entropy" expects predictions on the scale of the linear predictors (the loss function itself will apply the softmax!).
     
-  </p>
-</details>
-<br/>
+
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+Cito can handle factors but as we have already prepared the data for torch and tensorflow we will use also the processed data:
+
+```{r cito_chunk_1}
+library(cito)
+
+model_cito = dnn(survived~., data = sub_train, loss = "binomial", hidden = rep(30, 3), activation = rep("relu", 3))
+
+```
+
+
+:::
+
+:::::
+    
+    
 
 
 ### Evaluation
 
 We will predict the variable "survived" for the test set of the inner split and calculate the accuracy:
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 ```{r chunk_chapter4_60}
 pred =
@@ -335,11 +366,11 @@ observed = sub_test[,1]
 (accuracy = mean(predicted == observed))  # (...): Show output.
 ```
 
-<details>
-  <summary>
-    **<span style="color: #CC2FAA;">Torch</span>**
-  </summary>
-  <p>
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
 
 ```{r chunk_chapter4_61}
 model_torch$eval()
@@ -350,12 +381,26 @@ preds_torch = apply(preds_torch, 1, which.max)
 (accuracy = mean(preds_torch - 1 == observed))
 ```
 
-    Now we have to use the softmax function.
+Now we have to use the softmax function.
     
-  </p>
-</details>
-<br/>
+:::
 
+::: {.panel}
+[Cito]{.panel-name}
+
+
+```{r cito_chunk_2}
+
+preds_cito = predict(model_cito, newdata = sub_test)
+preds_cito = ifelse(preds_cito > 0.5, 1, 0)
+(accuracy = mean(preds_cito == observed))
+
+```
+
+
+:::
+
+:::::
 
 ### Predictions and Submission
 
@@ -387,9 +432,12 @@ The file name is used as the ID on the submission server, so change it to whatev
 
 <strong>Annotation: The AUC is (always) higher for probabilities than for 0/1 data (depending on the implementation and definition of the AUC). We expect you to upload 0/1 data (usage scenarios, no theoretical ones)! Hint for cheaters (or if you just forget conversion): Your upload is converted to 0/1 data according to ifelse(... < 0.5, 0, 1).</strong>
 
+
+### Exercises
+
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
 ```
 
 The tasks below follow the above section about machine learning pipelines. We will use the titanic_ml data set from the EcoData package to see a pipeline. The goal is to predict if a passenger survives or not. 
@@ -542,7 +590,7 @@ predict = as.matrix(data[indicesPredict,])
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
 ```
 
 Build a neural network to make predictions and check performance on the hold-out data. 
@@ -554,6 +602,13 @@ Build a neural network to make predictions and check performance on the hold-out
     </summary>
     <p>
 ```
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 ```{r chunk_chapter4_task_41, message=FALSE, warning=FALSE, echo=FALSE}
 set_random_seed(4321L, disable_gpu = FALSE)	# Already sets R's random seed.
@@ -592,6 +647,39 @@ cat("Accuracy:\n")
 (accuracy = mean(prediction == labelsTest))
 ```
 
+
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+
+```{r chunk_chapter4_task_41_cito, message=FALSE, warning=FALSE, echo=FALSE}
+library(cito)
+
+data_train = data.frame(survived = labelsTrain, train)
+
+model_cito = dnn(survived~., data = data_train, loss = "binomial", hidden = rep(20, 4), activation = rep("relu", 4), validation = 0.2)
+
+prediction = predict(model_cito, newdata = data.frame(survived = 0, test))
+
+
+# Take label with highest probability:
+prediction = (prediction > 0.5)*1
+
+table(prediction, labelsTest)
+cat("Accuracy:\n")
+(accuracy = mean(prediction == labelsTest))
+```
+
+
+:::
+
+:::::
+
+
+
 ```{=html}
     </p>
   </details>
@@ -599,7 +687,7 @@ cat("Accuracy:\n")
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br/>
 ```
 
 Play around with model parameters, optimizer(learning_rate = ...), epochs = ..., number of hidden nodes in layers: units = ..., regularization: kernel_regularizer = ..., bias_regularizer = ... **-** Try to maximize the model's accuracy for the hold-out data.
@@ -617,6 +705,14 @@ You should get an accuracy of at least 90%. (Before looking into the solution...
     </summary>
     <p>
 ```
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+
 
 ```{r chunk_chapter4_task_42, message=FALSE, warning=FALSE, echo=FALSE}
 set_random_seed(4321L, disable_gpu = FALSE)	# Already sets R's random seed.
@@ -661,6 +757,44 @@ cat("Accuracy:\n")
 (accuracy = mean(prediction == labelsTest))
 ```
 
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+```{r chunk_chapter4_task_42_cito, message=FALSE, warning=FALSE, echo=FALSE}
+library(cito)
+
+data_train = data.frame(survived = labelsTrain, train)
+
+model_cito = dnn(survived~., 
+                 data = data_train, 
+                 loss = "binomial", 
+                 hidden = rep(50, 4), 
+                 activation = rep("selu", 4), 
+                 validation = 0.2, 
+                 alpha = 0.2, 
+                 early_stopping = TRUE, 
+                 epochs = 100L, 
+                 lambda = 0.01)
+
+prediction = predict(model_cito, newdata = data.frame(survived = 0, test))
+
+
+# Take label with highest probability:
+prediction = (prediction > 0.5)*1
+
+table(prediction, labelsTest)
+cat("Accuracy:\n")
+(accuracy = mean(prediction == labelsTest))
+```
+
+:::
+
+:::::
+
+
 ```{=html}
     </p>
   </details>
@@ -668,7 +802,7 @@ cat("Accuracy:\n")
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
 ```
 
 Now try your above solution (**the exactly same one!**) with another seed to check for overfitting (on the seed!) of your procedure.
@@ -731,7 +865,7 @@ cat("Accuracy:\n")
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">5. Task</span></strong><br/>
 ```
 
 Make predictions and submit them via our <a href="https://elearning.uni-regensburg.de/mod/page/view.php?id=1150717" target="_blank" rel="noopener">submission server</a>.

@@ -383,6 +383,13 @@ What is the difference between the two splits? (Tip: have a look at the variable
 In the next step we will fit a Keras model on the training data of the inner split:
 
 
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+
+
 ```r
 library(tensorflow)
 library(keras)
@@ -430,11 +437,11 @@ plot(model_history)
 
 <img src="06-ML_workflow_files/figure-html/chunk_chapter4_58-1.png" width="100%" style="display: block; margin: auto;" />
 
-<details>
-  <summary>
-    **<span style="color: #CC2FAA;">Torch</span>**
-  </summary>
-  <p>
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
   
 
 ```r
@@ -458,1522 +465,83 @@ for(i in 1:500){
   opt$zero_grad()
   pred = model_torch(X_torch[indices, ])
   loss = nnf_cross_entropy(pred, Y_torch[indices], reduction = "mean")
-  print(loss)
   loss$backward()
   opt$step()
 }
-#> torch_tensor
-#> 0.707869
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.686436
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.659611
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.654673
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.627494
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.68805
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.690998
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.652452
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.542723
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.553087
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.664908
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.708627
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.537437
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.43455
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.667144
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.496684
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.570908
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.597058
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.468032
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.649413
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.555161
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.657658
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.587866
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.5941
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.447766
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.604198
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.554323
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.643397
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.536915
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.674608
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.420315
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.32588
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.464963
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.596521
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.530618
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.234835
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.291255
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.929026
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.625346
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.278064
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.726598
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.62555
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.481452
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.673818
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.576146
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.475387
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.457026
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.50311
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.414785
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.385994
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.395334
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.676871
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.393855
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.710248
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.516789
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.530883
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.728959
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.470274
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.51207
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.453122
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.905312
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.4599
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.570826
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.445953
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.468076
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.565009
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.469997
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.600031
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.426152
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.700782
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.352638
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.400375
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.459513
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.568515
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.497609
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.600834
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.798421
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.327998
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.387632
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.63566
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.304985
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.526177
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.592815
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.346981
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.529488
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.623992
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.437405
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.471444
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.481523
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.595865
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.409776
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.408433
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.469692
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.652108
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.457667
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.535109
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.487944
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.588671
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.519266
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.4564
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.420434
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.564046
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.546535
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.655195
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.539748
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.451041
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.488228
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.443963
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.379549
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.592209
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.39709
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.403911
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.286926
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.746202
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.557143
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.343428
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.694007
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.418217
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.512508
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.605517
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.505859
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.57816
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.56861
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.371636
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.584577
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.542919
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.458773
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.673591
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.616572
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.54045
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.482451
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.413941
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.474845
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.419692
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.493641
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.499719
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.47251
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.759404
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.478613
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.446379
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.484713
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.532843
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.320036
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.546959
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.631938
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.367877
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.696314
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.858233
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.694158
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.68525
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.474375
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.547824
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.436111
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.538776
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.505266
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.47963
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.478373
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.517894
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.431919
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.558722
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.459529
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.465366
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.578217
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.603758
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.506026
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.383555
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.419733
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.515685
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.377787
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.251414
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.487529
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.595669
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.421177
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.35105
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.423871
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.474373
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.268141
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.518056
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.31674
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.46961
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.431192
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.329849
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.329375
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.609598
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.52314
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.402313
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.42145
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.634766
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.635958
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.46861
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.277993
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.482526
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.783625
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.481016
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.453809
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.532373
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.614475
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.429902
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.466269
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.52095
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.515713
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.594814
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.620781
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.496087
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.62666
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.574774
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.709346
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.696121
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.466134
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.390352
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.379508
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.518273
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.49647
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.409525
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.46741
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.58821
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.354203
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.54532
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.347564
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.399711
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.689771
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.68454
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.476687
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.44997
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.455688
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.403596
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.388859
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.532802
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.675519
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.496137
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.605388
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.465515
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.41161
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.349016
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.844552
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.45283
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.356554
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.324578
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.501251
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.740512
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.45971
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.4173
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.462109
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.505691
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.461158
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.457387
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.619157
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.540819
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.617918
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.46706
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.355819
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.883221
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.518348
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.44704
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.559336
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.297896
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.412469
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.502253
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.632805
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.374276
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.529211
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.361833
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.480561
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.390684
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.59659
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.2792
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.546276
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.366373
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.431727
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.511097
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.393672
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.510827
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.379485
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.236956
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.453161
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.576676
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.38702
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.511233
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.421102
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.671416
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.449251
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.421628
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.467304
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.471103
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.326304
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.330048
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.355706
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.37242
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.380477
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.445888
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.451437
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.44118
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.545506
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.454936
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.559109
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.554526
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.413272
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.433541
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.35778
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.640296
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.671153
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.271047
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.458804
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.298442
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.422499
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.379167
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.37151
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.29079
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.343601
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.309687
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.640103
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.374724
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.44974
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.349522
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.569582
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.55222
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.75569
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.382098
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.441822
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.608224
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.408617
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.399517
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.3563
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.582843
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.421269
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.458882
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.543267
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.497163
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.482459
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.561153
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.403645
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.417156
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.317258
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.543135
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.518725
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.43794
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.283879
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.341411
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.560608
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.700514
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.652319
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.370861
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.500019
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.701887
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.598595
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.446417
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.415801
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.555131
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.505287
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.663954
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.609121
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.438152
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.531093
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.558249
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.47065
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.476193
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.487094
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.398958
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.370758
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.474866
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.397224
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.429614
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.334949
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.71336
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.414789
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.332019
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.477892
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.317209
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.327091
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.419255
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.273266
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.573711
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.45249
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.346723
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.495111
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.381574
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.244849
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.424235
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.269414
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.607508
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.567444
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.606521
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.357238
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.60519
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.448005
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.650992
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.35432
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.724178
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.449799
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.421666
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.579403
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.945731
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.507651
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.624709
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.477855
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.297618
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.317562
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.578056
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.469425
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.694902
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.502019
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.633915
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.969901
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.416737
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.592856
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.394041
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.392264
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.353905
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.595177
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.359545
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.57412
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.364393
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.584685
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.583028
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.481971
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.383393
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.376592
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.586399
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.413973
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.342848
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.514671
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.406365
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.374424
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.290655
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.425498
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.420754
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.648903
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.859324
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.69948
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.432994
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.366822
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.50001
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.454298
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.475173
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.383777
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.445096
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.415456
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.461693
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.453002
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.519292
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.351406
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.608089
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.560487
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.416949
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.488941
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.562287
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.451058
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.501812
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.530042
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.382543
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.627286
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.569558
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.433292
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.392974
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.483538
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.493791
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.509549
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.519145
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.251333
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.35272
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.542718
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.506634
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.455043
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.526545
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.286775
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.445055
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.462968
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.420297
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.426609
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.22259
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.435372
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.484453
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.410166
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.297978
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.613961
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.479021
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.620836
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.625761
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.464297
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.276816
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.57245
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.380823
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.571787
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.349566
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.430171
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.569651
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.529671
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.428989
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.494857
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.603523
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.595237
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.60492
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.517747
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.492854
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.60878
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.534464
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.49266
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.463699
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.453637
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
-#> torch_tensor
-#> 0.497914
-#> [ CPUFloatType{} ][ grad_fn = <NllLossBackward0> ]
 ```
 
-    Note: the "nnf_cross_entropy" expects predictions on the scale of the linear predictors (the loss function itself will apply the softmax!).
+Note: the "nnf_cross_entropy" expects predictions on the scale of the linear predictors (the loss function itself will apply the softmax!).
     
-  </p>
-</details>
-<br/>
+
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+Cito can handle factors but as we have already prepared the data for torch and tensorflow we will use also the processed data:
+
+
+```r
+library(cito)
+
+model_cito = dnn(survived~., data = sub_train, loss = "binomial", hidden = rep(30, 3), activation = rep("relu", 3))
+#> Loss at epoch 1: 0.628682, lr: 0.01000
+```
+
+<img src="06-ML_workflow_files/figure-html/cito_chunk_1-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: 0.555334, lr: 0.01000
+#> Loss at epoch 3: 0.514781, lr: 0.01000
+#> Loss at epoch 4: 0.493197, lr: 0.01000
+#> Loss at epoch 5: 0.486173, lr: 0.01000
+#> Loss at epoch 6: 0.485266, lr: 0.01000
+#> Loss at epoch 7: 0.477691, lr: 0.01000
+#> Loss at epoch 8: 0.478282, lr: 0.01000
+#> Loss at epoch 9: 0.470990, lr: 0.01000
+#> Loss at epoch 10: 0.474267, lr: 0.01000
+#> Loss at epoch 11: 0.466413, lr: 0.01000
+#> Loss at epoch 12: 0.471069, lr: 0.01000
+#> Loss at epoch 13: 0.467679, lr: 0.01000
+#> Loss at epoch 14: 0.462538, lr: 0.01000
+#> Loss at epoch 15: 0.461307, lr: 0.01000
+#> Loss at epoch 16: 0.464263, lr: 0.01000
+#> Loss at epoch 17: 0.458622, lr: 0.01000
+#> Loss at epoch 18: 0.458754, lr: 0.01000
+#> Loss at epoch 19: 0.459127, lr: 0.01000
+#> Loss at epoch 20: 0.458725, lr: 0.01000
+#> Loss at epoch 21: 0.456209, lr: 0.01000
+#> Loss at epoch 22: 0.461059, lr: 0.01000
+#> Loss at epoch 23: 0.453386, lr: 0.01000
+#> Loss at epoch 24: 0.455715, lr: 0.01000
+#> Loss at epoch 25: 0.456063, lr: 0.01000
+#> Loss at epoch 26: 0.453903, lr: 0.01000
+#> Loss at epoch 27: 0.456146, lr: 0.01000
+#> Loss at epoch 28: 0.454714, lr: 0.01000
+#> Loss at epoch 29: 0.452475, lr: 0.01000
+#> Loss at epoch 30: 0.456571, lr: 0.01000
+#> Loss at epoch 31: 0.449390, lr: 0.01000
+#> Loss at epoch 32: 0.453715, lr: 0.01000
+```
+
+
+:::
+
+:::::
+    
+    
 
 
 ### Evaluation
 
 We will predict the variable "survived" for the test set of the inner split and calculate the accuracy:
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 
 ```r
@@ -1987,11 +555,11 @@ observed = sub_test[,1]
 #> [1] 0.8121827
 ```
 
-<details>
-  <summary>
-    **<span style="color: #CC2FAA;">Torch</span>**
-  </summary>
-  <p>
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
 
 
 ```r
@@ -2004,12 +572,27 @@ preds_torch = apply(preds_torch, 1, which.max)
 #> [1] 0.7817259
 ```
 
-    Now we have to use the softmax function.
+Now we have to use the softmax function.
     
-  </p>
-</details>
-<br/>
+:::
 
+::: {.panel}
+[Cito]{.panel-name}
+
+
+
+```r
+
+preds_cito = predict(model_cito, newdata = sub_test)
+preds_cito = ifelse(preds_cito > 0.5, 1, 0)
+(accuracy = mean(preds_cito == observed))
+#> [1] 0.8071066
+```
+
+
+:::
+
+:::::
 
 ### Predictions and Submission
 
@@ -2044,9 +627,12 @@ The file name is used as the ID on the submission server, so change it to whatev
 
 <strong>Annotation: The AUC is (always) higher for probabilities than for 0/1 data (depending on the implementation and definition of the AUC). We expect you to upload 0/1 data (usage scenarios, no theoretical ones)! Hint for cheaters (or if you just forget conversion): Your upload is converted to 0/1 data according to ifelse(... < 0.5, 0, 1).</strong>
 
+
+### Exercises
+
 ```{=html}
   <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
 ```
 
 The tasks below follow the above section about machine learning pipelines. We will use the titanic_ml data set from the EcoData package to see a pipeline. The goal is to predict if a passenger survives or not. 
@@ -2243,7 +829,7 @@ predict = as.matrix(data[indicesPredict,])
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
 ```
 
 Build a neural network to make predictions and check performance on the hold-out data. 
@@ -2256,6 +842,13 @@ Build a neural network to make predictions and check performance on the hold-out
     <p>
 ```
 
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+
 <img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_41-1.png" width="100%" style="display: block; margin: auto;" />
 
 ```
@@ -2267,6 +860,68 @@ Build a neural network to make predictions and check performance on the hold-out
 #> [1] 0.8527919
 ```
 
+
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+
+
+```
+#> Loss at epoch 1: training: 0.594, validation: 0.465, lr: 0.01000
+```
+
+<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_41_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 0.181, validation: 0.135, lr: 0.01000
+#> Loss at epoch 3: training: 0.111, validation: 0.116, lr: 0.01000
+#> Loss at epoch 4: training: 0.094, validation: 0.098, lr: 0.01000
+#> Loss at epoch 5: training: 0.038, validation: 0.097, lr: 0.01000
+#> Loss at epoch 6: training: 0.045, validation: 0.074, lr: 0.01000
+#> Loss at epoch 7: training: 0.031, validation: 0.064, lr: 0.01000
+#> Loss at epoch 8: training: 0.027, validation: 0.055, lr: 0.01000
+#> Loss at epoch 9: training: 0.025, validation: 0.047, lr: 0.01000
+#> Loss at epoch 10: training: 0.025, validation: 0.046, lr: 0.01000
+#> Loss at epoch 11: training: 0.023, validation: 0.046, lr: 0.01000
+#> Loss at epoch 12: training: 0.026, validation: 0.048, lr: 0.01000
+#> Loss at epoch 13: training: 0.023, validation: 0.046, lr: 0.01000
+#> Loss at epoch 14: training: 0.028, validation: 0.044, lr: 0.01000
+#> Loss at epoch 15: training: 0.022, validation: 0.046, lr: 0.01000
+#> Loss at epoch 16: training: 0.023, validation: 0.042, lr: 0.01000
+#> Loss at epoch 17: training: 0.022, validation: 0.041, lr: 0.01000
+#> Loss at epoch 18: training: 0.021, validation: 0.046, lr: 0.01000
+#> Loss at epoch 19: training: 0.023, validation: 0.056, lr: 0.01000
+#> Loss at epoch 20: training: 0.021, validation: 0.057, lr: 0.01000
+#> Loss at epoch 21: training: 0.022, validation: 0.060, lr: 0.01000
+#> Loss at epoch 22: training: 0.023, validation: 0.076, lr: 0.01000
+#> Loss at epoch 23: training: 0.021, validation: 0.070, lr: 0.01000
+#> Loss at epoch 24: training: 0.018, validation: 0.087, lr: 0.01000
+#> Loss at epoch 25: training: 0.019, validation: 0.087, lr: 0.01000
+#> Loss at epoch 26: training: 0.018, validation: 0.078, lr: 0.01000
+#> Loss at epoch 27: training: 0.022, validation: 0.080, lr: 0.01000
+#> Loss at epoch 28: training: 0.016, validation: 0.070, lr: 0.01000
+#> Loss at epoch 29: training: 0.017, validation: 0.066, lr: 0.01000
+#> Loss at epoch 30: training: 0.015, validation: 0.067, lr: 0.01000
+#> Loss at epoch 31: training: 0.041, validation: 0.208, lr: 0.01000
+#> Loss at epoch 32: training: 0.028, validation: 0.256, lr: 0.01000
+#>           labelsTest
+#> prediction   0   1
+#>          0 116   4
+#>          1   5  72
+#> Accuracy:
+#> [1] 0.9543147
+```
+
+
+:::
+
+:::::
+
+
+
 ```{=html}
     </p>
   </details>
@@ -2274,7 +929,7 @@ Build a neural network to make predictions and check performance on the hold-out
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br/>
 ```
 
 Play around with model parameters, optimizer(learning_rate = ...), epochs = ..., number of hidden nodes in layers: units = ..., regularization: kernel_regularizer = ..., bias_regularizer = ... **-** Try to maximize the model's accuracy for the hold-out data.
@@ -2293,6 +948,14 @@ You should get an accuracy of at least 90%. (Before looking into the solution...
     <p>
 ```
 
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+
+
 <img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_42-1.png" width="100%" style="display: block; margin: auto;" />
 
 ```
@@ -2304,6 +967,132 @@ You should get an accuracy of at least 90%. (Before looking into the solution...
 #> [1] 0.9695431
 ```
 
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+
+```
+#> Loss at epoch 1: training: 4.300, validation: 1.905, lr: 0.01000
+```
+
+<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_42_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 1.691, validation: 1.262, lr: 0.01000
+#> Loss at epoch 3: training: 1.103, validation: 0.906, lr: 0.01000
+#> Loss at epoch 4: training: 0.818, validation: 0.742, lr: 0.01000
+#> Loss at epoch 5: training: 0.670, validation: 0.635, lr: 0.01000
+#> Loss at epoch 6: training: 0.595, validation: 0.592, lr: 0.01000
+#> Loss at epoch 7: training: 0.552, validation: 0.548, lr: 0.01000
+#> Loss at epoch 8: training: 0.530, validation: 0.542, lr: 0.01000
+#> Loss at epoch 9: training: 0.514, validation: 0.522, lr: 0.01000
+#> Loss at epoch 10: training: 0.500, validation: 0.516, lr: 0.01000
+#> Loss at epoch 11: training: 0.492, validation: 0.501, lr: 0.01000
+#> Loss at epoch 12: training: 0.485, validation: 0.487, lr: 0.01000
+#> Loss at epoch 13: training: 0.480, validation: 0.477, lr: 0.01000
+#> Loss at epoch 14: training: 0.472, validation: 0.499, lr: 0.01000
+#> Loss at epoch 15: training: 0.468, validation: 0.485, lr: 0.01000
+#> Loss at epoch 16: training: 0.463, validation: 0.463, lr: 0.01000
+#> Loss at epoch 17: training: 0.459, validation: 0.466, lr: 0.01000
+#> Loss at epoch 18: training: 0.459, validation: 0.449, lr: 0.01000
+#> Loss at epoch 19: training: 0.450, validation: 0.447, lr: 0.01000
+#> Loss at epoch 20: training: 0.446, validation: 0.446, lr: 0.01000
+#> Loss at epoch 21: training: 0.442, validation: 0.445, lr: 0.01000
+#> Loss at epoch 22: training: 0.442, validation: 0.444, lr: 0.01000
+#> Loss at epoch 23: training: 0.444, validation: 0.435, lr: 0.01000
+#> Loss at epoch 24: training: 0.436, validation: 0.429, lr: 0.01000
+#> Loss at epoch 25: training: 0.438, validation: 0.437, lr: 0.01000
+#> Loss at epoch 26: training: 0.444, validation: 0.417, lr: 0.01000
+#> Loss at epoch 27: training: 0.430, validation: 0.422, lr: 0.01000
+#> Loss at epoch 28: training: 0.438, validation: 0.429, lr: 0.01000
+#> Loss at epoch 29: training: 0.427, validation: 0.423, lr: 0.01000
+#> Loss at epoch 30: training: 0.423, validation: 0.438, lr: 0.01000
+#> Loss at epoch 31: training: 0.432, validation: 0.418, lr: 0.01000
+#> Loss at epoch 32: training: 0.428, validation: 0.420, lr: 0.01000
+#> Loss at epoch 33: training: 0.424, validation: 0.420, lr: 0.01000
+#> Loss at epoch 34: training: 0.417, validation: 0.404, lr: 0.01000
+#> Loss at epoch 35: training: 0.417, validation: 0.418, lr: 0.01000
+#> Loss at epoch 36: training: 0.418, validation: 0.408, lr: 0.01000
+#> Loss at epoch 37: training: 0.416, validation: 0.420, lr: 0.01000
+#> Loss at epoch 38: training: 0.420, validation: 0.435, lr: 0.01000
+#> Loss at epoch 39: training: 0.417, validation: 0.410, lr: 0.01000
+#> Loss at epoch 40: training: 0.413, validation: 0.423, lr: 0.01000
+#> Loss at epoch 41: training: 0.416, validation: 0.419, lr: 0.01000
+#> Loss at epoch 42: training: 0.417, validation: 0.426, lr: 0.01000
+#> Loss at epoch 43: training: 0.413, validation: 0.410, lr: 0.01000
+#> Loss at epoch 44: training: 0.410, validation: 0.399, lr: 0.01000
+#> Loss at epoch 45: training: 0.411, validation: 0.419, lr: 0.01000
+#> Loss at epoch 46: training: 0.415, validation: 0.405, lr: 0.01000
+#> Loss at epoch 47: training: 0.410, validation: 0.406, lr: 0.01000
+#> Loss at epoch 48: training: 0.409, validation: 0.406, lr: 0.01000
+#> Loss at epoch 49: training: 0.407, validation: 0.407, lr: 0.01000
+#> Loss at epoch 50: training: 0.411, validation: 0.419, lr: 0.01000
+#> Loss at epoch 51: training: 0.409, validation: 0.411, lr: 0.01000
+#> Loss at epoch 52: training: 0.402, validation: 0.400, lr: 0.01000
+#> Loss at epoch 53: training: 0.403, validation: 0.417, lr: 0.01000
+#> Loss at epoch 54: training: 0.409, validation: 0.419, lr: 0.01000
+#> Loss at epoch 55: training: 0.405, validation: 0.403, lr: 0.01000
+#> Loss at epoch 56: training: 0.402, validation: 0.403, lr: 0.01000
+#> Loss at epoch 57: training: 0.403, validation: 0.403, lr: 0.01000
+#> Loss at epoch 58: training: 0.402, validation: 0.412, lr: 0.01000
+#> Loss at epoch 59: training: 0.401, validation: 0.389, lr: 0.01000
+#> Loss at epoch 60: training: 0.401, validation: 0.401, lr: 0.01000
+#> Loss at epoch 61: training: 0.400, validation: 0.413, lr: 0.01000
+#> Loss at epoch 62: training: 0.399, validation: 0.404, lr: 0.01000
+#> Loss at epoch 63: training: 0.400, validation: 0.403, lr: 0.01000
+#> Loss at epoch 64: training: 0.397, validation: 0.399, lr: 0.01000
+#> Loss at epoch 65: training: 0.397, validation: 0.403, lr: 0.01000
+#> Loss at epoch 66: training: 0.400, validation: 0.406, lr: 0.01000
+#> Loss at epoch 67: training: 0.415, validation: 0.427, lr: 0.01000
+#> Loss at epoch 68: training: 0.426, validation: 0.418, lr: 0.01000
+#> Loss at epoch 69: training: 0.414, validation: 0.387, lr: 0.01000
+#> Loss at epoch 70: training: 0.406, validation: 0.399, lr: 0.01000
+#> Loss at epoch 71: training: 0.406, validation: 0.393, lr: 0.01000
+#> Loss at epoch 72: training: 0.409, validation: 0.417, lr: 0.01000
+#> Loss at epoch 73: training: 0.399, validation: 0.398, lr: 0.01000
+#> Loss at epoch 74: training: 0.393, validation: 0.393, lr: 0.01000
+#> Loss at epoch 75: training: 0.393, validation: 0.415, lr: 0.01000
+#> Loss at epoch 76: training: 0.392, validation: 0.399, lr: 0.01000
+#> Loss at epoch 77: training: 0.395, validation: 0.398, lr: 0.01000
+#> Loss at epoch 78: training: 0.395, validation: 0.416, lr: 0.01000
+#> Loss at epoch 79: training: 0.395, validation: 0.391, lr: 0.01000
+#> Loss at epoch 80: training: 0.394, validation: 0.394, lr: 0.01000
+#> Loss at epoch 81: training: 0.405, validation: 0.402, lr: 0.01000
+#> Loss at epoch 82: training: 0.394, validation: 0.394, lr: 0.01000
+#> Loss at epoch 83: training: 0.389, validation: 0.385, lr: 0.01000
+#> Loss at epoch 84: training: 0.393, validation: 0.409, lr: 0.01000
+#> Loss at epoch 85: training: 0.394, validation: 0.391, lr: 0.01000
+#> Loss at epoch 86: training: 0.392, validation: 0.389, lr: 0.01000
+#> Loss at epoch 87: training: 0.393, validation: 0.392, lr: 0.01000
+#> Loss at epoch 88: training: 0.401, validation: 0.404, lr: 0.01000
+#> Loss at epoch 89: training: 0.397, validation: 0.390, lr: 0.01000
+#> Loss at epoch 90: training: 0.393, validation: 0.399, lr: 0.01000
+#> Loss at epoch 91: training: 0.390, validation: 0.387, lr: 0.01000
+#> Loss at epoch 92: training: 0.392, validation: 0.388, lr: 0.01000
+#> Loss at epoch 93: training: 0.390, validation: 0.380, lr: 0.01000
+#> Loss at epoch 94: training: 0.387, validation: 0.389, lr: 0.01000
+#> Loss at epoch 95: training: 0.387, validation: 0.384, lr: 0.01000
+#> Loss at epoch 96: training: 0.390, validation: 0.380, lr: 0.01000
+#> Loss at epoch 97: training: 0.389, validation: 0.387, lr: 0.01000
+#> Loss at epoch 98: training: 0.390, validation: 0.389, lr: 0.01000
+#> Loss at epoch 99: training: 0.388, validation: 0.383, lr: 0.01000
+#> Loss at epoch 100: training: 0.390, validation: 0.397, lr: 0.01000
+#>           labelsTest
+#> prediction   0   1
+#>          0 121   4
+#>          1   0  72
+#> Accuracy:
+#> [1] 0.9796954
+```
+
+:::
+
+:::::
+
+
 ```{=html}
     </p>
   </details>
@@ -2311,7 +1100,7 @@ You should get an accuracy of at least 90%. (Before looking into the solution...
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
 ```
 
 Now try your above solution (**the exactly same one!**) with another seed to check for overfitting (on the seed!) of your procedure.
@@ -2342,7 +1131,7 @@ Now try your above solution (**the exactly same one!**) with another seed to che
 ```
 
 ```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+  <strong><span style="color: #0011AA; font-size:18px;">5. Task</span></strong><br/>
 ```
 
 Make predictions and submit them via our <a href="https://elearning.uni-regensburg.de/mod/page/view.php?id=1150717" target="_blank" rel="noopener">submission server</a>.
