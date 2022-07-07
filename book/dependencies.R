@@ -37,7 +37,6 @@ install.packages("piecewiseSEM")
 install.packages("purrr")
 install.packages("randomForest")
 install.packages("ranger")
-install.packages("reticulate")
 install.packages("rpart")
 install.packages("rpart.plot")
 install.packages("scales")
@@ -50,13 +49,9 @@ install.packages("xgboost")
 
 devtools::install_github("andrie/deepviz", dependencies = TRUE,
                          upgrade = "always")
-devtools::install_github(repo = "florianhartig/EcoData", subdir = "EcoData",
-                         dependencies = TRUE, build_vignettes = FALSE)
 devtools::install_github('skinner927/reprtree')
 devtools::install_version("lavaanPlot", version = "0.6.0")
 
 reticulate::conda_install("r-reticulate", packages = "scipy", pip = TRUE)
-
-torch::install_torch()
 
 
