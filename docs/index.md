@@ -1,7 +1,7 @@
 --- 
 title: "Machine Learning and AI in TensorFlow and R"
 author: "Maximilian Pichler and Florian Hartig"
-date: "2022-07-07"
+date: "2022-07-08"
 site: bookdown::bookdown_site
 output: 
   bookdown::gitbook:
@@ -37,11 +37,6 @@ Run in R:
 
 
 ```r
-install.packages("devtools")
-devtools::install_github("rstudio/tensorflow")
-library(tensorflow)
-install_tensorflow()
-
 install.packages("keras", dependencies = T)
 keras::install_keras()
 ```
@@ -59,6 +54,7 @@ We may also use Torch for R. This is an R frontend for the popular PyTorch frame
 ```r
 install.packages("torch")
 library(torch)
+torch::install_torch()
 ```
 
 
@@ -72,6 +68,13 @@ devtools::install_github(repo = "TheoreticalEcology/EcoData",
                          dependencies = TRUE, build_vignettes = TRUE)
 ```
 
+The default installation will install a number of packages that are useful for statistics. Especially in Linux, this may take some time to install. If you are in a hurry and only want the data, you can also run
+
+
+```r
+devtools::install_github(repo = "TheoreticalEcology/EcoData", 
+                         dependencies = FALSE, build_vignettes = FALSE)
+```
 
 ## Further Used Libraries
 
@@ -119,7 +122,6 @@ install.packages("piecewiseSEM")
 install.packages("purrr")
 install.packages("randomForest")
 install.packages("ranger")
-install.packages("reticulate")
 install.packages("rpart")
 install.packages("rpart.plot")
 install.packages("scales")
@@ -132,14 +134,10 @@ install.packages("xgboost")
 
 devtools::install_github("andrie/deepviz", dependencies = TRUE,
                          upgrade = "always")
-devtools::install_github(repo = "florianhartig/EcoData", subdir = "EcoData",
-                         dependencies = TRUE, build_vignettes = FALSE)
 devtools::install_github('skinner927/reprtree')
 devtools::install_version("lavaanPlot", version = "0.6.0")
 
 reticulate::conda_install("r-reticulate", packages = "scipy", pip = TRUE)
-
-torch::install_torch()
 
 ```
 
@@ -163,6 +161,9 @@ If you are new to installing packages on Debian / Ubuntu, etc., type the followi
 sudo apt update && sudo apt install -y --install-recommends build-essential gfortran libmagick++-dev r-base-dev
 ```
 
+## Reminders About Basic Operations in R 
+
+Basic and advanced knowledge of R is required to successfully participate in this course. If you would like to refresh your knowledge of R, you can review the chapter ['Reminder: R Basics'](https://theoreticalecology.github.io/AdvancedBiostatistics/reminder.html) from the advanced statistic course.  
 
 **Authors**:
 
