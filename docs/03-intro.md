@@ -635,276 +635,45 @@ Go through the 4(5) algorithms above, and check if they are sensitive (i.e. if r
 ```{=html}
   <strong><span style="font-size:20px;">Hierarchical Clustering</span></strong>
 ```
+<br/>
 
-```r
-library(dendextend)
 
-methods = c("ward.D", "single", "complete", "average",
-            "mcquitty", "median", "centroid", "ward.D2")
-
-cluster_all_methods = function(distances){
-  out = dendlist()
-  for(method in methods){
-    res = hclust(distances, method = method)   
-    out = dendlist(out, as.dendrogram(res))
-  }
-  names(out) = methods
-  
-  return(out)
-}
-
-get_ordered_3_clusters = function(dend){
-  return(cutree(dend, k = 3)[order.dendrogram(dend)])
-}
-
-compare_clusters_to_iris = function(clus){
-  return(FM_index(clus, rep(1:3, each = 50), assume_sorted_vectors = TRUE))
-}
-
-do_clustering = function(traits, scale = FALSE){
-  set.seed(123)
-  headline = "Performance of linkage methods\nin detecting the 3 species\n"
-  
-  if(scale){
-    traits = scale(traits)  # Do scaling on copy of traits.
-    headline = paste0(headline, "Scaled")
-  }else{ headline = paste0(headline, "Not scaled") }
-  
-  distances = dist(traits)
-  out = cluster_all_methods(distances)
-  dend_3_clusters = lapply(out, get_ordered_3_clusters)
-  clusters_performance = sapply(dend_3_clusters, compare_clusters_to_iris)
-  dotchart(sort(clusters_performance), xlim = c(0.3,1),
-           xlab = "Fowlkes-Mallows index",
-           main = headline,
-           pch = 19)
-}
-
-traits = as.matrix(iris[,1:4])
-
-# Do clustering on unscaled data.
-do_clustering(traits, FALSE)
-```
-
-<img src="03-intro_files/figure-html/chunk_chapter3_task_0-1.png" width="100%" style="display: block; margin: auto;" />
-
-```r
-
-# Do clustering on scaled data.
-do_clustering(traits, TRUE)
-```
-
-<img src="03-intro_files/figure-html/chunk_chapter3_task_0-2.png" width="100%" style="display: block; margin: auto;" />
-
-It seems that scaling is harmful for hierarchical clustering. But this might be a deception.
-**Be careful:** If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.
+<!-- It seems that scaling is harmful for hierarchical clustering. But this might be a deception. -->
+<!-- **Be careful:** If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence. -->
 
 ```{=html}
   <strong><span style="font-size:20px;">K-means Clustering</span></strong>
 ```
+<br/>
 
-```r
-do_clustering = function(traits, scale = FALSE){
-  set.seed(123)
-  
-  if(scale){
-    traits = scale(traits)  # Do scaling on copy of traits.
-    headline = "K-means Clustering\nScaled\nSum of all tries: "
-  }else{ headline = "K-means Clustering\nNot scaled\nSum of all tries: " }
-  
-  getSumSq = function(k){ kmeans(traits, k, nstart = 25)$tot.withinss }
-  iris.kmeans1to10 = sapply(1:10, getSumSq)
-  
-  headline = paste0(headline, round(sum(iris.kmeans1to10), 2))
-  
-  plot(1:10, iris.kmeans1to10, type = "b", pch = 19, frame = FALSE,
-       main = headline,
-       xlab = "Number of clusters K",
-       ylab = "Total within-clusters sum of squares",
-       col = c("black", "red", rep("black", 8)) )
-}
 
-traits = as.matrix(iris[,1:4])
-
-# Do clustering on unscaled data.
-do_clustering(traits, FALSE)
-```
-
-<img src="03-intro_files/figure-html/chunk_chapter3_task_1-1.png" width="100%" style="display: block; margin: auto;" />
-
-```r
-
-# Do clustering on scaled data.
-do_clustering(traits, TRUE)
-```
-
-<img src="03-intro_files/figure-html/chunk_chapter3_task_1-2.png" width="100%" style="display: block; margin: auto;" />
-
-It seems that scaling is harmful for K-means clustering. But this might be a deception.
-<strong>*Be careful:*</strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.
-
+<!-- It seems that scaling is harmful for K-means clustering. But this might be a deception. -->
+<!-- <strong>*Be careful:*</strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence. -->
 ```{=html}
   <strong><span style="font-size:20px;">Density-based Clustering</span></strong>
 ```
+<br/>
 
-```r
-library(dbscan)
 
-correct = as.factor(iris[,5])
-# Start at 1. Noise points will get 0 later.
-levels(correct) = 1:length(levels(correct))
-correct
-#>   [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-#>  [43] 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
-#>  [85] 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
-#> [127] 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
-#> Levels: 1 2 3
-
-do_clustering = function(traits, scale = FALSE){
-  set.seed(123)
-  
-  if(scale){ traits = scale(traits) } # Do scaling on copy of traits.
-  
-  #####
-  # Play around with the parameters "eps" and "minPts" on your own!
-  #####
-  dc = dbscan(traits, eps = 0.41, minPts = 4)
-  
-  labels = as.factor(dc$cluster)
-  noise = sum(dc$cluster == 0)
-  levels(labels) = c("noise", 1:( length(levels(labels)) - 1))
-  
-  tbl = table(correct, labels)
-  correct_classified = 0
-  for(i in 1:length(levels(correct))){
-    correct_classified = correct_classified + tbl[i, i + 1]
-  }
-  
-  cat( if(scale){ "Scaled" }else{ "Not scaled" }, "\n\n" )
-  cat("Confusion matrix:\n")
-  print(tbl)
-  cat("\nCorrect classified points: ", correct_classified, " / ", length(iris[,5]))
-  cat("\nSum of noise points: ", noise, "\n")
-}
-
-traits = as.matrix(iris[,1:4])
-
-# Do clustering on unscaled data.
-do_clustering(traits, FALSE)
-#> Not scaled 
-#> 
-#> Confusion matrix:
-#>        labels
-#> correct noise  1  2  3  4
-#>       1     3 47  0  0  0
-#>       2     5  0 38  3  4
-#>       3    17  0  0 33  0
-#> 
-#> Correct classified points:  118  /  150
-#> Sum of noise points:  25
-
-# Do clustering on scaled data.
-do_clustering(traits, TRUE)
-#> Scaled 
-#> 
-#> Confusion matrix:
-#>        labels
-#> correct noise  1  2  3  4
-#>       1     9 41  0  0  0
-#>       2    14  0 36  0  0
-#>       3    36  0  1  4  9
-#> 
-#> Correct classified points:  81  /  150
-#> Sum of noise points:  59
-```
-
-It seems that scaling is harmful for density based clustering. But this might be a deception.
-<strong>*Be careful:*</strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.
+<!-- It seems that scaling is harmful for density based clustering. But this might be a deception. -->
+<!-- <strong>*Be careful:*</strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence. -->
 
 ```{=html}
   <strong><span style="font-size:20px;">Model-based Clustering</span></strong>
 ```
+<br/>
 
-```r
-library(mclust)
 
-do_clustering = function(traits, scale = FALSE){
-  set.seed(123)
-  
-  if(scale){ traits = scale(traits) } # Do scaling on copy of traits.
-  
-  mb3 = Mclust(traits, 3)
-  
-  tbl = table(iris$Species, mb3$classification)
-  
-  cat( if(scale){ "Scaled" }else{ "Not scaled" }, "\n\n" )
-  cat("Confusion matrix:\n")
-  print(tbl)
-  cat("\nCorrect classified points: ", sum(diag(tbl)), " / ", length(iris[,5]))
-}
-
-traits = as.matrix(iris[,1:4])
-
-# Do clustering on unscaled data.
-do_clustering(traits, FALSE)
-#> Not scaled 
-#> 
-#> Confusion matrix:
-#>             
-#>               1  2  3
-#>   setosa     50  0  0
-#>   versicolor  0 45  5
-#>   virginica   0  0 50
-#> 
-#> Correct classified points:  145  /  150
-
-# Do clustering on scaled data.
-do_clustering(traits, TRUE)
-#> Scaled 
-#> 
-#> Confusion matrix:
-#>             
-#>               1  2  3
-#>   setosa     50  0  0
-#>   versicolor  0 45  5
-#>   virginica   0  0 50
-#> 
-#> Correct classified points:  145  /  150
-```
-
-For model based clustering, scaling does not matter.
+<!-- For model based clustering, scaling does not matter. -->
 
 ```{=html}
   <strong><span style="font-size:20px;">Ordination</span></strong>
 ```
+<br/>
 
-```r
-traits = as.matrix(iris[,1:4])
 
-biplot(prcomp(traits, center = TRUE, scale. = TRUE),
-       main = "Use integrated scaling")
-```
-
-<img src="03-intro_files/figure-html/chunk_chapter3_task_4-1.png" width="100%" style="display: block; margin: auto;" />
-
-```r
-
-biplot(prcomp(scale(traits), center = FALSE, scale. = FALSE),
-       main = "Scale explicitly")
-```
-
-<img src="03-intro_files/figure-html/chunk_chapter3_task_4-2.png" width="100%" style="display: block; margin: auto;" />
-
-```r
-
-biplot(prcomp(traits, center = FALSE, scale. = FALSE),
-       main = "No scaling at all")
-```
-
-<img src="03-intro_files/figure-html/chunk_chapter3_task_4-3.png" width="100%" style="display: block; margin: auto;" />
-
-For PCA ordination, scaling matters.
-Because we are interested in directions of maximal variance, all parameters should be scaled, or the one with the highest values might dominate all others.
+<!-- For PCA ordination, scaling matters. -->
+<!-- Because we are interested in directions of maximal variance, all parameters should be scaled, or the one with the highest values might dominate all others. -->
 
 ```{=html}
     </p>

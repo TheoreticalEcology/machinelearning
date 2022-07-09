@@ -636,234 +636,24 @@ So there is a relationship between clustering and ordination. Here a PCA ordinat
     </summary><p>
   <strong><span style="font-size:20px;">Hierarchical Clustering</span></strong>
 </p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://talgalili.github.io/dendextend/">dendextend</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">methods</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ward.D"</span>, <span class="st">"single"</span>, <span class="st">"complete"</span>, <span class="st">"average"</span>,</span>
-<span>            <span class="st">"mcquitty"</span>, <span class="st">"median"</span>, <span class="st">"centroid"</span>, <span class="st">"ward.D2"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">cluster_all_methods</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">distances</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="va">out</span> <span class="op">=</span> <span class="fu"><a href="http://talgalili.github.io/dendextend/reference/dendlist.html">dendlist</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">method</span> <span class="kw">in</span> <span class="va">methods</span><span class="op">)</span><span class="op">{</span></span>
-<span>    <span class="va">res</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/hclust.html">hclust</a></span><span class="op">(</span><span class="va">distances</span>, method <span class="op">=</span> <span class="va">method</span><span class="op">)</span>   </span>
-<span>    <span class="va">out</span> <span class="op">=</span> <span class="fu"><a href="http://talgalili.github.io/dendextend/reference/dendlist.html">dendlist</a></span><span class="op">(</span><span class="va">out</span>, <span class="fu"><a href="https://rdrr.io/r/stats/dendrogram.html">as.dendrogram</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span> <span class="op">=</span> <span class="va">methods</span></span>
-<span>  </span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">get_ordered_3_clusters</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">dend</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="fu">cutree</span><span class="op">(</span><span class="va">dend</span>, k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/stats/order.dendrogram.html">order.dendrogram</a></span><span class="op">(</span><span class="va">dend</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">compare_clusters_to_iris</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">clus</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="fu"><a href="http://talgalili.github.io/dendextend/reference/FM_index.html">FM_index</a></span><span class="op">(</span><span class="va">clus</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, each <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>, assume_sorted_vectors <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">do_clustering</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">traits</span>, <span class="va">scale</span> <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span>  <span class="va">headline</span> <span class="op">=</span> <span class="st">"Performance of linkage methods\nin detecting the 3 species\n"</span></span>
-<span>  </span>
-<span>  <span class="kw">if</span><span class="op">(</span><span class="va">scale</span><span class="op">)</span><span class="op">{</span></span>
-<span>    <span class="va">traits</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html">scale</a></span><span class="op">(</span><span class="va">traits</span><span class="op">)</span>  <span class="co"># Do scaling on copy of traits.</span></span>
-<span>    <span class="va">headline</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">headline</span>, <span class="st">"Scaled"</span><span class="op">)</span></span>
-<span>  <span class="op">}</span><span class="kw">else</span><span class="op">{</span> <span class="va">headline</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">headline</span>, <span class="st">"Not scaled"</span><span class="op">)</span> <span class="op">}</span></span>
-<span>  </span>
-<span>  <span class="va">distances</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/dist.html">dist</a></span><span class="op">(</span><span class="va">traits</span><span class="op">)</span></span>
-<span>  <span class="va">out</span> <span class="op">=</span> <span class="fu">cluster_all_methods</span><span class="op">(</span><span class="va">distances</span><span class="op">)</span></span>
-<span>  <span class="va">dend_3_clusters</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">out</span>, <span class="va">get_ordered_3_clusters</span><span class="op">)</span></span>
-<span>  <span class="va">clusters_performance</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">dend_3_clusters</span>, <span class="va">compare_clusters_to_iris</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/dotchart.html">dotchart</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sort.html">sort</a></span><span class="op">(</span><span class="va">clusters_performance</span><span class="op">)</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.3</span>,<span class="fl">1</span><span class="op">)</span>,</span>
-<span>           xlab <span class="op">=</span> <span class="st">"Fowlkes-Mallows index"</span>,</span>
-<span>           main <span class="op">=</span> <span class="va">headline</span>,</span>
-<span>           pch <span class="op">=</span> <span class="fl">19</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">traits</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Do clustering on unscaled data.</span></span>
-<span><span class="fu">do_clustering</span><span class="op">(</span><span class="va">traits</span>, <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="03-intro_files/figure-html/chunk_chapter3_task_0-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Do clustering on scaled data.</span></span>
-<span><span class="fu">do_clustering</span><span class="op">(</span><span class="va">traits</span>, <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="03-intro_files/figure-html/chunk_chapter3_task_0-2.png" width="100%" style="display: block; margin: auto;"></div>
-<p>It seems that scaling is harmful for hierarchical clustering. But this might be a deception.
-<strong>Be careful:</strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.</p>
+<p><br></p>
+<!-- It seems that scaling is harmful for hierarchical clustering. But this might be a deception. -->
+<!-- **Be careful:** If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence. -->
   <strong><span style="font-size:20px;">K-means Clustering</span></strong>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">do_clustering</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">traits</span>, <span class="va">scale</span> <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="kw">if</span><span class="op">(</span><span class="va">scale</span><span class="op">)</span><span class="op">{</span></span>
-<span>    <span class="va">traits</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html">scale</a></span><span class="op">(</span><span class="va">traits</span><span class="op">)</span>  <span class="co"># Do scaling on copy of traits.</span></span>
-<span>    <span class="va">headline</span> <span class="op">=</span> <span class="st">"K-means Clustering\nScaled\nSum of all tries: "</span></span>
-<span>  <span class="op">}</span><span class="kw">else</span><span class="op">{</span> <span class="va">headline</span> <span class="op">=</span> <span class="st">"K-means Clustering\nNot scaled\nSum of all tries: "</span> <span class="op">}</span></span>
-<span>  </span>
-<span>  <span class="va">getSumSq</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">k</span><span class="op">)</span><span class="op">{</span> <span class="fu"><a href="https://rdrr.io/r/stats/kmeans.html">kmeans</a></span><span class="op">(</span><span class="va">traits</span>, <span class="va">k</span>, nstart <span class="op">=</span> <span class="fl">25</span><span class="op">)</span><span class="op">$</span><span class="va">tot.withinss</span> <span class="op">}</span></span>
-<span>  <span class="va">iris.kmeans1to10</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="va">getSumSq</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="va">headline</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">headline</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">iris.kmeans1to10</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="va">iris.kmeans1to10</span>, type <span class="op">=</span> <span class="st">"b"</span>, pch <span class="op">=</span> <span class="fl">19</span>, frame <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>       main <span class="op">=</span> <span class="va">headline</span>,</span>
-<span>       xlab <span class="op">=</span> <span class="st">"Number of clusters K"</span>,</span>
-<span>       ylab <span class="op">=</span> <span class="st">"Total within-clusters sum of squares"</span>,</span>
-<span>       col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="st">"red"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">traits</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Do clustering on unscaled data.</span></span>
-<span><span class="fu">do_clustering</span><span class="op">(</span><span class="va">traits</span>, <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="03-intro_files/figure-html/chunk_chapter3_task_1-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Do clustering on scaled data.</span></span>
-<span><span class="fu">do_clustering</span><span class="op">(</span><span class="va">traits</span>, <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="03-intro_files/figure-html/chunk_chapter3_task_1-2.png" width="100%" style="display: block; margin: auto;"></div>
-<p>It seems that scaling is harmful for K-means clustering. But this might be a deception.
-<strong><em>Be careful:</em></strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.</p>
+<p><br></p>
+<!-- It seems that scaling is harmful for K-means clustering. But this might be a deception. -->
+<!-- <strong>*Be careful:*</strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence. -->
   <strong><span style="font-size:20px;">Density-based Clustering</span></strong>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mhahsler/dbscan">dbscan</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">correct</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co"># Start at 1. Noise points will get 0 later.</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">correct</span><span class="op">)</span> <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">correct</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">correct</span></span>
-<span><span class="co">#&gt;   [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1</span></span>
-<span><span class="co">#&gt;  [43] 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2</span></span>
-<span><span class="co">#&gt;  [85] 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3</span></span>
-<span><span class="co">#&gt; [127] 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3</span></span>
-<span><span class="co">#&gt; Levels: 1 2 3</span></span>
-<span></span>
-<span><span class="va">do_clustering</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">traits</span>, <span class="va">scale</span> <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="kw">if</span><span class="op">(</span><span class="va">scale</span><span class="op">)</span><span class="op">{</span> <span class="va">traits</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html">scale</a></span><span class="op">(</span><span class="va">traits</span><span class="op">)</span> <span class="op">}</span> <span class="co"># Do scaling on copy of traits.</span></span>
-<span>  </span>
-<span>  <span class="co">#####</span></span>
-<span>  <span class="co"># Play around with the parameters "eps" and "minPts" on your own!</span></span>
-<span>  <span class="co">#####</span></span>
-<span>  <span class="va">dc</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/dbscan/man/dbscan.html">dbscan</a></span><span class="op">(</span><span class="va">traits</span>, eps <span class="op">=</span> <span class="fl">0.41</span>, minPts <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="va">labels</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">dc</span><span class="op">$</span><span class="va">cluster</span><span class="op">)</span></span>
-<span>  <span class="va">noise</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">dc</span><span class="op">$</span><span class="va">cluster</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">labels</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"noise"</span>, <span class="fl">1</span><span class="op">:</span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">labels</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="va">tbl</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">correct</span>, <span class="va">labels</span><span class="op">)</span></span>
-<span>  <span class="va">correct_classified</span> <span class="op">=</span> <span class="fl">0</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">correct</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
-<span>    <span class="va">correct_classified</span> <span class="op">=</span> <span class="va">correct_classified</span> <span class="op">+</span> <span class="va">tbl</span><span class="op">[</span><span class="va">i</span>, <span class="va">i</span> <span class="op">+</span> <span class="fl">1</span><span class="op">]</span></span>
-<span>  <span class="op">}</span></span>
-<span>  </span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span> <span class="kw">if</span><span class="op">(</span><span class="va">scale</span><span class="op">)</span><span class="op">{</span> <span class="st">"Scaled"</span> <span class="op">}</span><span class="kw">else</span><span class="op">{</span> <span class="st">"Not scaled"</span> <span class="op">}</span>, <span class="st">"\n\n"</span> <span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Confusion matrix:\n"</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\nCorrect classified points: "</span>, <span class="va">correct_classified</span>, <span class="st">" / "</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="fl">5</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\nSum of noise points: "</span>, <span class="va">noise</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">traits</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Do clustering on unscaled data.</span></span>
-<span><span class="fu">do_clustering</span><span class="op">(</span><span class="va">traits</span>, <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Not scaled </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Confusion matrix:</span></span>
-<span><span class="co">#&gt;        labels</span></span>
-<span><span class="co">#&gt; correct noise  1  2  3  4</span></span>
-<span><span class="co">#&gt;       1     3 47  0  0  0</span></span>
-<span><span class="co">#&gt;       2     5  0 38  3  4</span></span>
-<span><span class="co">#&gt;       3    17  0  0 33  0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Correct classified points:  118  /  150</span></span>
-<span><span class="co">#&gt; Sum of noise points:  25</span></span>
-<span></span>
-<span><span class="co"># Do clustering on scaled data.</span></span>
-<span><span class="fu">do_clustering</span><span class="op">(</span><span class="va">traits</span>, <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Scaled </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Confusion matrix:</span></span>
-<span><span class="co">#&gt;        labels</span></span>
-<span><span class="co">#&gt; correct noise  1  2  3  4</span></span>
-<span><span class="co">#&gt;       1     9 41  0  0  0</span></span>
-<span><span class="co">#&gt;       2    14  0 36  0  0</span></span>
-<span><span class="co">#&gt;       3    36  0  1  4  9</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Correct classified points:  81  /  150</span></span>
-<span><span class="co">#&gt; Sum of noise points:  59</span></span></code></pre></div>
-<p>It seems that scaling is harmful for density based clustering. But this might be a deception.
-<strong><em>Be careful:</em></strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.</p>
+<p><br></p>
+<!-- It seems that scaling is harmful for density based clustering. But this might be a deception. -->
+<!-- <strong>*Be careful:*</strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence. -->
   <strong><span style="font-size:20px;">Model-based Clustering</span></strong>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://mclust-org.github.io/mclust/">mclust</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">do_clustering</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">traits</span>, <span class="va">scale</span> <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="kw">if</span><span class="op">(</span><span class="va">scale</span><span class="op">)</span><span class="op">{</span> <span class="va">traits</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html">scale</a></span><span class="op">(</span><span class="va">traits</span><span class="op">)</span> <span class="op">}</span> <span class="co"># Do scaling on copy of traits.</span></span>
-<span>  </span>
-<span>  <span class="va">mb3</span> <span class="op">=</span> <span class="fu"><a href="https://mclust-org.github.io/mclust/reference/Mclust.html">Mclust</a></span><span class="op">(</span><span class="va">traits</span>, <span class="fl">3</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="va">tbl</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">iris</span><span class="op">$</span><span class="va">Species</span>, <span class="va">mb3</span><span class="op">$</span><span class="va">classification</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span> <span class="kw">if</span><span class="op">(</span><span class="va">scale</span><span class="op">)</span><span class="op">{</span> <span class="st">"Scaled"</span> <span class="op">}</span><span class="kw">else</span><span class="op">{</span> <span class="st">"Not scaled"</span> <span class="op">}</span>, <span class="st">"\n\n"</span> <span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Confusion matrix:\n"</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\nCorrect classified points: "</span>, <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html">diag</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span><span class="op">)</span>, <span class="st">" / "</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="fl">5</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">traits</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Do clustering on unscaled data.</span></span>
-<span><span class="fu">do_clustering</span><span class="op">(</span><span class="va">traits</span>, <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Not scaled </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Confusion matrix:</span></span>
-<span><span class="co">#&gt;             </span></span>
-<span><span class="co">#&gt;               1  2  3</span></span>
-<span><span class="co">#&gt;   setosa     50  0  0</span></span>
-<span><span class="co">#&gt;   versicolor  0 45  5</span></span>
-<span><span class="co">#&gt;   virginica   0  0 50</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Correct classified points:  145  /  150</span></span>
-<span></span>
-<span><span class="co"># Do clustering on scaled data.</span></span>
-<span><span class="fu">do_clustering</span><span class="op">(</span><span class="va">traits</span>, <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Scaled </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Confusion matrix:</span></span>
-<span><span class="co">#&gt;             </span></span>
-<span><span class="co">#&gt;               1  2  3</span></span>
-<span><span class="co">#&gt;   setosa     50  0  0</span></span>
-<span><span class="co">#&gt;   versicolor  0 45  5</span></span>
-<span><span class="co">#&gt;   virginica   0  0 50</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Correct classified points:  145  /  150</span></span></code></pre></div>
-<p>For model based clustering, scaling does not matter.</p>
+<p><br></p>
+<!-- For model based clustering, scaling does not matter. -->
   <strong><span style="font-size:20px;">Ordination</span></strong>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">traits</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/biplot.html">biplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/prcomp.html">prcomp</a></span><span class="op">(</span><span class="va">traits</span>, center <span class="op">=</span> <span class="cn">TRUE</span>, scale. <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>       main <span class="op">=</span> <span class="st">"Use integrated scaling"</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="03-intro_files/figure-html/chunk_chapter3_task_4-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/biplot.html">biplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/prcomp.html">prcomp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/scale.html">scale</a></span><span class="op">(</span><span class="va">traits</span><span class="op">)</span>, center <span class="op">=</span> <span class="cn">FALSE</span>, scale. <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
-<span>       main <span class="op">=</span> <span class="st">"Scale explicitly"</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="03-intro_files/figure-html/chunk_chapter3_task_4-2.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/biplot.html">biplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/prcomp.html">prcomp</a></span><span class="op">(</span><span class="va">traits</span>, center <span class="op">=</span> <span class="cn">FALSE</span>, scale. <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
-<span>       main <span class="op">=</span> <span class="st">"No scaling at all"</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="03-intro_files/figure-html/chunk_chapter3_task_4-3.png" width="100%" style="display: block; margin: auto;"></div>
-<p>For PCA ordination, scaling matters.
-Because we are interested in directions of maximal variance, all parameters should be scaled, or the one with the highest values might dominate all others.</p>
+<p><br></p>
+<!-- For PCA ordination, scaling matters. -->
+<!-- Because we are interested in directions of maximal variance, all parameters should be scaled, or the one with the highest values might dominate all others. -->
     
   </details><br><hr>
 </div>
@@ -883,10 +673,10 @@ Because we are interested in directions of maximal variance, all parameters shou
 <p>The random forest (RF) algorithm is possibly the most widely used machine learning algorithm and can be used for regression and classification. We will talk more about the algorithm tomorrow.</p>
 <p>For the moment, we want to go through a typical workflow for a supervised regression: First, we visualize the data. Next, we fit the model and lastly we visualize the results. We will again use the iris data set that we used before. The goal is now to predict Sepal.Length based on the information about the other variables (including species).</p>
 <p>Fitting the model:</p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.stat.berkeley.edu/~breiman/RandomForests/">randomForest</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m1</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/randomForest/man/randomForest.html">randomForest</a></span><span class="op">(</span><span class="va">Sepal.Length</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">iris</span><span class="op">)</span>   <span class="co"># ~.: Against all others.</span></span>
 <span><span class="co"># str(m1)</span></span>
 <span><span class="co"># m1$type</span></span>
@@ -902,16 +692,16 @@ Because we are interested in directions of maximal variance, all parameters shou
 <span><span class="co">#&gt;           Mean of squared residuals: 0.1364625</span></span>
 <span><span class="co">#&gt;                     % Var explained: 79.97</span></span></code></pre></div>
 <p>Visualization of the results:</p>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">oldpar</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">m1</span><span class="op">)</span>, <span class="va">iris</span><span class="op">$</span><span class="va">Sepal.Length</span>, xlab <span class="op">=</span> <span class="st">"Predicted"</span>, ylab <span class="op">=</span> <span class="st">"Observed"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html">abline</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/randomForest/man/varImpPlot.html">varImpPlot</a></span><span class="op">(</span><span class="va">m1</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="03-intro_files/figure-html/chunk_chapter3_28-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
 <p>To understand the structure of a random forest in more detail, we can use a package from GitHub.</p>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">reprtree</span><span class="fu">:::</span><span class="fu">plot.getTree</span><span class="op">(</span><span class="va">m1</span>, <span class="va">iris</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="03-intro_files/figure-html/chunk_chapter3_29-1.png" width="100%" style="display: block; margin: auto;"></div>
 <p>Here, one of the regression trees is shown.</p>
@@ -922,25 +712,25 @@ Because we are interested in directions of maximal variance, all parameters shou
 </h3>
 <p>With the random forest, we can also do classification. The steps are the same as for regression tasks, but we can additionally see how well it performed by looking at the confusion matrix. Each row of this matrix contains the instances in a predicted class and each column represents the instances in the actual class. Thus the diagonals are the correctly predicted classes and the off-diagonal elements are the falsely classified elements.</p>
 <p>Fitting the model:</p>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">m1</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/randomForest/man/randomForest.html">randomForest</a></span><span class="op">(</span><span class="va">Species</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">iris</span><span class="op">)</span></span></code></pre></div>
 <p>Visualizing one of the fitted models:</p>
-<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">oldpar</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">reprtree</span><span class="fu">:::</span><span class="fu">plot.getTree</span><span class="op">(</span><span class="va">m1</span>, <span class="va">iris</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="03-intro_files/figure-html/chunk_chapter3_31-1.png" width="100%" style="display: block; margin: auto;"></div>
 <p>Visualizing results ecologically:</p>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">iris</span><span class="op">$</span><span class="va">Petal.Width</span>, <span class="va">iris</span><span class="op">$</span><span class="va">Petal.Length</span>, col <span class="op">=</span> <span class="va">iris</span><span class="op">$</span><span class="va">Species</span>, main <span class="op">=</span> <span class="st">"Observed"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">iris</span><span class="op">$</span><span class="va">Petal.Width</span>, <span class="va">iris</span><span class="op">$</span><span class="va">Petal.Length</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">m1</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Predicted"</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="03-intro_files/figure-html/chunk_chapter3_32-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span>   <span class="co">#Reset par.</span></span></code></pre></div>
 <p>Confusion matrix:</p>
-<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">m1</span><span class="op">)</span>, <span class="va">iris</span><span class="op">$</span><span class="va">Species</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-table"><table class="table table-sm">
 <thead><tr class="header">
