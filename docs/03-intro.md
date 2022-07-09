@@ -5,6 +5,7 @@
 <script src="./scripts/multipleChoice.js"></script>
 ```
 
+## Principles of Machine Learning
 
 
 
@@ -28,6 +29,149 @@ For the moment, we will focus on the first two tasks, supervised and unsupervise
   frameborder="0" allow="accelerometer; autoplay; encrypted-media;
   gyroscope; picture-in-picture" allowfullscreen>
   </iframe>
+
+
+### Questions
+
+
+```{=html}
+  <hr/>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">1. Question</span></strong>
+    </summary>
+    <p>
+      <script>
+        makeMultipleChoiceForm(
+         'Have a look at the two textbooks on ML (Elements of statistical learning and introduction to statistical learning) in our further readings at the end of the GRIPS course - which of the following statements is true?',
+          'checkbox',
+          [
+            {
+              'answer':'Both books can be downloaded for free.',
+              'correct':true,
+              'explanationIfSelected':'',
+              'explanationIfNotSelected':'',
+              'explanationGeneral':''
+            },
+            {
+              'answer':'The elements of statistical learning was published earlier than the introduction to statistical learning.',
+              'correct':true,
+              'explanationIfSelected':'',
+              'explanationIfNotSelected':'',
+              'explanationGeneral':''
+            },
+            {
+              'answer':'The "an introduction to statistical learning" also includes an online course with videos to the different topics on their website.',
+              'correct':true,
+              'explanationIfSelected':'',
+              'explanationIfNotSelected':'',
+              'explanationGeneral':''
+            },
+            {
+              'answer':'Higher model complexity is always better for predicting.',
+              'correct':false,
+              'explanationIfSelected':'No! Bias-variance tradeoff!',
+              'explanationIfNotSelected':'',
+              'explanationGeneral':''
+            },
+          ],
+          ''
+        );
+      </script>
+    </p>
+  <hr/>
+```
+
+
+
+```{=html}
+  <hr/>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">2. Question</span></strong>
+    </summary>
+    <p>
+      <script>
+        makeMultipleChoiceForm(
+         'In the lecture, it was said that, during training, ML parameters are optimised to get a good fit (loss function) to training data. Which of the following statements about loss functions is correct?',
+          'checkbox',
+          [
+            {
+              'answer':'A loss function measures the difference between the (current) ML model prediction and the data.',
+              'correct':true,
+              'explanationIfSelected':'',
+              'explanationIfNotSelected':'',
+              'explanationGeneral':''
+            },
+            {
+              'answer':'When we specify a simple line as our ML model, all loss functions will lead to the same line.',
+              'correct':false,
+              'explanationIfSelected':'',
+              'explanationIfNotSelected':'',
+              'explanationGeneral':''
+            },
+            {
+              'answer':'Cross-Entropy and Kullback–Leibler divergence are common loss functions.',
+              'correct':true,
+              'explanationIfSelected':'',
+              'explanationIfNotSelected':'',
+              'explanationGeneral':''
+            },
+            {
+              'answer':'For regression, there is only one sensible loss function, and this is the mean squared error.',
+              'correct':false,
+              'explanationIfSelected':'',
+              'explanationIfNotSelected':'',
+              'explanationGeneral':''
+            },
+          ],
+          ''
+        );
+      </script>
+    </p>
+  <hr/>
+```
+
+<img src="./images/biasVarianceTradeoff.png" width="100%" style="display: block; margin: auto;" />
+
+```{=html}
+  <hr/>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">3. Question</span></strong>
+    </summary>
+    <p>
+      <script>
+        makeMultipleChoiceForm(
+         'Which of the following statements about the bias-variance trade-off is correct? (See bias-variance tradeoff figure above',
+          'checkbox',
+          [
+            {
+              'answer':'The goal of considering the bias-variance trade-off is to get the bias of the model as small as possible.',
+              'correct':false,
+              'explanationIfSelected':'',
+              'explanationIfNotSelected':'',
+              'explanationGeneral':''
+            },
+            {
+              'answer':'The goal of considering the bias-variance trade-off is to realize that increasing complexity typically leads to more flexibility (allowing you to reduce bias) but at the cost of uncertainty (variance) in the estimated parameters.',
+              'correct':true,
+              'explanationIfSelected':'',
+              'explanationIfNotSelected':'',
+              'explanationGeneral':''
+            },
+            {
+              'answer':'Through the bias-variance trade-off, we see that model complexity also depends on what we want to optimize for: bias, variance (rarely), or total error of the model.',
+              'correct':true,
+              'explanationIfSelected':'',
+              'explanationIfNotSelected':'',
+              'explanationGeneral':''
+            },
+          ],
+          ''
+        );
+      </script>
+    </p>
+  <hr/>
+```
+
 
 
 ## Unsupervised Learning

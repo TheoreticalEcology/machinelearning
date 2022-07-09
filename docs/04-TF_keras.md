@@ -471,15 +471,15 @@ test = matrix(0.0, 100L, 100L)
 microbenchmark::microbenchmark(do_something_R(test), do_something_TF(test))
 #> Unit: microseconds
 #>                   expr      min       lq      mean    median       uq      max neval cld
-#>   do_something_R(test)  486.364  551.712  767.3127  748.6485  771.385 8561.535   100  a 
-#>  do_something_TF(test) 2326.680 2418.526 2669.5754 2536.5890 2893.783 5167.277   100   b
+#>   do_something_R(test)  482.107  522.845  725.1376  645.4105  751.585 7582.203   100  a 
+#>  do_something_TF(test) 2284.715 2364.157 2620.3784 2554.1020 2805.385 5020.932   100   b
 
 test = matrix(0.0, 1000L, 500L)
 microbenchmark::microbenchmark(do_something_R(test), do_something_TF(test))
 #> Unit: milliseconds
 #>                   expr      min       lq      mean    median        uq      max neval cld
-#>   do_something_R(test) 8.569688 9.031309 11.875845 12.866756 13.868192 21.66297   100   b
-#>  do_something_TF(test) 3.983051 4.706351  5.381653  4.941632  5.255914 13.99985   100  a
+#>   do_something_R(test) 8.348840 8.900812 11.497930 12.247739 12.888065 26.45649   100   b
+#>  do_something_TF(test) 3.795349 4.488069  5.369817  4.812122  5.261759 13.28069   100  a
 ```
 
 Why is R faster (the first time)?
@@ -500,11 +500,11 @@ microbenchmark::microbenchmark(
 )
 #> Unit: milliseconds
 #>                                     expr      min        lq     mean   median       uq
-#>  tf$matmul(testTF, tf$transpose(testTF)) 6.354370 13.842941 15.44858 15.77322 17.02585
-#>                         test %*% t(test) 5.937211  7.242391 14.64159 10.51663 15.05257
-#>        max neval cld
-#>   25.45276   100   a
-#>  205.03934   100   a
+#>  tf$matmul(testTF, tf$transpose(testTF)) 8.858726 13.500299 17.66519 15.58615 18.13052
+#>                         test %*% t(test) 4.630520  7.219799 13.35891 10.27140 13.99789
+#>       max neval cld
+#>  214.0673   100   a
+#>  235.8372   100   a
 ```
 
 ```{=html}
@@ -1255,16 +1255,16 @@ do_something_torch = function(x = matrix(0.0, 10L, 10L)){
 test = matrix(0.0, 100L, 100L)
 microbenchmark::microbenchmark(do_something_R(test), do_something_torch(test))
 #> Unit: microseconds
-#>                      expr     min      lq     mean   median      uq      max neval cld
-#>      do_something_R(test) 476.851 498.728 533.7012 515.8905 531.582 2309.724   100   b
-#>  do_something_torch(test) 274.358 286.325 344.9404 327.4325 339.852 2643.323   100  a
+#>                      expr     min      lq     mean  median       uq      max neval cld
+#>      do_something_R(test) 559.919 601.561 665.1723 635.357 670.9635 2900.346   100   b
+#>  do_something_torch(test) 280.732 311.779 395.8254 360.512 393.6015 3119.541   100  a
 
 test = matrix(0.0, 1000L, 500L)
 microbenchmark::microbenchmark(do_something_R(test), do_something_torch(test))
 #> Unit: milliseconds
 #>                      expr      min       lq      mean   median        uq       max neval
-#>      do_something_R(test) 8.500184 8.796861 11.261429 9.342709 12.886841 27.795282   100
-#>  do_something_torch(test) 2.178895 2.545741  2.858846 2.720181  2.888931  6.059792   100
+#>      do_something_R(test) 8.360527 8.727116 10.659170 9.053977 12.688436 16.171785   100
+#>  do_something_torch(test) 2.060355 2.347657  2.748587 2.530404  2.712845  8.117902   100
 #>  cld
 #>    b
 #>   a
@@ -1288,11 +1288,11 @@ microbenchmark::microbenchmark(
 )
 #> Unit: milliseconds
 #>                                    expr      min       lq      mean   median        uq
-#>  torch_matmul(testTorch, testTorch$t()) 1.921502 2.016905  3.476237 2.159022  2.418867
-#>                        test %*% t(test) 5.824252 6.180446 11.374597 6.573650 13.512174
+#>  torch_matmul(testTorch, testTorch$t()) 1.955332 2.034681  3.339554 2.172294  2.387997
+#>                        test %*% t(test) 5.950190 6.378973 11.445755 6.740855 13.849891
 #>        max neval cld
-#>   14.63461   100  a 
-#>  173.33872   100   b
+#>   14.48899   100  a 
+#>  179.41118   100   b
 ```
 
 ```{=html}
@@ -3255,8 +3255,8 @@ for(epoch in 1:epochs){
 #> Loss at epoch 40: 244.420776
 #> Loss at epoch 50: 217.362137
 
-plot(train_losses, type = "o", pch = c(15, 16),
-        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+plot(train_losses, type = "o", pch = 15,
+        col = "darkblue", lty = 1, xlab = "Epoch",
         ylab = "Loss", las = 1)
 ```
 
@@ -3435,8 +3435,8 @@ for(epoch in 1:epochs){
 #> Loss at epoch 40: 4.344102
 #> Loss at epoch 50: 3.493564
 
-plot(train_losses, type = "o", pch = c(15, 16),
-        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+plot(train_losses, type = "o", pch = 15,
+        col = "darkblue", lty = 1, xlab = "Epoch",
         ylab = "Loss", las = 1)
 ```
 
