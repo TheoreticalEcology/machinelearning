@@ -471,15 +471,15 @@ test = matrix(0.0, 100L, 100L)
 microbenchmark::microbenchmark(do_something_R(test), do_something_TF(test))
 #> Unit: microseconds
 #>                   expr      min       lq      mean    median       uq      max neval cld
-#>   do_something_R(test)  483.742  539.373  668.0696  686.3185  761.968 2328.809   100  a 
-#>  do_something_TF(test) 2308.671 2400.477 2734.3863 2557.0600 2891.570 9770.898   100   b
+#>   do_something_R(test)  486.364  551.712  767.3127  748.6485  771.385 8561.535   100  a 
+#>  do_something_TF(test) 2326.680 2418.526 2669.5754 2536.5890 2893.783 5167.277   100   b
 
 test = matrix(0.0, 1000L, 500L)
 microbenchmark::microbenchmark(do_something_R(test), do_something_TF(test))
 #> Unit: milliseconds
 #>                   expr      min       lq      mean    median        uq      max neval cld
-#>   do_something_R(test) 8.866225 9.294396 11.552799 11.508769 13.077309 23.97977   100   b
-#>  do_something_TF(test) 3.809307 4.488089  5.009379  4.720541  5.300979  9.75693   100  a
+#>   do_something_R(test) 8.569688 9.031309 11.875845 12.866756 13.868192 21.66297   100   b
+#>  do_something_TF(test) 3.983051 4.706351  5.381653  4.941632  5.255914 13.99985   100  a
 ```
 
 Why is R faster (the first time)?
@@ -499,12 +499,12 @@ microbenchmark::microbenchmark(
   test %*% t(test) # R style.
 )
 #> Unit: milliseconds
-#>                                     expr      min       lq     mean   median       uq
-#>  tf$matmul(testTF, tf$transpose(testTF)) 6.268791 12.70258 15.63513 15.65174 18.49433
-#>                         test %*% t(test) 8.343718 10.64110 19.27335 16.04783 20.01532
+#>                                     expr      min        lq     mean   median       uq
+#>  tf$matmul(testTF, tf$transpose(testTF)) 6.354370 13.842941 15.44858 15.77322 17.02585
+#>                         test %*% t(test) 5.937211  7.242391 14.64159 10.51663 15.05257
 #>        max neval cld
-#>   33.42693   100   a
-#>  223.54858   100   a
+#>   25.45276   100   a
+#>  205.03934   100   a
 ```
 
 ```{=html}
@@ -1255,16 +1255,16 @@ do_something_torch = function(x = matrix(0.0, 10L, 10L)){
 test = matrix(0.0, 100L, 100L)
 microbenchmark::microbenchmark(do_something_R(test), do_something_torch(test))
 #> Unit: microseconds
-#>                      expr     min      lq     mean  median       uq      max neval cld
-#>      do_something_R(test) 501.259 531.134 567.2356 546.484 562.4595 2375.494   100   b
-#>  do_something_torch(test) 276.280 296.105 366.4662 347.216 367.9885 2726.235   100  a
+#>                      expr     min      lq     mean   median      uq      max neval cld
+#>      do_something_R(test) 476.851 498.728 533.7012 515.8905 531.582 2309.724   100   b
+#>  do_something_torch(test) 274.358 286.325 344.9404 327.4325 339.852 2643.323   100  a
 
 test = matrix(0.0, 1000L, 500L)
 microbenchmark::microbenchmark(do_something_R(test), do_something_torch(test))
 #> Unit: milliseconds
 #>                      expr      min       lq      mean   median        uq       max neval
-#>      do_something_R(test) 8.548734 9.017760 11.119547 9.738920 13.213963 16.234261   100
-#>  do_something_torch(test) 2.120753 2.423858  2.802547 2.641256  2.905044  6.337406   100
+#>      do_something_R(test) 8.500184 8.796861 11.261429 9.342709 12.886841 27.795282   100
+#>  do_something_torch(test) 2.178895 2.545741  2.858846 2.720181  2.888931  6.059792   100
 #>  cld
 #>    b
 #>   a
@@ -1287,12 +1287,12 @@ microbenchmark::microbenchmark(
    test %*% t(test)  # R style.
 )
 #> Unit: milliseconds
-#>                                    expr      min       lq     mean    median        uq
-#>  torch_matmul(testTorch, testTorch$t()) 3.721221 4.004901  6.65570  4.350977  5.779028
-#>                        test %*% t(test) 8.452588 9.909395 19.75338 15.986848 19.232337
+#>                                    expr      min       lq      mean   median        uq
+#>  torch_matmul(testTorch, testTorch$t()) 1.921502 2.016905  3.476237 2.159022  2.418867
+#>                        test %*% t(test) 5.824252 6.180446 11.374597 6.573650 13.512174
 #>        max neval cld
-#>   30.62088   100  a 
-#>  224.83009   100   b
+#>   14.63461   100  a 
+#>  173.33872   100   b
 ```
 
 ```{=html}
@@ -1646,7 +1646,7 @@ cat("Original intercept: ", intercept, "\n")
 
 
 
-## Keras Framework
+## Keras/Torch Framework
 
 We have seen that we can use TensorFlow directly out of R, and we could use this knowledge to implement a neural network in TensorFlow directly in R. However, this can be quite cumbersome. For simple problems, it is usually faster to use a higher-level API that helps us with implementing the machine learning models in TensorFlow. The most common of those is Keras.
 
@@ -1657,10 +1657,11 @@ The objective of this lesson is to familiarize yourself with Keras. If you have 
 
 ```r
 library(keras)
+# or library(torch)
 ```
 
 
-### Example workflow in Keras
+### Example workflow in Keras / Torch
 
 To show how Keras works, we will now build a small classifier to predict the three species of the iris data set. Load the necessary packages and data sets:
 
@@ -1712,9 +1713,27 @@ After having prepared the data, we will now see a typical workflow to specify a 
 **1. Initialize a sequential model in Keras:**
 
 
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+
 ```r
 model = keras_model_sequential()
 ```
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+Torch users can skip this step.
+
+
+:::
+
+:::::
 
 A sequential Keras model is a higher order type of model within Keras and consists of one input and one output model. 
 
@@ -2123,9 +2142,17 @@ So you see, building a neural network is very easy with Keras or Torch and you c
 ```
 
 
-We will now build a regression for the airquality data set with Keras. We want to predict the variable "Ozone".
+We will now build a regression for the airquality data set with Keras/Torch. We want to predict the variable "Ozone".
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 0. Load and prepare the data set:
+
+
 
 
 ```r
@@ -2212,6 +2239,148 @@ print(rmse_lm)
 print(rmse_keras)
 ```
 
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+0. Load and prepare the data set:
+
+
+
+```r
+library(torch)
+
+data = airquality
+```
+
+Explore the data with summary() and plot():
+
+
+```r
+summary(data)
+#>      Ozone           Solar.R           Wind             Temp           Month      
+#>  Min.   :  1.00   Min.   :  7.0   Min.   : 1.700   Min.   :56.00   Min.   :5.000  
+#>  1st Qu.: 18.00   1st Qu.:115.8   1st Qu.: 7.400   1st Qu.:72.00   1st Qu.:6.000  
+#>  Median : 31.50   Median :205.0   Median : 9.700   Median :79.00   Median :7.000  
+#>  Mean   : 42.13   Mean   :185.9   Mean   : 9.958   Mean   :77.88   Mean   :6.993  
+#>  3rd Qu.: 63.25   3rd Qu.:258.8   3rd Qu.:11.500   3rd Qu.:85.00   3rd Qu.:8.000  
+#>  Max.   :168.00   Max.   :334.0   Max.   :20.700   Max.   :97.00   Max.   :9.000  
+#>  NA's   :37       NA's   :7                                                       
+#>       Day      
+#>  Min.   : 1.0  
+#>  1st Qu.: 8.0  
+#>  Median :16.0  
+#>  Mean   :15.8  
+#>  3rd Qu.:23.0  
+#>  Max.   :31.0  
+#> 
+plot(data)
+```
+
+<img src="04-TF_keras_files/figure-html/chunk_chapter3_task_27_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+1. There are NAs in the data, which we have to remove because Keras cannot handle NAs.
+If you don't know how to remove NAs from a data.frame, use Google (e.g. with the query: "remove-rows-with-all-or-some-nas-missing-values-in-data-frame").
+
+2. Split the data in predictors ($\boldsymbol{X}$) and response ($\boldsymbol{y}$, Ozone) and scale the $\boldsymbol{X}$ matrix.
+
+3. Pass a list of layer objects to a sequential network class of torch (input and output layer are already specified, you have to add hidden layers between them):
+
+
+
+```r
+
+model_torch = 
+  nn_sequential(
+    nn_linear(5L, 20L),
+    ...
+    nn_linear(20L, 1L),
+  )
+```
+
+* Why do we use 5L as input shape?
+* Why only one output node and no activation layer?
+
+4. Create optimizer
+
+We have to pass the network's parameters to the optimizer (how is this different to keras?)
+
+
+```r
+optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.05)
+```
+
+5. Fit model
+
+In torch we have to write the trainings loop on our own. Complete the trainings loop:
+
+Tips: 
+
+- Number of training $ steps = Number of rows / batchsize * Epochs $
+- Search torch::nnf_... for the correct loss function (mse...)
+- Make sure that X_torch and Y_torch have the same data type! (you can set the dtype via torch_tensor(..., dtype = ...))
+_ Check the dimension of Y_torch, we need a matrix!
+
+
+
+```r
+# Calculate number of training steps.
+epochs = ...
+batch_size = 32
+steps = ...
+
+X_torch = torch_tensor(x)
+Y_torch = torch_tensor(y, ...) 
+
+# Set model into training status.
+model_torch$train()
+
+log_losses = NULL
+
+# Training loop.
+for(i in 1:steps){
+  # Get batch indices.
+  indices = sample.int(nrow(x), batch_size)
+  X_batch = ...
+  Y_batch = ...
+  
+  # Reset backpropagation.
+  optimizer_torch$zero_grad()
+  
+  # Predict and calculate loss.
+  pred = model_torch(X_batch)
+  loss = ...
+  
+  # Backpropagation and weight update.
+  loss$backward()
+  optimizer_torch$step()
+  
+  log_losses[i] = as.numeric(loss)
+}
+```
+
+6. Plot training history.
+
+7. Create predictions.
+
+8. Compare your Torch model with a linear model:
+
+
+```r
+fit = lm(Ozone ~ ., data = data)
+pred_lm = predict(fit, data)
+rmse_lm = mean(sqrt((y - pred_lm)^2))
+rmse_torch = mean(sqrt((y - pred_torch)^2))
+print(rmse_lm)
+print(rmse_torch)
+```
+
+:::
+
+:::::
+
+
 ```{=html}
   <details>
     <summary>
@@ -2225,7 +2394,7 @@ print(rmse_keras)
 data = airquality
 ```
 
-**1. There are NAs in the data, which we have to remove because Keras cannot handle NAs.**
+**1. There are NAs in the data, which we have to remove because Keras and Torch cannot handle NAs!**
 
 
 ```r
@@ -2254,6 +2423,12 @@ summary(data)
 x = scale(data[,2:6])
 y = data[,1]
 ```
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 **3. Build sequential Keras model.**
 
@@ -2341,7 +2516,126 @@ print(rmse_keras)
 #> [1] 9.621961
 ```
 
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+**3. Pass a list of layer objects to a sequential network class of torch (input and output layer are already specified, you have to add hidden layers between them):**
+
+
+
+```r
+library(torch)
+
+model_torch = 
+  nn_sequential(
+    nn_linear(5L, 20L),
+    nn_relu(),
+    nn_linear(20L, 20L),
+    nn_relu(),
+    nn_linear(20L, 20L),
+    nn_relu(),
+    nn_linear(20L, 1L),
+  )
+```
+
+We use 5L as input shape, because we have 5 predictors. Analogously, we use 1L for our 1d response.
+Because we do not want any compression, dilation or other nonlinear effects, we use the simple linear layer (equal to no activation function at all). For more about activation functions, look for example <a href="https://en.wikipedia.org/wiki/Activation_function" target="_blank" rel="noopener">here</a>. Or wait for the next days.
+You may also have seen the previously shown link <a href="https://mlfromscratch.com/activation-functions-explained/#/" target="_blank" rel="noopener">about activation functions in more detail</a>.
+
+**4. Create optimizer**
+
+We have to pass the network's parameters to the optimizer (how is this different to keras?)
+
+
+```r
+optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
+```
+
+In keras we use the compile function to pass a optimizer and a loss function to the model whereas in torch we have to pass the network's parameters to the optimizer. 
+
+**5. Fit model**
+
+In torch we have to write the trainings loop on our own. Complete the trainings loop:
+
+
+
+```r
+# Calculate number of training steps.
+epochs = 100
+batch_size = 32
+steps = round(nrow(x)/batch_size*epochs)
+
+X_torch = torch_tensor(x)
+Y_torch = torch_tensor(y, dtype = torch_float32())$view(list(-1, 1)) 
+
+# Set model into training status.
+model_torch$train()
+
+log_losses = NULL
+
+# Training loop.
+for(i in 1:steps){
+  # Get batch indices.
+  indices = sample.int(nrow(x), batch_size)
+  X_batch = X_torch[indices,]
+  Y_batch = Y_torch[indices,]
+  
+  # Reset backpropagation.
+  optimizer_torch$zero_grad()
+  
+  # Predict and calculate loss.
+  pred = model_torch(X_batch)
+  loss = nnf_mse_loss(pred, Y_batch)
+  
+  # Backpropagation and weight update.
+  loss$backward()
+  optimizer_torch$step()
+  
+  log_losses[i] = as.numeric(loss)
+}
+```
+
+**6. Plot training history.**
+
+
+```r
+plot(y = log_losses, x = 1:steps, xlab = "Epoch", ylab = "MSE")
+```
+
+**7. Create predictions.**
+
+
+```r
+pred_torch = model_torch(X_torch)
+pred_torch = as.numeric(pred_torch) # cast torch to R object 
+```
+
+
+**8. Compare your Torch model with a linear model:**
+
+
+```r
+fit = lm(Ozone ~ ., data = data)
+pred_lm = predict(fit, data)
+rmse_lm = mean(sqrt((y - pred_lm)^2))
+rmse_torch = mean(sqrt((y - pred_torch)^2))
+print(rmse_lm)
+print(rmse_torch)
+```
+
+
+:::
+
+:::::
+
 **Look at this slightly more complex model and compare the loss plot and the accuracy in contrast to the former.**
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 
 ```r
@@ -2353,9 +2647,9 @@ model = keras_model_sequential()
 
 model %>%
   layer_dense(units = 20L, activation = "relu", input_shape = list(5L)) %>%
-  layer_dense(units = 20L) %>%
-  layer_dense(units = 30L) %>%
-  layer_dense(units = 20L) %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 30L, activation = "relu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
@@ -2376,7 +2670,7 @@ plot(model_history)
 model %>%
   evaluate(x, y)
 #>     loss 
-#> 105.1682
+#> 71.67677
 
 pred_keras = predict(model, x)
 
@@ -2389,13 +2683,93 @@ rmse_keras = mean(sqrt((y - pred_keras)^2))
 print(rmse_lm)
 #> [1] 14.78897
 print(rmse_keras)
-#> [1] 7.798208
+#> [1] 6.08194
 ```
 
-You see, the more complex model works better, because it can learn the coherences better.
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
+```r
+library(torch)
+
+model_torch = 
+  nn_sequential(
+    nn_linear(5L, 20L),
+    nn_relu(),
+    nn_linear(20L, 20L),
+    nn_relu(),
+    nn_linear(20L, 30L),
+    nn_relu(),
+    nn_linear(30L, 20L),
+    nn_relu(),
+    nn_linear(20L, 1L),
+  )
+
+optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.05)
+
+epochs = 100
+batch_size = 32
+steps = round(nrow(x)/batch_size*epochs)
+
+X_torch = torch_tensor(x)
+Y_torch = torch_tensor(y, dtype = torch_float32())$view(list(-1, 1)) 
+
+model_torch$train()
+log_losses = NULL
+for(i in 1:steps){
+  indices = sample.int(nrow(x), batch_size)
+  X_batch = X_torch[indices,]
+  Y_batch = Y_torch[indices,]
+  # Reset backpropagation.
+  optimizer_torch$zero_grad()
+  # Predict and calculate loss.
+  pred = model_torch(X_batch)
+  loss = nnf_mse_loss(pred, Y_batch)
+  # Backpropagation and weight update.
+  loss$backward()
+  optimizer_torch$step()
+  log_losses[i] = as.numeric(loss)
+}
+
+plot(y = log_losses, x = 1:steps, xlab = "Epoch", ylab = "MSE")
+```
+
+<img src="04-TF_keras_files/figure-html/chunk_chapter3_task_41_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+pred_torch = model_torch(X_torch)
+pred_torch = as.numeric(pred_torch) # cast torch to R object 
+
+fit = lm(Ozone ~ ., data = data)
+pred_lm = predict(fit, data)
+rmse_lm = mean(sqrt((y - pred_lm)^2))
+rmse_torch = mean(sqrt((y - pred_torch)^2))
+print(rmse_lm)
+#> [1] 14.78897
+print(rmse_torch)
+#> [1] 5.120534
+```
+
+
+:::
+:::::
+
+
+You see, the more complex model works better, because it can learn the functional form between the features and the response better (if necessary).
 But keep the overfitting problem in mind!
 
 **Look at the little change in learning rates for the next 2 models and compare the loss plot and the accuracy in contrast to the former.**
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 
 ```r
@@ -2407,9 +2781,9 @@ model = keras_model_sequential()
 
 model %>%
   layer_dense(units = 20L, activation = "relu", input_shape = list(5L)) %>%
-  layer_dense(units = 20L) %>%
-  layer_dense(units = 30L) %>%
-  layer_dense(units = 20L) %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 30L, activation = "relu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
@@ -2430,7 +2804,7 @@ plot(model_history)
 model %>%
   evaluate(x, y)
 #>     loss 
-#> 116.6115
+#> 22.55181
 
 pred_keras = predict(model, x)
 
@@ -2443,10 +2817,91 @@ rmse_keras = mean(sqrt((y - pred_keras)^2))
 print(rmse_lm)
 #> [1] 14.78897
 print(rmse_keras)
-#> [1] 8.247861
+#> [1] 3.476982
 ```
 
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
+```r
+library(torch)
+
+model_torch = 
+  nn_sequential(
+    nn_linear(5L, 20L),
+    nn_relu(),
+    nn_linear(20L, 20L),
+    nn_relu(),
+    nn_linear(20L, 30L),
+    nn_relu(),
+    nn_linear(30L, 20L),
+    nn_relu(),
+    nn_linear(20L, 1L),
+  )
+
+optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.1)
+
+epochs = 100
+batch_size = 32
+steps = round(nrow(x)/batch_size*epochs)
+
+X_torch = torch_tensor(x)
+Y_torch = torch_tensor(y, dtype = torch_float32())$view(list(-1, 1)) 
+
+model_torch$train()
+log_losses = NULL
+for(i in 1:steps){
+  indices = sample.int(nrow(x), batch_size)
+  X_batch = X_torch[indices,]
+  Y_batch = Y_torch[indices,]
+  # Reset backpropagation.
+  optimizer_torch$zero_grad()
+  # Predict and calculate loss.
+  pred = model_torch(X_batch)
+  loss = nnf_mse_loss(pred, Y_batch)
+  # Backpropagation and weight update.
+  loss$backward()
+  optimizer_torch$step()
+  log_losses[i] = as.numeric(loss)
+}
+
+plot(y = log_losses, x = 1:steps, xlab = "Epoch", ylab = "MSE")
+```
+
+<img src="04-TF_keras_files/figure-html/chunk_chapter3_task_43_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+pred_torch = model_torch(X_torch)
+pred_torch = as.numeric(pred_torch) # cast torch to R object 
+
+fit = lm(Ozone ~ ., data = data)
+pred_lm = predict(fit, data)
+rmse_lm = mean(sqrt((y - pred_lm)^2))
+rmse_torch = mean(sqrt((y - pred_torch)^2))
+print(rmse_lm)
+#> [1] 14.78897
+print(rmse_torch)
+#> [1] 6.458905
+```
+
+
+
+:::
+:::::
+
+
 You can see, the higher learning rate yields a little bit worse results. The optimum is jumped over.
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 
 ```r
@@ -2458,13 +2913,13 @@ model = keras_model_sequential()
 
 model %>%
   layer_dense(units = 20L, activation = "relu", input_shape = list(5L)) %>%
-  layer_dense(units = 20L) %>%
-  layer_dense(units = 30L) %>%
-  layer_dense(units = 20L) %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 30L, activation = "relu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
   layer_dense(units = 1L, activation = "linear")
 
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.01))
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.001))
 
 model_history =
   model %>%
@@ -2481,7 +2936,7 @@ plot(model_history)
 model %>%
   evaluate(x, y)
 #>     loss 
-#> 238.9949
+#> 317.8695
 
 pred_keras = predict(model, x)
 
@@ -2494,8 +2949,81 @@ rmse_keras = mean(sqrt((y - pred_keras)^2))
 print(rmse_lm)
 #> [1] 14.78897
 print(rmse_keras)
-#> [1] 11.58784
+#> [1] 12.31473
 ```
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
+```r
+library(torch)
+
+model_torch = 
+  nn_sequential(
+    nn_linear(5L, 20L),
+    nn_relu(),
+    nn_linear(20L, 20L),
+    nn_relu(),
+    nn_linear(20L, 30L),
+    nn_relu(),
+    nn_linear(30L, 20L),
+    nn_relu(),
+    nn_linear(20L, 1L),
+  )
+
+optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
+
+epochs = 100
+batch_size = 32
+steps = round(nrow(x)/batch_size*epochs)
+
+X_torch = torch_tensor(x)
+Y_torch = torch_tensor(y, dtype = torch_float32())$view(list(-1, 1)) 
+
+model_torch$train()
+log_losses = NULL
+for(i in 1:steps){
+  indices = sample.int(nrow(x), batch_size)
+  X_batch = X_torch[indices,]
+  Y_batch = Y_torch[indices,]
+  # Reset backpropagation.
+  optimizer_torch$zero_grad()
+  # Predict and calculate loss.
+  pred = model_torch(X_batch)
+  loss = nnf_mse_loss(pred, Y_batch)
+  # Backpropagation and weight update.
+  loss$backward()
+  optimizer_torch$step()
+  log_losses[i] = as.numeric(loss)
+}
+
+plot(y = log_losses, x = 1:steps, xlab = "Epoch", ylab = "MSE")
+```
+
+<img src="04-TF_keras_files/figure-html/chunk_chapter3_task_442_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+pred_torch = model_torch(X_torch)
+pred_torch = as.numeric(pred_torch) # cast torch to R object 
+
+fit = lm(Ozone ~ ., data = data)
+pred_lm = predict(fit, data)
+rmse_lm = mean(sqrt((y - pred_lm)^2))
+rmse_torch = mean(sqrt((y - pred_torch)^2))
+print(rmse_lm)
+#> [1] 14.78897
+print(rmse_torch)
+#> [1] 12.48754
+```
+
+
+:::
+
+:::::
 
 You can see, that for the lower learning rate, the optimum (compared to the run with learning rate 0.05) is not yet reached (to few epochs have gone by).
 But also here, mind the overfitting problem. For too many epochs, things might get worse!
@@ -2512,8 +3040,20 @@ But also here, mind the overfitting problem. For too many epochs, things might g
   <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
 ```
 
-This task is about the airquality example, go through the code line by line and try to understand it.
-Note, this is TensorFlow intermingled with Keras.
+
+The next task differs for Torch and Keras users. Keras users will learn more about the inner working of training while Torch users will learn how to simplify and generalize the training loop.
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+Similar to Torch, here we will write the training loop ourselves in the following. The training loop consists of several steps:
+
+1. Sample batches of X and Y data
+2. Open the gradientTape to create a computational graph (autodiff)
+3. Make predictions and calculate loss
+4. Update parameters based on the gradients at the loss (go back to 1. and repeat)
 
 
 ```r
@@ -2636,6 +3176,99 @@ for(i in 1:steps){
 #> Loss:  324.3969
 ```
 
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+Keras and Torch use dataloaders to generate the data batches. Dataloaders are objects that return batches of data infinetly. Keras create the dataloader object automatically in the fit function, in Torch we have to write them ourselves:
+
+1. Define a dataset object. This object informs the dataloader function about the inputs, outputs, length (nrow), and how to sample from it. 
+2. Create an instance of the dataset object by calling it and passing the actual data to it
+3. Pass the initiated dataset to the dataloader function 
+
+
+```r
+library(torch)
+
+data = airquality
+data = data[complete.cases(data),]  # Remove NAs.
+x = scale(data[,2:6])
+y = matrix(data[,1], ncol = 1L)
+
+
+torch_dataset = torch::dataset(
+    name = "airquality",
+    initialize = function(X,Y) {
+      self$X = torch::torch_tensor(as.matrix(X), dtype = torch_float32())
+      self$Y = torch::torch_tensor(as.matrix(Y), dtype = torch_float32())
+    },
+    .getitem = function(index) {
+      x = self$X[index,]
+      y = self$Y[index,]
+      list(x, y)
+    },
+    .length = function() {
+      self$Y$size()[[1]]
+    }
+  )
+dataset = torch_dataset(x,y)
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+```
+
+Our dataloader is again an object which has to be initiated. The initiated object returns a list of two elements, batch x and batch y. The initated object stops returning batches when the dataset was completly transversed (no worries, we don't have to all of this ourselves).
+
+Our training has also changed now:
+
+
+```r
+model_torch = nn_sequential(
+  nn_linear(5L, 50L),
+  nn_relu(),
+  nn_linear(50L, 50L),
+  nn_relu(), 
+  nn_linear(50L, 50L),
+  nn_relu(), 
+  nn_linear(50L, 1L)
+)
+epochs = 50L
+opt = optim_adam(model_torch$parameters, 0.01)
+train_losses = c()
+for(epoch in 1:epochs){
+  train_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  train_losses = c(train_losses, mean(train_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
+}
+#> Loss at epoch 10: 387.950054
+#> Loss at epoch 20: 282.698284
+#> Loss at epoch 30: 257.855061
+#> Loss at epoch 40: 244.420776
+#> Loss at epoch 50: 217.362137
+
+plot(train_losses, type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+```
+
+<img src="04-TF_keras_files/figure-html/chunk_chapter3_task_45_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+The previous sampling wasn't ideal, why?
+
+:::
+
+:::::
+
+
 Now change the code from above for the iris data set.
 Tip: In tf\$keras\$losses\$... you can find various loss functions.
 
@@ -2646,6 +3279,11 @@ Tip: In tf\$keras\$losses\$... you can find various loss functions.
     </summary>
     <p>
 ```
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
 
 
 ```r
@@ -2729,6 +3367,86 @@ for(i in 1:steps){
 #> Loss:  6.738321e-05 
 #> Loss:  2.543455e-05
 ```
+
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
+```r
+library(torch)
+
+x = scale(iris[,1:4])
+y = iris[,5]
+y = as.integer(iris$Species)
+
+
+torch_dataset = torch::dataset(
+    name = "iris",
+    initialize = function(X,Y) {
+      self$X = torch::torch_tensor(as.matrix(X), dtype = torch_float32())
+      self$Y = torch::torch_tensor(Y, dtype = torch_long())
+    },
+    .getitem = function(index) {
+      x = self$X[index,]
+      y = self$Y[index]
+      list(x, y)
+    },
+    .length = function() {
+      self$Y$size()[[1]]
+    }
+  )
+dataset = torch_dataset(x,y)
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+
+model_torch = nn_sequential(
+  nn_linear(4L, 50L),
+  nn_relu(),
+  nn_linear(50L, 50L),
+  nn_relu(), 
+  nn_linear(50L, 50L),
+  nn_relu(), 
+  nn_linear(50L, 3L)
+)
+epochs = 50L
+opt = optim_adam(model_torch$parameters, 0.01)
+train_losses = c()
+for(epoch in 1:epochs){
+  train_loss
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  train_losses = c(train_losses, mean(train_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
+}
+#> Loss at epoch 10: 16.298816
+#> Loss at epoch 20: 8.492697
+#> Loss at epoch 30: 5.744957
+#> Loss at epoch 40: 4.344102
+#> Loss at epoch 50: 3.493564
+
+plot(train_losses, type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+```
+
+<img src="04-TF_keras_files/figure-html/chunk_chapter3_task_47_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+
+:::
+
+:::::
+
 
 Remarks:
 

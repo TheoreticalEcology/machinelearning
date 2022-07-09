@@ -897,7 +897,6 @@ table(predict(m1), iris$Species)
 
 ```{=html}
   <hr/>
-  <details>
     <summary>
       <strong><span style="color: #0011AA; font-size:18px;">Questions</span></strong>
     </summary>
@@ -926,7 +925,6 @@ table(predict(m1), iris$Species)
         );
       </script>
     </p>
-  </details>
   <hr/>
 ```
 

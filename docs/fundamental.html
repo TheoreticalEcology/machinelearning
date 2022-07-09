@@ -81,7 +81,8 @@
 <li><a class="" href="workflow.html"><span class="header-section-number">5</span> Machine Learning workflow</a></li>
 <li><a class="" href="deep.html"><span class="header-section-number">6</span> Deep Learning</a></li>
 <li><a class="" href="interpretation.html"><span class="header-section-number">7</span> Interpretation and Causality With Machine Learning</a></li>
-<li><a class="" href="datasets.html"><span class="header-section-number">8</span> Data sets</a></li>
+<li><a class="" href="gan.html"><span class="header-section-number">8</span> Generative Modeling and Reinforcement Learning</a></li>
+<li><a class="" href="datasets.html"><span class="header-section-number">9</span> Data sets</a></li>
 <li><a class="" href="references.html">References</a></li>
 </ul>
 
@@ -165,10 +166,10 @@
 <span class="header-section-number">4.1.2.1</span> Small Optimization Example<a class="anchor" aria-label="anchor" href="#small-optimization-example"><i class="fas fa-link"></i></a>
 </h4>
 <p>As an easy example for an optimization we can think of a quadratic function:</p>
-<div class="sourceCode" id="cb159"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb180"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">func</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">{</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">x</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">}</span></span></code></pre></div>
 <p>This function is so easy, we can randomly probe it and identify the optimum by plotting.</p>
-<div class="sourceCode" id="cb160"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb181"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">a</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span>
@@ -176,7 +177,7 @@
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_2-1.png" width="100%" style="display: block; margin: auto;"></div>
 <p>The minimal value is at <span class="math inline">\(x = 0\)</span> (to be honest, we can calculate this analytically in this simple case).</p>
 <p>We can also use an optimizer with the optim-function (the first argument is the starting value):</p>
-<div class="sourceCode" id="cb161"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb182"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">opt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/optim.html">optim</a></span><span class="op">(</span><span class="fl">1.0</span>, <span class="va">func</span>, method <span class="op">=</span> <span class="st">"Brent"</span>, lower <span class="op">=</span> <span class="op">-</span><span class="fl">100</span>, upper <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
@@ -191,14 +192,14 @@
 </h3>
 <p>Optimization is also done when fitting a linear regression model. Thereby, we optimize the weights (intercept and slope). Just using lm(y~x) is too simple. We want to do this by hand to also better understand what optimization is and how it works.</p>
 <p>As an example we take the airquality data set. First, we have to be sure to have no NAs in there. Then we split into response (Ozone) and predictors (Month, Day, Solar.R, Wind, Temp). Additionally it is beneficial for the optimizer, when the different predictors have the same support, and thus we scale them.</p>
-<div class="sourceCode" id="cb162"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb183"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">=</span> <span class="va">airquality</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">airquality</span><span class="op">$</span><span class="va">Ozone</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">airquality</span><span class="op">$</span><span class="va">Solar.R</span><span class="op">)</span>,<span class="op">]</span></span>
 <span><span class="va">X</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html">scale</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">Y</span> <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">Ozone</span></span></code></pre></div>
 <p>The model we want to optimize: <span class="math inline">\(Ozone = Solar.R \cdot X1 + Wind \cdot X2 + Temp \cdot X3 + Month \cdot X4 + Day \cdot X5 + X6\)</span></p>
 <p>We assume that the residuals are normally distributed, and our loss function to be the mean squared error: <span class="math inline">\(\mathrm{mean}(predicted~ozone - true~ozone)^{2}\)</span></p>
 <p>Our task is now to find the parameters <span class="math inline">\(X1,\dots,X6\)</span> for which this loss function is minimal. Therefore, we implement a function, that takes parameters and returns the loss.</p>
-<div class="sourceCode" id="cb163"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb184"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">linear_regression</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">pred</span> <span class="op">=</span> <span class="va">w</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">*</span><span class="va">X</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">+</span> <span class="co"># Solar.R</span></span>
 <span>         <span class="va">w</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">*</span><span class="va">X</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="op">+</span> <span class="co"># Wind</span></span>
@@ -212,31 +213,31 @@
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">loss</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>For example we can sample some weights and see how the loss changes with this weights.</p>
-<div class="sourceCode" id="cb164"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb185"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">linear_regression</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 2866.355</span></span></code></pre></div>
 <p>We can try to find the optimum by bruteforce (what means we will use a random set of weights and see for which the loss function is minimal):</p>
-<div class="sourceCode" id="cb165"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb186"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">random_search</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">6</span><span class="op">*</span><span class="fl">5000</span>, <span class="op">-</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fl">5000</span>, <span class="fl">6</span><span class="op">)</span></span>
 <span><span class="va">losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">random_search</span>, <span class="fl">1</span>, <span class="va">linear_regression</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">losses</span>, type <span class="op">=</span> <span class="st">"l"</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_7-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb166"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb187"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">random_search</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.min</a></span><span class="op">(</span><span class="va">losses</span><span class="op">)</span>,<span class="op">]</span></span>
 <span><span class="co">#&gt; [1]  7.411631 -7.018960  9.376949  6.490659  5.432706  9.460573</span></span></code></pre></div>
 <p>In most cases, bruteforce isn’t a good approach. It might work well with only a few parameters, but with increasing complexity and more parameters it will take a long time. Furthermore it is not guaranteed that it finds a stable solution on continuous data.</p>
 <p>In R the optim function helps computing the optimum faster.</p>
-<div class="sourceCode" id="cb167"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb188"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">opt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/optim.html">optim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">6</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, <span class="va">linear_regression</span><span class="op">)</span></span>
 <span><span class="va">opt</span><span class="op">$</span><span class="va">par</span></span>
 <span><span class="co">#&gt; [1]   1.631666 -17.272902  11.645608  -7.371417   1.754860  42.577956</span></span></code></pre></div>
 <p>In the background, mostly some <em>gradient descent</em> methods are used.</p>
 <p>By comparing the weights from the optimizer to the estimated weights of the lm() function, we see that our self-written code obtains the same weights as the lm. Keep in mind, that our simple method uses random numbers thus the results might differ each run (without setting the seed).</p>
-<div class="sourceCode" id="cb168"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb189"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">Y</span><span class="op">~</span><span class="va">X</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; (Intercept)    XSolar.R       XWind       XTemp      XMonth        XDay </span></span>
 <span><span class="co">#&gt;   42.099099    4.582620  -11.806072   18.066786   -4.479175    2.384705</span></span></code></pre></div>
@@ -269,7 +270,7 @@ loss_{L2} = fit - \lambda \cdot \Vert weights \Vert_2
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb169"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb190"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -333,7 +334,7 @@ loss_{L2} = fit - \lambda \cdot \Vert weights \Vert_2
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
-<div class="sourceCode" id="cb170"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb191"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">321L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -373,7 +374,7 @@ Lets see what happens when we put an <span class="math inline">\(L1\)</span> (LA
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb171"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb192"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -443,7 +444,7 @@ Lets see what happens when we put an <span class="math inline">\(L1\)</span> (LA
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
 <p>In Torch, we have to specify the regularization on our own when calculating the loss.</p>
-<div class="sourceCode" id="cb172"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb193"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">321L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -509,7 +510,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb173"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb194"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -548,7 +549,7 @@ Try out different learning rates, very high and very low learning rates, can you
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
-<div class="sourceCode" id="cb174"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb195"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">321L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -593,7 +594,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb175"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb196"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">keras</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/keras/man/reset_states.html">reset_states</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
@@ -613,7 +614,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history2</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb176"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb197"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########  -&gt; (very) Low learning rate: May take (very) long </span></span>
 <span><span class="co">#           (and may need very many epochs) and get stuck in local optima.</span></span>
@@ -637,7 +638,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history3</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-2.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb177"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb198"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu">keras</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/keras/man/reset_states.html">reset_states</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
 <span></span>
@@ -659,7 +660,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history4</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-3.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb178"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb199"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########  -&gt; (very) High learning rate (may skip optimum).</span></span>
 <span></span>
@@ -682,7 +683,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history5</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-4.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb179"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb200"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########  -&gt; Higher epoch number (possibly better fitting, maybe overfitting).</span></span>
 <span></span>
@@ -705,7 +706,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history6</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-5.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb180"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb201"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########</span></span>
 <span></span>
@@ -728,7 +729,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history7</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-6.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb181"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb202"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########</span></span>
 <span></span>
@@ -751,7 +752,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history8</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-7.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb182"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb203"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########  -&gt; Lower batch size.</span></span>
 <span></span>
@@ -774,7 +775,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history9</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-8.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb183"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb204"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########</span></span>
 <span></span>
@@ -797,7 +798,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history10</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-9.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb184"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb205"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########</span></span>
 <span></span>
@@ -820,7 +821,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history11</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-10.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb185"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb206"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########  -&gt; Higher batch size (faster but less accurate).</span></span>
 <span></span>
@@ -843,7 +844,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history12</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-11.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb186"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb207"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########</span></span>
 <span></span>
@@ -866,7 +867,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history13</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-12.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb187"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb208"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########</span></span>
 <span></span>
@@ -889,7 +890,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history14</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-13.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb188"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb209"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">####################</span></span>
 <span><span class="co">####################</span></span>
@@ -908,7 +909,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history15</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-14.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb189"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb210"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########  -&gt; shuffle = FALSE (some kind of overfitting)</span></span>
 <span></span>
@@ -926,7 +927,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history16</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-15.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb190"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb211"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########  -&gt; shuffle = FALSE + lower batch size</span></span>
 <span></span>
@@ -944,7 +945,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history17</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-16.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb191"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb212"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########  -&gt; shuffle = FALSE + higher batch size</span></span>
 <span><span class="co">#           (Many samples are taken at once, so no "hopping" any longer.)</span></span>
@@ -966,7 +967,7 @@ Try out different learning rates, very high and very low learning rates, can you
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
-<div class="sourceCode" id="cb192"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb213"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">opt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/optim_adam.html">optim_adam</a></span><span class="op">(</span>params <span class="op">=</span> <span class="va">model_torch</span><span class="op">$</span><span class="va">parameters</span>, lr <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
 <span></span>
@@ -986,7 +987,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">losses</span>, main <span class="op">=</span> <span class="st">"Torch training history"</span>, xlab <span class="op">=</span> <span class="st">"Epoch"</span>, ylab <span class="op">=</span> <span class="st">"Loss"</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1_torch-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb193"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb214"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########</span></span>
 <span></span>
@@ -1011,7 +1012,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">losses</span>, main <span class="op">=</span> <span class="st">"Torch training history"</span>, xlab <span class="op">=</span> <span class="st">"Epoch"</span>, ylab <span class="op">=</span> <span class="st">"Loss"</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_1_torch-2.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb194"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb215"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">##########</span></span>
 <span></span>
@@ -1051,7 +1052,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
 <p>Now, we will come to artificial neural networks (ANNs), for which the topic of regularization is very important. We can specify the regularization in each layer via the kernel_regularization (and/or the bias_regularization) argument.</p>
-<div class="sourceCode" id="cb195"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb216"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -1121,7 +1122,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_15-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb196"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb217"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">weights</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">weights</span>, <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="va">w</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span> <span class="op">)</span></span>
 <span><span class="fu">fields</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html">image.plot</a></span><span class="op">(</span><span class="va">weights</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_15-2.png" width="100%" style="display: block; margin: auto;"></div>
@@ -1129,7 +1130,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
 <p>Again, we have to do the regularization on our own in Torch:</p>
-<div class="sourceCode" id="cb197"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb218"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model_torch</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_sequential.html">nn_sequential</a></span><span class="op">(</span></span>
@@ -1160,7 +1161,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span>  <span class="va">opt</span><span class="op">$</span><span class="fu">step</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Let’s visualize the first (input) layer:</p>
-<div class="sourceCode" id="cb198"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb219"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">fields</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/fields/man/image.plot.html">image.plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">model_torch</span><span class="op">$</span><span class="va">parameters</span><span class="op">$</span><span class="va">`0.weight`</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_17-1.png" width="100%" style="display: block; margin: auto;"></div>
 </div>
@@ -1174,7 +1175,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb199"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb220"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -1198,7 +1199,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_2-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb200"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb221"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">l1</span> <span class="op">=</span> <span class="va">model</span><span class="op">$</span><span class="fu">get_weights</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
@@ -1236,7 +1237,7 @@ Try out different learning rates, very high and very low learning rates, can you
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
-<div class="sourceCode" id="cb201"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb222"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">321L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -1312,7 +1313,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb202"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb223"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -1336,7 +1337,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_3-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb203"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb224"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">l2</span> <span class="op">=</span> <span class="va">model</span><span class="op">$</span><span class="fu">get_weights</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code>#&gt; Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
@@ -1345,7 +1346,7 @@ Try out different learning rates, very high and very low learning rates, can you
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
-<div class="sourceCode" id="cb205"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb226"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">321L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -1401,7 +1402,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb207"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb228"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -1425,13 +1426,13 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_5-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb208"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb229"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">l1_lesser</span> <span class="op">=</span> <span class="va">model</span><span class="op">$</span><span class="fu">get_weights</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code>#&gt; Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
 #&gt; L1:          36.766 1.193 -8.446 13.394 -0.108 0.034
 #&gt; L1, lesser:  41.087 4.164 -11.617 17.043 -3.571 1.986</code></pre>
-<div class="sourceCode" id="cb210"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb231"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -1455,7 +1456,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_7-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb211"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb232"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">l2_lesser</span> <span class="op">=</span> <span class="va">model</span><span class="op">$</span><span class="fu">get_weights</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code>#&gt; Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
@@ -1464,7 +1465,7 @@ Try out different learning rates, very high and very low learning rates, can you
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
-<div class="sourceCode" id="cb213"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb234"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">321L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -1506,7 +1507,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <pre><code>#&gt; Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
 #&gt; L1:          37.266 0.779 -6.594 14.665 -0.067 0.048
 #&gt; L1 lesser:          41.631 3.814 -9.777 17.704 -3.5 0.993</code></pre>
-<div class="sourceCode" id="cb215"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb236"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">321L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -1554,7 +1555,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb217"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb238"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -1578,14 +1579,14 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_9-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb218"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb239"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">l1_higher</span> <span class="op">=</span> <span class="va">model</span><span class="op">$</span><span class="fu">get_weights</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code>#&gt; Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
 #&gt; L1:          36.766 1.193 -8.446 13.394 -0.108 0.034
 #&gt; L1, lesser:  41.087 4.164 -11.617 17.043 -3.571 1.986
 #&gt; L1, higher:  29.367 0.112 -3.354 8.732 0.058 0.03</code></pre>
-<div class="sourceCode" id="cb220"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb241"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -1609,7 +1610,7 @@ Try out different learning rates, very high and very low learning rates, can you
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_11-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb221"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb242"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">l2_higher</span> <span class="op">=</span> <span class="va">model</span><span class="op">$</span><span class="fu">get_weights</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code>#&gt; Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
@@ -1619,7 +1620,7 @@ Try out different learning rates, very high and very low learning rates, can you
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
-<div class="sourceCode" id="cb223"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb244"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">321L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -1662,7 +1663,7 @@ Try out different learning rates, very high and very low learning rates, can you
 #&gt; L1:          37.266 0.779 -6.594 14.665 -0.067 0.048
 #&gt; L1 lesser:          41.631 3.814 -9.777 17.704 -3.5 0.993
 #&gt; L1 higher:          29.636 0.123 -1.257 10.496 -0.013 0.032</code></pre>
-<div class="sourceCode" id="cb225"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb246"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">321L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -1742,7 +1743,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb227"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb248"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -1770,7 +1771,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
-<div class="sourceCode" id="cb228"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb249"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">321L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -1814,7 +1815,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
 <p>In Keras you can tell the model to keep a specific percentage of the data as holdout (validation_split argument in the fit function):</p>
-<div class="sourceCode" id="cb229"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb250"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -1846,7 +1847,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 <div class="panel">
 <p><span class="panel-name">Torch/Cito</span></p>
 <p>As you might have noticed, there is no fit function in torch and we would have to write the fit/training function on our own. However there is a new package called ‘cito’ (based on torch) that allows to do everything we need in one line of code.</p>
-<div class="sourceCode" id="cb230"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb251"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># devtools::install_github("citoverse/cito")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cito</span><span class="op">)</span></span>
 <span></span>
@@ -1911,7 +1912,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb232"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb253"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -1944,7 +1945,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch/Cito</span></p>
-<div class="sourceCode" id="cb233"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb254"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># devtools::install_github("citoverse/cito")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cito</span><span class="op">)</span></span>
 <span></span>
@@ -1999,7 +2000,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb235"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb256"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -2032,7 +2033,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch/Cito</span></p>
-<div class="sourceCode" id="cb236"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb257"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># devtools::install_github("citoverse/cito")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cito</span><span class="op">)</span></span>
 <span></span>
@@ -2088,7 +2089,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb238"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb259"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -2121,7 +2122,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch/Cito</span></p>
-<div class="sourceCode" id="cb239"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb260"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># devtools::install_github("citoverse/cito")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cito</span><span class="op">)</span></span>
 <span></span>
@@ -2177,7 +2178,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb241"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb262"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -2210,7 +2211,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch/Cito</span></p>
-<div class="sourceCode" id="cb242"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb263"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># devtools::install_github("citoverse/cito")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cito</span><span class="op">)</span></span>
 <span></span>
@@ -2267,7 +2268,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb244"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb265"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -2300,7 +2301,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch/Cito</span></p>
-<div class="sourceCode" id="cb245"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb266"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># devtools::install_github("citoverse/cito")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cito</span><span class="op">)</span></span>
 <span></span>
@@ -2356,7 +2357,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb247"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb268"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -2389,7 +2390,7 @@ Higher regularization leads to smaller parameters (maybe in combination with sma
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch/Cito</span></p>
-<div class="sourceCode" id="cb248"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb269"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># devtools::install_github("citoverse/cito")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cito</span><span class="op">)</span></span>
 <span></span>
@@ -2487,18 +2488,18 @@ In this lecture, we will explore regression and classification trees by the exam
 <li>It controls the complexity of the tree and can thus also be seen as a regularization parameter.</li>
 </ul>
 <p>We first prepare and visualize the data and afterwards fit a decision tree.</p>
-<div class="sourceCode" id="cb250"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb271"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bethatkinson/rpart">rpart</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.milbo.org/rpart-plot/index.html">rpart.plot</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">data</span> <span class="op">=</span> <span class="va">airquality</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">airquality</span><span class="op">)</span>,<span class="op">]</span></span></code></pre></div>
 <p>Fit and visualize one(!) regression tree:</p>
-<div class="sourceCode" id="cb251"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb272"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/rpart/man/rpart.html">rpart</a></span><span class="op">(</span><span class="va">Ozone</span><span class="op">~</span><span class="va">.</span>, data <span class="op">=</span> <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/rpart/man/rpart.control.html">rpart.control</a></span><span class="op">(</span>minsplit <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/rpart.plot/man/rpart.plot.html">rpart.plot</a></span><span class="op">(</span><span class="va">rt</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_23-1.png" width="100%" style="display: block; margin: auto;"></div>
 <p>Visualize the predictions:</p>
-<div class="sourceCode" id="cb252"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb273"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">rt</span>, <span class="va">data</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Temp</span>, <span class="va">data</span><span class="op">$</span><span class="va">Ozone</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Temp</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Temp</span><span class="op">)</span><span class="op">]</span>, <span class="va">pred</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Temp</span><span class="op">)</span><span class="op">]</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
@@ -2518,7 +2519,7 @@ Annotation: While building a decision tree (random forests consist of many decis
 </ul>
 <p>Applying the random forest follows the same principle as for the methods before: We visualize the data (we have already done this so often for the airquality data set, thus we skip it here), fit the algorithm and then plot the outcomes.</p>
 <p>Fit a random forest and visualize the predictions:</p>
-<div class="sourceCode" id="cb253"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb274"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.stat.berkeley.edu/~breiman/RandomForests/">randomForest</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
@@ -2530,7 +2531,7 @@ Annotation: While building a decision tree (random forests consist of many decis
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Temp</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Temp</span><span class="op">)</span><span class="op">]</span>, <span class="va">pred</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Temp</span><span class="op">)</span><span class="op">]</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_25-1.png" width="100%" style="display: block; margin: auto;"></div>
 <p>One advantage of random forests is that we will get an importance of variables. At each split in each tree, the improvement in the split-criterion is the importance measure attributed to the splitting variable, and is accumulated over all the trees in the forest separately for each variable. Thus the variable importance shows us how important a variable is averaged over all trees.</p>
-<div class="sourceCode" id="cb254"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb275"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rf</span><span class="op">$</span><span class="va">importance</span></span>
 <span><span class="co">#&gt;         IncNodePurity</span></span>
 <span><span class="co">#&gt; Solar.R      17969.59</span></span>
@@ -2558,12 +2559,12 @@ There are two different strategies to do so:</p>
 <em>Gradient boosting</em> (state of the art): Each sequential model will be fit on the residual errors of the previous model.</li>
 </ul>
 <p>We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix.</p>
-<div class="sourceCode" id="cb255"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb276"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dmlc/xgboost">xgboost</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">data</span> <span class="op">=</span> <span class="va">airquality</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">airquality</span><span class="op">)</span>,<span class="op">]</span></span></code></pre></div>
-<div class="sourceCode" id="cb256"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb277"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_xg</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/xgboost/man/xgb.DMatrix.html">xgb.DMatrix</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/scale.html">scale</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, label <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">Ozone</span><span class="op">)</span></span>
 <span><span class="va">brt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/xgboost/man/xgb.train.html">xgboost</a></span><span class="op">(</span><span class="va">data_xg</span>, nrounds <span class="op">=</span> <span class="fl">16L</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1]  train-rmse:39.724624 </span></span>
@@ -2584,7 +2585,7 @@ There are two different strategies to do so:</p>
 <span><span class="co">#&gt; [16] train-rmse:3.191301</span></span></code></pre></div>
 <p>The parameter “nrounds” controls how many sequential trees we fit, in our example this was 16. When we predict on new data, we can limit the number of trees used to prevent overfitting (remember: each new tree tries to improve the predictions of the previous trees).</p>
 <p>Let us visualize the predictions for different numbers of trees:</p>
-<div class="sourceCode" id="cb257"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb278"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">oldpar</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">brt</span>, newdata <span class="op">=</span> <span class="va">data_xg</span>, ntreelimit <span class="op">=</span> <span class="va">i</span><span class="op">)</span></span>
@@ -2596,7 +2597,7 @@ There are two different strategies to do so:</p>
 <span><span class="co">#&gt; [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.</span></span>
 <span><span class="co">#&gt; [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_29__BRT2-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb258"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb279"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
 <p>There are also other ways to control for complexity of the boosted regression tree algorithm:</p>
 <ul>
@@ -2604,7 +2605,7 @@ There are two different strategies to do so:</p>
 <li>shrinkage (each tree will get a weight and the weight will decrease with the number of trees).</li>
 </ul>
 <p>When having specified the final model, we can obtain the importance of the variables like for random forests:</p>
-<div class="sourceCode" id="cb259"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb280"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">xgboost</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/xgboost/man/xgb.importance.html">xgb.importance</a></span><span class="op">(</span>model <span class="op">=</span> <span class="va">brt</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Feature        Gain     Cover  Frequency</span></span>
 <span><span class="co">#&gt; 1:    Temp 0.570071903 0.2958229 0.24836601</span></span>
@@ -2616,7 +2617,7 @@ There are two different strategies to do so:</p>
 <span><span class="co">#&gt; [1] 17.89918</span></span>
 <span><span class="va">data_xg</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/xgboost/man/xgb.DMatrix.html">xgb.DMatrix</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/scale.html">scale</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, label <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">Ozone</span><span class="op">)</span></span></code></pre></div>
 <p>One important strength of xgboost is that we can directly do a cross-validation (which is independent of the boosted regression tree itself!) and specify its properties with the parameter “n-fold”:</p>
-<div class="sourceCode" id="cb260"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb281"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">brt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/xgboost/man/xgb.train.html">xgboost</a></span><span class="op">(</span><span class="va">data_xg</span>, nrounds <span class="op">=</span> <span class="fl">5L</span><span class="op">)</span></span>
@@ -2645,7 +2646,7 @@ There are two different strategies to do so:</p>
 </h3>
   <hr>
 <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br><p>We will use the following code snippet to see the influence of mincut on trees.</p>
-<div class="sourceCode" id="cb261"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb282"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">tree</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
@@ -2666,7 +2667,7 @@ What was wrong in the snippet above?</p>
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb262"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb283"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">tree</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
@@ -2694,7 +2695,7 @@ Approximately at mincut = 15, prediction is the best (mind overfitting). After m
   </details><br><hr>
 <hr>
 <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br><p>We will use the following code snippet to explore a random forest:</p>
-<div class="sourceCode" id="cb263"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb284"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.stat.berkeley.edu/~breiman/RandomForests/">randomForest</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
@@ -2720,7 +2721,7 @@ Approximately at mincut = 15, prediction is the best (mind overfitting). After m
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb264"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb285"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.stat.berkeley.edu/~breiman/RandomForests/">randomForest</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
@@ -2747,7 +2748,7 @@ In other words: The bigger the nodesize, the smaller the trees and the more bias
     
   </details><br><hr>
 <hr>
-<strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br><div class="sourceCode" id="cb265"><pre class="downlit sourceCode r">
+<strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br><div class="sourceCode" id="cb286"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dmlc/xgboost">xgboost</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yihui.org/animation/">animation</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -2791,7 +2792,7 @@ In other words: The bigger the nodesize, the smaller the trees and the more bias
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb266"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb287"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dmlc/xgboost">xgboost</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yihui.org/animation/">animation</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -2836,7 +2837,7 @@ In other words: The bigger the nodesize, the smaller the trees and the more bias
 <span><span class="op">}</span></span></code></pre></div>
 <p>As the possibilities scale extremely, you must vary some parameters on yourself.
 You may use for example the following parameters: “eta,” “gamma,” “max_depth,” “min_child_weight,” “subsample,” “colsample_bytree,” “num_parallel_tree,” “monotone_constraints” or “interaction_constraints.” Or you look into the documentation:</p>
-<div class="sourceCode" id="cb267"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb288"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">?</span><span class="fu">xgboost</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/xgboost/man/xgb.train.html">xgboost</a></span></span></code></pre></div>
 <p>Just some examples:</p>
 <p><img src="images/boosting_3_0.1.gif" width="100%" style="display: block; margin: auto;"><img src="images/boosting_6_0.7.gif" width="100%" style="display: block; margin: auto;"><img src="images/boosting_20_0.9.gif" width="100%" style="display: block; margin: auto;"></p>
@@ -2847,7 +2848,7 @@ Go through the code line by line and try to understand it. Ask, if you have any 
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb268"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb289"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">tree</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
@@ -2859,7 +2860,7 @@ Go through the code line by line and try to understand it. Ask, if you have any 
 <span><span class="va">data</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">y</span><span class="op">~</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_30-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb269"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb290"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#### Helper function for single tree fit.</span></span>
 <span><span class="va">get_model</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span><span class="op">{</span></span>
@@ -2895,7 +2896,7 @@ Go through the code line by line and try to understand it. Ask, if you have any 
 <span><span class="co">#&gt; [1] 10</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_list</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_task_30-2.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb270"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb291"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">y</span><span class="op">~</span><span class="va">x</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">x</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">x</span><span class="op">)</span><span class="op">]</span>, <span class="fu">get_boosting_model</span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">x</span><span class="op">)</span><span class="op">]</span>,</span>
@@ -2919,7 +2920,7 @@ Go through the code line by line and try to understand it. Ask, if you have any 
 </h3>
 <p>K-nearest-neighbor (kNN) is a simple algorithm that stores all the available cases and classifies the new data based on a similarity measure. It is mostly used to classify a data point based on how its <span class="math inline">\(k\)</span> nearest neighbors are classified.</p>
 <p>Let us first see an example:</p>
-<div class="sourceCode" id="cb271"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb292"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html">scale</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">=</span> <span class="va">iris</span><span class="op">[</span>,<span class="fl">5</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="op">-</span><span class="fl">100</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">x</span><span class="op">[</span><span class="op">-</span><span class="fl">100</span>, <span class="fl">3</span><span class="op">]</span>, col <span class="op">=</span> <span class="va">y</span><span class="op">)</span></span>
@@ -2928,14 +2929,14 @@ Go through the code line by line and try to understand it. Ask, if you have any 
 <p>Which class would you decide for the blue point? What are the classes of the nearest points? Well, this procedure is used by the k-nearest-neighbors classifier and thus there is actually no “real” learning in a k-nearest-neighbors classification.</p>
 <p>For applying a k-nearest-neighbors classification, we first have to scale the data set, because we deal with distances and want the same influence of all predictors. Imagine one variable has values from -10.000 to 10.000 and another from -1 to 1. Then the influence of the first variable on the distance to the other points is much stronger than the influence of the second variable.
 On the iris data set, we have to split the data into training and test set on our own. Then we will follow the usual pipeline.</p>
-<div class="sourceCode" id="cb272"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb293"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">=</span> <span class="va">iris</span></span>
 <span><span class="va">data</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>,<span class="fl">2</span>, <span class="va">scale</span><span class="op">)</span></span>
 <span><span class="va">indices</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample.int</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>, <span class="fl">0.7</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">train</span> <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="va">indices</span>,<span class="op">]</span></span>
 <span><span class="va">test</span> <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="op">-</span><span class="va">indices</span>,<span class="op">]</span></span></code></pre></div>
 <p>Fit model and create predictions:</p>
-<div class="sourceCode" id="cb273"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb294"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/KlausVigo/kknn">kknn</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
@@ -3005,7 +3006,7 @@ On the iris data set, we have to split the data into training and test set on ou
 </h3>
 <p>Support vectors machines have a different approach. They try to divide the predictor space into sectors for each class. To do so, a support-vector machine fits the parameters of a hyperplane (a <span class="math inline">\(n-1\)</span> dimensional subspace in a <span class="math inline">\(n\)</span>-dimensional space) in the predictor space by optimizing the distance between the hyperplane and the nearest point from each class.</p>
 <p>Fitting a support-vector machine:</p>
-<div class="sourceCode" id="cb274"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb295"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">e1071</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">data</span> <span class="op">=</span> <span class="va">iris</span></span>
@@ -3016,21 +3017,21 @@ On the iris data set, we have to split the data into training and test set on ou
 <span></span>
 <span><span class="va">sm</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/e1071/man/svm.html">svm</a></span><span class="op">(</span><span class="va">Species</span><span class="op">~</span><span class="va">.</span>, data <span class="op">=</span> <span class="va">train</span>, kernel <span class="op">=</span> <span class="st">"linear"</span><span class="op">)</span></span>
 <span><span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">sm</span>, newdata <span class="op">=</span> <span class="va">test</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb275"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb296"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">oldpar</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">test</span><span class="op">$</span><span class="va">Sepal.Length</span>, <span class="va">test</span><span class="op">$</span><span class="va">Petal.Length</span>,</span>
 <span>     col <span class="op">=</span>  <span class="va">pred</span>, main <span class="op">=</span> <span class="st">"predicted"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">test</span><span class="op">$</span><span class="va">Sepal.Length</span>, <span class="va">test</span><span class="op">$</span><span class="va">Petal.Length</span>,</span>
 <span>     col <span class="op">=</span>  <span class="va">test</span><span class="op">$</span><span class="va">Species</span>, main <span class="op">=</span> <span class="st">"observed"</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="05-fundamental_files/figure-html/chunk_chapter4_36-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb276"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb297"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">pred</span> <span class="op">==</span> <span class="va">test</span><span class="op">$</span><span class="va">Species</span><span class="op">)</span> <span class="co"># Accuracy.</span></span>
 <span><span class="co">#&gt; [1] 0.9777778</span></span></code></pre></div>
 <p>Support-vector machines can only work on linearly separable problems. (A problem is called linearly separable if there exists at least one line in the plane with all of the points of one class on one side of the hyperplane and all the points of the others classes on the other side).</p>
 <p>If this is not possible, we however, can use the so called <em>kernel trick</em>, which maps the predictor space into a (higher dimensional) space in which the problem is linear separable. After having identified the boundaries in the higher-dimensional space, we can project them back into the original dimensions.</p>
-<div class="sourceCode" id="cb277"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb298"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x1</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span>, length.out <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">x2</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span>, length.out <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html">expand.grid</a></span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span><span class="op">)</span></span>
@@ -3066,7 +3067,7 @@ On the iris data set, we have to split the data into training and test set on ou
 </h3>
   <hr>
 <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br><p>We will use the Sonar data set to explore support-vector machines and k-neartest-neighbor classifier.</p>
-<div class="sourceCode" id="cb278"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb299"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">mlbench</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
@@ -3078,7 +3079,7 @@ The response variable is “class.” So you are trying to classify the class.</
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb279"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb300"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">mlbench</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
@@ -3109,7 +3110,7 @@ Do not forget scaling!</p>
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb280"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb301"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">e1071</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/KlausVigo/kknn">kknn</a></span><span class="op">)</span></span>
 <span></span>
@@ -3138,7 +3139,7 @@ Do not forget scaling!</p>
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb283"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb304"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">accKNN</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">predKNN</span> <span class="op">==</span> <span class="va">labelsTest</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.6442308</span></span>
 <span><span class="op">(</span><span class="va">accSVM</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">predSVM</span> <span class="op">==</span> <span class="va">labelsTest</span><span class="op">)</span><span class="op">)</span></span>
@@ -3149,7 +3150,7 @@ Do not forget scaling!</p>
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb284"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb305"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">knn</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/kknn/man/kknn.html">kknn</a></span><span class="op">(</span><span class="va">class</span><span class="op">~</span><span class="va">.</span>, train <span class="op">=</span> <span class="va">train</span>, test <span class="op">=</span> <span class="va">test</span>, scale <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>           kernel <span class="op">=</span> <span class="st">"optimal"</span><span class="op">)</span></span>
 <span><span class="va">predKNN</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">knn</span>, newdata <span class="op">=</span> <span class="va">test</span><span class="op">)</span></span>
@@ -3167,7 +3168,7 @@ Do not forget scaling!</p>
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb285"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb306"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">data</span> <span class="op">=</span> <span class="va">Sonar</span></span>
@@ -3268,7 +3269,7 @@ Do not forget scaling!</p>
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Machine Learning and AI in TensorFlow and R</strong>" was written by Maximilian Pichler and Florian Hartig. It was last built on 2022-07-08.</p>
+    <p>"<strong>Machine Learning and AI in TensorFlow and R</strong>" was written by Maximilian Pichler and Florian Hartig. It was last built on 2022-07-09.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

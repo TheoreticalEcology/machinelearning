@@ -1,7 +1,7 @@
 --- 
 title: "Machine Learning and AI in TensorFlow and R"
 author: "Maximilian Pichler and Florian Hartig"
-date: "2022-07-08"
+date: "2022-07-09"
 site: bookdown::bookdown_site
 output: 
   bookdown::gitbook:
