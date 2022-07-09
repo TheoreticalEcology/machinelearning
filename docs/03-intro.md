@@ -140,7 +140,7 @@ For the moment, we will focus on the first two tasks, supervised and unsupervise
     <p>
       <script>
         makeMultipleChoiceForm(
-         'Which of the following statements about the bias-variance trade-off is correct? (See bias-variance tradeoff figure above',
+         'Which of the following statements about the bias-variance trade-off is correct? (see figure above)',
           'checkbox',
           [
             {
