@@ -299,25 +299,58 @@ library(torch)
 torch_manual_seed(321L)
 set.seed(123)
 
+torch_dataset = torch::dataset(
+    name = "data",
+    initialize = function(X,Y) {
+      self$X = torch::torch_tensor(as.matrix(X), dtype = torch_float32())
+      self$Y = torch::torch_tensor(Y, dtype = torch_long())
+    },
+    .getitem = function(index) {
+      x = self$X[index,]
+      y = self$Y[index]
+      list(x, y)
+    },
+    .length = function() {
+      self$Y$size()[[1]]
+    }
+  )
+
+
 model_torch = nn_sequential(
-  nn_linear(in_features = dim(sub_train[,-1])[2], out_features = 20L),
+  nn_linear(in_features = dim(sub_train[,-1])[2], out_features = 30L),
   nn_relu(),
-  nn_linear(20L, 20L),
+  nn_linear(30L, 30L),
   nn_relu(),
-  nn_linear(20L, 2L)
+  nn_linear(30L, 2L)
 )
 opt = optim_adam(params = model_torch$parameters, lr = 0.01)
 
-X_torch = torch_tensor(as.matrix(sub_train[,-1])) 
-Y_torch = torch_tensor(sub_train[,1]+1, dtype = torch_long())
-for(i in 1:500){
-  indices = sample.int(nrow(sub_train), 20L)
-  opt$zero_grad()
-  pred = model_torch(X_torch[indices, ])
-  loss = nnf_cross_entropy(pred, Y_torch[indices], reduction = "mean")
-  loss$backward()
-  opt$step()
+dataset = torch_dataset(as.matrix(sub_train[,-1]), sub_train[,1]+1)
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 50L
+opt = optim_adam(model_torch$parameters, 0.01)
+train_losses = c()
+for(epoch in 1:epochs){
+  train_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  train_losses = c(train_losses, mean(train_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
 }
+
+plot(train_losses, type = "o", pch = 15,
+        col = "darkblue", lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
 ```
 
 Note: the "nnf_cross_entropy" expects predictions on the scale of the linear predictors (the loss function itself will apply the softmax!).
@@ -381,7 +414,7 @@ preds_torch = apply(preds_torch, 1, which.max)
 (accuracy = mean(preds_torch - 1 == observed))
 ```
 
-Now we have to use the softmax function.
+Don't forget to use the link function (softmax).
     
 :::
 
@@ -453,8 +486,6 @@ First, we should look at the data and do some feature engineering / selection. G
 ```
 
 ```{r chunk_chapter4_task_39, message=FALSE, warning=FALSE}
-library(keras)
-library(tensorflow)
 library(tidyverse)
 library(randomForest)
 library(rpart)
@@ -466,6 +497,8 @@ data = titanic_ml
 ```
 
 ```{r chunk_chapter4_task_40}
+library(keras)
+library(tensorflow)
 str(data)
 
 indicesPredict = which(is.na(titanic_ml$survived))
@@ -610,7 +643,7 @@ Build a neural network to make predictions and check performance on the hold-out
 [Keras]{.panel-name}
 
 
-```{r chunk_chapter4_task_41, message=FALSE, warning=FALSE, echo=FALSE}
+```{r chunk_chapter4_task_41, message=FALSE, warning=FALSE, include=FALSE}
 set_random_seed(4321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 model = keras_model_sequential()
@@ -648,6 +681,85 @@ cat("Accuracy:\n")
 ```
 
 
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+```{r chunk_chapter4_task_41_torch, include=FALSE}
+library(torch)
+
+model_torch = nn_sequential(
+  nn_linear(in_features = ncol(train), out_features = 20L),
+  nn_relu(),
+  nn_linear(20L, 20L),
+  nn_relu(),
+  nn_linear(20L, 20L),
+  nn_relu(),
+  nn_linear(20L, 20L),
+  nn_relu(),
+  nn_linear(20L, 20L),
+  nn_relu(),
+  nn_linear(20L, 2L)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.01)
+
+indices = sample.int(nrow(train), 0.8*nrow(train))
+dataset = torch_dataset(train[indices, ],(labelsTrain+1)[indices])
+dataset_val = torch_dataset(train[-indices, ],(labelsTrain+1)[-indices])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 50L
+train_losses = c()
+val_losses = c()
+for(epoch in 1:epochs){
+  train_loss = c()
+  val_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  ## Calculate validation loss ##
+  coro::loop(
+    for(batch in dataloader_val) { 
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      val_loss = c(val_loss, loss$item())
+    }
+  )
+  
+  
+  train_losses = c(train_losses, mean(train_loss))
+  val_losses = c(val_losses, mean(val_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+}
+
+
+matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", 
+       legend = c("Train loss", "Val loss"), 
+       pch = c(15, 16), col = c("darkblue", "darkred"))
+
+model_torch$eval()
+prediction = as.matrix(nnf_softmax(model_torch(torch_tensor(test)), dim = 2))
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+cat("Accuracy:\n")
+(accuracy = mean(prediction == labelsTest))
+```
+
 
 :::
 
@@ -655,7 +767,7 @@ cat("Accuracy:\n")
 [Cito]{.panel-name}
 
 
-```{r chunk_chapter4_task_41_cito, message=FALSE, warning=FALSE, echo=FALSE}
+```{r chunk_chapter4_task_41_cito, message=FALSE, warning=FALSE, include=FALSE}
 library(cito)
 
 data_train = data.frame(survived = labelsTrain, train)
@@ -692,10 +804,10 @@ cat("Accuracy:\n")
 
 Play around with model parameters, optimizer(learning_rate = ...), epochs = ..., number of hidden nodes in layers: units = ..., regularization: kernel_regularizer = ..., bias_regularizer = ... **-** Try to maximize the model's accuracy for the hold-out data.
 
-**Hint**: There are a lot different activation functions like "linear", "softmax", "relu", "leaky_relu", "gelu", "selu", "elu", "exponential", "sigmoid", "tanh", "softplus", "softsign", etc. But be careful, this might be *very* computation-intensive (especially "gelu", tanh" or "softmax").
+**Hint**: There are a lot different activation functions like "linear", "softmax", "relu", "leaky_relu", "gelu", "selu", "elu", "exponential", "sigmoid", "tanh", "softplus", "softsign".
 Every activation function has its own properties, requirements (!), advantages and disadvantages. Choose them wisely!
 
-You should get an accuracy of at least 90%. (Before looking into the solution...) Try to be better than the solution.
+You should get an accuracy of at least 90%. Try to be better than the solution.
 
 
 ```{=html}
@@ -714,7 +826,7 @@ You should get an accuracy of at least 90%. (Before looking into the solution...
 
 
 
-```{r chunk_chapter4_task_42, message=FALSE, warning=FALSE, echo=FALSE}
+```{r chunk_chapter4_task_42, message=FALSE, warning=FALSE, include=FALSE}
 set_random_seed(4321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 model = keras_model_sequential()
@@ -761,9 +873,91 @@ cat("Accuracy:\n")
 :::
 
 ::: {.panel}
+[Torch]{.panel-name}
+
+```{r chunk_chapter4_task_42_torch, include=FALSE}
+library(torch)
+torch_manual_seed(42L)
+
+model_torch = nn_sequential(
+  nn_linear(in_features = ncol(train), out_features = 150L),
+  nn_selu(),
+  nn_linear(150L, 50L),
+  nn_selu(),
+  nn_linear(50L, 20L),
+  nn_selu(),
+  nn_linear(20L, 2L)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.01)
+
+indices = sample.int(nrow(train), 0.8*nrow(train))
+dataset = torch_dataset(train[indices, ],(labelsTrain+1)[indices])
+dataset_val = torch_dataset(train[-indices, ],(labelsTrain+1)[-indices])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 30L
+train_losses = c()
+val_losses = c()
+lambda = torch_tensor(0.01)
+alpha = torch_tensor(0.2)
+for(epoch in 1:epochs){
+  train_loss = c()
+  val_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        if(length(dim(p)) > 1) loss = loss + lambda*((1-alpha)*torch_norm(p, 1L) + alpha*torch_norm(p, 2L))
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  ## Calculate validation loss ##
+  coro::loop(
+    for(batch in dataloader_val) { 
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      val_loss = c(val_loss, loss$item())
+    }
+  )
+  
+  
+  train_losses = c(train_losses, mean(train_loss))
+  val_losses = c(val_losses, mean(val_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+}
+
+
+matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", 
+       legend = c("Train loss", "Val loss"), 
+       pch = c(15, 16), col = c("darkblue", "darkred"))
+
+model_torch$eval()
+prediction = as.matrix(nnf_softmax(model_torch(torch_tensor(test)), dim = 2))
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+cat("Accuracy:\n")
+(accuracy = mean(prediction == labelsTest))
+```
+
+
+:::
+
+::: {.panel}
 [Cito]{.panel-name}
 
-```{r chunk_chapter4_task_42_cito, message=FALSE, warning=FALSE, echo=FALSE}
+```{r chunk_chapter4_task_42_cito, message=FALSE, warning=FALSE, include=FALSE}
 library(cito)
 
 data_train = data.frame(survived = labelsTrain, train)
@@ -815,7 +1009,12 @@ Now try your above solution (**the exactly same one!**) with another seed to che
     <p>
 ```
 
-```{r chunk_chapter4_task_43, message=FALSE, warning=FALSE, echo=FALSE}
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+```{r chunk_chapter4_task_43, message=FALSE, warning=FALSE, include=FALSE}
 set_random_seed(123L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 model = keras_model_sequential()
@@ -857,6 +1056,128 @@ table(prediction, labelsTest)
 cat("Accuracy:\n")
 (accuracy = mean(prediction == labelsTest))
 ```
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+```{r chunk_chapter4_task_43_torch, include=FALSE}
+library(torch)
+torch_manual_seed(1L)
+
+model_torch = nn_sequential(
+  nn_linear(in_features = ncol(train), out_features = 150L),
+  nn_selu(),
+  nn_linear(150L, 50L),
+  nn_selu(),
+  nn_linear(50L, 20L),
+  nn_selu(),
+  nn_linear(20L, 2L)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.01)
+
+indices = sample.int(nrow(train), 0.8*nrow(train))
+dataset = torch_dataset(train[indices, ],(labelsTrain+1)[indices])
+dataset_val = torch_dataset(train[-indices, ],(labelsTrain+1)[-indices])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 30L
+train_losses = c()
+val_losses = c()
+lambda = torch_tensor(0.01)
+alpha = torch_tensor(0.2)
+for(epoch in 1:epochs){
+  train_loss = c()
+  val_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        if(length(dim(p)) > 1) loss = loss + lambda*((1-alpha)*torch_norm(p, 1L) + alpha*torch_norm(p, 2L))
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  ## Calculate validation loss ##
+  coro::loop(
+    for(batch in dataloader_val) { 
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      val_loss = c(val_loss, loss$item())
+    }
+  )
+  
+  
+  train_losses = c(train_losses, mean(train_loss))
+  val_losses = c(val_losses, mean(val_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+}
+
+
+matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", 
+       legend = c("Train loss", "Val loss"), 
+       pch = c(15, 16), col = c("darkblue", "darkred"))
+
+model_torch$eval()
+prediction = as.matrix(nnf_softmax(model_torch(torch_tensor(test)), dim = 2))
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+cat("Accuracy:\n")
+(accuracy = mean(prediction == labelsTest))
+```
+
+
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+```{r chunk_chapter4_task_43_cito, message=FALSE, warning=FALSE, include=FALSE}
+library(cito)
+
+data_train = data.frame(survived = labelsTrain, train)
+
+model_cito = dnn(survived~., 
+                 data = data_train, 
+                 loss = "binomial", 
+                 hidden = rep(50, 4), 
+                 activation = rep("selu", 4), 
+                 validation = 0.2, 
+                 alpha = 0.2, 
+                 early_stopping = TRUE, 
+                 epochs = 100L, 
+                 lambda = 0.01)
+
+prediction = predict(model_cito, newdata = data.frame(survived = 0, test))
+
+
+# Take label with highest probability:
+prediction = (prediction > 0.5)*1
+
+table(prediction, labelsTest)
+cat("Accuracy:\n")
+(accuracy = mean(prediction == labelsTest))
+```
+
+
+:::
+
+:::::
+
+
 
 ```{=html}
     </p>

@@ -449,26 +449,66 @@ library(torch)
 torch_manual_seed(321L)
 set.seed(123)
 
+torch_dataset = torch::dataset(
+    name = "data",
+    initialize = function(X,Y) {
+      self$X = torch::torch_tensor(as.matrix(X), dtype = torch_float32())
+      self$Y = torch::torch_tensor(Y, dtype = torch_long())
+    },
+    .getitem = function(index) {
+      x = self$X[index,]
+      y = self$Y[index]
+      list(x, y)
+    },
+    .length = function() {
+      self$Y$size()[[1]]
+    }
+  )
+
+
 model_torch = nn_sequential(
-  nn_linear(in_features = dim(sub_train[,-1])[2], out_features = 20L),
+  nn_linear(in_features = dim(sub_train[,-1])[2], out_features = 30L),
   nn_relu(),
-  nn_linear(20L, 20L),
+  nn_linear(30L, 30L),
   nn_relu(),
-  nn_linear(20L, 2L)
+  nn_linear(30L, 2L)
 )
 opt = optim_adam(params = model_torch$parameters, lr = 0.01)
 
-X_torch = torch_tensor(as.matrix(sub_train[,-1])) 
-Y_torch = torch_tensor(sub_train[,1]+1, dtype = torch_long())
-for(i in 1:500){
-  indices = sample.int(nrow(sub_train), 20L)
-  opt$zero_grad()
-  pred = model_torch(X_torch[indices, ])
-  loss = nnf_cross_entropy(pred, Y_torch[indices], reduction = "mean")
-  loss$backward()
-  opt$step()
+dataset = torch_dataset(as.matrix(sub_train[,-1]), sub_train[,1]+1)
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 50L
+opt = optim_adam(model_torch$parameters, 0.01)
+train_losses = c()
+for(epoch in 1:epochs){
+  train_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  train_losses = c(train_losses, mean(train_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
 }
+#> Loss at epoch 10: 0.479470
+#> Loss at epoch 20: 0.476513
+#> Loss at epoch 30: 0.464416
+#> Loss at epoch 40: 0.458047
+#> Loss at epoch 50: 0.443187
+
+plot(train_losses, type = "o", pch = 15,
+        col = "darkblue", lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
 ```
+
+<img src="06-ML_workflow_files/figure-html/chunk_chapter4_59-1.png" width="100%" style="display: block; margin: auto;" />
 
 Note: the "nnf_cross_entropy" expects predictions on the scale of the linear predictors (the loss function itself will apply the softmax!).
     
@@ -572,7 +612,7 @@ preds_torch = apply(preds_torch, 1, which.max)
 #> [1] 0.7817259
 ```
 
-Now we have to use the softmax function.
+Don't forget to use the link function (softmax).
     
 :::
 
@@ -649,8 +689,6 @@ First, we should look at the data and do some feature engineering / selection. G
 
 
 ```r
-library(keras)
-library(tensorflow)
 library(tidyverse)
 library(randomForest)
 library(rpart)
@@ -663,6 +701,8 @@ data = titanic_ml
 
 
 ```r
+library(keras)
+library(tensorflow)
 str(data)
 #> 'data.frame':	1309 obs. of  14 variables:
 #>  $ pclass   : int  2 1 3 3 3 3 3 1 3 1 ...
@@ -849,16 +889,14 @@ Build a neural network to make predictions and check performance on the hold-out
 [Keras]{.panel-name}
 
 
-<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_41-1.png" width="100%" style="display: block; margin: auto;" />
 
-```
-#>           labelsTest
-#> prediction   0   1
-#>          0 106  14
-#>          1  15  62
-#> Accuracy:
-#> [1] 0.8527919
-```
+
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
 
 
 
@@ -869,51 +907,6 @@ Build a neural network to make predictions and check performance on the hold-out
 
 
 
-```
-#> Loss at epoch 1: training: 0.594, validation: 0.465, lr: 0.01000
-```
-
-<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_41_cito-1.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Loss at epoch 2: training: 0.181, validation: 0.135, lr: 0.01000
-#> Loss at epoch 3: training: 0.111, validation: 0.116, lr: 0.01000
-#> Loss at epoch 4: training: 0.094, validation: 0.098, lr: 0.01000
-#> Loss at epoch 5: training: 0.038, validation: 0.097, lr: 0.01000
-#> Loss at epoch 6: training: 0.045, validation: 0.074, lr: 0.01000
-#> Loss at epoch 7: training: 0.031, validation: 0.064, lr: 0.01000
-#> Loss at epoch 8: training: 0.027, validation: 0.055, lr: 0.01000
-#> Loss at epoch 9: training: 0.025, validation: 0.047, lr: 0.01000
-#> Loss at epoch 10: training: 0.025, validation: 0.046, lr: 0.01000
-#> Loss at epoch 11: training: 0.023, validation: 0.046, lr: 0.01000
-#> Loss at epoch 12: training: 0.026, validation: 0.048, lr: 0.01000
-#> Loss at epoch 13: training: 0.023, validation: 0.046, lr: 0.01000
-#> Loss at epoch 14: training: 0.028, validation: 0.044, lr: 0.01000
-#> Loss at epoch 15: training: 0.022, validation: 0.046, lr: 0.01000
-#> Loss at epoch 16: training: 0.023, validation: 0.042, lr: 0.01000
-#> Loss at epoch 17: training: 0.022, validation: 0.041, lr: 0.01000
-#> Loss at epoch 18: training: 0.021, validation: 0.046, lr: 0.01000
-#> Loss at epoch 19: training: 0.023, validation: 0.056, lr: 0.01000
-#> Loss at epoch 20: training: 0.021, validation: 0.057, lr: 0.01000
-#> Loss at epoch 21: training: 0.022, validation: 0.060, lr: 0.01000
-#> Loss at epoch 22: training: 0.023, validation: 0.076, lr: 0.01000
-#> Loss at epoch 23: training: 0.021, validation: 0.070, lr: 0.01000
-#> Loss at epoch 24: training: 0.018, validation: 0.087, lr: 0.01000
-#> Loss at epoch 25: training: 0.019, validation: 0.087, lr: 0.01000
-#> Loss at epoch 26: training: 0.018, validation: 0.078, lr: 0.01000
-#> Loss at epoch 27: training: 0.022, validation: 0.080, lr: 0.01000
-#> Loss at epoch 28: training: 0.016, validation: 0.070, lr: 0.01000
-#> Loss at epoch 29: training: 0.017, validation: 0.066, lr: 0.01000
-#> Loss at epoch 30: training: 0.015, validation: 0.067, lr: 0.01000
-#> Loss at epoch 31: training: 0.041, validation: 0.208, lr: 0.01000
-#> Loss at epoch 32: training: 0.028, validation: 0.256, lr: 0.01000
-#>           labelsTest
-#> prediction   0   1
-#>          0 116   4
-#>          1   5  72
-#> Accuracy:
-#> [1] 0.9543147
-```
 
 
 :::
@@ -934,10 +927,10 @@ Build a neural network to make predictions and check performance on the hold-out
 
 Play around with model parameters, optimizer(learning_rate = ...), epochs = ..., number of hidden nodes in layers: units = ..., regularization: kernel_regularizer = ..., bias_regularizer = ... **-** Try to maximize the model's accuracy for the hold-out data.
 
-**Hint**: There are a lot different activation functions like "linear", "softmax", "relu", "leaky_relu", "gelu", "selu", "elu", "exponential", "sigmoid", "tanh", "softplus", "softsign", etc. But be careful, this might be *very* computation-intensive (especially "gelu", tanh" or "softmax").
+**Hint**: There are a lot different activation functions like "linear", "softmax", "relu", "leaky_relu", "gelu", "selu", "elu", "exponential", "sigmoid", "tanh", "softplus", "softsign".
 Every activation function has its own properties, requirements (!), advantages and disadvantages. Choose them wisely!
 
-You should get an accuracy of at least 90%. (Before looking into the solution...) Try to be better than the solution.
+You should get an accuracy of at least 90%. Try to be better than the solution.
 
 
 ```{=html}
@@ -956,16 +949,15 @@ You should get an accuracy of at least 90%. (Before looking into the solution...
 
 
 
-<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_42-1.png" width="100%" style="display: block; margin: auto;" />
 
-```
-#>           labelsTest
-#> prediction   0   1
-#>          0 120   5
-#>          1   1  71
-#> Accuracy:
-#> [1] 0.9695431
-```
+
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
 
 
 :::
@@ -974,119 +966,6 @@ You should get an accuracy of at least 90%. (Before looking into the solution...
 [Cito]{.panel-name}
 
 
-```
-#> Loss at epoch 1: training: 4.300, validation: 1.905, lr: 0.01000
-```
-
-<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_42_cito-1.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Loss at epoch 2: training: 1.691, validation: 1.262, lr: 0.01000
-#> Loss at epoch 3: training: 1.103, validation: 0.906, lr: 0.01000
-#> Loss at epoch 4: training: 0.818, validation: 0.742, lr: 0.01000
-#> Loss at epoch 5: training: 0.670, validation: 0.635, lr: 0.01000
-#> Loss at epoch 6: training: 0.595, validation: 0.592, lr: 0.01000
-#> Loss at epoch 7: training: 0.552, validation: 0.548, lr: 0.01000
-#> Loss at epoch 8: training: 0.530, validation: 0.542, lr: 0.01000
-#> Loss at epoch 9: training: 0.514, validation: 0.522, lr: 0.01000
-#> Loss at epoch 10: training: 0.500, validation: 0.516, lr: 0.01000
-#> Loss at epoch 11: training: 0.492, validation: 0.501, lr: 0.01000
-#> Loss at epoch 12: training: 0.485, validation: 0.487, lr: 0.01000
-#> Loss at epoch 13: training: 0.480, validation: 0.477, lr: 0.01000
-#> Loss at epoch 14: training: 0.472, validation: 0.499, lr: 0.01000
-#> Loss at epoch 15: training: 0.468, validation: 0.485, lr: 0.01000
-#> Loss at epoch 16: training: 0.463, validation: 0.463, lr: 0.01000
-#> Loss at epoch 17: training: 0.459, validation: 0.466, lr: 0.01000
-#> Loss at epoch 18: training: 0.459, validation: 0.449, lr: 0.01000
-#> Loss at epoch 19: training: 0.450, validation: 0.447, lr: 0.01000
-#> Loss at epoch 20: training: 0.446, validation: 0.446, lr: 0.01000
-#> Loss at epoch 21: training: 0.442, validation: 0.445, lr: 0.01000
-#> Loss at epoch 22: training: 0.442, validation: 0.444, lr: 0.01000
-#> Loss at epoch 23: training: 0.444, validation: 0.435, lr: 0.01000
-#> Loss at epoch 24: training: 0.436, validation: 0.429, lr: 0.01000
-#> Loss at epoch 25: training: 0.438, validation: 0.437, lr: 0.01000
-#> Loss at epoch 26: training: 0.444, validation: 0.417, lr: 0.01000
-#> Loss at epoch 27: training: 0.430, validation: 0.422, lr: 0.01000
-#> Loss at epoch 28: training: 0.438, validation: 0.429, lr: 0.01000
-#> Loss at epoch 29: training: 0.427, validation: 0.423, lr: 0.01000
-#> Loss at epoch 30: training: 0.423, validation: 0.438, lr: 0.01000
-#> Loss at epoch 31: training: 0.432, validation: 0.418, lr: 0.01000
-#> Loss at epoch 32: training: 0.428, validation: 0.420, lr: 0.01000
-#> Loss at epoch 33: training: 0.424, validation: 0.420, lr: 0.01000
-#> Loss at epoch 34: training: 0.417, validation: 0.404, lr: 0.01000
-#> Loss at epoch 35: training: 0.417, validation: 0.418, lr: 0.01000
-#> Loss at epoch 36: training: 0.418, validation: 0.408, lr: 0.01000
-#> Loss at epoch 37: training: 0.416, validation: 0.420, lr: 0.01000
-#> Loss at epoch 38: training: 0.420, validation: 0.435, lr: 0.01000
-#> Loss at epoch 39: training: 0.417, validation: 0.410, lr: 0.01000
-#> Loss at epoch 40: training: 0.413, validation: 0.423, lr: 0.01000
-#> Loss at epoch 41: training: 0.416, validation: 0.419, lr: 0.01000
-#> Loss at epoch 42: training: 0.417, validation: 0.426, lr: 0.01000
-#> Loss at epoch 43: training: 0.413, validation: 0.410, lr: 0.01000
-#> Loss at epoch 44: training: 0.410, validation: 0.399, lr: 0.01000
-#> Loss at epoch 45: training: 0.411, validation: 0.419, lr: 0.01000
-#> Loss at epoch 46: training: 0.415, validation: 0.405, lr: 0.01000
-#> Loss at epoch 47: training: 0.410, validation: 0.406, lr: 0.01000
-#> Loss at epoch 48: training: 0.409, validation: 0.406, lr: 0.01000
-#> Loss at epoch 49: training: 0.407, validation: 0.407, lr: 0.01000
-#> Loss at epoch 50: training: 0.411, validation: 0.419, lr: 0.01000
-#> Loss at epoch 51: training: 0.409, validation: 0.411, lr: 0.01000
-#> Loss at epoch 52: training: 0.402, validation: 0.400, lr: 0.01000
-#> Loss at epoch 53: training: 0.403, validation: 0.417, lr: 0.01000
-#> Loss at epoch 54: training: 0.409, validation: 0.419, lr: 0.01000
-#> Loss at epoch 55: training: 0.405, validation: 0.403, lr: 0.01000
-#> Loss at epoch 56: training: 0.402, validation: 0.403, lr: 0.01000
-#> Loss at epoch 57: training: 0.403, validation: 0.403, lr: 0.01000
-#> Loss at epoch 58: training: 0.402, validation: 0.412, lr: 0.01000
-#> Loss at epoch 59: training: 0.401, validation: 0.389, lr: 0.01000
-#> Loss at epoch 60: training: 0.401, validation: 0.401, lr: 0.01000
-#> Loss at epoch 61: training: 0.400, validation: 0.413, lr: 0.01000
-#> Loss at epoch 62: training: 0.399, validation: 0.404, lr: 0.01000
-#> Loss at epoch 63: training: 0.400, validation: 0.403, lr: 0.01000
-#> Loss at epoch 64: training: 0.397, validation: 0.399, lr: 0.01000
-#> Loss at epoch 65: training: 0.397, validation: 0.403, lr: 0.01000
-#> Loss at epoch 66: training: 0.400, validation: 0.406, lr: 0.01000
-#> Loss at epoch 67: training: 0.415, validation: 0.427, lr: 0.01000
-#> Loss at epoch 68: training: 0.426, validation: 0.418, lr: 0.01000
-#> Loss at epoch 69: training: 0.414, validation: 0.387, lr: 0.01000
-#> Loss at epoch 70: training: 0.406, validation: 0.399, lr: 0.01000
-#> Loss at epoch 71: training: 0.406, validation: 0.393, lr: 0.01000
-#> Loss at epoch 72: training: 0.409, validation: 0.417, lr: 0.01000
-#> Loss at epoch 73: training: 0.399, validation: 0.398, lr: 0.01000
-#> Loss at epoch 74: training: 0.393, validation: 0.393, lr: 0.01000
-#> Loss at epoch 75: training: 0.393, validation: 0.415, lr: 0.01000
-#> Loss at epoch 76: training: 0.392, validation: 0.399, lr: 0.01000
-#> Loss at epoch 77: training: 0.395, validation: 0.398, lr: 0.01000
-#> Loss at epoch 78: training: 0.395, validation: 0.416, lr: 0.01000
-#> Loss at epoch 79: training: 0.395, validation: 0.391, lr: 0.01000
-#> Loss at epoch 80: training: 0.394, validation: 0.394, lr: 0.01000
-#> Loss at epoch 81: training: 0.405, validation: 0.402, lr: 0.01000
-#> Loss at epoch 82: training: 0.394, validation: 0.394, lr: 0.01000
-#> Loss at epoch 83: training: 0.389, validation: 0.385, lr: 0.01000
-#> Loss at epoch 84: training: 0.393, validation: 0.409, lr: 0.01000
-#> Loss at epoch 85: training: 0.394, validation: 0.391, lr: 0.01000
-#> Loss at epoch 86: training: 0.392, validation: 0.389, lr: 0.01000
-#> Loss at epoch 87: training: 0.393, validation: 0.392, lr: 0.01000
-#> Loss at epoch 88: training: 0.401, validation: 0.404, lr: 0.01000
-#> Loss at epoch 89: training: 0.397, validation: 0.390, lr: 0.01000
-#> Loss at epoch 90: training: 0.393, validation: 0.399, lr: 0.01000
-#> Loss at epoch 91: training: 0.390, validation: 0.387, lr: 0.01000
-#> Loss at epoch 92: training: 0.392, validation: 0.388, lr: 0.01000
-#> Loss at epoch 93: training: 0.390, validation: 0.380, lr: 0.01000
-#> Loss at epoch 94: training: 0.387, validation: 0.389, lr: 0.01000
-#> Loss at epoch 95: training: 0.387, validation: 0.384, lr: 0.01000
-#> Loss at epoch 96: training: 0.390, validation: 0.380, lr: 0.01000
-#> Loss at epoch 97: training: 0.389, validation: 0.387, lr: 0.01000
-#> Loss at epoch 98: training: 0.390, validation: 0.389, lr: 0.01000
-#> Loss at epoch 99: training: 0.388, validation: 0.383, lr: 0.01000
-#> Loss at epoch 100: training: 0.390, validation: 0.397, lr: 0.01000
-#>           labelsTest
-#> prediction   0   1
-#>          0 121   4
-#>          1   0  72
-#> Accuracy:
-#> [1] 0.9796954
-```
 
 :::
 
@@ -1113,16 +992,35 @@ Now try your above solution (**the exactly same one!**) with another seed to che
     <p>
 ```
 
-<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_43-1.png" width="100%" style="display: block; margin: auto;" />
+::::: {.panelset}
 
-```
-#>           labelsTest
-#> prediction   0   1
-#>          0 112   5
-#>          1   9  71
-#> Accuracy:
-#> [1] 0.928934
-```
+::: {.panel}
+[Keras]{.panel-name}
+
+
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
+
+
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+
+
+
+:::
+
+:::::
+
+
 
 ```{=html}
     </p>
