@@ -109,7 +109,7 @@
 </h3>
 <p>We now will write an autoencoder for the MNIST data set.</p>
 <p>Let’s start with the (usual) MNIST example:</p>
-<div class="sourceCode" id="cb405"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb331"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -117,7 +117,7 @@
 <span></span>
 <span><span class="va">data</span> <span class="op">=</span> <span class="fu">keras</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/keras/man/dataset_mnist.html">dataset_mnist</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>We don’t need the labels here, our images will be the inputs and at the same time the outputs of our final autoencoder.</p>
-<div class="sourceCode" id="cb406"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb332"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rotate</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">{</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">2</span>, <span class="va">rev</span><span class="op">)</span><span class="op">)</span> <span class="op">}</span></span>
 <span></span>
 <span><span class="va">imgPlot</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">img</span>, <span class="va">title</span> <span class="op">=</span> <span class="st">""</span><span class="op">)</span><span class="op">{</span></span>
@@ -132,21 +132,21 @@
 <span><span class="va">train_x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="va">train</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">/</span><span class="fl">255</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">train</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fl">784L</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">test_x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="va">test</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">/</span><span class="fl">255</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">test</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fl">784L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Our encoder: image (784 dimensions) <span class="math inline">\(\rightarrow\)</span> 2 dimensions</p>
-<div class="sourceCode" id="cb407"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb333"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">down_size_model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/keras_model_sequential.html">keras_model_sequential</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">down_size_model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">100L</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">784L</span><span class="op">)</span>, activation <span class="op">=</span> <span class="st">"relu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">20L</span>, activation <span class="op">=</span> <span class="st">"relu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">2L</span>, activation <span class="op">=</span> <span class="st">"linear"</span><span class="op">)</span></span></code></pre></div>
 <p>Our decoder: 2 dimensions <span class="math inline">\(\rightarrow\)</span> 784 dimensions (our image)</p>
-<div class="sourceCode" id="cb408"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb334"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">up_size_model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/keras_model_sequential.html">keras_model_sequential</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">up_size_model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">20L</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2L</span><span class="op">)</span>, activation <span class="op">=</span> <span class="st">"relu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">100L</span>, activation <span class="op">=</span> <span class="st">"relu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">784L</span>, activation <span class="op">=</span> <span class="st">"sigmoid"</span><span class="op">)</span></span></code></pre></div>
 <p>We can use the non-sequential model type to connect the two models. (We did the same in the transfer learning chapter.)</p>
-<div class="sourceCode" id="cb409"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb335"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">autoencoder</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/keras_model.html">keras_model</a></span><span class="op">(</span>inputs <span class="op">=</span> <span class="va">down_size_model</span><span class="op">$</span><span class="va">input</span>, </span>
 <span>                          outputs <span class="op">=</span> <span class="fu">up_size_model</span><span class="op">(</span><span class="va">down_size_model</span><span class="op">$</span><span class="va">output</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">autoencoder</span><span class="op">$</span><span class="fu">compile</span><span class="op">(</span>loss <span class="op">=</span> <span class="va">loss_binary_crossentropy</span>,</span>
@@ -167,16 +167,16 @@
 <span><span class="co">#&gt; Non-trainable params: 0</span></span>
 <span><span class="co">#&gt; __________________________________________________________________________________________</span></span></code></pre></div>
 <p>We will now show an example of an image before and after the unfitted autoencoder, so we see that we have to train the autoencoder.</p>
-<div class="sourceCode" id="cb410"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb336"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">image</span> <span class="op">=</span> <span class="fu">autoencoder</span><span class="op">(</span><span class="va">train_x</span><span class="op">[</span><span class="fl">1</span>,,drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">oldpar</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">imgPlot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="va">train_x</span><span class="op">[</span><span class="fl">1</span>,,drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">28</span>, <span class="fl">28</span><span class="op">)</span><span class="op">)</span>, title <span class="op">=</span> <span class="st">"Before"</span><span class="op">)</span></span>
 <span><span class="fu">imgPlot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="va">image</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">28</span>, <span class="fl">28</span><span class="op">)</span><span class="op">)</span>, title <span class="op">=</span> <span class="st">"After"</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="09-GAN_files/figure-html/chunk_chapter7_6__AEmnistoutput-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb411"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb337"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
 <p>Fit the autoencoder (inputs == outputs!):</p>
-<div class="sourceCode" id="cb412"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb338"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">123L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -184,18 +184,18 @@
 <span><span class="va">autoencoder</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html">fit</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">train_x</span>, y <span class="op">=</span> <span class="va">train_x</span>, epochs <span class="op">=</span> <span class="fl">5L</span>, batch_size <span class="op">=</span> <span class="fl">128L</span><span class="op">)</span></span></code></pre></div>
 <p>Visualization of the latent variables:</p>
-<div class="sourceCode" id="cb413"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb339"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred_dim</span> <span class="op">=</span> <span class="fu">down_size_model</span><span class="op">(</span><span class="va">test_x</span><span class="op">)</span></span>
 <span><span class="va">reconstr_pred</span> <span class="op">=</span> <span class="fu">up_size_model</span><span class="op">(</span><span class="va">pred_dim</span><span class="op">)</span></span>
 <span><span class="fu">imgPlot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="va">reconstr_pred</span><span class="op">[</span><span class="fl">10</span>,<span class="op">]</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">28L</span>, <span class="fl">28L</span><span class="op">)</span><span class="op">)</span>, title <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="09-GAN_files/figure-html/chunk_chapter7_8__AEvisualization-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb414"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb340"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ownColors</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"limegreen"</span>, <span class="st">"purple"</span>, <span class="st">"yellow"</span>, <span class="st">"grey"</span>, <span class="st">"orange"</span>,</span>
 <span>              <span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"navy"</span>, <span class="st">"sienna"</span>, <span class="st">"springgreen"</span><span class="op">)</span></span>
 <span><span class="va">oldpar</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">pred_dim</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">pred_dim</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>, col <span class="op">=</span> <span class="va">ownColors</span><span class="op">[</span><span class="va">test</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">+</span><span class="fl">1L</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="09-GAN_files/figure-html/chunk_chapter7_9__AEvisualizationContinuation-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb415"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb341"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
 <p>The picture above shows the 2-dimensional encoded values of the numbers in the MNIST data set and the number they are depicting via the respective color.</p>
 </div>
@@ -205,13 +205,13 @@
 </h3>
 <p>We can also use convolutional neural networks instead or on the side of deep neural networks. Moreover, there is an inverse convolutional layer (layer_conv_2d_transpose; “deconvolution”):</p>
 <p>Prepare data:</p>
-<div class="sourceCode" id="cb416"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb342"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="va">keras</span><span class="op">$</span><span class="va">datasets</span><span class="op">$</span><span class="va">mnist</span><span class="op">$</span><span class="fu">load_data</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">train</span> <span class="op">=</span> <span class="va">data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">train_x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="va">train</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">/</span><span class="fl">255</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">train</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">test_x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="va">data</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">/</span><span class="fl">255</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">data</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">/</span><span class="fl">255</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Then define the downsize model:</p>
-<div class="sourceCode" id="cb417"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb343"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">down_size_model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/keras_model_sequential.html">keras_model_sequential</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">down_size_model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_conv_2d.html">layer_conv_2d</a></span><span class="op">(</span>filters <span class="op">=</span> <span class="fl">32L</span>, activation <span class="op">=</span> <span class="st">"relu"</span>, kernel_size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2L</span>, <span class="fl">2L</span><span class="op">)</span>, </span>
@@ -222,7 +222,7 @@
 <span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_flatten.html">layer_flatten</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">2L</span>, activation <span class="op">=</span> <span class="st">"linear"</span><span class="op">)</span></span></code></pre></div>
 <p>Define the upsize model:</p>
-<div class="sourceCode" id="cb418"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb344"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">up_size_model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/keras_model_sequential.html">keras_model_sequential</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">up_size_model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">8L</span>, activation <span class="op">=</span> <span class="st">"relu"</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2L</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
@@ -234,7 +234,7 @@
 <span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_conv_2d.html">layer_conv_2d</a></span><span class="op">(</span>filters <span class="op">=</span> <span class="fl">1</span>, kernel_size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">1L</span><span class="op">)</span>,</span>
 <span>               strides <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">1L</span><span class="op">)</span>, activation <span class="op">=</span> <span class="st">"sigmoid"</span><span class="op">)</span></span></code></pre></div>
 <p>Combine the two models and fit it:</p>
-<div class="sourceCode" id="cb419"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb345"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -249,24 +249,24 @@
 <span>                epochs <span class="op">=</span> <span class="fl">10L</span>, batch_size <span class="op">=</span> <span class="fl">128L</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;keras.callbacks.History object at 0x7fdecc353750&gt;</span></span></code></pre></div>
 <p>Test it:</p>
-<div class="sourceCode" id="cb420"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb346"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred_dim</span> <span class="op">=</span> <span class="fu">down_size_model</span><span class="op">(</span><span class="va">tf</span><span class="op">$</span><span class="fu">constant</span><span class="op">(</span><span class="va">test_x</span>, <span class="st">"float32"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">reconstr_pred</span> <span class="op">=</span> <span class="fu">autoencoder</span><span class="op">(</span><span class="va">tf</span><span class="op">$</span><span class="fu">constant</span><span class="op">(</span><span class="va">test_x</span>, <span class="st">"float32"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">imgPlot</span><span class="op">(</span><span class="va">reconstr_pred</span><span class="op">[</span><span class="fl">10</span>,,,<span class="op">]</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,,<span class="fl">1</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="09-GAN_files/figure-html/chunk_chapter7_14-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb421"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb347"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">ownColors</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"limegreen"</span>, <span class="st">"purple"</span>, <span class="st">"yellow"</span>, <span class="st">"grey"</span>, <span class="st">"orange"</span>,</span>
 <span>              <span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"navy"</span>, <span class="st">"sienna"</span>, <span class="st">"springgreen"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">pred_dim</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span>, <span class="va">pred_dim</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span>, col <span class="op">=</span> <span class="va">ownColors</span><span class="op">[</span><span class="va">test</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">+</span><span class="fl">1L</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="09-GAN_files/figure-html/chunk_chapter7_14-2.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb422"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb348"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">## Generate new images!</span></span>
 <span><span class="va">new</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="fu">imgPlot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="fu">up_size_model</span><span class="op">(</span><span class="va">new</span><span class="op">)</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">28L</span>, <span class="fl">28L</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="09-GAN_files/figure-html/chunk_chapter7_14-3.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb423"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb349"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">new</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="fu">imgPlot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="fu">up_size_model</span><span class="op">(</span><span class="va">new</span><span class="op">)</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">28L</span>, <span class="fl">28L</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -280,7 +280,7 @@
 To achieve the property that more or less randomly chosen points in the low dimensional latent space are meaningful and yield suitable results after decoding, the latent space/training process must be regularized.
 In this process, the input to the VAE is encoded to a distribution in the latent space rather than a single point.</p>
 <p>For building variational autoencoders, we will use TensorFlow probability, but first, we need to split the data again.</p>
-<div class="sourceCode" id="cb424"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb350"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tfprobability">tfprobability</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">data</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="va">keras</span><span class="op">$</span><span class="va">datasets</span><span class="op">$</span><span class="va">mnist</span><span class="op">$</span><span class="fu">load_data</span><span class="op">(</span><span class="op">)</span></span>
@@ -288,13 +288,13 @@ In this process, the input to the VAE is encoded to a distribution in the latent
 <span><span class="va">train</span> <span class="op">=</span> <span class="va">data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">train_x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="va">train</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">/</span><span class="fl">255</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">train</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>We will use TensorFlow probability to define priors for our latent variables.</p>
-<div class="sourceCode" id="cb425"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb351"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tfprobability">tfprobability</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
 <span></span>
 <span><span class="va">tfp</span> <span class="op">=</span> <span class="fu">reticulate</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/import.html">import</a></span><span class="op">(</span><span class="st">"tensorflow_probability"</span><span class="op">)</span></span></code></pre></div>
 <p>Build the two networks:</p>
-<div class="sourceCode" id="cb426"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb352"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">encoded</span> <span class="op">=</span> <span class="fl">2L</span></span>
 <span><span class="va">prior</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/tfprobability/man/tfd_independent.html">tfd_independent</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/tfprobability/man/tfd_normal.html">tfd_normal</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.0</span>, <span class="fl">0.0</span><span class="op">)</span>, <span class="fl">1.0</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span></span>
 <span></span>
@@ -327,7 +327,7 @@ In this process, the input to the VAE is encoded to a distribution in the latent
 <span><span class="va">VAE</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/keras_model.html">keras_model</a></span><span class="op">(</span>inputs <span class="op">=</span> <span class="va">down_size_model</span><span class="op">$</span><span class="va">inputs</span>,</span>
 <span>                  outputs <span class="op">=</span> <span class="fu">up_size_model</span><span class="op">(</span><span class="va">down_size_model</span><span class="op">$</span><span class="va">outputs</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Compile and fit model:</p>
-<div class="sourceCode" id="cb427"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb353"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -340,7 +340,7 @@ In this process, the input to the VAE is encoded to a distribution in the latent
 <span><span class="va">VAE</span><span class="op">$</span><span class="fu">fit</span><span class="op">(</span><span class="va">train_x</span>, <span class="va">train_x</span>, epochs <span class="op">=</span> <span class="fl">5L</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;keras.callbacks.History object at 0x7fe5e0554790&gt;</span></span></code></pre></div>
 <p>And show that it works:</p>
-<div class="sourceCode" id="cb428"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb354"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dist</span> <span class="op">=</span> <span class="fu">down_size_model</span><span class="op">(</span><span class="va">train_x</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2000</span>,,,,drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">images</span> <span class="op">=</span> <span class="fu">up_size_model</span><span class="op">(</span><span class="va">dist</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,<span class="op">]</span><span class="op">)</span></span>
 <span></span>
@@ -349,10 +349,10 @@ In this process, the input to the VAE is encoded to a distribution in the latent
 <span><span class="va">oldpar</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">imgPlot</span><span class="op">(</span><span class="va">images</span><span class="op">[</span><span class="fl">1</span>,,,<span class="fl">1</span><span class="op">]</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb429"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb355"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">dist</span><span class="op">$</span><span class="fu">mean</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">dist</span><span class="op">$</span><span class="fu">mean</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>, col <span class="op">=</span> <span class="va">ownColors</span><span class="op">[</span><span class="va">train</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">+</span><span class="fl">1L</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-2.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb430"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb356"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -387,7 +387,7 @@ However, the application of generative adversarial networks today is much wider 
 <span class="header-section-number">8.2.1</span> MNIST - Generative Adversarial Networks Based on Deep Neural Networks<a class="anchor" aria-label="anchor" href="#mnist---generative-adversarial-networks-based-on-deep-neural-networks"><i class="fas fa-link"></i></a>
 </h3>
 <p>We will now explore this on the MNIST data set.</p>
-<div class="sourceCode" id="cb431"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb357"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -399,18 +399,18 @@ However, the application of generative adversarial networks today is much wider 
 <span>        main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Label: "</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">title</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>We don’t need the test set here.</p>
-<div class="sourceCode" id="cb432"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb358"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/dataset_mnist.html">dataset_mnist</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">train</span> <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">train</span></span>
 <span><span class="va">train_x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="op">(</span><span class="va">train</span><span class="op">$</span><span class="va">x</span><span class="op">-</span><span class="fl">127.5</span><span class="op">)</span><span class="op">/</span><span class="fl">127.5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">train</span><span class="op">$</span><span class="va">x</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fl">784L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>We need a function to sample images for the discriminator.</p>
-<div class="sourceCode" id="cb433"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb359"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">batch_size</span> <span class="op">=</span> <span class="fl">32L</span></span>
 <span><span class="va">dataset</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">Dataset</span><span class="op">$</span><span class="fu">from_tensor_slices</span><span class="op">(</span><span class="va">tf</span><span class="op">$</span><span class="fu">constant</span><span class="op">(</span><span class="va">train_x</span>, <span class="st">"float32"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">dataset</span><span class="op">$</span><span class="fu">batch</span><span class="op">(</span><span class="va">batch_size</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;BatchDataset element_spec=TensorSpec(shape=(None, 784), dtype=tf.float32, name=None)&gt;</span></span></code></pre></div>
 <p>Define generator model:</p>
-<div class="sourceCode" id="cb434"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb360"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">get_generator</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">generator</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/keras_model_sequential.html">keras_model_sequential</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="va">generator</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
@@ -423,13 +423,13 @@ However, the application of generative adversarial networks today is much wider 
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">generator</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>And we also test the generator model:</p>
-<div class="sourceCode" id="cb435"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb361"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">generator</span> <span class="op">=</span> <span class="fu">get_generator</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">sample</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="va">random</span><span class="op">$</span><span class="fu">normal</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">100L</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">imgPlot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="fu">generator</span><span class="op">(</span><span class="va">sample</span><span class="op">)</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">28L</span>, <span class="fl">28L</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="09-GAN_files/figure-html/chunk_chapter7_24-1.png" width="100%" style="display: block; margin: auto;"></div>
 <p>In the discriminator, noise (random vector with 100 values) is passed through the network such that the output corresponds to the number of pixels of one MNIST image (784). We therefore define the discriminator function now.</p>
-<div class="sourceCode" id="cb436"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb362"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">get_discriminator</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">discriminator</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/keras_model_sequential.html">keras_model_sequential</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="va">discriminator</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
@@ -442,14 +442,14 @@ However, the application of generative adversarial networks today is much wider 
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">discriminator</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>And we also test the discriminator function.</p>
-<div class="sourceCode" id="cb437"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb363"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">discriminator</span> <span class="op">=</span> <span class="fu">get_discriminator</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">discriminator</span><span class="op">(</span><span class="fu">generator</span><span class="op">(</span><span class="va">tf</span><span class="op">$</span><span class="va">random</span><span class="op">$</span><span class="fu">normal</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">100L</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; tf.Tensor([[0.5089391]], shape=(1, 1), dtype=float32)</span></span></code></pre></div>
 <p>We also have to define the loss functions for both networks.We use the already known binary cross entropy. However, we have to encode the real and predicted values for the two networks individually.</p>
 <p>The discriminator will get two losses - one for identifying fake images as fake, and one for identifying real MNIST images as real images.</p>
 <p>The generator will just get one loss - was it able to deceive the discriminator?</p>
-<div class="sourceCode" id="cb438"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb364"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ce</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="va">keras</span><span class="op">$</span><span class="va">losses</span><span class="op">$</span><span class="fu">BinaryCrossentropy</span><span class="op">(</span>from_logits <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">loss_discriminator</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">real</span>, <span class="va">fake</span><span class="op">)</span><span class="op">{</span></span>
@@ -462,7 +462,7 @@ However, the application of generative adversarial networks today is much wider 
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/ce.html">ce</a></span><span class="op">(</span><span class="va">tf</span><span class="op">$</span><span class="fu">ones_like</span><span class="op">(</span><span class="va">fake</span><span class="op">)</span>, <span class="va">fake</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Each network will get its own optimizer (in a GAN the networks are treated independently):</p>
-<div class="sourceCode" id="cb439"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb365"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gen_opt</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="va">keras</span><span class="op">$</span><span class="va">optimizers</span><span class="op">$</span><span class="fu">RMSprop</span><span class="op">(</span><span class="fl">1e-4</span><span class="op">)</span></span>
 <span><span class="va">disc_opt</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="va">keras</span><span class="op">$</span><span class="va">optimizers</span><span class="op">$</span><span class="fu">RMSprop</span><span class="op">(</span><span class="fl">1e-4</span><span class="op">)</span></span></code></pre></div>
 <p>We have to write our own training loop here (we cannot use the fit function).
@@ -478,7 +478,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 <li>Update weights of discriminator.</li>
 <li>Return losses.</li>
 </ol>
-<div class="sourceCode" id="cb440"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb366"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">generator</span> <span class="op">=</span> <span class="fu">get_generator</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">discriminator</span> <span class="op">=</span> <span class="fu">get_discriminator</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
@@ -512,7 +512,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 <li>Print losses.</li>
 <li>Repeat step 2-4 for number of epochs.</li>
 </ol>
-<div class="sourceCode" id="cb441"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb367"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -591,7 +591,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 <span class="header-section-number">8.2.2</span> Flower - GAN<a class="anchor" aria-label="anchor" href="#flower---gan"><i class="fas fa-link"></i></a>
 </h3>
 <p>We can now also do the same for the flower data set. We will write this completely on our own following the steps also done for the MNIST data set.</p>
-<div class="sourceCode" id="cb461"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb387"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; ── Attaching packages ───────────────────────────────────────────────── tidyverse 1.3.1 ──</span></span>
@@ -611,7 +611,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 <span><span class="va">train_x</span> <span class="op">=</span> <span class="fu">abind</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/abind/man/abind.html">abind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">train</span>, <span class="va">test</span><span class="op">)</span>, along <span class="op">=</span> <span class="fl">1L</span><span class="op">)</span></span>
 <span><span class="va">dataset</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">Dataset</span><span class="op">$</span><span class="fu">from_tensor_slices</span><span class="op">(</span><span class="va">tf</span><span class="op">$</span><span class="fu">constant</span><span class="op">(</span><span class="va">train_x</span>, <span class="st">"float32"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Define the generator model and test it:</p>
-<div class="sourceCode" id="cb462"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb388"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -655,7 +655,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="09-GAN_files/figure-html/chunk_chapter7_32-1.png" width="100%" style="display: block; margin: auto;"></div>
 <p>Define the discriminator and test it:</p>
-<div class="sourceCode" id="cb463"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb389"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -706,7 +706,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 <span><span class="fu">discriminator</span><span class="op">(</span><span class="fu">generator</span><span class="op">(</span><span class="va">tf</span><span class="op">$</span><span class="va">random</span><span class="op">$</span><span class="fu">normal</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">100L</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; tf.Tensor([[0.4999608]], shape=(1, 1), dtype=float32)</span></span></code></pre></div>
 <p>Define the loss functions:</p>
-<div class="sourceCode" id="cb464"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb390"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ce</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="va">keras</span><span class="op">$</span><span class="va">losses</span><span class="op">$</span><span class="fu">BinaryCrossentropy</span><span class="op">(</span>from_logits <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                                        label_smoothing <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
 <span></span>
@@ -720,11 +720,11 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/ce.html">ce</a></span><span class="op">(</span><span class="va">tf</span><span class="op">$</span><span class="fu">ones_like</span><span class="op">(</span><span class="va">fake</span><span class="op">)</span>, <span class="va">fake</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Define the optimizers and the batch function:</p>
-<div class="sourceCode" id="cb465"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb391"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gen_opt</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="va">keras</span><span class="op">$</span><span class="va">optimizers</span><span class="op">$</span><span class="fu">RMSprop</span><span class="op">(</span><span class="fl">1e-4</span><span class="op">)</span></span>
 <span><span class="va">disc_opt</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="va">keras</span><span class="op">$</span><span class="va">optimizers</span><span class="op">$</span><span class="fu">RMSprop</span><span class="op">(</span><span class="fl">1e-4</span><span class="op">)</span></span></code></pre></div>
 <p>Define functions for the generator and discriminator:</p>
-<div class="sourceCode" id="cb466"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb392"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">generator</span> <span class="op">=</span> <span class="fu">get_generator</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">discriminator</span> <span class="op">=</span> <span class="fu">get_discriminator</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
@@ -757,7 +757,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 <span></span>
 <span><span class="va">train_step</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="fu">`function`</span><span class="op">(</span><span class="fu">reticulate</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/py_func.html">py_func</a></span><span class="op">(</span><span class="va">train_step</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Do the training:</p>
-<div class="sourceCode" id="cb467"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb393"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -828,7 +828,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 #&gt; Gen:  1.189716  Disc:  1.079902</code></pre>
 <div class="inline-figure"><img src="09-GAN_files/figure-html/chunk_chapter7_37-3.png" width="100%" style="display: block; margin: auto;"></div>
 <pre><code>#&gt; Gen:  1.181944  Disc:  1.082428</code></pre>
-<div class="sourceCode" id="cb471"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb397"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -854,103 +854,103 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 <p>Objective: Train a neural network capable of balancing a pole.</p>
 <p>The environment is run on a local server, please install <a href="https://github.com/openai/gym-http-api" target="_blank" rel="noopener">gym</a>.</p>
 <p>Or go through this <a href="https://colab.research.google.com/github/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb" target="_blank" rel="noopener">colab book</a>.</p>
-<div class="sourceCode" id="cb472"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb472-1"><a href="gan.html#cb472-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb472-2"><a href="gan.html#cb472-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
-<span id="cb472-3"><a href="gan.html#cb472-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gym)</span>
-<span id="cb472-4"><a href="gan.html#cb472-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set_random_seed</span>(321L, <span class="at">disable_gpu =</span> <span class="cn">FALSE</span>)  <span class="co"># Already sets R's random seed.</span></span>
-<span id="cb472-5"><a href="gan.html#cb472-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb472-6"><a href="gan.html#cb472-6" aria-hidden="true" tabindex="-1"></a>remote_base <span class="ot">=</span>´ <span class="st">"http://127.0.0.1:5000"</span></span>
-<span id="cb472-7"><a href="gan.html#cb472-7" aria-hidden="true" tabindex="-1"></a>client <span class="ot">=</span> <span class="fu">create_GymClient</span>(remote_base)</span>
-<span id="cb472-8"><a href="gan.html#cb472-8" aria-hidden="true" tabindex="-1"></a>env <span class="ot">=</span> gym<span class="sc">::</span><span class="fu">env_create</span>(client, <span class="st">"CartPole-v1"</span>)</span>
-<span id="cb472-9"><a href="gan.html#cb472-9" aria-hidden="true" tabindex="-1"></a>gym<span class="sc">::</span><span class="fu">env_list_all</span>(client)</span>
-<span id="cb472-10"><a href="gan.html#cb472-10" aria-hidden="true" tabindex="-1"></a><span class="fu">env_reset</span>(client, env)</span>
-<span id="cb472-11"><a href="gan.html#cb472-11" aria-hidden="true" tabindex="-1"></a><span class="co"># action = env_action_space_sample(client, env)</span></span>
-<span id="cb472-12"><a href="gan.html#cb472-12" aria-hidden="true" tabindex="-1"></a>step <span class="ot">=</span> <span class="fu">env_step</span>(client, env, <span class="dv">1</span>)</span>
-<span id="cb472-13"><a href="gan.html#cb472-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb472-14"><a href="gan.html#cb472-14" aria-hidden="true" tabindex="-1"></a><span class="fu">env_reset</span>(client, env)</span>
-<span id="cb472-15"><a href="gan.html#cb472-15" aria-hidden="true" tabindex="-1"></a>goal_steps <span class="ot">=</span> <span class="dv">500</span></span>
-<span id="cb472-16"><a href="gan.html#cb472-16" aria-hidden="true" tabindex="-1"></a>score_requirement <span class="ot">=</span> <span class="dv">60</span></span>
-<span id="cb472-17"><a href="gan.html#cb472-17" aria-hidden="true" tabindex="-1"></a>intial_games <span class="ot">=</span> <span class="dv">1000</span></span>
-<span id="cb472-18"><a href="gan.html#cb472-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb472-19"><a href="gan.html#cb472-19" aria-hidden="true" tabindex="-1"></a>state_size <span class="ot">=</span> 4L</span>
-<span id="cb472-20"><a href="gan.html#cb472-20" aria-hidden="true" tabindex="-1"></a>action_size <span class="ot">=</span> 2L</span>
-<span id="cb472-21"><a href="gan.html#cb472-21" aria-hidden="true" tabindex="-1"></a>gamma <span class="ot">=</span> <span class="fl">0.95</span></span>
-<span id="cb472-22"><a href="gan.html#cb472-22" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">=</span> <span class="fl">0.95</span></span>
-<span id="cb472-23"><a href="gan.html#cb472-23" aria-hidden="true" tabindex="-1"></a>epsilon_min <span class="ot">=</span> <span class="fl">0.01</span></span>
-<span id="cb472-24"><a href="gan.html#cb472-24" aria-hidden="true" tabindex="-1"></a>epsilon_decay <span class="ot">=</span> <span class="fl">0.995</span></span>
-<span id="cb472-25"><a href="gan.html#cb472-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb472-26"><a href="gan.html#cb472-26" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb472-27"><a href="gan.html#cb472-27" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
-<span id="cb472-28"><a href="gan.html#cb472-28" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(<span class="at">input_shape =</span> <span class="fu">c</span>(4L), <span class="at">units =</span> 20L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb472-29"><a href="gan.html#cb472-29" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(<span class="at">units =</span> 20L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb472-30"><a href="gan.html#cb472-30" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(2L, <span class="at">activation =</span> <span class="st">"linear"</span>)</span>
-<span id="cb472-31"><a href="gan.html#cb472-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb472-32"><a href="gan.html#cb472-32" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
-<span id="cb472-33"><a href="gan.html#cb472-33" aria-hidden="true" tabindex="-1"></a> keras<span class="sc">::</span><span class="fu">compile</span>(<span class="at">loss =</span> loss_mean_squared_error, <span class="at">optimizer =</span> <span class="fu">optimizer_adamax</span>())</span>
-<span id="cb472-34"><a href="gan.html#cb472-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb472-35"><a href="gan.html#cb472-35" aria-hidden="true" tabindex="-1"></a>memory <span class="ot">=</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> 8000L, 11L)</span>
-<span id="cb472-36"><a href="gan.html#cb472-36" aria-hidden="true" tabindex="-1"></a>counter <span class="ot">=</span> <span class="dv">1</span></span>
-<span id="cb472-37"><a href="gan.html#cb472-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb472-38"><a href="gan.html#cb472-38" aria-hidden="true" tabindex="-1"></a>remember <span class="ot">=</span> <span class="cf">function</span>(memory, state, action, reward, next_state, done){</span>
-<span id="cb472-39"><a href="gan.html#cb472-39" aria-hidden="true" tabindex="-1"></a>  memory[counter,] <span class="ot">=</span> <span class="fu">as.numeric</span>(<span class="fu">c</span>(state, action, reward, next_state, done))</span>
-<span id="cb472-40"><a href="gan.html#cb472-40" aria-hidden="true" tabindex="-1"></a>  counter <span class="ot">&lt;&lt;-</span> counter<span class="sc">+</span><span class="dv">1</span></span>
-<span id="cb472-41"><a href="gan.html#cb472-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(memory)</span>
-<span id="cb472-42"><a href="gan.html#cb472-42" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb472-43"><a href="gan.html#cb472-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb472-44"><a href="gan.html#cb472-44" aria-hidden="true" tabindex="-1"></a><span class="co"># memory: state 1:4, action 5, reward 6, next_state 7:10, done 11</span></span>
-<span id="cb472-45"><a href="gan.html#cb472-45" aria-hidden="true" tabindex="-1"></a>act <span class="ot">=</span> <span class="cf">function</span>(state){</span>
-<span id="cb472-46"><a href="gan.html#cb472-46" aria-hidden="true" tabindex="-1"></a> <span class="cf">if</span>(<span class="fu">runif</span>(<span class="dv">1</span>) <span class="sc">&lt;=</span> epsilon){ <span class="fu">return</span>(<span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="dv">1</span>)) }</span>
-<span id="cb472-47"><a href="gan.html#cb472-47" aria-hidden="true" tabindex="-1"></a> act_prob <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">matrix</span>(state, <span class="at">nrow =</span> 1L))</span>
-<span id="cb472-48"><a href="gan.html#cb472-48" aria-hidden="true" tabindex="-1"></a> <span class="fu">return</span>(<span class="fu">which.max</span>(act_prob) <span class="sc">-</span> 1L)</span>
-<span id="cb472-49"><a href="gan.html#cb472-49" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb472-50"><a href="gan.html#cb472-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb472-51"><a href="gan.html#cb472-51" aria-hidden="true" tabindex="-1"></a>replay <span class="ot">=</span> <span class="cf">function</span>(<span class="at">batch_size =</span> 25L, memory, counter){</span>
-<span id="cb472-52"><a href="gan.html#cb472-52" aria-hidden="true" tabindex="-1"></a>  indices <span class="ot">=</span> <span class="fu">sample.int</span>(counter, batch_size)</span>
-<span id="cb472-53"><a href="gan.html#cb472-53" aria-hidden="true" tabindex="-1"></a>  batch <span class="ot">=</span> memory[indices,,drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
-<span id="cb472-54"><a href="gan.html#cb472-54" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb472-55"><a href="gan.html#cb472-55" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(batch)){</span>
-<span id="cb472-56"><a href="gan.html#cb472-56" aria-hidden="true" tabindex="-1"></a>    target <span class="ot">=</span> batch[i,<span class="dv">6</span>] <span class="co"># Reward.</span></span>
-<span id="cb472-57"><a href="gan.html#cb472-57" aria-hidden="true" tabindex="-1"></a>    action <span class="ot">=</span> batch[i,<span class="dv">5</span>] <span class="co"># Action.</span></span>
-<span id="cb472-58"><a href="gan.html#cb472-58" aria-hidden="true" tabindex="-1"></a>    state <span class="ot">=</span> <span class="fu">matrix</span>(memory[i, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>], <span class="at">nrow =</span> 1L)</span>
-<span id="cb472-59"><a href="gan.html#cb472-59" aria-hidden="true" tabindex="-1"></a>    next_state <span class="ot">=</span> <span class="fu">matrix</span>(memory[i,<span class="dv">7</span><span class="sc">:</span><span class="dv">10</span>], <span class="at">nrow =</span>1L)</span>
-<span id="cb472-60"><a href="gan.html#cb472-60" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(<span class="sc">!</span>batch[i,<span class="dv">11</span>]){ <span class="co"># Not done.</span></span>
-<span id="cb472-61"><a href="gan.html#cb472-61" aria-hidden="true" tabindex="-1"></a>      target <span class="ot">=</span> (batch[i,<span class="dv">6</span>] <span class="sc">+</span> gamma <span class="sc">*</span> <span class="fu">predict</span>(model,</span>
-<span id="cb472-62"><a href="gan.html#cb472-62" aria-hidden="true" tabindex="-1"></a>                                            <span class="fu">matrix</span>(next_state, <span class="at">nrow =</span> 1L)))[<span class="dv">1</span>,<span class="dv">1</span>]</span>
-<span id="cb472-63"><a href="gan.html#cb472-63" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb472-64"><a href="gan.html#cb472-64" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb472-65"><a href="gan.html#cb472-65" aria-hidden="true" tabindex="-1"></a>    target_f <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">matrix</span>(state, <span class="at">nrow =</span> 1L))</span>
-<span id="cb472-66"><a href="gan.html#cb472-66" aria-hidden="true" tabindex="-1"></a>    target_f[action<span class="sc">+</span>1L] <span class="ot">=</span> target</span>
-<span id="cb472-67"><a href="gan.html#cb472-67" aria-hidden="true" tabindex="-1"></a>    model<span class="sc">$</span><span class="fu">fit</span>(<span class="at">x =</span> state, <span class="at">y =</span> target_f, <span class="at">epochs =</span> 1L, <span class="at">verbose =</span> 0L)</span>
-<span id="cb472-68"><a href="gan.html#cb472-68" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb472-69"><a href="gan.html#cb472-69" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(epsilon <span class="sc">&gt;</span> epsilon_min){ epsilon <span class="ot">&lt;&lt;-</span> epsilon_decay<span class="sc">*</span>epsilon }</span>
-<span id="cb472-70"><a href="gan.html#cb472-70" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb472-71"><a href="gan.html#cb472-71" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb472-72"><a href="gan.html#cb472-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb472-73"><a href="gan.html#cb472-73" aria-hidden="true" tabindex="-1"></a>done <span class="ot">=</span> <span class="dv">0</span></span>
-<span id="cb472-74"><a href="gan.html#cb472-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb472-75"><a href="gan.html#cb472-75" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>){</span>
-<span id="cb472-76"><a href="gan.html#cb472-76" aria-hidden="true" tabindex="-1"></a>  state <span class="ot">=</span> <span class="fu">unlist</span>(<span class="fu">env_reset</span>(client, env))</span>
-<span id="cb472-77"><a href="gan.html#cb472-77" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb472-78"><a href="gan.html#cb472-78" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(time <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">500</span>){</span>
-<span id="cb472-79"><a href="gan.html#cb472-79" aria-hidden="true" tabindex="-1"></a>    action <span class="ot">=</span> <span class="fu">act</span>(state)</span>
-<span id="cb472-80"><a href="gan.html#cb472-80" aria-hidden="true" tabindex="-1"></a>    response <span class="ot">=</span> <span class="fu">env_step</span>(client, env, <span class="at">action =</span> action)</span>
-<span id="cb472-81"><a href="gan.html#cb472-81" aria-hidden="true" tabindex="-1"></a>    done <span class="ot">=</span> <span class="fu">as.integer</span>(response<span class="sc">$</span>done)</span>
-<span id="cb472-82"><a href="gan.html#cb472-82" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb472-83"><a href="gan.html#cb472-83" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(<span class="sc">!</span>done){ reward <span class="ot">=</span> response<span class="sc">$</span>reward }</span>
-<span id="cb472-84"><a href="gan.html#cb472-84" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>{ reward <span class="ot">=</span> <span class="sc">-</span><span class="dv">10</span> }</span>
-<span id="cb472-85"><a href="gan.html#cb472-85" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb472-86"><a href="gan.html#cb472-86" aria-hidden="true" tabindex="-1"></a>    next_state <span class="ot">=</span> <span class="fu">unlist</span>(response<span class="sc">$</span>observation)</span>
-<span id="cb472-87"><a href="gan.html#cb472-87" aria-hidden="true" tabindex="-1"></a>    memory <span class="ot">=</span> <span class="fu">remember</span>(memory, state, action, reward, next_state, done)</span>
-<span id="cb472-88"><a href="gan.html#cb472-88" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb472-89"><a href="gan.html#cb472-89" aria-hidden="true" tabindex="-1"></a>    state <span class="ot">=</span> next_state</span>
-<span id="cb472-90"><a href="gan.html#cb472-90" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(done){</span>
-<span id="cb472-91"><a href="gan.html#cb472-91" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"episode"</span>, e<span class="sc">/</span><span class="dv">500</span>, <span class="st">" score: "</span>, time, <span class="st">" eps: "</span>, epsilon, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb472-92"><a href="gan.html#cb472-92" aria-hidden="true" tabindex="-1"></a>      <span class="cf">break</span>()</span>
-<span id="cb472-93"><a href="gan.html#cb472-93" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb472-94"><a href="gan.html#cb472-94" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb472-95"><a href="gan.html#cb472-95" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(counter <span class="sc">&gt;</span> 32L){ <span class="fu">replay</span>(32L, memory, counter<span class="sc">-</span>1L) }</span>
-<span id="cb472-96"><a href="gan.html#cb472-96" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb472-97"><a href="gan.html#cb472-97" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb398"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb398-1"><a href="gan.html#cb398-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
+<span id="cb398-2"><a href="gan.html#cb398-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
+<span id="cb398-3"><a href="gan.html#cb398-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gym)</span>
+<span id="cb398-4"><a href="gan.html#cb398-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set_random_seed</span>(321L, <span class="at">disable_gpu =</span> <span class="cn">FALSE</span>)  <span class="co"># Already sets R's random seed.</span></span>
+<span id="cb398-5"><a href="gan.html#cb398-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-6"><a href="gan.html#cb398-6" aria-hidden="true" tabindex="-1"></a>remote_base <span class="ot">=</span>´ <span class="st">"http://127.0.0.1:5000"</span></span>
+<span id="cb398-7"><a href="gan.html#cb398-7" aria-hidden="true" tabindex="-1"></a>client <span class="ot">=</span> <span class="fu">create_GymClient</span>(remote_base)</span>
+<span id="cb398-8"><a href="gan.html#cb398-8" aria-hidden="true" tabindex="-1"></a>env <span class="ot">=</span> gym<span class="sc">::</span><span class="fu">env_create</span>(client, <span class="st">"CartPole-v1"</span>)</span>
+<span id="cb398-9"><a href="gan.html#cb398-9" aria-hidden="true" tabindex="-1"></a>gym<span class="sc">::</span><span class="fu">env_list_all</span>(client)</span>
+<span id="cb398-10"><a href="gan.html#cb398-10" aria-hidden="true" tabindex="-1"></a><span class="fu">env_reset</span>(client, env)</span>
+<span id="cb398-11"><a href="gan.html#cb398-11" aria-hidden="true" tabindex="-1"></a><span class="co"># action = env_action_space_sample(client, env)</span></span>
+<span id="cb398-12"><a href="gan.html#cb398-12" aria-hidden="true" tabindex="-1"></a>step <span class="ot">=</span> <span class="fu">env_step</span>(client, env, <span class="dv">1</span>)</span>
+<span id="cb398-13"><a href="gan.html#cb398-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-14"><a href="gan.html#cb398-14" aria-hidden="true" tabindex="-1"></a><span class="fu">env_reset</span>(client, env)</span>
+<span id="cb398-15"><a href="gan.html#cb398-15" aria-hidden="true" tabindex="-1"></a>goal_steps <span class="ot">=</span> <span class="dv">500</span></span>
+<span id="cb398-16"><a href="gan.html#cb398-16" aria-hidden="true" tabindex="-1"></a>score_requirement <span class="ot">=</span> <span class="dv">60</span></span>
+<span id="cb398-17"><a href="gan.html#cb398-17" aria-hidden="true" tabindex="-1"></a>intial_games <span class="ot">=</span> <span class="dv">1000</span></span>
+<span id="cb398-18"><a href="gan.html#cb398-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-19"><a href="gan.html#cb398-19" aria-hidden="true" tabindex="-1"></a>state_size <span class="ot">=</span> 4L</span>
+<span id="cb398-20"><a href="gan.html#cb398-20" aria-hidden="true" tabindex="-1"></a>action_size <span class="ot">=</span> 2L</span>
+<span id="cb398-21"><a href="gan.html#cb398-21" aria-hidden="true" tabindex="-1"></a>gamma <span class="ot">=</span> <span class="fl">0.95</span></span>
+<span id="cb398-22"><a href="gan.html#cb398-22" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">=</span> <span class="fl">0.95</span></span>
+<span id="cb398-23"><a href="gan.html#cb398-23" aria-hidden="true" tabindex="-1"></a>epsilon_min <span class="ot">=</span> <span class="fl">0.01</span></span>
+<span id="cb398-24"><a href="gan.html#cb398-24" aria-hidden="true" tabindex="-1"></a>epsilon_decay <span class="ot">=</span> <span class="fl">0.995</span></span>
+<span id="cb398-25"><a href="gan.html#cb398-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-26"><a href="gan.html#cb398-26" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
+<span id="cb398-27"><a href="gan.html#cb398-27" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
+<span id="cb398-28"><a href="gan.html#cb398-28" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(<span class="at">input_shape =</span> <span class="fu">c</span>(4L), <span class="at">units =</span> 20L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb398-29"><a href="gan.html#cb398-29" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(<span class="at">units =</span> 20L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb398-30"><a href="gan.html#cb398-30" aria-hidden="true" tabindex="-1"></a> <span class="fu">layer_dense</span>(2L, <span class="at">activation =</span> <span class="st">"linear"</span>)</span>
+<span id="cb398-31"><a href="gan.html#cb398-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-32"><a href="gan.html#cb398-32" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
+<span id="cb398-33"><a href="gan.html#cb398-33" aria-hidden="true" tabindex="-1"></a> keras<span class="sc">::</span><span class="fu">compile</span>(<span class="at">loss =</span> loss_mean_squared_error, <span class="at">optimizer =</span> <span class="fu">optimizer_adamax</span>())</span>
+<span id="cb398-34"><a href="gan.html#cb398-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-35"><a href="gan.html#cb398-35" aria-hidden="true" tabindex="-1"></a>memory <span class="ot">=</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> 8000L, 11L)</span>
+<span id="cb398-36"><a href="gan.html#cb398-36" aria-hidden="true" tabindex="-1"></a>counter <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb398-37"><a href="gan.html#cb398-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-38"><a href="gan.html#cb398-38" aria-hidden="true" tabindex="-1"></a>remember <span class="ot">=</span> <span class="cf">function</span>(memory, state, action, reward, next_state, done){</span>
+<span id="cb398-39"><a href="gan.html#cb398-39" aria-hidden="true" tabindex="-1"></a>  memory[counter,] <span class="ot">=</span> <span class="fu">as.numeric</span>(<span class="fu">c</span>(state, action, reward, next_state, done))</span>
+<span id="cb398-40"><a href="gan.html#cb398-40" aria-hidden="true" tabindex="-1"></a>  counter <span class="ot">&lt;&lt;-</span> counter<span class="sc">+</span><span class="dv">1</span></span>
+<span id="cb398-41"><a href="gan.html#cb398-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(memory)</span>
+<span id="cb398-42"><a href="gan.html#cb398-42" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb398-43"><a href="gan.html#cb398-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-44"><a href="gan.html#cb398-44" aria-hidden="true" tabindex="-1"></a><span class="co"># memory: state 1:4, action 5, reward 6, next_state 7:10, done 11</span></span>
+<span id="cb398-45"><a href="gan.html#cb398-45" aria-hidden="true" tabindex="-1"></a>act <span class="ot">=</span> <span class="cf">function</span>(state){</span>
+<span id="cb398-46"><a href="gan.html#cb398-46" aria-hidden="true" tabindex="-1"></a> <span class="cf">if</span>(<span class="fu">runif</span>(<span class="dv">1</span>) <span class="sc">&lt;=</span> epsilon){ <span class="fu">return</span>(<span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="dv">1</span>)) }</span>
+<span id="cb398-47"><a href="gan.html#cb398-47" aria-hidden="true" tabindex="-1"></a> act_prob <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">matrix</span>(state, <span class="at">nrow =</span> 1L))</span>
+<span id="cb398-48"><a href="gan.html#cb398-48" aria-hidden="true" tabindex="-1"></a> <span class="fu">return</span>(<span class="fu">which.max</span>(act_prob) <span class="sc">-</span> 1L)</span>
+<span id="cb398-49"><a href="gan.html#cb398-49" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb398-50"><a href="gan.html#cb398-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-51"><a href="gan.html#cb398-51" aria-hidden="true" tabindex="-1"></a>replay <span class="ot">=</span> <span class="cf">function</span>(<span class="at">batch_size =</span> 25L, memory, counter){</span>
+<span id="cb398-52"><a href="gan.html#cb398-52" aria-hidden="true" tabindex="-1"></a>  indices <span class="ot">=</span> <span class="fu">sample.int</span>(counter, batch_size)</span>
+<span id="cb398-53"><a href="gan.html#cb398-53" aria-hidden="true" tabindex="-1"></a>  batch <span class="ot">=</span> memory[indices,,drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
+<span id="cb398-54"><a href="gan.html#cb398-54" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb398-55"><a href="gan.html#cb398-55" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(batch)){</span>
+<span id="cb398-56"><a href="gan.html#cb398-56" aria-hidden="true" tabindex="-1"></a>    target <span class="ot">=</span> batch[i,<span class="dv">6</span>] <span class="co"># Reward.</span></span>
+<span id="cb398-57"><a href="gan.html#cb398-57" aria-hidden="true" tabindex="-1"></a>    action <span class="ot">=</span> batch[i,<span class="dv">5</span>] <span class="co"># Action.</span></span>
+<span id="cb398-58"><a href="gan.html#cb398-58" aria-hidden="true" tabindex="-1"></a>    state <span class="ot">=</span> <span class="fu">matrix</span>(memory[i, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>], <span class="at">nrow =</span> 1L)</span>
+<span id="cb398-59"><a href="gan.html#cb398-59" aria-hidden="true" tabindex="-1"></a>    next_state <span class="ot">=</span> <span class="fu">matrix</span>(memory[i,<span class="dv">7</span><span class="sc">:</span><span class="dv">10</span>], <span class="at">nrow =</span>1L)</span>
+<span id="cb398-60"><a href="gan.html#cb398-60" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(<span class="sc">!</span>batch[i,<span class="dv">11</span>]){ <span class="co"># Not done.</span></span>
+<span id="cb398-61"><a href="gan.html#cb398-61" aria-hidden="true" tabindex="-1"></a>      target <span class="ot">=</span> (batch[i,<span class="dv">6</span>] <span class="sc">+</span> gamma <span class="sc">*</span> <span class="fu">predict</span>(model,</span>
+<span id="cb398-62"><a href="gan.html#cb398-62" aria-hidden="true" tabindex="-1"></a>                                            <span class="fu">matrix</span>(next_state, <span class="at">nrow =</span> 1L)))[<span class="dv">1</span>,<span class="dv">1</span>]</span>
+<span id="cb398-63"><a href="gan.html#cb398-63" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb398-64"><a href="gan.html#cb398-64" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb398-65"><a href="gan.html#cb398-65" aria-hidden="true" tabindex="-1"></a>    target_f <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">matrix</span>(state, <span class="at">nrow =</span> 1L))</span>
+<span id="cb398-66"><a href="gan.html#cb398-66" aria-hidden="true" tabindex="-1"></a>    target_f[action<span class="sc">+</span>1L] <span class="ot">=</span> target</span>
+<span id="cb398-67"><a href="gan.html#cb398-67" aria-hidden="true" tabindex="-1"></a>    model<span class="sc">$</span><span class="fu">fit</span>(<span class="at">x =</span> state, <span class="at">y =</span> target_f, <span class="at">epochs =</span> 1L, <span class="at">verbose =</span> 0L)</span>
+<span id="cb398-68"><a href="gan.html#cb398-68" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb398-69"><a href="gan.html#cb398-69" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(epsilon <span class="sc">&gt;</span> epsilon_min){ epsilon <span class="ot">&lt;&lt;-</span> epsilon_decay<span class="sc">*</span>epsilon }</span>
+<span id="cb398-70"><a href="gan.html#cb398-70" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb398-71"><a href="gan.html#cb398-71" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb398-72"><a href="gan.html#cb398-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-73"><a href="gan.html#cb398-73" aria-hidden="true" tabindex="-1"></a>done <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb398-74"><a href="gan.html#cb398-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-75"><a href="gan.html#cb398-75" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>){</span>
+<span id="cb398-76"><a href="gan.html#cb398-76" aria-hidden="true" tabindex="-1"></a>  state <span class="ot">=</span> <span class="fu">unlist</span>(<span class="fu">env_reset</span>(client, env))</span>
+<span id="cb398-77"><a href="gan.html#cb398-77" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb398-78"><a href="gan.html#cb398-78" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(time <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">500</span>){</span>
+<span id="cb398-79"><a href="gan.html#cb398-79" aria-hidden="true" tabindex="-1"></a>    action <span class="ot">=</span> <span class="fu">act</span>(state)</span>
+<span id="cb398-80"><a href="gan.html#cb398-80" aria-hidden="true" tabindex="-1"></a>    response <span class="ot">=</span> <span class="fu">env_step</span>(client, env, <span class="at">action =</span> action)</span>
+<span id="cb398-81"><a href="gan.html#cb398-81" aria-hidden="true" tabindex="-1"></a>    done <span class="ot">=</span> <span class="fu">as.integer</span>(response<span class="sc">$</span>done)</span>
+<span id="cb398-82"><a href="gan.html#cb398-82" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb398-83"><a href="gan.html#cb398-83" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(<span class="sc">!</span>done){ reward <span class="ot">=</span> response<span class="sc">$</span>reward }</span>
+<span id="cb398-84"><a href="gan.html#cb398-84" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>{ reward <span class="ot">=</span> <span class="sc">-</span><span class="dv">10</span> }</span>
+<span id="cb398-85"><a href="gan.html#cb398-85" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb398-86"><a href="gan.html#cb398-86" aria-hidden="true" tabindex="-1"></a>    next_state <span class="ot">=</span> <span class="fu">unlist</span>(response<span class="sc">$</span>observation)</span>
+<span id="cb398-87"><a href="gan.html#cb398-87" aria-hidden="true" tabindex="-1"></a>    memory <span class="ot">=</span> <span class="fu">remember</span>(memory, state, action, reward, next_state, done)</span>
+<span id="cb398-88"><a href="gan.html#cb398-88" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb398-89"><a href="gan.html#cb398-89" aria-hidden="true" tabindex="-1"></a>    state <span class="ot">=</span> next_state</span>
+<span id="cb398-90"><a href="gan.html#cb398-90" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(done){</span>
+<span id="cb398-91"><a href="gan.html#cb398-91" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"episode"</span>, e<span class="sc">/</span><span class="dv">500</span>, <span class="st">" score: "</span>, time, <span class="st">" eps: "</span>, epsilon, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb398-92"><a href="gan.html#cb398-92" aria-hidden="true" tabindex="-1"></a>      <span class="cf">break</span>()</span>
+<span id="cb398-93"><a href="gan.html#cb398-93" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb398-94"><a href="gan.html#cb398-94" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb398-95"><a href="gan.html#cb398-95" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(counter <span class="sc">&gt;</span> 32L){ <span class="fu">replay</span>(32L, memory, counter<span class="sc">-</span>1L) }</span>
+<span id="cb398-96"><a href="gan.html#cb398-96" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb398-97"><a href="gan.html#cb398-97" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 </div>
 <div id="exercises-8" class="section level2" number="8.4">
 <h2>
@@ -962,7 +962,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
     </summary><p>
 </p>
 <p>Split the data:</p>
-<div class="sourceCode" id="cb473"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb399"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tfprobability">tfprobability</a></span><span class="op">)</span></span>
@@ -973,7 +973,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 <span><span class="va">train</span> <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">train</span><span class="op">/</span><span class="fl">255</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
 <p>Build the variational autoencoder:</p>
-<div class="sourceCode" id="cb474"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb400"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">encoded</span> <span class="op">=</span> <span class="fl">10L</span></span>
 <span><span class="va">prior</span> <span class="op">=</span> <span class="va">tfp</span><span class="op">$</span><span class="va">distributions</span><span class="op">$</span><span class="fu">Independent</span><span class="op">(</span></span>
 <span>  <span class="va">tfp</span><span class="op">$</span><span class="va">distributions</span><span class="op">$</span><span class="fu">Normal</span><span class="op">(</span>loc<span class="op">=</span><span class="va">tf</span><span class="op">$</span><span class="fu">zeros</span><span class="op">(</span><span class="va">encoded</span><span class="op">)</span>, scale <span class="op">=</span> <span class="fl">1.</span><span class="op">)</span>,</span>
@@ -1049,7 +1049,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 <span><span class="co">#&gt; Non-trainable params: 0</span></span>
 <span><span class="co">#&gt; __________________________________________________________________________________________</span></span></code></pre></div>
 <p>Compile and train model:</p>
-<div class="sourceCode" id="cb475"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb401"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">be</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">true</span>, <span class="va">pred</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">tf</span><span class="op">$</span><span class="va">losses</span><span class="op">$</span><span class="fu">binary_crossentropy</span><span class="op">(</span><span class="va">true</span>, <span class="va">pred</span><span class="op">)</span> <span class="op">*</span> <span class="fl">80.0</span> <span class="op">*</span> <span class="fl">80.0</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
@@ -1081,7 +1081,7 @@ In each iteration (for each batch) we will do the following (the GradientTape re
 <span>  <span class="fu"><a href="https://rdrr.io/r/grDevices/as.raster.html">as.raster</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="09-GAN_files/figure-html/chunk_chapter7_task_2__VAEflower-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb476"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb402"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
     
   </details><br><hr>
