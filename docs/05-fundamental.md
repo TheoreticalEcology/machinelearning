@@ -1142,6 +1142,1056 @@ Play around with the parameters on your own!
 ```
 
 
+## Tree-based Machine Learning Algorithms
+
+Famous machine learning algorithms such as _Random Forest_ and _Gradient Boosted trees_ are based on classification and regression trees.
+**Hint**: Tree-based algorithms are not distance based and thus do not need scaling.
+
+
+If you want to know a little bit more about the concepts described in the following - like decision, classification and regression trees as well as random forests - you might watch the following videos:
+
+* <a href="https://www.youtube.com/watch?v=7VeUPuFGJHk" target="_blank" rel="noopener">Decision trees</a>
+
+<br>
+<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/7VeUPuFGJHk"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>
+<br>
+* <a href="https://www.youtube.com/watch?v=g9c66TUylZ4" target="_blank" rel="noopener">Regression trees</a>
+<br>
+<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/g9c66TUylZ4"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>
+<br>
+* <a href="https://www.youtube.com/watch?v=J4Wdy0Wc_xQ" target="_blank" rel="noopener">Random forests</a>
+<br>
+<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/J4Wdy0Wc_xQ"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>
+<br>
+* <a href="https://www.youtube.com/watch?v=D0efHEJsfHo" target="_blank" rel="noopener">Pruning trees</a>
+<br>
+<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/D0efHEJsfHo"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>
+<br>
+After watching these videos, you should know what the different hyperparameters are doing and how to prevent trees / forests from doing something you don't want.
+
+
+### Classification and Regression Trees
+
+Tree-based models in general use a series of if-then rules to generate predictions from one or more decision trees.
+In this lecture, we will explore regression and classification trees by the example of the airquality data set. There is one important hyperparameter for regression trees: "minsplit".
+
+* It controls the depth of tree (see the help of rpart for a description).
+* It controls the complexity of the tree and can thus also be seen as a regularization parameter.
+
+We first prepare and visualize the data and afterwards fit a decision tree. 
+
+
+```r
+library(rpart)
+library(rpart.plot)
+
+data = airquality[complete.cases(airquality),]
+```
+
+Fit and visualize one(!) regression tree:
+
+
+```r
+rt = rpart(Ozone~., data = data, control = rpart.control(minsplit = 10))
+rpart.plot(rt)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_23-1.png" width="100%" style="display: block; margin: auto;" />
+
+Visualize the predictions:
+
+
+```r
+pred = predict(rt, data)
+plot(data$Temp, data$Ozone)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_24-1.png" width="100%" style="display: block; margin: auto;" />
+
+The angular form of the prediction line is typical for regression trees and is a weakness of it.
+
+
+### Random Forest
+
+To overcome this weakness, a random forest uses an ensemble of regression/classification trees. Thus, the random forest is in principle nothing else than a normal regression/classification tree, but it uses the idea of the *"wisdom of the crowd"* : By asking many people (regression/classification trees) one can make a more informed decision (prediction/classification). When you want to buy a new phone for example you also wouldn't go directly into the shop, but search in the internet and ask your friends and family.  
+
+There are two randomization steps with the random forest that are responsible for their success:
+
+* Bootstrap samples for each tree (we will sample observations with replacement from the data set. For the phone this is like not everyone has experience about each phone).
+* At each split, we will sample a subset of predictors that is then considered as potential splitting criterion (for the phone this is like that not everyone has the same decision criteria).
+Annotation: While building a decision tree (random forests consist of many decision trees), one splits the data at some point according to their features. For example if you have females and males, big and small people in a crowd, you con split this crowd by gender and then by size or by size and then by gender to build a decision tree.
+
+Applying the random forest follows the same principle as for the methods before: We visualize the data (we have already done this so often for the airquality data set, thus we skip it here), fit the algorithm and then plot the outcomes.
+
+Fit a random forest and visualize the predictions:
+
+
+```r
+library(randomForest)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+
+rf = randomForest(Ozone~., data = data)
+pred = predict(rf, data)
+plot(Ozone~Temp, data = data)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_25-1.png" width="100%" style="display: block; margin: auto;" />
+
+One advantage of random forests is that we will get an importance of variables. At each split in each tree, the improvement in the split-criterion is the importance measure attributed to the splitting variable, and is accumulated over all the trees in the forest separately for each variable. Thus the variable importance shows us how important a variable is averaged over all trees.
+
+
+```r
+rf$importance
+#>         IncNodePurity
+#> Solar.R      17969.59
+#> Wind         31978.36
+#> Temp         34176.71
+#> Month        10753.73
+#> Day          15436.47
+```
+
+There are several important hyperparameters in a random forest that we can tune to get better results:
+
+* Similar to the minsplit parameter in regression and classification trees, the hyperparameter "nodesize" controls for complexity $\rightarrow$ Minimum size of terminal nodes in the tree. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
+* mtry: Number of features randomly sampled as candidates at each split.
+
+
+### Boosted Regression Trees
+
+Random forests fit hundreds of trees independent of each other. Here, the idea of a boosted regression tree comes in. Maybe we could learn from the errors the previous weak learners made and thus enhance the performance of the algorithm. 
+
+A boosted regression tree (BRT) starts with a simple regression tree (weak learner) and then sequentially fits additional trees to improve the results.
+There are two different strategies to do so:
+
+* _AdaBoost_: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.
+* _Gradient boosting_ (state of the art): Each sequential model will be fit on the residual errors of the previous model.
+
+We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix.
+
+
+```r
+library(xgboost)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+```
+
+
+```r
+data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
+brt = xgboost(data_xg, nrounds = 16L)
+#> [1]	train-rmse:39.724624 
+#> [2]	train-rmse:30.225761 
+#> [3]	train-rmse:23.134840 
+#> [4]	train-rmse:17.899179 
+#> [5]	train-rmse:14.097785 
+#> [6]	train-rmse:11.375457 
+#> [7]	train-rmse:9.391276 
+#> [8]	train-rmse:7.889690 
+#> [9]	train-rmse:6.646586 
+#> [10]	train-rmse:5.804859 
+#> [11]	train-rmse:5.128437 
+#> [12]	train-rmse:4.456416 
+#> [13]	train-rmse:4.069464 
+#> [14]	train-rmse:3.674615 
+#> [15]	train-rmse:3.424578 
+#> [16]	train-rmse:3.191301
+```
+
+The parameter "nrounds" controls how many sequential trees we fit, in our example this was 16. When we predict on new data, we can limit the number of trees used to prevent overfitting (remember: each new tree tries to improve the predictions of the previous trees). 
+
+Let us visualize the predictions for different numbers of trees:
+
+
+```r
+oldpar = par(mfrow = c(2, 2))
+for(i in 1:4){
+  pred = predict(brt, newdata = data_xg, ntreelimit = i)
+  plot(data$Temp, data$Ozone, main = i)
+  lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+}
+#> [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
+#> [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
+#> [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
+#> [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_29__BRT2-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+par(oldpar)
+```
+
+There are also other ways to control for complexity of the boosted regression tree algorithm:
+
+* max_depth: Maximum depth of each tree.
+* shrinkage (each tree will get a weight and the weight will decrease with the number of trees).
+
+When having specified the final model, we can obtain the importance of the variables like for random forests:
+
+
+```r
+xgboost::xgb.importance(model = brt)
+#>    Feature        Gain     Cover  Frequency
+#> 1:    Temp 0.570071903 0.2958229 0.24836601
+#> 2:    Wind 0.348230710 0.3419576 0.24183007
+#> 3: Solar.R 0.058795542 0.1571072 0.30718954
+#> 4:     Day 0.019529993 0.1779925 0.16993464
+#> 5:   Month 0.003371853 0.0271197 0.03267974
+sqrt(mean((data$Ozone - pred)^2)) # RMSE
+#> [1] 17.89918
+data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
+```
+
+One important strength of xgboost is that we can directly do a cross-validation (which is independent of the boosted regression tree itself!) and specify its properties with the parameter "n-fold":
+
+
+```r
+set.seed(123)
+
+brt = xgboost(data_xg, nrounds = 5L)
+#> [1]	train-rmse:39.724624 
+#> [2]	train-rmse:30.225761 
+#> [3]	train-rmse:23.134840 
+#> [4]	train-rmse:17.899179 
+#> [5]	train-rmse:14.097785
+brt_cv = xgboost::xgb.cv(data = data_xg, nfold = 3L,
+                         nrounds = 3L, nthreads = 4L)
+#> [1]	train-rmse:39.895106+2.127355	test-rmse:40.685477+5.745327 
+#> [2]	train-rmse:30.367660+1.728788	test-rmse:32.255812+5.572963 
+#> [3]	train-rmse:23.446237+1.366757	test-rmse:27.282435+5.746244
+print(brt_cv)
+#> ##### xgb.cv 3-folds
+#>  iter train_rmse_mean train_rmse_std test_rmse_mean test_rmse_std
+#>     1        39.89511       2.127355       40.68548      5.745327
+#>     2        30.36766       1.728788       32.25581      5.572963
+#>     3        23.44624       1.366757       27.28244      5.746244
+```
+
+Annotation: The original data set is randomly partitioned into $n$ equal sized subsamples. Each time, the model is trained on $n - 1$ subsets (training set) and tested on the left out set (test set) to judge the performance.
+
+If we do three-folded cross-validation, we actually fit three different boosted regression tree models (xgboost models) on $\approx 67\%$ of the data points. Afterwards, we judge the performance on the respective holdout. This now tells us how well the model performed.
+
+### Exercises
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
+```
+
+We will use the following code snippet to see the influence of mincut on trees.
+
+
+```r
+library(tree)
+set.seed(123)
+
+data = airquality
+rt = tree(Ozone~., data = data,
+          control = tree.control(mincut = 1L, nobs = nrow(data)))
+
+plot(rt)
+text(rt)
+pred = predict(rt, data)
+plot(data$Temp, data$Ozone)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+sqrt(mean((data$Ozone - pred)^2)) # RMSE
+```
+
+Try different mincut parameters and see what happens.
+(Compare the root mean squared error for different mincut parameters and explain what you see.
+Compare predictions for different mincut parameters and explain what happens.)
+What was wrong in the snippet above?
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+
+```r
+library(tree)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+
+doTask = function(mincut){
+  rt = tree(Ozone~., data = data,
+            control = tree.control(mincut = mincut, nobs = nrow(data)))
+
+  pred = predict(rt, data)
+  plot(data$Temp, data$Ozone,
+       main = paste0(
+         "mincut: ", mincut,
+         "\nRMSE: ", round(sqrt(mean((data$Ozone - pred)^2)), 2)
+      )
+  )
+  lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+}
+
+for(i in c(1, 2, 3, 5, 10, 15, 25, 50, 54, 55, 56, 57, 75, 100)){ doTask(i) }
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-1.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-2.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-3.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-4.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-5.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-6.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-7.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-8.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-9.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-10.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-11.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-12.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-13.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-14.png" width="100%" style="display: block; margin: auto;" />
+Approximately at mincut = 15, prediction is the best (mind overfitting). After mincut = 56, the prediction has no information at all and the RMSE stays constant.
+
+Mind the complete cases of the airquality data set, that was the error.
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
+```
+
+We will use the following code snippet to explore a random forest:
+
+
+```r
+library(randomForest)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+
+rf = randomForest(Ozone~., data = data)
+
+pred = predict(rf, data)
+importance(rf)
+#>         IncNodePurity
+#> Solar.R      17969.59
+#> Wind         31978.36
+#> Temp         34176.71
+#> Month        10753.73
+#> Day          15436.47
+cat("RMSE: ", sqrt(mean((data$Ozone - pred)^2)), "\n")
+#> RMSE:  9.507848
+
+plot(data$Temp, data$Ozone)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_23-1.png" width="100%" style="display: block; margin: auto;" />
+
+Try different values for the nodesize and mtry and describe how the predictions depend on these parameters.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+
+```r
+library(randomForest)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+
+
+for(nodesize in c(1, 5, 15, 50, 100)){
+  for(mtry in c(1, 3, 5)){
+    rf = randomForest(Ozone~., data = data, mtry = mtry, nodesize = nodesize)
+    
+    pred = predict(rf, data)
+    
+    plot(data$Temp, data$Ozone, main = paste0(
+        "mtry: ", mtry, "    nodesize: ", nodesize,
+        "\nRMSE: ", round(sqrt(mean((data$Ozone - pred)^2)), 2)
+      )
+    )
+    lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+  }
+}
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-1.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-2.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-3.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-4.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-5.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-6.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-7.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-8.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-9.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-10.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-11.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-12.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-13.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-14.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-15.png" width="100%" style="display: block; margin: auto;" />
+
+Higher numbers for mtry smooth the prediction curve and yield less overfitting. The same holds for the nodesize.
+In other words: The bigger the nodesize, the smaller the trees and the more bias/less variance.
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br/>
+```
+
+
+```r
+library(xgboost)
+library(animation)
+set.seed(123)
+
+x1 = seq(-3, 3, length.out = 100)
+x2 = seq(-3, 3, length.out = 100)
+x = expand.grid(x1, x2)
+y = apply(x, 1, function(t) exp(-t[1]^2 - t[2]^2))
+
+
+image(matrix(y, 100, 100), main = "Original image", axes = FALSE, las = 2)
+axis(1, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1))
+axis(2, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+
+
+model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
+                         nrounds = 500L, verbose = 0L)
+pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
+               ntreelimit = 10L)
+
+saveGIF(
+  {
+    for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
+      pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
+                     ntreelimit = i)
+      image(matrix(pred, 100, 100), main = paste0("Trees: ", i),
+            axes = FALSE, las = 2)
+      axis(1, at = seq(0, 1, length.out = 10),
+           labels = round(seq(-3, 3, length.out = 10), 1))
+      axis(2, at = seq(0, 1, length.out = 10),
+           labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+    }
+  },
+  movie.name = "boosting.gif", autobrowse = FALSE
+)
+```
+<img src="./images/boosting.gif" width="100%" style="display: block; margin: auto;" />
+
+Run the above code and play with different parameters for xgboost (especially with parameters that control the complexity) and describe what you see!
+
+Tip: have a look at the boosting.gif.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+
+```r
+library(xgboost)
+library(animation)
+set.seed(123)
+
+x1 = seq(-3, 3, length.out = 100)
+x2 = seq(-3, 3, length.out = 100)
+x = expand.grid(x1, x2)
+y = apply(x, 1, function(t) exp(-t[1]^2 - t[2]^2))
+
+image(matrix(y, 100, 100), main = "Original image", axes = FALSE, las = 2)
+axis(1, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1))
+axis(2, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+
+for(eta in c(.1, .3, .5, .7, .9)){
+  for(max_depth in c(3, 6, 10, 20)){
+    model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
+                             max_depth = max_depth, eta = eta,
+                             nrounds = 500, verbose = 0L)
+  
+    saveGIF(
+      {
+        for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
+          pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
+                         ntreelimit = i)
+          image(matrix(pred, 100, 100),
+                main = paste0("eta: ", eta,
+                              "    max_depth: ", max_depth,
+                              "    Trees: ", i),
+                axes = FALSE, las = 2)
+          axis(1, at = seq(0, 1, length.out = 10),
+               labels = round(seq(-3, 3, length.out = 10), 1))
+          axis(2, at = seq(0, 1, length.out = 10),
+               labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+        }
+      },
+      movie.name = paste0("boosting_", max_depth, "_", eta, ".gif"),
+      autobrowse = FALSE
+    )
+  }
+}
+```
+
+As the possibilities scale extremely, you must vary some parameters on yourself.
+You may use for example the following parameters: "eta", "gamma", "max_depth", "min_child_weight", "subsample", "colsample_bytree", "num_parallel_tree", "monotone_constraints" or "interaction_constraints". Or you look into the documentation:
+
+
+```r
+?xgboost::xgboost
+```
+
+Just some examples:
+
+<img src="./images/boosting_3_0.1.gif" width="100%" style="display: block; margin: auto;" /><img src="./images/boosting_6_0.7.gif" width="100%" style="display: block; margin: auto;" /><img src="./images/boosting_20_0.9.gif" width="100%" style="display: block; margin: auto;" />
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
+```
+
+We implemented a simple boosted regression tree using R just for fun.
+Go through the code line by line and try to understand it. Ask, if you have any questions you cannot solve.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+
+```r
+library(tree)
+set.seed(123)
+
+depth = 1L
+
+#### Simulate Data
+x = runif(1000, -5, 5)
+y = x * sin(x) * 2 + rnorm(1000, 0, cos(x) + 1.8)
+data = data.frame(x = x, y = y)
+plot(y~x)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_30-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+#### Helper function for single tree fit.
+get_model = function(x, y){
+  control = tree.control(nobs = length(x), mincut = 20L)
+  model = tree(y~x, data.frame(x = x, y = y), control = control)
+  pred = predict(model, data.frame(x = x, y = y))
+  return(list(model = model, pred = pred))
+}
+
+#### Boost function.
+get_boosting_model = function(depth){
+  pred = NULL
+  m_list = list()
+  for(i in 1:depth){
+    if(i == 1){
+      m = get_model(x, y)
+      pred = m$pred
+    }else{
+      y_res = y - pred
+      m = get_model(x, y_res)
+      pred = pred + m$pred
+    }
+    m_list[[i]] = m$model
+  }
+  model_list <<- m_list  # This writes outside function scope!
+  return(pred)
+}
+
+### Main.
+pred = get_boosting_model(10L)[order(data$x)]
+
+length(model_list)
+#> [1] 10
+plot(model_list[[1]])
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_30-2.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+plot(y~x)
+lines(x = data$x[order(data$x)], get_boosting_model(1L)[order(data$x)],
+      col = 'red', lwd = 2)
+lines(x = data$x[order(data$x)], get_boosting_model(100L)[order(data$x)],
+      col = 'green', lwd = 2)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_30-3.png" width="100%" style="display: block; margin: auto;" />
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
+## Distance-based Algorithms
+
+In this chapter, we introduce support-vector machines (SVMs) and other distance-based methods
+**Hint**: Distance-based models need scaling!
+
+
+### K-Nearest-Neighbor
+
+K-nearest-neighbor (kNN) is a simple algorithm that stores all the available cases and classifies the new data based on a similarity measure. It is mostly used to classify a data point based on how its $k$ nearest neighbors are classified.
+
+Let us first see an example:
+
+
+```r
+x = scale(iris[,1:4])
+y = iris[,5]
+plot(x[-100,1], x[-100, 3], col = y)
+points(x[100,1], x[100, 3], col = "blue", pch = 18, cex = 1.3)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_32-1.png" width="100%" style="display: block; margin: auto;" />
+
+Which class would you decide for the blue point? What are the classes of the nearest points? Well, this procedure is used by the k-nearest-neighbors classifier and thus there is actually no "real" learning in a k-nearest-neighbors classification.
+
+For applying a k-nearest-neighbors classification, we first have to scale the data set, because we deal with distances and want the same influence of all predictors. Imagine one variable has values from -10.000 to 10.000 and another from -1 to 1. Then the influence of the first variable on the distance to the other points is much stronger than the influence of the second variable.
+On the iris data set, we have to split the data into training and test set on our own. Then we will follow the usual pipeline. 
+
+
+```r
+data = iris
+data[,1:4] = apply(data[,1:4],2, scale)
+indices = sample.int(nrow(data), 0.7*nrow(data))
+train = data[indices,]
+test = data[-indices,]
+```
+
+Fit model and create predictions:
+
+
+```r
+library(kknn)
+set.seed(123)
+
+knn = kknn(Species~., train = train, test = test)
+summary(knn)
+#> 
+#> Call:
+#> kknn(formula = Species ~ ., train = train, test = test)
+#> 
+#> Response: "nominal"
+#>           fit prob.setosa prob.versicolor prob.virginica
+#> 1      setosa           1      0.00000000      0.0000000
+#> 2      setosa           1      0.00000000      0.0000000
+#> 3      setosa           1      0.00000000      0.0000000
+#> 4      setosa           1      0.00000000      0.0000000
+#> 5      setosa           1      0.00000000      0.0000000
+#> 6      setosa           1      0.00000000      0.0000000
+#> 7      setosa           1      0.00000000      0.0000000
+#> 8      setosa           1      0.00000000      0.0000000
+#> 9      setosa           1      0.00000000      0.0000000
+#> 10     setosa           1      0.00000000      0.0000000
+#> 11     setosa           1      0.00000000      0.0000000
+#> 12     setosa           1      0.00000000      0.0000000
+#> 13     setosa           1      0.00000000      0.0000000
+#> 14 versicolor           0      0.86605852      0.1339415
+#> 15 versicolor           0      0.74027417      0.2597258
+#> 16 versicolor           0      0.91487300      0.0851270
+#> 17 versicolor           0      0.98430840      0.0156916
+#> 18 versicolor           0      0.91487300      0.0851270
+#> 19 versicolor           0      1.00000000      0.0000000
+#> 20 versicolor           0      1.00000000      0.0000000
+#> 21 versicolor           0      1.00000000      0.0000000
+#> 22 versicolor           0      1.00000000      0.0000000
+#> 23 versicolor           0      1.00000000      0.0000000
+#> 24 versicolor           0      1.00000000      0.0000000
+#> 25 versicolor           0      1.00000000      0.0000000
+#> 26 versicolor           0      1.00000000      0.0000000
+#> 27 versicolor           0      0.86605852      0.1339415
+#> 28 versicolor           0      1.00000000      0.0000000
+#> 29  virginica           0      0.00000000      1.0000000
+#> 30  virginica           0      0.00000000      1.0000000
+#> 31  virginica           0      0.00000000      1.0000000
+#> 32  virginica           0      0.00000000      1.0000000
+#> 33  virginica           0      0.08512700      0.9148730
+#> 34  virginica           0      0.22169561      0.7783044
+#> 35  virginica           0      0.00000000      1.0000000
+#> 36  virginica           0      0.23111986      0.7688801
+#> 37 versicolor           0      1.00000000      0.0000000
+#> 38  virginica           0      0.04881448      0.9511855
+#> 39 versicolor           0      0.64309579      0.3569042
+#> 40 versicolor           0      0.67748579      0.3225142
+#> 41  virginica           0      0.17288113      0.8271189
+#> 42  virginica           0      0.00000000      1.0000000
+#> 43  virginica           0      0.00000000      1.0000000
+#> 44  virginica           0      0.00000000      1.0000000
+#> 45  virginica           0      0.35690421      0.6430958
+table(test$Species, fitted(knn))
+#>             
+#>              setosa versicolor virginica
+#>   setosa         13          0         0
+#>   versicolor      0         15         0
+#>   virginica       0          3        14
+```
+
+
+### Support Vector Machines (SVMs)
+
+Support vectors machines have a different approach. They try to divide the predictor space into sectors for each class. To do so, a support-vector machine fits the parameters of a hyperplane (a $n-1$ dimensional subspace in a $n$-dimensional space) in the predictor space by optimizing the distance between the hyperplane and the nearest point from each class. 
+
+Fitting a support-vector machine:
+
+
+```r
+library(e1071)
+
+data = iris
+data[,1:4] = apply(data[,1:4], 2, scale)
+indices = sample.int(nrow(data), 0.7*nrow(data))
+train = data[indices,]
+test = data[-indices,]
+
+sm = svm(Species~., data = train, kernel = "linear")
+pred = predict(sm, newdata = test)
+```
+
+
+```r
+oldpar = par(mfrow = c(1, 2))
+plot(test$Sepal.Length, test$Petal.Length,
+     col =  pred, main = "predicted")
+plot(test$Sepal.Length, test$Petal.Length,
+     col =  test$Species, main = "observed")
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_36-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+par(oldpar)
+
+mean(pred == test$Species) # Accuracy.
+#> [1] 0.9777778
+```
+
+Support-vector machines can only work on linearly separable problems. (A problem is called linearly separable if there exists at least one line in the plane with all of the points of one class on one side of the hyperplane and all the points of the others classes on the other side).
+
+If this is not possible, we however, can use the so called *kernel trick*, which maps the predictor space into a (higher dimensional) space in which the problem is linear separable. After having identified the boundaries in the higher-dimensional space, we can project them back into the original dimensions.
+
+
+```r
+x1 = seq(-3, 3, length.out = 100)
+x2 = seq(-3, 3, length.out = 100)
+x = expand.grid(x1, x2)
+y = apply(X, 1, function(t) exp(-t[1]^2 - t[2]^2))
+y = ifelse(1/(1+exp(-y)) < 0.62, 0, 1)
+
+image(matrix(y, 100, 100))
+animation::saveGIF(
+  {
+    for(i in c("truth", "linear", "radial", "sigmoid")){
+      if(i == "truth"){
+        image(matrix(y, 100,100),
+        main = "Ground truth", axes = FALSE, las = 2)
+      }else{
+        sv = e1071::svm(x = x, y = factor(y), kernel = i)
+        image(matrix(as.numeric(as.character(predict(sv, x))), 100, 100),
+        main = paste0("Kernel: ", i), axes = FALSE, las = 2)
+        axis(1, at = seq(0,1, length.out = 10),
+        labels = round(seq(-3, 3, length.out = 10), 1))
+        axis(2, at = seq(0,1, length.out = 10),
+        labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+      }
+    }
+  },
+  movie.name = "svm.gif", autobrowse = FALSE
+)
+```
+
+<img src="./images/svm.gif" width="100%" style="display: block; margin: auto;" />
+
+As you have seen, this does not work with every kernel. Hence, the problem is to find the actual correct kernel, which is again an optimization procedure and can thus be approximated.
+
+
+### Exercises
+
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
+```
+
+We will use the Sonar data set to explore support-vector machines and k-neartest-neighbor classifier.
+
+
+```r
+library(mlbench)
+set.seed(123)
+
+data(Sonar)
+data = Sonar
+indices = sample.int(nrow(Sonar), 0.5 * nrow(Sonar))
+```
+
+Split the Sonar data set from the mlbench library into training- and testset with 50% in each group. Is this a useful split?
+The response variable is "class". So you are trying to classify the class.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+
+```r
+library(mlbench)
+set.seed(123)
+
+data(Sonar)
+data = Sonar
+#str(data)
+
+# Do not forget scaling! This may be done implicitly by most functions.
+# Here, it's done explicitly for teaching purposes.
+data = cbind.data.frame(
+  scale(data[,-length(data)]),
+  "class" = data[,length(data)]
+)
+
+n = length(data[,1])
+indicesTrain = sample.int(n, (n+1) %/% 2) # Take (at least) 50 % of the data.
+
+train = data[indicesTrain,]
+test = data[-indicesTrain,]
+
+labelsTrain = train[,length(train)]
+labelsTest = test[,length(test)]
+```
+
+Until you have strong reasons for that, 50/50 is no really good decision. You waste data/power.
+Do not forget scaling!
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
+```
+
+Fit a standard k-nearest-neighbor classifier and a support vector machine with a linear kernel (check help), and report what fitted better.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+
+```r
+library(e1071)
+library(kknn)
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "rectangular")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
+predSVM = predict(sm, newdata = test)
+```
+
+
+```
+#> K-nearest-neighbor, standard (rectangular) kernel:
+#>        labelsTest
+#> predKNN  M  R
+#>       M 46 29
+#>       R  8 21
+#> Correctly classified:  67  /  104
+```
+
+
+```
+#> Support-vector machine, linear kernel:
+#>        labelsTest
+#> predSVM  M  R
+#>       M 41 15
+#>       R 13 35
+#> Correctly classified:  76  /  104
+```
+
+K-nearest neighbor fitted (slightly) better.
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br/>
+```
+
+Calculate accuracies of both algorithms.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+
+```r
+(accKNN = mean(predKNN == labelsTest))
+#> [1] 0.6442308
+(accSVM = mean(predSVM == labelsTest))
+#> [1] 0.7307692
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
+```
+
+Fit again with different kernels and compare accuracies.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+
+```r
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "optimal")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "radial")
+predSVM = predict(sm, newdata = test)
+
+(accKNN = mean(predKNN == labelsTest))
+#> [1] 0.75
+(accSVM = mean(predSVM == labelsTest))
+#> [1] 0.8076923
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:18px;">5. Task</span></strong><br/>
+```
+
+Try the fit again with a different seed for training and test set generation.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+
+```r
+set.seed(42)
+
+data = Sonar
+data = cbind.data.frame(
+  scale(data[,-length(data)]),
+  "class" = data[,length(data)]
+)
+
+n = length(data[,1])
+indicesTrain = sample.int(n, (n+1) %/% 2)
+
+train = data[indicesTrain,]
+test = data[-indicesTrain,]
+
+labelsTrain = train[,length(train)]
+labelsTest = test[,length(test)]
+
+#####
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "rectangular")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
+predSVM = predict(sm, newdata = test)
+
+(accKNN = mean(predKNN == labelsTest))
+#> [1] 0.7115385
+(accSVM = mean(predSVM == labelsTest))
+#> [1] 0.75
+
+#####
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "optimal")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "radial")
+predSVM = predict(sm, newdata = test)
+
+(accKNN = mean(predKNN == labelsTest))
+#> [1] 0.8557692
+(accSVM = mean(predSVM == labelsTest))
+#> [1] 0.8365385
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
+
+
 ## Artificial Neural Networks
 
 ::::: {.panelset}
@@ -2945,1054 +3995,6 @@ model = dnn(Ozone~.,
 
 
 Play around with regularization kind ($L1$, $L2$, $L1,L2$) strength and the learning rate also on your own!
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
-
-
-## Tree-based Machine Learning Algorithms
-
-Famous machine learning algorithms such as _Random Forest_ and _Gradient Boosted trees_ are based on classification and regression trees.
-**Hint**: Tree-based algorithms are not distance based and thus do not need scaling.
-
-
-If you want to know a little bit more about the concepts described in the following - like decision, classification and regression trees as well as random forests - you might watch the following videos:
-
-* <a href="https://www.youtube.com/watch?v=7VeUPuFGJHk" target="_blank" rel="noopener">Decision trees</a>
-
-<br>
-<iframe width="560" height="315" 
-  src="https://www.youtube.com/embed/7VeUPuFGJHk"
-  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>
-<br>
-* <a href="https://www.youtube.com/watch?v=g9c66TUylZ4" target="_blank" rel="noopener">Regression trees</a>
-<br>
-<iframe width="560" height="315" 
-  src="https://www.youtube.com/embed/g9c66TUylZ4"
-  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>
-<br>
-* <a href="https://www.youtube.com/watch?v=J4Wdy0Wc_xQ" target="_blank" rel="noopener">Random forests</a>
-<br>
-<iframe width="560" height="315" 
-  src="https://www.youtube.com/embed/J4Wdy0Wc_xQ"
-  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>
-<br>
-* <a href="https://www.youtube.com/watch?v=D0efHEJsfHo" target="_blank" rel="noopener">Pruning trees</a>
-<br>
-<iframe width="560" height="315" 
-  src="https://www.youtube.com/embed/D0efHEJsfHo"
-  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>
-<br>
-After watching these videos, you should know what the different hyperparameters are doing and how to prevent trees / forests from doing something you don't want.
-
-
-### Classification and Regression Trees
-
-Tree-based models in general use a series of if-then rules to generate predictions from one or more decision trees.
-In this lecture, we will explore regression and classification trees by the example of the airquality data set. There is one important hyperparameter for regression trees: "minsplit".
-
-* It controls the depth of tree (see the help of rpart for a description).
-* It controls the complexity of the tree and can thus also be seen as a regularization parameter.
-
-We first prepare and visualize the data and afterwards fit a decision tree. 
-
-
-```r
-library(rpart)
-library(rpart.plot)
-
-data = airquality[complete.cases(airquality),]
-```
-
-Fit and visualize one(!) regression tree:
-
-
-```r
-rt = rpart(Ozone~., data = data, control = rpart.control(minsplit = 10))
-rpart.plot(rt)
-```
-
-<img src="05-fundamental_files/figure-html/chunk_chapter4_23-1.png" width="100%" style="display: block; margin: auto;" />
-
-Visualize the predictions:
-
-
-```r
-pred = predict(rt, data)
-plot(data$Temp, data$Ozone)
-lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
-```
-
-<img src="05-fundamental_files/figure-html/chunk_chapter4_24-1.png" width="100%" style="display: block; margin: auto;" />
-
-The angular form of the prediction line is typical for regression trees and is a weakness of it.
-
-
-### Random Forest
-
-To overcome this weakness, a random forest uses an ensemble of regression/classification trees. Thus, the random forest is in principle nothing else than a normal regression/classification tree, but it uses the idea of the *"wisdom of the crowd"* : By asking many people (regression/classification trees) one can make a more informed decision (prediction/classification). When you want to buy a new phone for example you also wouldn't go directly into the shop, but search in the internet and ask your friends and family.  
-
-There are two randomization steps with the random forest that are responsible for their success:
-
-* Bootstrap samples for each tree (we will sample observations with replacement from the data set. For the phone this is like not everyone has experience about each phone).
-* At each split, we will sample a subset of predictors that is then considered as potential splitting criterion (for the phone this is like that not everyone has the same decision criteria).
-Annotation: While building a decision tree (random forests consist of many decision trees), one splits the data at some point according to their features. For example if you have females and males, big and small people in a crowd, you con split this crowd by gender and then by size or by size and then by gender to build a decision tree.
-
-Applying the random forest follows the same principle as for the methods before: We visualize the data (we have already done this so often for the airquality data set, thus we skip it here), fit the algorithm and then plot the outcomes.
-
-Fit a random forest and visualize the predictions:
-
-
-```r
-library(randomForest)
-set.seed(123)
-
-data = airquality[complete.cases(airquality),]
-
-rf = randomForest(Ozone~., data = data)
-pred = predict(rf, data)
-plot(Ozone~Temp, data = data)
-lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
-```
-
-<img src="05-fundamental_files/figure-html/chunk_chapter4_25-1.png" width="100%" style="display: block; margin: auto;" />
-
-One advantage of random forests is that we will get an importance of variables. At each split in each tree, the improvement in the split-criterion is the importance measure attributed to the splitting variable, and is accumulated over all the trees in the forest separately for each variable. Thus the variable importance shows us how important a variable is averaged over all trees.
-
-
-```r
-rf$importance
-#>         IncNodePurity
-#> Solar.R      17969.59
-#> Wind         31978.36
-#> Temp         34176.71
-#> Month        10753.73
-#> Day          15436.47
-```
-
-There are several important hyperparameters in a random forest that we can tune to get better results:
-
-* Similar to the minsplit parameter in regression and classification trees, the hyperparameter "nodesize" controls for complexity $\rightarrow$ Minimum size of terminal nodes in the tree. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
-* mtry: Number of features randomly sampled as candidates at each split.
-
-
-### Boosted Regression Trees
-
-Random forests fit hundreds of trees independent of each other. Here, the idea of a boosted regression tree comes in. Maybe we could learn from the errors the previous weak learners made and thus enhance the performance of the algorithm. 
-
-A boosted regression tree (BRT) starts with a simple regression tree (weak learner) and then sequentially fits additional trees to improve the results.
-There are two different strategies to do so:
-
-* _AdaBoost_: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.
-* _Gradient boosting_ (state of the art): Each sequential model will be fit on the residual errors of the previous model.
-
-We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix.
-
-
-```r
-library(xgboost)
-set.seed(123)
-
-data = airquality[complete.cases(airquality),]
-```
-
-
-```r
-data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
-brt = xgboost(data_xg, nrounds = 16L)
-#> [1]	train-rmse:39.724624 
-#> [2]	train-rmse:30.225761 
-#> [3]	train-rmse:23.134840 
-#> [4]	train-rmse:17.899179 
-#> [5]	train-rmse:14.097785 
-#> [6]	train-rmse:11.375457 
-#> [7]	train-rmse:9.391276 
-#> [8]	train-rmse:7.889690 
-#> [9]	train-rmse:6.646586 
-#> [10]	train-rmse:5.804859 
-#> [11]	train-rmse:5.128437 
-#> [12]	train-rmse:4.456416 
-#> [13]	train-rmse:4.069464 
-#> [14]	train-rmse:3.674615 
-#> [15]	train-rmse:3.424578 
-#> [16]	train-rmse:3.191301
-```
-
-The parameter "nrounds" controls how many sequential trees we fit, in our example this was 16. When we predict on new data, we can limit the number of trees used to prevent overfitting (remember: each new tree tries to improve the predictions of the previous trees). 
-
-Let us visualize the predictions for different numbers of trees:
-
-
-```r
-oldpar = par(mfrow = c(2, 2))
-for(i in 1:4){
-  pred = predict(brt, newdata = data_xg, ntreelimit = i)
-  plot(data$Temp, data$Ozone, main = i)
-  lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
-}
-#> [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
-#> [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
-#> [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
-#> [14:25:06] WARNING: amalgamation/../src/c_api/c_api.cc:785: `ntree_limit` is deprecated, use `iteration_range` instead.
-```
-
-<img src="05-fundamental_files/figure-html/chunk_chapter4_29__BRT2-1.png" width="100%" style="display: block; margin: auto;" />
-
-```r
-par(oldpar)
-```
-
-There are also other ways to control for complexity of the boosted regression tree algorithm:
-
-* max_depth: Maximum depth of each tree.
-* shrinkage (each tree will get a weight and the weight will decrease with the number of trees).
-
-When having specified the final model, we can obtain the importance of the variables like for random forests:
-
-
-```r
-xgboost::xgb.importance(model = brt)
-#>    Feature        Gain     Cover  Frequency
-#> 1:    Temp 0.570071903 0.2958229 0.24836601
-#> 2:    Wind 0.348230710 0.3419576 0.24183007
-#> 3: Solar.R 0.058795542 0.1571072 0.30718954
-#> 4:     Day 0.019529993 0.1779925 0.16993464
-#> 5:   Month 0.003371853 0.0271197 0.03267974
-sqrt(mean((data$Ozone - pred)^2)) # RMSE
-#> [1] 17.89918
-data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
-```
-
-One important strength of xgboost is that we can directly do a cross-validation (which is independent of the boosted regression tree itself!) and specify its properties with the parameter "n-fold":
-
-
-```r
-set.seed(123)
-
-brt = xgboost(data_xg, nrounds = 5L)
-#> [1]	train-rmse:39.724624 
-#> [2]	train-rmse:30.225761 
-#> [3]	train-rmse:23.134840 
-#> [4]	train-rmse:17.899179 
-#> [5]	train-rmse:14.097785
-brt_cv = xgboost::xgb.cv(data = data_xg, nfold = 3L,
-                         nrounds = 3L, nthreads = 4L)
-#> [1]	train-rmse:39.895106+2.127355	test-rmse:40.685477+5.745327 
-#> [2]	train-rmse:30.367660+1.728788	test-rmse:32.255812+5.572963 
-#> [3]	train-rmse:23.446237+1.366757	test-rmse:27.282435+5.746244
-print(brt_cv)
-#> ##### xgb.cv 3-folds
-#>  iter train_rmse_mean train_rmse_std test_rmse_mean test_rmse_std
-#>     1        39.89511       2.127355       40.68548      5.745327
-#>     2        30.36766       1.728788       32.25581      5.572963
-#>     3        23.44624       1.366757       27.28244      5.746244
-```
-
-Annotation: The original data set is randomly partitioned into $n$ equal sized subsamples. Each time, the model is trained on $n - 1$ subsets (training set) and tested on the left out set (test set) to judge the performance.
-
-If we do three-folded cross-validation, we actually fit three different boosted regression tree models (xgboost models) on $\approx 67\%$ of the data points. Afterwards, we judge the performance on the respective holdout. This now tells us how well the model performed.
-
-### Exercises
-
-```{=html}
-  <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
-```
-
-We will use the following code snippet to see the influence of mincut on trees.
-
-
-```r
-library(tree)
-set.seed(123)
-
-data = airquality
-rt = tree(Ozone~., data = data,
-          control = tree.control(mincut = 1L, nobs = nrow(data)))
-
-plot(rt)
-text(rt)
-pred = predict(rt, data)
-plot(data$Temp, data$Ozone)
-lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
-sqrt(mean((data$Ozone - pred)^2)) # RMSE
-```
-
-Try different mincut parameters and see what happens.
-(Compare the root mean squared error for different mincut parameters and explain what you see.
-Compare predictions for different mincut parameters and explain what happens.)
-What was wrong in the snippet above?
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-
-```r
-library(tree)
-set.seed(123)
-
-data = airquality[complete.cases(airquality),]
-
-doTask = function(mincut){
-  rt = tree(Ozone~., data = data,
-            control = tree.control(mincut = mincut, nobs = nrow(data)))
-
-  pred = predict(rt, data)
-  plot(data$Temp, data$Ozone,
-       main = paste0(
-         "mincut: ", mincut,
-         "\nRMSE: ", round(sqrt(mean((data$Ozone - pred)^2)), 2)
-      )
-  )
-  lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
-}
-
-for(i in c(1, 2, 3, 5, 10, 15, 25, 50, 54, 55, 56, 57, 75, 100)){ doTask(i) }
-```
-
-<img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-1.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-2.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-3.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-4.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-5.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-6.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-7.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-8.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-9.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-10.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-11.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-12.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-13.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-14.png" width="100%" style="display: block; margin: auto;" />
-Approximately at mincut = 15, prediction is the best (mind overfitting). After mincut = 56, the prediction has no information at all and the RMSE stays constant.
-
-Mind the complete cases of the airquality data set, that was the error.
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
-
-```{=html}
-  <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
-```
-
-We will use the following code snippet to explore a random forest:
-
-
-```r
-library(randomForest)
-set.seed(123)
-
-data = airquality[complete.cases(airquality),]
-
-rf = randomForest(Ozone~., data = data)
-
-pred = predict(rf, data)
-importance(rf)
-#>         IncNodePurity
-#> Solar.R      17969.59
-#> Wind         31978.36
-#> Temp         34176.71
-#> Month        10753.73
-#> Day          15436.47
-cat("RMSE: ", sqrt(mean((data$Ozone - pred)^2)), "\n")
-#> RMSE:  9.507848
-
-plot(data$Temp, data$Ozone)
-lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
-```
-
-<img src="05-fundamental_files/figure-html/chunk_chapter4_task_23-1.png" width="100%" style="display: block; margin: auto;" />
-
-Try different values for the nodesize and mtry and describe how the predictions depend on these parameters.
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-
-```r
-library(randomForest)
-set.seed(123)
-
-data = airquality[complete.cases(airquality),]
-
-
-for(nodesize in c(1, 5, 15, 50, 100)){
-  for(mtry in c(1, 3, 5)){
-    rf = randomForest(Ozone~., data = data, mtry = mtry, nodesize = nodesize)
-    
-    pred = predict(rf, data)
-    
-    plot(data$Temp, data$Ozone, main = paste0(
-        "mtry: ", mtry, "    nodesize: ", nodesize,
-        "\nRMSE: ", round(sqrt(mean((data$Ozone - pred)^2)), 2)
-      )
-    )
-    lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
-  }
-}
-```
-
-<img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-1.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-2.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-3.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-4.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-5.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-6.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-7.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-8.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-9.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-10.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-11.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-12.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-13.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-14.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-15.png" width="100%" style="display: block; margin: auto;" />
-
-Higher numbers for mtry smooth the prediction curve and yield less overfitting. The same holds for the nodesize.
-In other words: The bigger the nodesize, the smaller the trees and the more bias/less variance.
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
-
-```{=html}
-  <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br/>
-```
-
-
-```r
-library(xgboost)
-library(animation)
-set.seed(123)
-
-x1 = seq(-3, 3, length.out = 100)
-x2 = seq(-3, 3, length.out = 100)
-x = expand.grid(x1, x2)
-y = apply(x, 1, function(t) exp(-t[1]^2 - t[2]^2))
-
-
-image(matrix(y, 100, 100), main = "Original image", axes = FALSE, las = 2)
-axis(1, at = seq(0, 1, length.out = 10),
-     labels = round(seq(-3, 3, length.out = 10), 1))
-axis(2, at = seq(0, 1, length.out = 10),
-     labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
-
-
-model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
-                         nrounds = 500L, verbose = 0L)
-pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
-               ntreelimit = 10L)
-
-saveGIF(
-  {
-    for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
-      pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
-                     ntreelimit = i)
-      image(matrix(pred, 100, 100), main = paste0("Trees: ", i),
-            axes = FALSE, las = 2)
-      axis(1, at = seq(0, 1, length.out = 10),
-           labels = round(seq(-3, 3, length.out = 10), 1))
-      axis(2, at = seq(0, 1, length.out = 10),
-           labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
-    }
-  },
-  movie.name = "boosting.gif", autobrowse = FALSE
-)
-```
-<img src="./images/boosting.gif" width="100%" style="display: block; margin: auto;" />
-
-Run the above code and play with different parameters for xgboost (especially with parameters that control the complexity) and describe what you see!
-
-Tip: have a look at the boosting.gif.
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-
-```r
-library(xgboost)
-library(animation)
-set.seed(123)
-
-x1 = seq(-3, 3, length.out = 100)
-x2 = seq(-3, 3, length.out = 100)
-x = expand.grid(x1, x2)
-y = apply(x, 1, function(t) exp(-t[1]^2 - t[2]^2))
-
-image(matrix(y, 100, 100), main = "Original image", axes = FALSE, las = 2)
-axis(1, at = seq(0, 1, length.out = 10),
-     labels = round(seq(-3, 3, length.out = 10), 1))
-axis(2, at = seq(0, 1, length.out = 10),
-     labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
-
-for(eta in c(.1, .3, .5, .7, .9)){
-  for(max_depth in c(3, 6, 10, 20)){
-    model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
-                             max_depth = max_depth, eta = eta,
-                             nrounds = 500, verbose = 0L)
-  
-    saveGIF(
-      {
-        for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
-          pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
-                         ntreelimit = i)
-          image(matrix(pred, 100, 100),
-                main = paste0("eta: ", eta,
-                              "    max_depth: ", max_depth,
-                              "    Trees: ", i),
-                axes = FALSE, las = 2)
-          axis(1, at = seq(0, 1, length.out = 10),
-               labels = round(seq(-3, 3, length.out = 10), 1))
-          axis(2, at = seq(0, 1, length.out = 10),
-               labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
-        }
-      },
-      movie.name = paste0("boosting_", max_depth, "_", eta, ".gif"),
-      autobrowse = FALSE
-    )
-  }
-}
-```
-
-As the possibilities scale extremely, you must vary some parameters on yourself.
-You may use for example the following parameters: "eta", "gamma", "max_depth", "min_child_weight", "subsample", "colsample_bytree", "num_parallel_tree", "monotone_constraints" or "interaction_constraints". Or you look into the documentation:
-
-
-```r
-?xgboost::xgboost
-```
-
-Just some examples:
-
-<img src="./images/boosting_3_0.1.gif" width="100%" style="display: block; margin: auto;" /><img src="./images/boosting_6_0.7.gif" width="100%" style="display: block; margin: auto;" /><img src="./images/boosting_20_0.9.gif" width="100%" style="display: block; margin: auto;" />
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
-
-```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
-```
-
-We implemented a simple boosted regression tree using R just for fun.
-Go through the code line by line and try to understand it. Ask, if you have any questions you cannot solve.
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-
-```r
-library(tree)
-set.seed(123)
-
-depth = 1L
-
-#### Simulate Data
-x = runif(1000, -5, 5)
-y = x * sin(x) * 2 + rnorm(1000, 0, cos(x) + 1.8)
-data = data.frame(x = x, y = y)
-plot(y~x)
-```
-
-<img src="05-fundamental_files/figure-html/chunk_chapter4_task_30-1.png" width="100%" style="display: block; margin: auto;" />
-
-```r
-
-#### Helper function for single tree fit.
-get_model = function(x, y){
-  control = tree.control(nobs = length(x), mincut = 20L)
-  model = tree(y~x, data.frame(x = x, y = y), control = control)
-  pred = predict(model, data.frame(x = x, y = y))
-  return(list(model = model, pred = pred))
-}
-
-#### Boost function.
-get_boosting_model = function(depth){
-  pred = NULL
-  m_list = list()
-  for(i in 1:depth){
-    if(i == 1){
-      m = get_model(x, y)
-      pred = m$pred
-    }else{
-      y_res = y - pred
-      m = get_model(x, y_res)
-      pred = pred + m$pred
-    }
-    m_list[[i]] = m$model
-  }
-  model_list <<- m_list  # This writes outside function scope!
-  return(pred)
-}
-
-### Main.
-pred = get_boosting_model(10L)[order(data$x)]
-
-length(model_list)
-#> [1] 10
-plot(model_list[[1]])
-```
-
-<img src="05-fundamental_files/figure-html/chunk_chapter4_task_30-2.png" width="100%" style="display: block; margin: auto;" />
-
-```r
-
-plot(y~x)
-lines(x = data$x[order(data$x)], get_boosting_model(1L)[order(data$x)],
-      col = 'red', lwd = 2)
-lines(x = data$x[order(data$x)], get_boosting_model(100L)[order(data$x)],
-      col = 'green', lwd = 2)
-```
-
-<img src="05-fundamental_files/figure-html/chunk_chapter4_task_30-3.png" width="100%" style="display: block; margin: auto;" />
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
-
-
-## Distance-based Algorithms
-
-In this chapter, we introduce support-vector machines (SVMs) and other distance-based methods
-**Hint**: Distance-based models need scaling!
-
-
-### K-Nearest-Neighbor
-
-K-nearest-neighbor (kNN) is a simple algorithm that stores all the available cases and classifies the new data based on a similarity measure. It is mostly used to classify a data point based on how its $k$ nearest neighbors are classified.
-
-Let us first see an example:
-
-
-```r
-x = scale(iris[,1:4])
-y = iris[,5]
-plot(x[-100,1], x[-100, 3], col = y)
-points(x[100,1], x[100, 3], col = "blue", pch = 18, cex = 1.3)
-```
-
-<img src="05-fundamental_files/figure-html/chunk_chapter4_32-1.png" width="100%" style="display: block; margin: auto;" />
-
-Which class would you decide for the blue point? What are the classes of the nearest points? Well, this procedure is used by the k-nearest-neighbors classifier and thus there is actually no "real" learning in a k-nearest-neighbors classification.
-
-For applying a k-nearest-neighbors classification, we first have to scale the data set, because we deal with distances and want the same influence of all predictors. Imagine one variable has values from -10.000 to 10.000 and another from -1 to 1. Then the influence of the first variable on the distance to the other points is much stronger than the influence of the second variable.
-On the iris data set, we have to split the data into training and test set on our own. Then we will follow the usual pipeline. 
-
-
-```r
-data = iris
-data[,1:4] = apply(data[,1:4],2, scale)
-indices = sample.int(nrow(data), 0.7*nrow(data))
-train = data[indices,]
-test = data[-indices,]
-```
-
-Fit model and create predictions:
-
-
-```r
-library(kknn)
-set.seed(123)
-
-knn = kknn(Species~., train = train, test = test)
-summary(knn)
-#> 
-#> Call:
-#> kknn(formula = Species ~ ., train = train, test = test)
-#> 
-#> Response: "nominal"
-#>           fit prob.setosa prob.versicolor prob.virginica
-#> 1      setosa           1      0.00000000      0.0000000
-#> 2      setosa           1      0.00000000      0.0000000
-#> 3      setosa           1      0.00000000      0.0000000
-#> 4      setosa           1      0.00000000      0.0000000
-#> 5      setosa           1      0.00000000      0.0000000
-#> 6      setosa           1      0.00000000      0.0000000
-#> 7      setosa           1      0.00000000      0.0000000
-#> 8      setosa           1      0.00000000      0.0000000
-#> 9      setosa           1      0.00000000      0.0000000
-#> 10     setosa           1      0.00000000      0.0000000
-#> 11     setosa           1      0.00000000      0.0000000
-#> 12     setosa           1      0.00000000      0.0000000
-#> 13     setosa           1      0.00000000      0.0000000
-#> 14 versicolor           0      0.86605852      0.1339415
-#> 15 versicolor           0      0.74027417      0.2597258
-#> 16 versicolor           0      0.91487300      0.0851270
-#> 17 versicolor           0      0.98430840      0.0156916
-#> 18 versicolor           0      0.91487300      0.0851270
-#> 19 versicolor           0      1.00000000      0.0000000
-#> 20 versicolor           0      1.00000000      0.0000000
-#> 21 versicolor           0      1.00000000      0.0000000
-#> 22 versicolor           0      1.00000000      0.0000000
-#> 23 versicolor           0      1.00000000      0.0000000
-#> 24 versicolor           0      1.00000000      0.0000000
-#> 25 versicolor           0      1.00000000      0.0000000
-#> 26 versicolor           0      1.00000000      0.0000000
-#> 27 versicolor           0      0.86605852      0.1339415
-#> 28 versicolor           0      1.00000000      0.0000000
-#> 29  virginica           0      0.00000000      1.0000000
-#> 30  virginica           0      0.00000000      1.0000000
-#> 31  virginica           0      0.00000000      1.0000000
-#> 32  virginica           0      0.00000000      1.0000000
-#> 33  virginica           0      0.08512700      0.9148730
-#> 34  virginica           0      0.22169561      0.7783044
-#> 35  virginica           0      0.00000000      1.0000000
-#> 36  virginica           0      0.23111986      0.7688801
-#> 37 versicolor           0      1.00000000      0.0000000
-#> 38  virginica           0      0.04881448      0.9511855
-#> 39 versicolor           0      0.64309579      0.3569042
-#> 40 versicolor           0      0.67748579      0.3225142
-#> 41  virginica           0      0.17288113      0.8271189
-#> 42  virginica           0      0.00000000      1.0000000
-#> 43  virginica           0      0.00000000      1.0000000
-#> 44  virginica           0      0.00000000      1.0000000
-#> 45  virginica           0      0.35690421      0.6430958
-table(test$Species, fitted(knn))
-#>             
-#>              setosa versicolor virginica
-#>   setosa         13          0         0
-#>   versicolor      0         15         0
-#>   virginica       0          3        14
-```
-
-
-### Support Vector Machines (SVMs)
-
-Support vectors machines have a different approach. They try to divide the predictor space into sectors for each class. To do so, a support-vector machine fits the parameters of a hyperplane (a $n-1$ dimensional subspace in a $n$-dimensional space) in the predictor space by optimizing the distance between the hyperplane and the nearest point from each class. 
-
-Fitting a support-vector machine:
-
-
-```r
-library(e1071)
-
-data = iris
-data[,1:4] = apply(data[,1:4], 2, scale)
-indices = sample.int(nrow(data), 0.7*nrow(data))
-train = data[indices,]
-test = data[-indices,]
-
-sm = svm(Species~., data = train, kernel = "linear")
-pred = predict(sm, newdata = test)
-```
-
-
-```r
-oldpar = par(mfrow = c(1, 2))
-plot(test$Sepal.Length, test$Petal.Length,
-     col =  pred, main = "predicted")
-plot(test$Sepal.Length, test$Petal.Length,
-     col =  test$Species, main = "observed")
-```
-
-<img src="05-fundamental_files/figure-html/chunk_chapter4_36-1.png" width="100%" style="display: block; margin: auto;" />
-
-```r
-par(oldpar)
-
-mean(pred == test$Species) # Accuracy.
-#> [1] 0.9777778
-```
-
-Support-vector machines can only work on linearly separable problems. (A problem is called linearly separable if there exists at least one line in the plane with all of the points of one class on one side of the hyperplane and all the points of the others classes on the other side).
-
-If this is not possible, we however, can use the so called *kernel trick*, which maps the predictor space into a (higher dimensional) space in which the problem is linear separable. After having identified the boundaries in the higher-dimensional space, we can project them back into the original dimensions.
-
-
-```r
-x1 = seq(-3, 3, length.out = 100)
-x2 = seq(-3, 3, length.out = 100)
-x = expand.grid(x1, x2)
-y = apply(X, 1, function(t) exp(-t[1]^2 - t[2]^2))
-y = ifelse(1/(1+exp(-y)) < 0.62, 0, 1)
-
-image(matrix(y, 100, 100))
-animation::saveGIF(
-  {
-    for(i in c("truth", "linear", "radial", "sigmoid")){
-      if(i == "truth"){
-        image(matrix(y, 100,100),
-        main = "Ground truth", axes = FALSE, las = 2)
-      }else{
-        sv = e1071::svm(x = x, y = factor(y), kernel = i)
-        image(matrix(as.numeric(as.character(predict(sv, x))), 100, 100),
-        main = paste0("Kernel: ", i), axes = FALSE, las = 2)
-        axis(1, at = seq(0,1, length.out = 10),
-        labels = round(seq(-3, 3, length.out = 10), 1))
-        axis(2, at = seq(0,1, length.out = 10),
-        labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
-      }
-    }
-  },
-  movie.name = "svm.gif", autobrowse = FALSE
-)
-```
-
-<img src="./images/svm.gif" width="100%" style="display: block; margin: auto;" />
-
-As you have seen, this does not work with every kernel. Hence, the problem is to find the actual correct kernel, which is again an optimization procedure and can thus be approximated.
-
-
-### Exercises
-
-
-```{=html}
-  <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
-```
-
-We will use the Sonar data set to explore support-vector machines and k-neartest-neighbor classifier.
-
-
-```r
-library(mlbench)
-set.seed(123)
-
-data(Sonar)
-data = Sonar
-indices = sample.int(nrow(Sonar), 0.5 * nrow(Sonar))
-```
-
-Split the Sonar data set from the mlbench library into training- and testset with 50% in each group. Is this a useful split?
-The response variable is "class". So you are trying to classify the class.
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-
-```r
-library(mlbench)
-set.seed(123)
-
-data(Sonar)
-data = Sonar
-#str(data)
-
-# Do not forget scaling! This may be done implicitly by most functions.
-# Here, it's done explicitly for teaching purposes.
-data = cbind.data.frame(
-  scale(data[,-length(data)]),
-  "class" = data[,length(data)]
-)
-
-n = length(data[,1])
-indicesTrain = sample.int(n, (n+1) %/% 2) # Take (at least) 50 % of the data.
-
-train = data[indicesTrain,]
-test = data[-indicesTrain,]
-
-labelsTrain = train[,length(train)]
-labelsTest = test[,length(test)]
-```
-
-Until you have strong reasons for that, 50/50 is no really good decision. You waste data/power.
-Do not forget scaling!
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
-
-```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
-```
-
-Fit a standard k-nearest-neighbor classifier and a support vector machine with a linear kernel (check help), and report what fitted better.
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-
-```r
-library(e1071)
-library(kknn)
-
-knn = kknn(class~., train = train, test = test, scale = FALSE,
-           kernel = "rectangular")
-predKNN = predict(knn, newdata = test)
-
-sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
-predSVM = predict(sm, newdata = test)
-```
-
-
-```
-#> K-nearest-neighbor, standard (rectangular) kernel:
-#>        labelsTest
-#> predKNN  M  R
-#>       M 46 29
-#>       R  8 21
-#> Correctly classified:  67  /  104
-```
-
-
-```
-#> Support-vector machine, linear kernel:
-#>        labelsTest
-#> predSVM  M  R
-#>       M 41 15
-#>       R 13 35
-#> Correctly classified:  76  /  104
-```
-
-K-nearest neighbor fitted (slightly) better.
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
-
-```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br/>
-```
-
-Calculate accuracies of both algorithms.
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-
-```r
-(accKNN = mean(predKNN == labelsTest))
-#> [1] 0.6442308
-(accSVM = mean(predSVM == labelsTest))
-#> [1] 0.7307692
-```
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
-
-```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
-```
-
-Fit again with different kernels and compare accuracies.
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-
-```r
-knn = kknn(class~., train = train, test = test, scale = FALSE,
-           kernel = "optimal")
-predKNN = predict(knn, newdata = test)
-
-sm = svm(class~., data = train, scale = FALSE, kernel = "radial")
-predSVM = predict(sm, newdata = test)
-
-(accKNN = mean(predKNN == labelsTest))
-#> [1] 0.75
-(accSVM = mean(predSVM == labelsTest))
-#> [1] 0.8076923
-```
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
-
-```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">5. Task</span></strong><br/>
-```
-
-Try the fit again with a different seed for training and test set generation.
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-
-```r
-set.seed(42)
-
-data = Sonar
-data = cbind.data.frame(
-  scale(data[,-length(data)]),
-  "class" = data[,length(data)]
-)
-
-n = length(data[,1])
-indicesTrain = sample.int(n, (n+1) %/% 2)
-
-train = data[indicesTrain,]
-test = data[-indicesTrain,]
-
-labelsTrain = train[,length(train)]
-labelsTest = test[,length(test)]
-
-#####
-
-knn = kknn(class~., train = train, test = test, scale = FALSE,
-           kernel = "rectangular")
-predKNN = predict(knn, newdata = test)
-
-sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
-predSVM = predict(sm, newdata = test)
-
-(accKNN = mean(predKNN == labelsTest))
-#> [1] 0.7115385
-(accSVM = mean(predSVM == labelsTest))
-#> [1] 0.75
-
-#####
-
-knn = kknn(class~., train = train, test = test, scale = FALSE,
-           kernel = "optimal")
-predKNN = predict(knn, newdata = test)
-
-sm = svm(class~., data = train, scale = FALSE, kernel = "radial")
-predSVM = predict(sm, newdata = test)
-
-(accKNN = mean(predKNN == labelsTest))
-#> [1] 0.8557692
-(accSVM = mean(predSVM == labelsTest))
-#> [1] 0.8365385
-```
 
 ```{=html}
     </p>
