@@ -52,10 +52,7 @@ Load necessary libraries:
 
 
 ```r
-library(keras)
-library(tensorflow)
 library(tidyverse)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 ```
 
 Load data set:
@@ -315,13 +312,13 @@ Factors with more than two levels should be **one hot encoded** (Make columns fo
 
 
 ```r
-one_title = k_one_hot(data_sub$title, length(unique(data$title)))$numpy()
+one_title = model.matrix(~0+as.factor(title), data = data_sub)
 colnames(one_title) = levels(data$title)
 
-one_sex = k_one_hot(data_sub$sex, length(unique(data$sex)))$numpy()
+one_sex = model.matrix(~0+as.factor(sex), data = data_sub)
 colnames(one_sex) = levels(data$sex)
 
-one_pclass = k_one_hot(data_sub$pclass,  length(unique(data$pclass)))$numpy()
+one_pclass = model.matrix(~0+as.factor(pclass), data = data_sub)
 colnames(one_pclass) = paste0(1:length(unique(data$pclass)), "pclass")
 ```
 
@@ -701,8 +698,6 @@ data = titanic_ml
 
 
 ```r
-library(keras)
-library(tensorflow)
 str(data)
 #> 'data.frame':	1309 obs. of  14 variables:
 #>  $ pclass   : int  2 1 3 3 3 3 3 1 3 1 ...
@@ -833,24 +828,24 @@ str(data)
 data = as.data.frame(data)
 
 # One-hot encoding of "pclass", "sex", "cabin", "embarked", "boat" and "home.dest":
-  for(element in c("pclass", "sex", "cabin", "embarked", "boat", "home.dest")){
-    # Build integer representation:
-    # This MUST start at 0, otherwise, the encoding is wrong!!
-      integers = as.integer(data[[element]])
-      integers = integers - min(integers)
-    
-    # Determine number of classes:
-    num_classes = length(levels(as.factor(data[[element]])))
-    
-    # Encode:
-    encoded = k_one_hot(integers, num_classes)$numpy()
-    
-    # Copy factor names.
-    colnames(encoded) = paste0(element, "_", levels(as.factor(data[[element]])))
-    
-    data = data %>% select(-all_of(element))  # Remove original column.
-    data = cbind.data.frame(data, encoded)  # Plug in new (encoded) columns.
-  }
+for(element in c("pclass", "sex", "cabin", "embarked", "boat", "home.dest")){
+  # Build integer representation:
+  # This MUST start at 0, otherwise, the encoding is wrong!!
+    integers = as.integer(data[[element]])
+    integers = integers - min(integers)
+  
+  # Determine number of classes:
+  num_classes = length(levels(as.factor(data[[element]])))
+  
+  # Encode:
+  encoded = model.matrix(~0+as.factor(integers))
+  
+  # Copy factor names.
+  colnames(encoded) = paste0(element, "_", levels(as.factor(data[[element]])))
+  
+  data = data %>% select(-all_of(element))  # Remove original column.
+  data = cbind.data.frame(data, encoded)  # Plug in new (encoded) columns.
+}
 
 # Scale parameters (including one-hot encoded):
 data = scale(as.matrix(data))

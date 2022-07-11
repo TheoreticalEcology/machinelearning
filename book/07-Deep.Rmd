@@ -59,10 +59,16 @@ cat(
 )
 ```
 
-The following code snippet shows you many (technical) things you need for building more complex network structures, even with memory cells:
+The following code snippet shows you many (technical) things you need for building more complex network structures, even with LSTM cells (the following example doesn't have any functionality, it is just an example for how to process two different inputs in different ways within one network):
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 ```{r chunk_chapter5_1, message=FALSE, warning=FALSE}
-library(deepviz)
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
@@ -109,6 +115,78 @@ summary(model)
 # model %>% plot_model()
 ```
 
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+```{r chunk_chapter5_1_torch, message=FALSE, warning=FALSE}
+library(torch)
+
+model_torch = nn_module(
+  initialize = function(type, inputDimension1 = 50L, inputDimension2 = 10L) {
+    self$dim1 = inputDimension1
+    self$dim2 = inputDimension2
+    self$modelInput2 = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(in_features = self$dim2, out_features = self$dim2),
+      nn_selu()
+    )
+    self$modelMemory = nn_sequential(
+      nn_embedding(self$dim1, 64),
+      nn_lstm(64, 64)
+    )
+    self$modelMemoryOutput = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(64L, 2L),
+      nn_sigmoid()
+    )
+    
+    self$modelDeep = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(self$dim1, 64L),
+      nn_relu(),
+      nn_dropout(0.3),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_linear(64, 5),
+      nn_sigmoid()
+    )
+    
+    self$modelMain = nn_sequential(
+      nn_linear(7+self$dim2, 64),
+      nn_relu(),
+      nn_dropout(0.5),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_dropout(),
+      nn_linear(64, 2),
+      nn_sigmoid()
+    )
+  },
+  
+  forward = function(x) {
+    input1 = x[[1]]
+    input2 = x[[2]]
+    out2 = self$modelInput2(input2)
+    out1 = self$modelMemoryOutput( self$modelMemory(input1)$view(list(dim(input1)[1], -1)) )
+    out3 = self$modelDeep(input1)
+    out = self$modelMain(torch_cat(list(out1, out2, out3), 2))
+    return(out)
+  }
+  
+)
+
+(model_torch())
+
+```
+
+
+:::
+
+:::::
 
 ### Natural Language Processing (NLP)
 
@@ -140,15 +218,11 @@ See \@ref(mlr) for explanation about the preprocessing pipeline.
 
 ```{r chunk_chapter5_3, message=FALSE}
 library(EcoData)
-data(nasa)
-str(nasa)
-
 library(tidyverse)
 library(mlr3)
 library(mlr3pipelines)
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+data(nasa)
+str(nasa)
 
 data = nasa %>% select(-Orbit.Determination.Date,
                        -Close.Approach.Date, -Name, -Neo.Reference.ID)
@@ -163,7 +237,7 @@ submit = data[is.na(data$Hazardous),]
 
 X = scale(train %>% select(-Hazardous))
 Y = train %>% select(Hazardous)
-Y = to_categorical(as.matrix(Y), 2)
+Y = model.matrix(~0+as.factor(Hazardous), data = Y)
 ```
 
 **Early stopping**
@@ -765,6 +839,8 @@ for(epoch in 1:50){
   cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
 }
 
+model_torch$eval() # to turn off dropout
+
 matplot(cbind(train_losses, test_losses), type = "o", pch = c(15, 16),
         col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
         ylab = "Loss", las = 1)
@@ -808,9 +884,9 @@ In this section, we will go through tuning a "deep" neural network, using the NA
 
 A basic network for this problem follows:
 
+Data preparation:
+
 ```{r chunk_chapter5_task_0, message=FALSE, warning=FALSE}
-library(tensorflow)
-library(keras)
 library(tidyverse)
 library(missRanger)
 library(Metrics)
@@ -861,6 +937,16 @@ cv_indices = lapply(0:9, function(i) sort(ord[(i*len/k + 1):((i+1)*len/k)]))
 
 result = matrix(NA, 10L, 2L)
 colnames(result) = c("train_auc", "test_auc")
+
+```
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+```{r chunk_chapter5_task_0b, message=FALSE, warning=FALSE}
 
 for(i in 1:10) {
   indices = cv_indices[[i]]
@@ -929,6 +1015,210 @@ pred = round(predict(model, as.matrix(test[,-1])))
 
 write.csv(data.frame(y = pred), file = "submission_DNN.csv")
 ```
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+```{r chunk_chapter5_task_0b_torch, message=FALSE, warning=FALSE}
+
+library(torch)
+torch_dataset = torch::dataset(
+    name = "data",
+    initialize = function(X,Y) {
+      self$X = torch::torch_tensor(as.matrix(X), dtype = torch_float32())
+      self$Y = torch::torch_tensor(as.matrix(Y), dtype = torch_float32())
+    },
+    .getitem = function(index) {
+      x = self$X[index,]
+      y = self$Y[index,]
+      list(x, y)
+    },
+    .length = function() {
+      self$Y$size()[[1]]
+    }
+  )
+
+
+
+for(i in 1:10) {
+  indices = cv_indices[[i]]
+  sub_train = train[-indices,] # Leave one "bucket" out.
+  sub_test = train[indices,]
+  
+  # "Deep" neural networks and regularization:
+  
+  model_torch = nn_sequential(
+    nn_linear(in_features = ncol(sub_train)-1, out_features = 50L,  bias = TRUE),
+    nn_relu(),
+    nn_linear(in_features = 50L, out_features = 50L,  bias = TRUE),
+    nn_relu(),
+    nn_linear(in_features = 50L, out_features = 1L,  bias = TRUE),
+    nn_sigmoid()
+  )
+  
+  opt = optim_adam(params = model_torch$parameters, lr = 0.1)
+  
+  indices = sample.int(nrow(sub_train), 0.8*nrow(sub_train))
+  dataset = torch_dataset((as.matrix(sub_train %>% select(-Hazardous)))[indices, ],
+                          (as.matrix(sub_train %>% select(Hazardous)))[indices, ,drop=FALSE])
+  dataset_val = torch_dataset((as.matrix(sub_train %>% select(-Hazardous)))[-indices, ],
+                              (as.matrix(sub_train %>% select(Hazardous)))[-indices, ,drop=FALSE])
+  dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+  dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+  
+  epochs = 50L
+  train_losses = c()
+  val_losses = c()
+  lambda = torch_tensor(0.01)
+  alpha = torch_tensor(0.2)
+  for(epoch in 1:epochs){
+    train_loss = c()
+    val_loss = c()
+    coro::loop(
+      for(batch in dataloader) { 
+        opt$zero_grad()
+        pred = model_torch(batch[[1]])
+        loss = nnf_binary_cross_entropy( pred , batch[[2]])
+        for(p in model_torch$parameters) {
+          if(length(dim(p)) > 1) loss = loss + lambda*((1-alpha)*torch_norm(p, 1L) + alpha*torch_norm(p, 2L))
+        }
+        loss$backward()
+        opt$step()
+        train_loss = c(train_loss, loss$item())
+      }
+    )
+    ## Calculate validation loss ##
+    coro::loop(
+      for(batch in dataloader_val) { 
+        pred = model_torch(batch[[1]])
+        loss = nnf_binary_cross_entropy(pred, batch[[2]])
+        val_loss = c(val_loss, loss$item())
+      }
+    )
+    
+    train_losses = c(train_losses, mean(train_loss))
+    val_losses = c(val_losses, mean(val_loss))
+    if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+  }
+  
+  matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+          col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+          ylab = "Loss", las = 1)
+  legend("topright", bty = "n", 
+         legend = c("Train loss", "Val loss"), 
+         pch = c(15, 16), col = c("darkblue", "darkred"))
+  
+  
+  pred_train = predict(model, as.matrix(sub_train %>% select(-Hazardous)))
+  pred_train = model_torch(torch_tensor(as.matrix(sub_train %>% select(-Hazardous)))) %>% as.numeric
+  pred_test = model_torch(torch_tensor(as.matrix(sub_test %>% select(-Hazardous)))) %>% as.numeric
+  
+  # AUC: Area under the (ROC) curve, this is a performance measure [0, 1].
+  # 0.5 is worst for a binary classifier.
+  # 1 perfectly classifies all samples, 0 perfectly misclassifies all samples.
+  result[i, 1] = Metrics::auc(sub_train$Hazardous, pred_train)
+  result[i, 2] = Metrics::auc(sub_test$Hazardous, pred_test)
+}
+print(result)
+(colMeans(result))
+
+# The model setup seems to be fine.
+
+## Train and predict for outer validation split (on the complete training data):
+model_torch = nn_sequential(
+  nn_linear(in_features = ncol(sub_train)-1, out_features = 50L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 50L, out_features = 50L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 50L, out_features = 1L,  bias = TRUE),
+  nn_sigmoid()
+)
+  
+opt = optim_adam(params = model_torch$parameters, lr = 0.1)
+dataset = torch_dataset((as.matrix(train %>% select(-Hazardous)))[indices, ],
+                        (as.matrix(train %>% select(Hazardous)))[indices, ,drop=FALSE])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 50L
+train_losses = c()
+lambda = torch_tensor(0.01)
+alpha = torch_tensor(0.2)
+for(epoch in 1:epochs){
+  train_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_binary_cross_entropy( pred , batch[[2]])
+      for(p in model_torch$parameters) {
+        if(length(dim(p)) > 1) loss = loss + lambda*((1-alpha)*torch_norm(p, 1L) + alpha*torch_norm(p, 2L))
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  
+  train_losses = c(train_losses, mean(train_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f \n", epoch, mean(train_loss)))
+}
+
+plot(train_losses, type = "o", pch = 15,
+        col = c("darkblue"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+  
+
+
+pred = round( model_torch(torch_tensor(as.matrix(test[,-1]))) %>% as.numeric )
+
+write.csv(data.frame(y = pred), file = "submission_DNN.csv")
+```
+
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+```{r chunk_chapter5_task_0cito, message=FALSE, warning=FALSE}
+library(cito)
+
+for(i in 1:10) {
+  indices = cv_indices[[i]]
+  sub_train = train[-indices,] # Leave one "bucket" out.
+  sub_test = train[indices,]
+  
+  model_cito = dnn(Hazardous~., data = sub_train,validation = 0.2, hidden = rep(100L, 2L), activation = rep("relu", 2), loss = "binomial")
+
+  pred_train = predict(model_cito, sub_train)
+  pred_test = predict(model_cito, sub_test)
+  
+  # AUC: Area under the (ROC) curve, this is a performance measure [0, 1].
+  # 0.5 is worst for a binary classifier.
+  # 1 perfectly classifies all samples, 0 perfectly misclassifies all samples.
+  result[i, 1] = Metrics::auc(sub_train$Hazardous, pred_train)
+  result[i, 2] = Metrics::auc(sub_test$Hazardous, pred_test)
+}
+print(result)
+(colMeans(result))
+
+# The model setup seems to be fine.
+
+## Train and predict for outer validation split (on the complete training data):
+model_cito = dnn(Hazardous~., data = train, hidden = rep(100L, 2L), activation = rep("relu", 2), loss = "binomial")
+test$Hazardous = 1 # rows with NA wills be removed
+pred = round(predict(model_cito, newdata= test))
+
+write.csv(data.frame(y = pred), file = "submission_DNN.csv")
+```
+
+
+:::
+
+:::::
+
 
 Go trough the code line by line and try to understand it. Especially have a focus on the general machine learning workflow (remember the general steps), the new type of imputation and the hand coded 10-fold cross-validation (the for loop).
 

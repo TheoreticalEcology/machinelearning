@@ -41,11 +41,17 @@ Recurrent neural networks are used to model sequential data, i.e. a temporal seq
   gyroscope; picture-in-picture" allowfullscreen>
   </iframe>
 
-The following code snippet shows you many (technical) things you need for building more complex network structures, even with memory cells:
+The following code snippet shows you many (technical) things you need for building more complex network structures, even with LSTM cells (the following example doesn't have any functionality, it is just an example for how to process two different inputs in different ways within one network):
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
 
 
 ```r
-library(deepviz)
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
@@ -123,6 +129,86 @@ summary(model)
 # model %>% plot_model()
 ```
 
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
+```r
+library(torch)
+
+model_torch = nn_module(
+  initialize = function(type, inputDimension1 = 50L, inputDimension2 = 10L) {
+    self$dim1 = inputDimension1
+    self$dim2 = inputDimension2
+    self$modelInput2 = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(in_features = self$dim2, out_features = self$dim2),
+      nn_selu()
+    )
+    self$modelMemory = nn_sequential(
+      nn_embedding(self$dim1, 64),
+      nn_lstm(64, 64)
+    )
+    self$modelMemoryOutput = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(64L, 2L),
+      nn_sigmoid()
+    )
+    
+    self$modelDeep = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(self$dim1, 64L),
+      nn_relu(),
+      nn_dropout(0.3),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_linear(64, 5),
+      nn_sigmoid()
+    )
+    
+    self$modelMain = nn_sequential(
+      nn_linear(7+self$dim2, 64),
+      nn_relu(),
+      nn_dropout(0.5),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_dropout(),
+      nn_linear(64, 2),
+      nn_sigmoid()
+    )
+  },
+  
+  forward = function(x) {
+    input1 = x[[1]]
+    input2 = x[[2]]
+    out2 = self$modelInput2(input2)
+    out1 = self$modelMemoryOutput( self$modelMemory(input1)$view(list(dim(input1)[1], -1)) )
+    out3 = self$modelDeep(input1)
+    out = self$modelMain(torch_cat(list(out1, out2, out3), 2))
+    return(out)
+  }
+  
+)
+
+(model_torch())
+#> An `nn_module` containing 54,071 parameters.
+#> 
+#> ── Modules ───────────────────────────────────────────────────────────────────────────────
+#> • modelInput2: <nn_sequential> #110 parameters
+#> • modelMemory: <nn_sequential> #36,480 parameters
+#> • modelMemoryOutput: <nn_sequential> #130 parameters
+#> • modelDeep: <nn_sequential> #11,909 parameters
+#> • modelMain: <nn_sequential> #5,442 parameters
+```
+
+
+:::
+
+:::::
 
 ### Natural Language Processing (NLP)
 
@@ -151,6 +237,9 @@ See \@ref(mlr) for explanation about the preprocessing pipeline.
 
 ```r
 library(EcoData)
+library(tidyverse)
+library(mlr3)
+library(mlr3pipelines)
 data(nasa)
 str(nasa)
 #> 'data.frame':	4687 obs. of  40 variables:
@@ -195,13 +284,6 @@ str(nasa)
 #>  $ Equinox                     : Factor w/ 1 level "J2000": 1 1 NA 1 1 1 1 1 1 1 ...
 #>  $ Hazardous                   : int  0 0 0 1 1 0 0 0 1 1 ...
 
-library(tidyverse)
-library(mlr3)
-library(mlr3pipelines)
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
 data = nasa %>% select(-Orbit.Determination.Date,
                        -Close.Approach.Date, -Name, -Neo.Reference.ID)
 data$Hazardous = as.factor(data$Hazardous)
@@ -215,7 +297,7 @@ submit = data[is.na(data$Hazardous),]
 
 X = scale(train %>% select(-Hazardous))
 Y = train %>% select(Hazardous)
-Y = to_categorical(as.matrix(Y), 2)
+Y = model.matrix(~0+as.factor(Hazardous), data = Y)
 ```
 
 **Early stopping**
@@ -342,11 +424,11 @@ for(epoch in 1:50){
   test_losses = c(test_losses, mean(test_loss))
   if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
 }
-#> Loss at epoch 10: 0.101393
-#> Loss at epoch 20: 0.037391
-#> Loss at epoch 30: 0.010652
-#> Loss at epoch 40: 0.011308
-#> Loss at epoch 50: 0.000076
+#> Loss at epoch 10: 0.148818
+#> Loss at epoch 20: 0.000151
+#> Loss at epoch 30: 0.000016
+#> Loss at epoch 40: 0.000006
+#> Loss at epoch 50: 0.000003
 
 matplot(cbind(train_losses, test_losses), type = "o", pch = c(15, 16),
         col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
@@ -375,43 +457,43 @@ model_cito = dnn(
   hidden = rep(50L, 3L),
   activation = rep("relu", 3),
 )
-#> Loss at epoch 1: training: 0.515, validation: 0.452, lr: 0.01000
+#> Loss at epoch 1: training: 0.546, validation: 0.466, lr: 0.01000
 ```
 
 <img src="07-Deep_files/figure-html/chunk_chapter5_4_cito-1.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Loss at epoch 2: training: 0.368, validation: 0.500, lr: 0.01000
-#> Loss at epoch 3: training: 0.304, validation: 0.614, lr: 0.01000
-#> Loss at epoch 4: training: 0.243, validation: 0.766, lr: 0.01000
-#> Loss at epoch 5: training: 0.174, validation: 1.001, lr: 0.01000
-#> Loss at epoch 6: training: 0.127, validation: 1.287, lr: 0.01000
-#> Loss at epoch 7: training: 0.082, validation: 1.559, lr: 0.01000
-#> Loss at epoch 8: training: 0.035, validation: 1.492, lr: 0.01000
-#> Loss at epoch 9: training: 0.028, validation: 1.808, lr: 0.01000
-#> Loss at epoch 10: training: 0.035, validation: 2.092, lr: 0.01000
-#> Loss at epoch 11: training: 0.189, validation: 2.186, lr: 0.01000
-#> Loss at epoch 12: training: 0.312, validation: 1.809, lr: 0.01000
-#> Loss at epoch 13: training: 0.210, validation: 1.785, lr: 0.01000
-#> Loss at epoch 14: training: 0.056, validation: 1.507, lr: 0.01000
-#> Loss at epoch 15: training: 0.033, validation: 1.590, lr: 0.01000
-#> Loss at epoch 16: training: 0.019, validation: 1.682, lr: 0.01000
-#> Loss at epoch 17: training: 0.012, validation: 1.783, lr: 0.01000
-#> Loss at epoch 18: training: 0.008, validation: 1.866, lr: 0.01000
-#> Loss at epoch 19: training: 0.004, validation: 1.935, lr: 0.01000
-#> Loss at epoch 20: training: 0.002, validation: 2.014, lr: 0.01000
-#> Loss at epoch 21: training: 0.001, validation: 2.079, lr: 0.01000
-#> Loss at epoch 22: training: 0.001, validation: 2.130, lr: 0.01000
-#> Loss at epoch 23: training: 0.000, validation: 2.168, lr: 0.01000
-#> Loss at epoch 24: training: 0.000, validation: 2.198, lr: 0.01000
-#> Loss at epoch 25: training: 0.000, validation: 2.222, lr: 0.01000
-#> Loss at epoch 26: training: 0.000, validation: 2.240, lr: 0.01000
-#> Loss at epoch 27: training: 0.000, validation: 2.256, lr: 0.01000
-#> Loss at epoch 28: training: 0.000, validation: 2.270, lr: 0.01000
-#> Loss at epoch 29: training: 0.000, validation: 2.285, lr: 0.01000
-#> Loss at epoch 30: training: 0.000, validation: 2.296, lr: 0.01000
-#> Loss at epoch 31: training: 0.000, validation: 2.306, lr: 0.01000
-#> Loss at epoch 32: training: 0.000, validation: 2.315, lr: 0.01000
+#> Loss at epoch 2: training: 0.375, validation: 0.477, lr: 0.01000
+#> Loss at epoch 3: training: 0.332, validation: 0.530, lr: 0.01000
+#> Loss at epoch 4: training: 0.267, validation: 0.637, lr: 0.01000
+#> Loss at epoch 5: training: 0.215, validation: 0.778, lr: 0.01000
+#> Loss at epoch 6: training: 0.154, validation: 1.074, lr: 0.01000
+#> Loss at epoch 7: training: 0.115, validation: 1.300, lr: 0.01000
+#> Loss at epoch 8: training: 0.074, validation: 1.353, lr: 0.01000
+#> Loss at epoch 9: training: 0.071, validation: 1.844, lr: 0.01000
+#> Loss at epoch 10: training: 0.162, validation: 1.740, lr: 0.01000
+#> Loss at epoch 11: training: 0.392, validation: 1.154, lr: 0.01000
+#> Loss at epoch 12: training: 0.137, validation: 1.002, lr: 0.01000
+#> Loss at epoch 13: training: 0.073, validation: 1.219, lr: 0.01000
+#> Loss at epoch 14: training: 0.035, validation: 1.313, lr: 0.01000
+#> Loss at epoch 15: training: 0.017, validation: 1.391, lr: 0.01000
+#> Loss at epoch 16: training: 0.008, validation: 1.512, lr: 0.01000
+#> Loss at epoch 17: training: 0.003, validation: 1.645, lr: 0.01000
+#> Loss at epoch 18: training: 0.001, validation: 1.730, lr: 0.01000
+#> Loss at epoch 19: training: 0.001, validation: 1.782, lr: 0.01000
+#> Loss at epoch 20: training: 0.001, validation: 1.832, lr: 0.01000
+#> Loss at epoch 21: training: 0.000, validation: 1.931, lr: 0.01000
+#> Loss at epoch 22: training: 0.000, validation: 2.006, lr: 0.01000
+#> Loss at epoch 23: training: 0.000, validation: 2.061, lr: 0.01000
+#> Loss at epoch 24: training: 0.000, validation: 2.091, lr: 0.01000
+#> Loss at epoch 25: training: 0.000, validation: 2.109, lr: 0.01000
+#> Loss at epoch 26: training: 0.000, validation: 2.120, lr: 0.01000
+#> Loss at epoch 27: training: 0.000, validation: 2.130, lr: 0.01000
+#> Loss at epoch 28: training: 0.000, validation: 2.138, lr: 0.01000
+#> Loss at epoch 29: training: 0.000, validation: 2.147, lr: 0.01000
+#> Loss at epoch 30: training: 0.000, validation: 2.154, lr: 0.01000
+#> Loss at epoch 31: training: 0.000, validation: 2.162, lr: 0.01000
+#> Loss at epoch 32: training: 0.000, validation: 2.168, lr: 0.01000
 ```
 
 :::
@@ -554,11 +636,11 @@ for(epoch in 1:50){
   test_losses = c(test_losses, mean(test_loss))
   if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
 }
-#> Loss at epoch 10: 0.332729
-#> Loss at epoch 20: 0.215752
-#> Loss at epoch 30: 0.162814
-#> Loss at epoch 40: 0.132825
-#> Loss at epoch 50: 0.328715
+#> Loss at epoch 10: 0.334997
+#> Loss at epoch 20: 0.249275
+#> Loss at epoch 30: 0.165154
+#> Loss at epoch 40: 0.230803
+#> Loss at epoch 50: 0.152237
 
 matplot(cbind(train_losses, test_losses), type = "o", pch = c(15, 16),
         col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
@@ -589,43 +671,43 @@ model_cito = dnn(
   lambda = 0.001,
   alpha = 0.5
 )
-#> Loss at epoch 1: training: 0.721, validation: 0.620, lr: 0.01000
+#> Loss at epoch 1: training: 0.760, validation: 0.652, lr: 0.01000
 ```
 
 <img src="07-Deep_files/figure-html/chunk_chapter5_5_cito-1.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Loss at epoch 2: training: 0.516, validation: 0.599, lr: 0.01000
-#> Loss at epoch 3: training: 0.446, validation: 0.629, lr: 0.01000
-#> Loss at epoch 4: training: 0.386, validation: 0.656, lr: 0.01000
-#> Loss at epoch 5: training: 0.336, validation: 0.722, lr: 0.01000
-#> Loss at epoch 6: training: 0.287, validation: 0.849, lr: 0.01000
-#> Loss at epoch 7: training: 0.252, validation: 0.907, lr: 0.01000
-#> Loss at epoch 8: training: 0.226, validation: 1.067, lr: 0.01000
-#> Loss at epoch 9: training: 0.214, validation: 1.153, lr: 0.01000
-#> Loss at epoch 10: training: 0.185, validation: 1.420, lr: 0.01000
-#> Loss at epoch 11: training: 0.152, validation: 1.432, lr: 0.01000
-#> Loss at epoch 12: training: 0.141, validation: 1.476, lr: 0.01000
-#> Loss at epoch 13: training: 0.132, validation: 1.589, lr: 0.01000
-#> Loss at epoch 14: training: 0.142, validation: 1.471, lr: 0.01000
-#> Loss at epoch 15: training: 0.144, validation: 1.648, lr: 0.01000
-#> Loss at epoch 16: training: 0.153, validation: 1.537, lr: 0.01000
-#> Loss at epoch 17: training: 0.206, validation: 1.152, lr: 0.01000
-#> Loss at epoch 18: training: 0.172, validation: 1.533, lr: 0.01000
-#> Loss at epoch 19: training: 0.156, validation: 1.271, lr: 0.01000
-#> Loss at epoch 20: training: 0.132, validation: 1.393, lr: 0.01000
-#> Loss at epoch 21: training: 0.125, validation: 1.425, lr: 0.01000
-#> Loss at epoch 22: training: 0.112, validation: 1.420, lr: 0.01000
-#> Loss at epoch 23: training: 0.107, validation: 1.472, lr: 0.01000
-#> Loss at epoch 24: training: 0.104, validation: 1.466, lr: 0.01000
-#> Loss at epoch 25: training: 0.100, validation: 1.426, lr: 0.01000
-#> Loss at epoch 26: training: 0.097, validation: 1.402, lr: 0.01000
-#> Loss at epoch 27: training: 0.095, validation: 1.388, lr: 0.01000
-#> Loss at epoch 28: training: 0.092, validation: 1.373, lr: 0.01000
-#> Loss at epoch 29: training: 0.090, validation: 1.356, lr: 0.01000
-#> Loss at epoch 30: training: 0.089, validation: 1.343, lr: 0.01000
-#> Loss at epoch 31: training: 0.087, validation: 1.336, lr: 0.01000
-#> Loss at epoch 32: training: 0.085, validation: 1.328, lr: 0.01000
+#> Loss at epoch 2: training: 0.533, validation: 0.598, lr: 0.01000
+#> Loss at epoch 3: training: 0.464, validation: 0.642, lr: 0.01000
+#> Loss at epoch 4: training: 0.408, validation: 0.619, lr: 0.01000
+#> Loss at epoch 5: training: 0.358, validation: 0.690, lr: 0.01000
+#> Loss at epoch 6: training: 0.312, validation: 0.769, lr: 0.01000
+#> Loss at epoch 7: training: 0.271, validation: 0.876, lr: 0.01000
+#> Loss at epoch 8: training: 0.254, validation: 0.972, lr: 0.01000
+#> Loss at epoch 9: training: 0.244, validation: 0.887, lr: 0.01000
+#> Loss at epoch 10: training: 0.232, validation: 1.228, lr: 0.01000
+#> Loss at epoch 11: training: 0.194, validation: 1.210, lr: 0.01000
+#> Loss at epoch 12: training: 0.174, validation: 1.185, lr: 0.01000
+#> Loss at epoch 13: training: 0.150, validation: 1.582, lr: 0.01000
+#> Loss at epoch 14: training: 0.150, validation: 1.349, lr: 0.01000
+#> Loss at epoch 15: training: 0.135, validation: 1.483, lr: 0.01000
+#> Loss at epoch 16: training: 0.131, validation: 1.487, lr: 0.01000
+#> Loss at epoch 17: training: 0.131, validation: 1.407, lr: 0.01000
+#> Loss at epoch 18: training: 0.123, validation: 1.426, lr: 0.01000
+#> Loss at epoch 19: training: 0.123, validation: 1.366, lr: 0.01000
+#> Loss at epoch 20: training: 0.113, validation: 1.458, lr: 0.01000
+#> Loss at epoch 21: training: 0.106, validation: 1.415, lr: 0.01000
+#> Loss at epoch 22: training: 0.101, validation: 1.348, lr: 0.01000
+#> Loss at epoch 23: training: 0.097, validation: 1.324, lr: 0.01000
+#> Loss at epoch 24: training: 0.093, validation: 1.273, lr: 0.01000
+#> Loss at epoch 25: training: 0.090, validation: 1.242, lr: 0.01000
+#> Loss at epoch 26: training: 0.088, validation: 1.221, lr: 0.01000
+#> Loss at epoch 27: training: 0.085, validation: 1.204, lr: 0.01000
+#> Loss at epoch 28: training: 0.083, validation: 1.189, lr: 0.01000
+#> Loss at epoch 29: training: 0.081, validation: 1.182, lr: 0.01000
+#> Loss at epoch 30: training: 0.079, validation: 1.174, lr: 0.01000
+#> Loss at epoch 31: training: 0.077, validation: 1.163, lr: 0.01000
+#> Loss at epoch 32: training: 0.076, validation: 1.160, lr: 0.01000
 ```
 
 
@@ -784,9 +866,9 @@ for(epoch in 1:50){
   test_losses = c(test_losses, mean(test_loss))
   if(!epoch%%5) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
 }
-#> Loss at epoch 5: 0.440581
-#> Loss at epoch 10: 0.332729
-#> Loss at epoch 15: 0.252543
+#> Loss at epoch 5: 0.446946
+#> Loss at epoch 10: 0.334997
+#> Loss at epoch 15: 0.267128
 
 matplot(cbind(train_losses, test_losses), type = "o", pch = c(15, 16),
         col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
@@ -818,17 +900,17 @@ model_cito = dnn(
   alpha = 0.5,
   early_stopping = 5.
 )
-#> Loss at epoch 1: training: 0.738, validation: 0.635, lr: 0.01000
+#> Loss at epoch 1: training: 0.720, validation: 0.619, lr: 0.01000
 ```
 
 <img src="07-Deep_files/figure-html/chunk_chapter5_6_cito-1.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Loss at epoch 2: training: 0.524, validation: 0.598, lr: 0.01000
-#> Loss at epoch 3: training: 0.461, validation: 0.622, lr: 0.01000
-#> Loss at epoch 4: training: 0.389, validation: 0.679, lr: 0.01000
-#> Loss at epoch 5: training: 0.336, validation: 0.762, lr: 0.01000
-#> Loss at epoch 6: training: 0.282, validation: 0.904, lr: 0.01000
+#> Loss at epoch 2: training: 0.521, validation: 0.605, lr: 0.01000
+#> Loss at epoch 3: training: 0.449, validation: 0.622, lr: 0.01000
+#> Loss at epoch 4: training: 0.387, validation: 0.680, lr: 0.01000
+#> Loss at epoch 5: training: 0.330, validation: 0.827, lr: 0.01000
+#> Loss at epoch 6: training: 0.290, validation: 0.924, lr: 0.01000
 ```
 
 
@@ -978,22 +1060,24 @@ for(epoch in 1:50){
   test_losses = c(test_losses, mean(test_loss))
   cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
 }
-#> Loss at epoch 1: 0.557363
-#> Loss at epoch 2: 0.478059
-#> Loss at epoch 3: 0.454506
-#> Loss at epoch 4: 0.469278
-#> Loss at epoch 5: 0.414451
-#> Loss at epoch 6: 0.420797
-#> Loss at epoch 7: 0.429624
-#> Loss at epoch 8: 0.439022
-#> Loss at epoch 9: 0.418324
-#> Loss at epoch 10: 0.398850
-#> Loss at epoch 11: 0.420840
-#> Loss at epoch 12: 0.412696
-#> Loss at epoch 13: 0.397618
-#> Loss at epoch 14: 0.428140
-#> Loss at epoch 15: 0.368084
-#> Loss at epoch 16: 0.394034
+#> Loss at epoch 1: 0.621523
+#> Loss at epoch 2: 0.499234
+#> Loss at epoch 3: 0.461054
+#> Loss at epoch 4: 0.459289
+#> Loss at epoch 5: 0.424963
+#> Loss at epoch 6: 0.395236
+#> Loss at epoch 7: 0.439434
+#> Loss at epoch 8: 0.403502
+#> Loss at epoch 9: 0.418872
+#> Loss at epoch 10: 0.395561
+#> Loss at epoch 11: 0.389564
+#> Loss at epoch 12: 0.400194
+#> Loss at epoch 13: 0.429872
+#> Loss at epoch 14: 0.434117
+#> Loss at epoch 15: 0.368484
+#> Loss at epoch 16: 0.380166
+
+model_torch$eval() # to turn off dropout
 
 matplot(cbind(train_losses, test_losses), type = "o", pch = c(15, 16),
         col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
@@ -1023,17 +1107,18 @@ model_cito = dnn(
   dropout = 0.5,
   early_stopping = 5.
 )
-#> Loss at epoch 1: training: 0.526, validation: 0.543, lr: 0.01000
+#> Loss at epoch 1: training: 0.534, validation: 0.591, lr: 0.01000
 ```
 
 <img src="07-Deep_files/figure-html/chunk_chapter5_7_cito-1.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Loss at epoch 2: training: 0.450, validation: 0.482, lr: 0.01000
-#> Loss at epoch 3: training: 0.432, validation: 0.534, lr: 0.01000
-#> Loss at epoch 4: training: 0.411, validation: 0.516, lr: 0.01000
-#> Loss at epoch 5: training: 0.350, validation: 0.574, lr: 0.01000
-#> Loss at epoch 6: training: 0.331, validation: 0.639, lr: 0.01000
+#> Loss at epoch 2: training: 0.485, validation: 0.485, lr: 0.01000
+#> Loss at epoch 3: training: 0.433, validation: 0.472, lr: 0.01000
+#> Loss at epoch 4: training: 0.410, validation: 0.506, lr: 0.01000
+#> Loss at epoch 5: training: 0.364, validation: 0.520, lr: 0.01000
+#> Loss at epoch 6: training: 0.380, validation: 0.538, lr: 0.01000
+#> Loss at epoch 7: training: 0.342, validation: 0.609, lr: 0.01000
 ```
 
 
@@ -1052,10 +1137,10 @@ In this section, we will go through tuning a "deep" neural network, using the NA
 
 A basic network for this problem follows:
 
+Data preparation:
+
 
 ```r
-library(tensorflow)
-library(keras)
 library(tidyverse)
 library(missRanger)
 library(Metrics)
@@ -1245,6 +1330,16 @@ cv_indices = lapply(0:9, function(i) sort(ord[(i*len/k + 1):((i+1)*len/k)]))
 
 result = matrix(NA, 10L, 2L)
 colnames(result) = c("train_auc", "test_auc")
+```
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+
+```r
 
 for(i in 1:10) {
   indices = cv_indices[[i]]
@@ -1326,6 +1421,755 @@ pred = round(predict(model, as.matrix(test[,-1])))
 
 write.csv(data.frame(y = pred), file = "submission_DNN.csv")
 ```
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
+```r
+
+library(torch)
+torch_dataset = torch::dataset(
+    name = "data",
+    initialize = function(X,Y) {
+      self$X = torch::torch_tensor(as.matrix(X), dtype = torch_float32())
+      self$Y = torch::torch_tensor(as.matrix(Y), dtype = torch_float32())
+    },
+    .getitem = function(index) {
+      x = self$X[index,]
+      y = self$Y[index,]
+      list(x, y)
+    },
+    .length = function() {
+      self$Y$size()[[1]]
+    }
+  )
+
+
+
+for(i in 1:10) {
+  indices = cv_indices[[i]]
+  sub_train = train[-indices,] # Leave one "bucket" out.
+  sub_test = train[indices,]
+  
+  # "Deep" neural networks and regularization:
+  
+  model_torch = nn_sequential(
+    nn_linear(in_features = ncol(sub_train)-1, out_features = 50L,  bias = TRUE),
+    nn_relu(),
+    nn_linear(in_features = 50L, out_features = 50L,  bias = TRUE),
+    nn_relu(),
+    nn_linear(in_features = 50L, out_features = 1L,  bias = TRUE),
+    nn_sigmoid()
+  )
+  
+  opt = optim_adam(params = model_torch$parameters, lr = 0.1)
+  
+  indices = sample.int(nrow(sub_train), 0.8*nrow(sub_train))
+  dataset = torch_dataset((as.matrix(sub_train %>% select(-Hazardous)))[indices, ],
+                          (as.matrix(sub_train %>% select(Hazardous)))[indices, ,drop=FALSE])
+  dataset_val = torch_dataset((as.matrix(sub_train %>% select(-Hazardous)))[-indices, ],
+                              (as.matrix(sub_train %>% select(Hazardous)))[-indices, ,drop=FALSE])
+  dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+  dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+  
+  epochs = 50L
+  train_losses = c()
+  val_losses = c()
+  lambda = torch_tensor(0.01)
+  alpha = torch_tensor(0.2)
+  for(epoch in 1:epochs){
+    train_loss = c()
+    val_loss = c()
+    coro::loop(
+      for(batch in dataloader) { 
+        opt$zero_grad()
+        pred = model_torch(batch[[1]])
+        loss = nnf_binary_cross_entropy( pred , batch[[2]])
+        for(p in model_torch$parameters) {
+          if(length(dim(p)) > 1) loss = loss + lambda*((1-alpha)*torch_norm(p, 1L) + alpha*torch_norm(p, 2L))
+        }
+        loss$backward()
+        opt$step()
+        train_loss = c(train_loss, loss$item())
+      }
+    )
+    ## Calculate validation loss ##
+    coro::loop(
+      for(batch in dataloader_val) { 
+        pred = model_torch(batch[[1]])
+        loss = nnf_binary_cross_entropy(pred, batch[[2]])
+        val_loss = c(val_loss, loss$item())
+      }
+    )
+    
+    train_losses = c(train_losses, mean(train_loss))
+    val_losses = c(val_losses, mean(val_loss))
+    if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+  }
+  
+  matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+          col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+          ylab = "Loss", las = 1)
+  legend("topright", bty = "n", 
+         legend = c("Train loss", "Val loss"), 
+         pch = c(15, 16), col = c("darkblue", "darkred"))
+  
+  
+  pred_train = predict(model, as.matrix(sub_train %>% select(-Hazardous)))
+  pred_train = model_torch(torch_tensor(as.matrix(sub_train %>% select(-Hazardous)))) %>% as.numeric
+  pred_test = model_torch(torch_tensor(as.matrix(sub_test %>% select(-Hazardous)))) %>% as.numeric
+  
+  # AUC: Area under the (ROC) curve, this is a performance measure [0, 1].
+  # 0.5 is worst for a binary classifier.
+  # 1 perfectly classifies all samples, 0 perfectly misclassifies all samples.
+  result[i, 1] = Metrics::auc(sub_train$Hazardous, pred_train)
+  result[i, 2] = Metrics::auc(sub_test$Hazardous, pred_test)
+}
+#> Loss at epoch 10: 0.829017  Val loss: 0.182509
+#> Loss at epoch 20: 0.701753  Val loss: 0.172302
+#> Loss at epoch 30: 0.698969  Val loss: 0.157188
+#> Loss at epoch 40: 0.700181  Val loss: 0.146019
+#> Loss at epoch 50: 0.705486  Val loss: 0.176424
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0b_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 10: 0.763818  Val loss: 0.165957
+#> Loss at epoch 20: 0.742365  Val loss: 0.169747
+#> Loss at epoch 30: 0.686639  Val loss: 0.125889
+#> Loss at epoch 40: 0.688209  Val loss: 0.113968
+#> Loss at epoch 50: 0.700927  Val loss: 0.144689
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0b_torch-2.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 10: 0.803255  Val loss: 0.179034
+#> Loss at epoch 20: 0.728545  Val loss: 0.175123
+#> Loss at epoch 30: 0.698292  Val loss: 0.110397
+#> Loss at epoch 40: 0.690141  Val loss: 0.101464
+#> Loss at epoch 50: 0.710400  Val loss: 0.165217
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0b_torch-3.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 10: 0.774479  Val loss: 0.124245
+#> Loss at epoch 20: 0.781940  Val loss: 0.100304
+#> Loss at epoch 30: 0.736063  Val loss: 0.113301
+#> Loss at epoch 40: 0.691388  Val loss: 0.081147
+#> Loss at epoch 50: 0.730457  Val loss: 0.119942
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0b_torch-4.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 10: 0.731244  Val loss: 0.160419
+#> Loss at epoch 20: 0.714435  Val loss: 0.166416
+#> Loss at epoch 30: 0.694688  Val loss: 0.132884
+#> Loss at epoch 40: 0.689699  Val loss: 0.124507
+#> Loss at epoch 50: 0.731581  Val loss: 0.145156
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0b_torch-5.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 10: 0.809190  Val loss: 0.179954
+#> Loss at epoch 20: 0.725614  Val loss: 0.119201
+#> Loss at epoch 30: 0.714013  Val loss: 0.113931
+#> Loss at epoch 40: 0.690072  Val loss: 0.169328
+#> Loss at epoch 50: 0.677388  Val loss: 0.102784
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0b_torch-6.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 10: 0.811071  Val loss: 0.219090
+#> Loss at epoch 20: 0.764542  Val loss: 0.147753
+#> Loss at epoch 30: 0.694446  Val loss: 0.168150
+#> Loss at epoch 40: 0.710823  Val loss: 0.141908
+#> Loss at epoch 50: 0.677895  Val loss: 0.128026
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0b_torch-7.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 10: 0.835809  Val loss: 0.181617
+#> Loss at epoch 20: 0.768913  Val loss: 0.161498
+#> Loss at epoch 30: 0.698743  Val loss: 0.167851
+#> Loss at epoch 40: 0.734401  Val loss: 0.189557
+#> Loss at epoch 50: 0.720234  Val loss: 0.122505
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0b_torch-8.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 10: 0.833461  Val loss: 0.142397
+#> Loss at epoch 20: 0.703127  Val loss: 0.137720
+#> Loss at epoch 30: 0.760898  Val loss: 0.162455
+#> Loss at epoch 40: 0.728296  Val loss: 0.127886
+#> Loss at epoch 50: 0.690591  Val loss: 0.135698
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0b_torch-9.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 10: 0.747076  Val loss: 0.217834
+#> Loss at epoch 20: 0.716065  Val loss: 0.165585
+#> Loss at epoch 30: 0.723334  Val loss: 0.185342
+#> Loss at epoch 40: 0.717497  Val loss: 0.166969
+#> Loss at epoch 50: 0.750742  Val loss: 0.220579
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0b_torch-10.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+print(result)
+#>       train_auc  test_auc
+#>  [1,] 0.9734894 0.9945799
+#>  [2,] 0.9789239 1.0000000
+#>  [3,] 0.9741144 0.9866667
+#>  [4,] 0.9821133 0.9475000
+#>  [5,] 0.9843581 0.9523810
+#>  [6,] 0.9879730 0.8690476
+#>  [7,] 0.9793660 0.9978070
+#>  [8,] 0.9854993 1.0000000
+#>  [9,] 0.9762076 0.9861111
+#> [10,] 0.9428716 0.9732143
+(colMeans(result))
+#> train_auc  test_auc 
+#> 0.9764917 0.9707308
+
+# The model setup seems to be fine.
+
+## Train and predict for outer validation split (on the complete training data):
+model_torch = nn_sequential(
+  nn_linear(in_features = ncol(sub_train)-1, out_features = 50L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 50L, out_features = 50L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 50L, out_features = 1L,  bias = TRUE),
+  nn_sigmoid()
+)
+  
+opt = optim_adam(params = model_torch$parameters, lr = 0.1)
+dataset = torch_dataset((as.matrix(train %>% select(-Hazardous)))[indices, ],
+                        (as.matrix(train %>% select(Hazardous)))[indices, ,drop=FALSE])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 50L
+train_losses = c()
+lambda = torch_tensor(0.01)
+alpha = torch_tensor(0.2)
+for(epoch in 1:epochs){
+  train_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_binary_cross_entropy( pred , batch[[2]])
+      for(p in model_torch$parameters) {
+        if(length(dim(p)) > 1) loss = loss + lambda*((1-alpha)*torch_norm(p, 1L) + alpha*torch_norm(p, 2L))
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  
+  train_losses = c(train_losses, mean(train_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f \n", epoch, mean(train_loss)))
+}
+#> Loss at epoch 10: 0.821883 
+#> Loss at epoch 20: 0.777563 
+#> Loss at epoch 30: 0.720799 
+#> Loss at epoch 40: 0.713502 
+#> Loss at epoch 50: 0.682197
+
+plot(train_losses, type = "o", pch = 15,
+        col = c("darkblue"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0b_torch-11.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+  
+
+
+pred = round( model_torch(torch_tensor(as.matrix(test[,-1]))) %>% as.numeric )
+
+write.csv(data.frame(y = pred), file = "submission_DNN.csv")
+```
+
+
+:::
+
+::: {.panel}
+[Cito]{.panel-name}
+
+
+```r
+library(cito)
+
+for(i in 1:10) {
+  indices = cv_indices[[i]]
+  sub_train = train[-indices,] # Leave one "bucket" out.
+  sub_test = train[indices,]
+  
+  model_cito = dnn(Hazardous~., data = sub_train,validation = 0.2, hidden = rep(100L, 2L), activation = rep("relu", 2), loss = "binomial")
+
+  pred_train = predict(model_cito, sub_train)
+  pred_test = predict(model_cito, sub_test)
+  
+  # AUC: Area under the (ROC) curve, this is a performance measure [0, 1].
+  # 0.5 is worst for a binary classifier.
+  # 1 perfectly classifies all samples, 0 perfectly misclassifies all samples.
+  result[i, 1] = Metrics::auc(sub_train$Hazardous, pred_train)
+  result[i, 2] = Metrics::auc(sub_test$Hazardous, pred_test)
+}
+#> Loss at epoch 1: training: 0.388, validation: 0.435, lr: 0.01000
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 0.254, validation: 0.373, lr: 0.01000
+#> Loss at epoch 3: training: 0.165, validation: 0.273, lr: 0.01000
+#> Loss at epoch 4: training: 0.143, validation: 0.428, lr: 0.01000
+#> Loss at epoch 5: training: 0.095, validation: 0.402, lr: 0.01000
+#> Loss at epoch 6: training: 0.166, validation: 0.322, lr: 0.01000
+#> Loss at epoch 7: training: 0.124, validation: 0.311, lr: 0.01000
+#> Loss at epoch 8: training: 0.105, validation: 0.335, lr: 0.01000
+#> Loss at epoch 9: training: 0.072, validation: 0.378, lr: 0.01000
+#> Loss at epoch 10: training: 0.057, validation: 0.249, lr: 0.01000
+#> Loss at epoch 11: training: 0.056, validation: 0.596, lr: 0.01000
+#> Loss at epoch 12: training: 0.027, validation: 0.498, lr: 0.01000
+#> Loss at epoch 13: training: 0.025, validation: 0.640, lr: 0.01000
+#> Loss at epoch 14: training: 0.015, validation: 0.661, lr: 0.01000
+#> Loss at epoch 15: training: 0.009, validation: 0.500, lr: 0.01000
+#> Loss at epoch 16: training: 0.009, validation: 0.588, lr: 0.01000
+#> Loss at epoch 17: training: 0.005, validation: 0.626, lr: 0.01000
+#> Loss at epoch 18: training: 0.004, validation: 0.694, lr: 0.01000
+#> Loss at epoch 19: training: 0.002, validation: 0.706, lr: 0.01000
+#> Loss at epoch 20: training: 0.001, validation: 0.714, lr: 0.01000
+#> Loss at epoch 21: training: 0.001, validation: 0.719, lr: 0.01000
+#> Loss at epoch 22: training: 0.001, validation: 0.737, lr: 0.01000
+#> Loss at epoch 23: training: 0.001, validation: 0.745, lr: 0.01000
+#> Loss at epoch 24: training: 0.001, validation: 0.754, lr: 0.01000
+#> Loss at epoch 25: training: 0.000, validation: 0.760, lr: 0.01000
+#> Loss at epoch 26: training: 0.000, validation: 0.768, lr: 0.01000
+#> Loss at epoch 27: training: 0.000, validation: 0.776, lr: 0.01000
+#> Loss at epoch 28: training: 0.000, validation: 0.782, lr: 0.01000
+#> Loss at epoch 29: training: 0.000, validation: 0.786, lr: 0.01000
+#> Loss at epoch 30: training: 0.000, validation: 0.792, lr: 0.01000
+#> Loss at epoch 31: training: 0.000, validation: 0.799, lr: 0.01000
+#> Loss at epoch 32: training: 0.000, validation: 0.802, lr: 0.01000
+#> Loss at epoch 1: training: 0.435, validation: 0.363, lr: 0.01000
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0cito-2.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 0.270, validation: 0.355, lr: 0.01000
+#> Loss at epoch 3: training: 0.218, validation: 0.328, lr: 0.01000
+#> Loss at epoch 4: training: 0.196, validation: 0.317, lr: 0.01000
+#> Loss at epoch 5: training: 0.153, validation: 0.320, lr: 0.01000
+#> Loss at epoch 6: training: 0.103, validation: 0.310, lr: 0.01000
+#> Loss at epoch 7: training: 0.090, validation: 0.347, lr: 0.01000
+#> Loss at epoch 8: training: 0.095, validation: 0.393, lr: 0.01000
+#> Loss at epoch 9: training: 0.081, validation: 0.400, lr: 0.01000
+#> Loss at epoch 10: training: 0.060, validation: 0.383, lr: 0.01000
+#> Loss at epoch 11: training: 0.061, validation: 0.415, lr: 0.01000
+#> Loss at epoch 12: training: 0.030, validation: 0.467, lr: 0.01000
+#> Loss at epoch 13: training: 0.029, validation: 0.470, lr: 0.01000
+#> Loss at epoch 14: training: 0.035, validation: 0.549, lr: 0.01000
+#> Loss at epoch 15: training: 0.031, validation: 0.496, lr: 0.01000
+#> Loss at epoch 16: training: 0.027, validation: 0.524, lr: 0.01000
+#> Loss at epoch 17: training: 0.039, validation: 0.555, lr: 0.01000
+#> Loss at epoch 18: training: 0.050, validation: 0.634, lr: 0.01000
+#> Loss at epoch 19: training: 0.069, validation: 0.547, lr: 0.01000
+#> Loss at epoch 20: training: 0.041, validation: 0.407, lr: 0.01000
+#> Loss at epoch 21: training: 0.023, validation: 0.458, lr: 0.01000
+#> Loss at epoch 22: training: 0.015, validation: 0.442, lr: 0.01000
+#> Loss at epoch 23: training: 0.009, validation: 0.473, lr: 0.01000
+#> Loss at epoch 24: training: 0.004, validation: 0.468, lr: 0.01000
+#> Loss at epoch 25: training: 0.002, validation: 0.480, lr: 0.01000
+#> Loss at epoch 26: training: 0.002, validation: 0.487, lr: 0.01000
+#> Loss at epoch 27: training: 0.001, validation: 0.497, lr: 0.01000
+#> Loss at epoch 28: training: 0.001, validation: 0.506, lr: 0.01000
+#> Loss at epoch 29: training: 0.001, validation: 0.513, lr: 0.01000
+#> Loss at epoch 30: training: 0.001, validation: 0.519, lr: 0.01000
+#> Loss at epoch 31: training: 0.000, validation: 0.525, lr: 0.01000
+#> Loss at epoch 32: training: 0.000, validation: 0.531, lr: 0.01000
+#> Loss at epoch 1: training: 0.472, validation: 0.358, lr: 0.01000
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0cito-3.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 0.292, validation: 0.327, lr: 0.01000
+#> Loss at epoch 3: training: 0.218, validation: 0.238, lr: 0.01000
+#> Loss at epoch 4: training: 0.161, validation: 0.192, lr: 0.01000
+#> Loss at epoch 5: training: 0.108, validation: 0.237, lr: 0.01000
+#> Loss at epoch 6: training: 0.122, validation: 0.214, lr: 0.01000
+#> Loss at epoch 7: training: 0.086, validation: 0.258, lr: 0.01000
+#> Loss at epoch 8: training: 0.074, validation: 0.242, lr: 0.01000
+#> Loss at epoch 9: training: 0.086, validation: 0.342, lr: 0.01000
+#> Loss at epoch 10: training: 0.077, validation: 0.284, lr: 0.01000
+#> Loss at epoch 11: training: 0.060, validation: 0.246, lr: 0.01000
+#> Loss at epoch 12: training: 0.041, validation: 0.287, lr: 0.01000
+#> Loss at epoch 13: training: 0.038, validation: 0.373, lr: 0.01000
+#> Loss at epoch 14: training: 0.074, validation: 0.452, lr: 0.01000
+#> Loss at epoch 15: training: 0.059, validation: 0.278, lr: 0.01000
+#> Loss at epoch 16: training: 0.029, validation: 0.274, lr: 0.01000
+#> Loss at epoch 17: training: 0.018, validation: 0.315, lr: 0.01000
+#> Loss at epoch 18: training: 0.011, validation: 0.341, lr: 0.01000
+#> Loss at epoch 19: training: 0.009, validation: 0.345, lr: 0.01000
+#> Loss at epoch 20: training: 0.007, validation: 0.352, lr: 0.01000
+#> Loss at epoch 21: training: 0.005, validation: 0.360, lr: 0.01000
+#> Loss at epoch 22: training: 0.004, validation: 0.373, lr: 0.01000
+#> Loss at epoch 23: training: 0.003, validation: 0.377, lr: 0.01000
+#> Loss at epoch 24: training: 0.002, validation: 0.387, lr: 0.01000
+#> Loss at epoch 25: training: 0.001, validation: 0.393, lr: 0.01000
+#> Loss at epoch 26: training: 0.001, validation: 0.407, lr: 0.01000
+#> Loss at epoch 27: training: 0.001, validation: 0.417, lr: 0.01000
+#> Loss at epoch 28: training: 0.001, validation: 0.428, lr: 0.01000
+#> Loss at epoch 29: training: 0.001, validation: 0.437, lr: 0.01000
+#> Loss at epoch 30: training: 0.000, validation: 0.445, lr: 0.01000
+#> Loss at epoch 31: training: 0.000, validation: 0.455, lr: 0.01000
+#> Loss at epoch 32: training: 0.000, validation: 0.464, lr: 0.01000
+#> Loss at epoch 1: training: 0.455, validation: 0.400, lr: 0.01000
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0cito-4.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 0.257, validation: 0.339, lr: 0.01000
+#> Loss at epoch 3: training: 0.196, validation: 0.305, lr: 0.01000
+#> Loss at epoch 4: training: 0.135, validation: 0.262, lr: 0.01000
+#> Loss at epoch 5: training: 0.089, validation: 0.270, lr: 0.01000
+#> Loss at epoch 6: training: 0.052, validation: 0.406, lr: 0.01000
+#> Loss at epoch 7: training: 0.042, validation: 0.604, lr: 0.01000
+#> Loss at epoch 8: training: 0.075, validation: 0.520, lr: 0.01000
+#> Loss at epoch 9: training: 0.119, validation: 0.606, lr: 0.01000
+#> Loss at epoch 10: training: 0.067, validation: 0.552, lr: 0.01000
+#> Loss at epoch 11: training: 0.036, validation: 0.429, lr: 0.01000
+#> Loss at epoch 12: training: 0.024, validation: 0.553, lr: 0.01000
+#> Loss at epoch 13: training: 0.013, validation: 0.544, lr: 0.01000
+#> Loss at epoch 14: training: 0.014, validation: 0.633, lr: 0.01000
+#> Loss at epoch 15: training: 0.021, validation: 0.620, lr: 0.01000
+#> Loss at epoch 16: training: 0.006, validation: 0.672, lr: 0.01000
+#> Loss at epoch 17: training: 0.003, validation: 0.725, lr: 0.01000
+#> Loss at epoch 18: training: 0.001, validation: 0.760, lr: 0.01000
+#> Loss at epoch 19: training: 0.001, validation: 0.771, lr: 0.01000
+#> Loss at epoch 20: training: 0.001, validation: 0.777, lr: 0.01000
+#> Loss at epoch 21: training: 0.001, validation: 0.783, lr: 0.01000
+#> Loss at epoch 22: training: 0.000, validation: 0.791, lr: 0.01000
+#> Loss at epoch 23: training: 0.000, validation: 0.801, lr: 0.01000
+#> Loss at epoch 24: training: 0.000, validation: 0.814, lr: 0.01000
+#> Loss at epoch 25: training: 0.000, validation: 0.824, lr: 0.01000
+#> Loss at epoch 26: training: 0.000, validation: 0.833, lr: 0.01000
+#> Loss at epoch 27: training: 0.000, validation: 0.841, lr: 0.01000
+#> Loss at epoch 28: training: 0.000, validation: 0.848, lr: 0.01000
+#> Loss at epoch 29: training: 0.000, validation: 0.854, lr: 0.01000
+#> Loss at epoch 30: training: 0.000, validation: 0.859, lr: 0.01000
+#> Loss at epoch 31: training: 0.000, validation: 0.863, lr: 0.01000
+#> Loss at epoch 32: training: 0.000, validation: 0.867, lr: 0.01000
+#> Loss at epoch 1: training: 0.495, validation: 0.282, lr: 0.01000
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0cito-5.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 0.299, validation: 0.243, lr: 0.01000
+#> Loss at epoch 3: training: 0.250, validation: 0.197, lr: 0.01000
+#> Loss at epoch 4: training: 0.204, validation: 0.171, lr: 0.01000
+#> Loss at epoch 5: training: 0.177, validation: 0.186, lr: 0.01000
+#> Loss at epoch 6: training: 0.154, validation: 0.166, lr: 0.01000
+#> Loss at epoch 7: training: 0.147, validation: 0.137, lr: 0.01000
+#> Loss at epoch 8: training: 0.146, validation: 0.174, lr: 0.01000
+#> Loss at epoch 9: training: 0.156, validation: 0.217, lr: 0.01000
+#> Loss at epoch 10: training: 0.152, validation: 0.176, lr: 0.01000
+#> Loss at epoch 11: training: 0.123, validation: 0.152, lr: 0.01000
+#> Loss at epoch 12: training: 0.093, validation: 0.118, lr: 0.01000
+#> Loss at epoch 13: training: 0.064, validation: 0.203, lr: 0.01000
+#> Loss at epoch 14: training: 0.031, validation: 0.171, lr: 0.01000
+#> Loss at epoch 15: training: 0.050, validation: 0.173, lr: 0.01000
+#> Loss at epoch 16: training: 0.064, validation: 0.191, lr: 0.01000
+#> Loss at epoch 17: training: 0.127, validation: 0.139, lr: 0.01000
+#> Loss at epoch 18: training: 0.092, validation: 0.167, lr: 0.01000
+#> Loss at epoch 19: training: 0.074, validation: 0.129, lr: 0.01000
+#> Loss at epoch 20: training: 0.067, validation: 0.354, lr: 0.01000
+#> Loss at epoch 21: training: 0.073, validation: 0.155, lr: 0.01000
+#> Loss at epoch 22: training: 0.142, validation: 0.143, lr: 0.01000
+#> Loss at epoch 23: training: 0.131, validation: 0.171, lr: 0.01000
+#> Loss at epoch 24: training: 0.044, validation: 0.241, lr: 0.01000
+#> Loss at epoch 25: training: 0.028, validation: 0.191, lr: 0.01000
+#> Loss at epoch 26: training: 0.019, validation: 0.186, lr: 0.01000
+#> Loss at epoch 27: training: 0.014, validation: 0.186, lr: 0.01000
+#> Loss at epoch 28: training: 0.011, validation: 0.198, lr: 0.01000
+#> Loss at epoch 29: training: 0.009, validation: 0.199, lr: 0.01000
+#> Loss at epoch 30: training: 0.007, validation: 0.208, lr: 0.01000
+#> Loss at epoch 31: training: 0.006, validation: 0.202, lr: 0.01000
+#> Loss at epoch 32: training: 0.005, validation: 0.209, lr: 0.01000
+#> Loss at epoch 1: training: 0.453, validation: 0.263, lr: 0.01000
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0cito-6.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 0.291, validation: 0.232, lr: 0.01000
+#> Loss at epoch 3: training: 0.217, validation: 0.174, lr: 0.01000
+#> Loss at epoch 4: training: 0.134, validation: 0.155, lr: 0.01000
+#> Loss at epoch 5: training: 0.100, validation: 0.254, lr: 0.01000
+#> Loss at epoch 6: training: 0.213, validation: 0.385, lr: 0.01000
+#> Loss at epoch 7: training: 0.228, validation: 0.137, lr: 0.01000
+#> Loss at epoch 8: training: 0.109, validation: 0.195, lr: 0.01000
+#> Loss at epoch 9: training: 0.054, validation: 0.208, lr: 0.01000
+#> Loss at epoch 10: training: 0.027, validation: 0.299, lr: 0.01000
+#> Loss at epoch 11: training: 0.014, validation: 0.368, lr: 0.01000
+#> Loss at epoch 12: training: 0.007, validation: 0.394, lr: 0.01000
+#> Loss at epoch 13: training: 0.004, validation: 0.403, lr: 0.01000
+#> Loss at epoch 14: training: 0.003, validation: 0.420, lr: 0.01000
+#> Loss at epoch 15: training: 0.002, validation: 0.438, lr: 0.01000
+#> Loss at epoch 16: training: 0.001, validation: 0.454, lr: 0.01000
+#> Loss at epoch 17: training: 0.001, validation: 0.466, lr: 0.01000
+#> Loss at epoch 18: training: 0.001, validation: 0.480, lr: 0.01000
+#> Loss at epoch 19: training: 0.001, validation: 0.491, lr: 0.01000
+#> Loss at epoch 20: training: 0.001, validation: 0.500, lr: 0.01000
+#> Loss at epoch 21: training: 0.000, validation: 0.511, lr: 0.01000
+#> Loss at epoch 22: training: 0.000, validation: 0.521, lr: 0.01000
+#> Loss at epoch 23: training: 0.000, validation: 0.528, lr: 0.01000
+#> Loss at epoch 24: training: 0.000, validation: 0.541, lr: 0.01000
+#> Loss at epoch 25: training: 0.000, validation: 0.550, lr: 0.01000
+#> Loss at epoch 26: training: 0.000, validation: 0.554, lr: 0.01000
+#> Loss at epoch 27: training: 0.000, validation: 0.569, lr: 0.01000
+#> Loss at epoch 28: training: 0.000, validation: 0.569, lr: 0.01000
+#> Loss at epoch 29: training: 0.000, validation: 0.577, lr: 0.01000
+#> Loss at epoch 30: training: 0.000, validation: 0.578, lr: 0.01000
+#> Loss at epoch 31: training: 0.000, validation: 0.585, lr: 0.01000
+#> Loss at epoch 32: training: 0.000, validation: 0.591, lr: 0.01000
+#> Loss at epoch 1: training: 0.480, validation: 0.300, lr: 0.01000
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0cito-7.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 0.310, validation: 0.221, lr: 0.01000
+#> Loss at epoch 3: training: 0.257, validation: 0.185, lr: 0.01000
+#> Loss at epoch 4: training: 0.201, validation: 0.176, lr: 0.01000
+#> Loss at epoch 5: training: 0.162, validation: 0.213, lr: 0.01000
+#> Loss at epoch 6: training: 0.140, validation: 0.132, lr: 0.01000
+#> Loss at epoch 7: training: 0.087, validation: 0.173, lr: 0.01000
+#> Loss at epoch 8: training: 0.101, validation: 0.152, lr: 0.01000
+#> Loss at epoch 9: training: 0.085, validation: 0.180, lr: 0.01000
+#> Loss at epoch 10: training: 0.061, validation: 0.178, lr: 0.01000
+#> Loss at epoch 11: training: 0.044, validation: 0.158, lr: 0.01000
+#> Loss at epoch 12: training: 0.021, validation: 0.180, lr: 0.01000
+#> Loss at epoch 13: training: 0.011, validation: 0.158, lr: 0.01000
+#> Loss at epoch 14: training: 0.007, validation: 0.203, lr: 0.01000
+#> Loss at epoch 15: training: 0.004, validation: 0.216, lr: 0.01000
+#> Loss at epoch 16: training: 0.002, validation: 0.198, lr: 0.01000
+#> Loss at epoch 17: training: 0.002, validation: 0.206, lr: 0.01000
+#> Loss at epoch 18: training: 0.001, validation: 0.215, lr: 0.01000
+#> Loss at epoch 19: training: 0.001, validation: 0.221, lr: 0.01000
+#> Loss at epoch 20: training: 0.001, validation: 0.221, lr: 0.01000
+#> Loss at epoch 21: training: 0.001, validation: 0.224, lr: 0.01000
+#> Loss at epoch 22: training: 0.001, validation: 0.226, lr: 0.01000
+#> Loss at epoch 23: training: 0.001, validation: 0.229, lr: 0.01000
+#> Loss at epoch 24: training: 0.001, validation: 0.234, lr: 0.01000
+#> Loss at epoch 25: training: 0.000, validation: 0.234, lr: 0.01000
+#> Loss at epoch 26: training: 0.000, validation: 0.231, lr: 0.01000
+#> Loss at epoch 27: training: 0.000, validation: 0.231, lr: 0.01000
+#> Loss at epoch 28: training: 0.000, validation: 0.233, lr: 0.01000
+#> Loss at epoch 29: training: 0.000, validation: 0.233, lr: 0.01000
+#> Loss at epoch 30: training: 0.000, validation: 0.232, lr: 0.01000
+#> Loss at epoch 31: training: 0.000, validation: 0.233, lr: 0.01000
+#> Loss at epoch 32: training: 0.000, validation: 0.235, lr: 0.01000
+#> Loss at epoch 1: training: 0.450, validation: 0.334, lr: 0.01000
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0cito-8.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 0.293, validation: 0.277, lr: 0.01000
+#> Loss at epoch 3: training: 0.225, validation: 0.245, lr: 0.01000
+#> Loss at epoch 4: training: 0.167, validation: 0.249, lr: 0.01000
+#> Loss at epoch 5: training: 0.108, validation: 0.308, lr: 0.01000
+#> Loss at epoch 6: training: 0.089, validation: 0.344, lr: 0.01000
+#> Loss at epoch 7: training: 0.073, validation: 0.424, lr: 0.01000
+#> Loss at epoch 8: training: 0.067, validation: 0.459, lr: 0.01000
+#> Loss at epoch 9: training: 0.073, validation: 0.444, lr: 0.01000
+#> Loss at epoch 10: training: 0.094, validation: 0.433, lr: 0.01000
+#> Loss at epoch 11: training: 0.138, validation: 0.378, lr: 0.01000
+#> Loss at epoch 12: training: 0.069, validation: 0.357, lr: 0.01000
+#> Loss at epoch 13: training: 0.043, validation: 0.332, lr: 0.01000
+#> Loss at epoch 14: training: 0.021, validation: 0.420, lr: 0.01000
+#> Loss at epoch 15: training: 0.010, validation: 0.475, lr: 0.01000
+#> Loss at epoch 16: training: 0.006, validation: 0.511, lr: 0.01000
+#> Loss at epoch 17: training: 0.004, validation: 0.547, lr: 0.01000
+#> Loss at epoch 18: training: 0.003, validation: 0.561, lr: 0.01000
+#> Loss at epoch 19: training: 0.003, validation: 0.571, lr: 0.01000
+#> Loss at epoch 20: training: 0.003, validation: 0.590, lr: 0.01000
+#> Loss at epoch 21: training: 0.002, validation: 0.606, lr: 0.01000
+#> Loss at epoch 22: training: 0.002, validation: 0.614, lr: 0.01000
+#> Loss at epoch 23: training: 0.002, validation: 0.639, lr: 0.01000
+#> Loss at epoch 24: training: 0.002, validation: 0.655, lr: 0.01000
+#> Loss at epoch 25: training: 0.002, validation: 0.657, lr: 0.01000
+#> Loss at epoch 26: training: 0.002, validation: 0.664, lr: 0.01000
+#> Loss at epoch 27: training: 0.002, validation: 0.669, lr: 0.01000
+#> Loss at epoch 28: training: 0.002, validation: 0.673, lr: 0.01000
+#> Loss at epoch 29: training: 0.002, validation: 0.677, lr: 0.01000
+#> Loss at epoch 30: training: 0.002, validation: 0.681, lr: 0.01000
+#> Loss at epoch 31: training: 0.002, validation: 0.685, lr: 0.01000
+#> Loss at epoch 32: training: 0.002, validation: 0.688, lr: 0.01000
+#> Loss at epoch 1: training: 0.422, validation: 0.342, lr: 0.01000
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0cito-9.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 0.245, validation: 0.315, lr: 0.01000
+#> Loss at epoch 3: training: 0.172, validation: 0.229, lr: 0.01000
+#> Loss at epoch 4: training: 0.126, validation: 0.215, lr: 0.01000
+#> Loss at epoch 5: training: 0.098, validation: 0.239, lr: 0.01000
+#> Loss at epoch 6: training: 0.090, validation: 0.262, lr: 0.01000
+#> Loss at epoch 7: training: 0.069, validation: 0.249, lr: 0.01000
+#> Loss at epoch 8: training: 0.063, validation: 0.212, lr: 0.01000
+#> Loss at epoch 9: training: 0.039, validation: 0.257, lr: 0.01000
+#> Loss at epoch 10: training: 0.036, validation: 0.334, lr: 0.01000
+#> Loss at epoch 11: training: 0.027, validation: 0.310, lr: 0.01000
+#> Loss at epoch 12: training: 0.027, validation: 0.445, lr: 0.01000
+#> Loss at epoch 13: training: 0.095, validation: 0.563, lr: 0.01000
+#> Loss at epoch 14: training: 0.106, validation: 0.375, lr: 0.01000
+#> Loss at epoch 15: training: 0.039, validation: 0.233, lr: 0.01000
+#> Loss at epoch 16: training: 0.026, validation: 0.267, lr: 0.01000
+#> Loss at epoch 17: training: 0.008, validation: 0.230, lr: 0.01000
+#> Loss at epoch 18: training: 0.005, validation: 0.235, lr: 0.01000
+#> Loss at epoch 19: training: 0.003, validation: 0.240, lr: 0.01000
+#> Loss at epoch 20: training: 0.002, validation: 0.252, lr: 0.01000
+#> Loss at epoch 21: training: 0.002, validation: 0.263, lr: 0.01000
+#> Loss at epoch 22: training: 0.001, validation: 0.273, lr: 0.01000
+#> Loss at epoch 23: training: 0.001, validation: 0.281, lr: 0.01000
+#> Loss at epoch 24: training: 0.001, validation: 0.288, lr: 0.01000
+#> Loss at epoch 25: training: 0.001, validation: 0.293, lr: 0.01000
+#> Loss at epoch 26: training: 0.001, validation: 0.298, lr: 0.01000
+#> Loss at epoch 27: training: 0.001, validation: 0.303, lr: 0.01000
+#> Loss at epoch 28: training: 0.001, validation: 0.307, lr: 0.01000
+#> Loss at epoch 29: training: 0.000, validation: 0.311, lr: 0.01000
+#> Loss at epoch 30: training: 0.000, validation: 0.315, lr: 0.01000
+#> Loss at epoch 31: training: 0.000, validation: 0.319, lr: 0.01000
+#> Loss at epoch 32: training: 0.000, validation: 0.323, lr: 0.01000
+#> Loss at epoch 1: training: 0.443, validation: 0.338, lr: 0.01000
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0cito-10.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 0.269, validation: 0.259, lr: 0.01000
+#> Loss at epoch 3: training: 0.213, validation: 0.226, lr: 0.01000
+#> Loss at epoch 4: training: 0.172, validation: 0.207, lr: 0.01000
+#> Loss at epoch 5: training: 0.126, validation: 0.180, lr: 0.01000
+#> Loss at epoch 6: training: 0.102, validation: 0.350, lr: 0.01000
+#> Loss at epoch 7: training: 0.085, validation: 0.327, lr: 0.01000
+#> Loss at epoch 8: training: 0.109, validation: 0.303, lr: 0.01000
+#> Loss at epoch 9: training: 0.080, validation: 0.245, lr: 0.01000
+#> Loss at epoch 10: training: 0.045, validation: 0.428, lr: 0.01000
+#> Loss at epoch 11: training: 0.028, validation: 0.370, lr: 0.01000
+#> Loss at epoch 12: training: 0.023, validation: 0.417, lr: 0.01000
+#> Loss at epoch 13: training: 0.016, validation: 0.443, lr: 0.01000
+#> Loss at epoch 14: training: 0.008, validation: 0.373, lr: 0.01000
+#> Loss at epoch 15: training: 0.004, validation: 0.460, lr: 0.01000
+#> Loss at epoch 16: training: 0.003, validation: 0.416, lr: 0.01000
+#> Loss at epoch 17: training: 0.002, validation: 0.482, lr: 0.01000
+#> Loss at epoch 18: training: 0.001, validation: 0.446, lr: 0.01000
+#> Loss at epoch 19: training: 0.001, validation: 0.445, lr: 0.01000
+#> Loss at epoch 20: training: 0.001, validation: 0.466, lr: 0.01000
+#> Loss at epoch 21: training: 0.001, validation: 0.470, lr: 0.01000
+#> Loss at epoch 22: training: 0.000, validation: 0.470, lr: 0.01000
+#> Loss at epoch 23: training: 0.000, validation: 0.473, lr: 0.01000
+#> Loss at epoch 24: training: 0.000, validation: 0.475, lr: 0.01000
+#> Loss at epoch 25: training: 0.000, validation: 0.478, lr: 0.01000
+#> Loss at epoch 26: training: 0.000, validation: 0.479, lr: 0.01000
+#> Loss at epoch 27: training: 0.000, validation: 0.482, lr: 0.01000
+#> Loss at epoch 28: training: 0.000, validation: 0.484, lr: 0.01000
+#> Loss at epoch 29: training: 0.000, validation: 0.486, lr: 0.01000
+#> Loss at epoch 30: training: 0.000, validation: 0.488, lr: 0.01000
+#> Loss at epoch 31: training: 0.000, validation: 0.491, lr: 0.01000
+#> Loss at epoch 32: training: 0.000, validation: 0.492, lr: 0.01000
+print(result)
+#>       train_auc  test_auc
+#>  [1,] 0.9914020 0.9430894
+#>  [2,] 0.9909064 0.9777778
+#>  [3,] 0.9963232 0.9777778
+#>  [4,] 0.9893852 0.9400000
+#>  [5,] 0.9968243 0.9255952
+#>  [6,] 0.9945608 0.8690476
+#>  [7,] 0.9995426 0.9868421
+#>  [8,] 0.9904637 0.9837398
+#>  [9,] 0.9976998 0.9682540
+#> [10,] 0.9942568 0.9642857
+(colMeans(result))
+#> train_auc  test_auc 
+#> 0.9941365 0.9536409
+
+# The model setup seems to be fine.
+
+## Train and predict for outer validation split (on the complete training data):
+model_cito = dnn(Hazardous~., data = train, hidden = rep(100L, 2L), activation = rep("relu", 2), loss = "binomial")
+#> Loss at epoch 1: 0.435567, lr: 0.01000
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_task_0cito-11.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: 0.284994, lr: 0.01000
+#> Loss at epoch 3: 0.200466, lr: 0.01000
+#> Loss at epoch 4: 0.152101, lr: 0.01000
+#> Loss at epoch 5: 0.136190, lr: 0.01000
+#> Loss at epoch 6: 0.107190, lr: 0.01000
+#> Loss at epoch 7: 0.080262, lr: 0.01000
+#> Loss at epoch 8: 0.090661, lr: 0.01000
+#> Loss at epoch 9: 0.128607, lr: 0.01000
+#> Loss at epoch 10: 0.104285, lr: 0.01000
+#> Loss at epoch 11: 0.065403, lr: 0.01000
+#> Loss at epoch 12: 0.048835, lr: 0.01000
+#> Loss at epoch 13: 0.043236, lr: 0.01000
+#> Loss at epoch 14: 0.025492, lr: 0.01000
+#> Loss at epoch 15: 0.015401, lr: 0.01000
+#> Loss at epoch 16: 0.006055, lr: 0.01000
+#> Loss at epoch 17: 0.004264, lr: 0.01000
+#> Loss at epoch 18: 0.001732, lr: 0.01000
+#> Loss at epoch 19: 0.001325, lr: 0.01000
+#> Loss at epoch 20: 0.001001, lr: 0.01000
+#> Loss at epoch 21: 0.000834, lr: 0.01000
+#> Loss at epoch 22: 0.000696, lr: 0.01000
+#> Loss at epoch 23: 0.000589, lr: 0.01000
+#> Loss at epoch 24: 0.000506, lr: 0.01000
+#> Loss at epoch 25: 0.000444, lr: 0.01000
+#> Loss at epoch 26: 0.000392, lr: 0.01000
+#> Loss at epoch 27: 0.000348, lr: 0.01000
+#> Loss at epoch 28: 0.000311, lr: 0.01000
+#> Loss at epoch 29: 0.000281, lr: 0.01000
+#> Loss at epoch 30: 0.000255, lr: 0.01000
+#> Loss at epoch 31: 0.000235, lr: 0.01000
+#> Loss at epoch 32: 0.000215, lr: 0.01000
+test$Hazardous = 1 # rows with NA wills be removed
+pred = round(predict(model_cito, newdata= test))
+
+write.csv(data.frame(y = pred), file = "submission_DNN.csv")
+```
+
+
+:::
+
+:::::
+
 
 Go trough the code line by line and try to understand it. Especially have a focus on the general machine learning workflow (remember the general steps), the new type of imputation and the hand coded 10-fold cross-validation (the for loop).
 
@@ -1682,7 +2526,7 @@ model %>%
  layer_dense(100L, activation = "relu") %>%
  layer_dense(10L, activation = "softmax")
 summary(model)
-#> Model: "sequential_37"
+#> Model: "sequential_33"
 #> __________________________________________________________________________________________
 #>  Layer (type)                           Output Shape                        Param #       
 #> ==========================================================================================
@@ -1691,8 +2535,8 @@ summary(model)
 #>  conv2d (Conv2D)                        (None, 11, 11, 16)                  2320          
 #>  max_pooling2d (MaxPooling2D)           (None, 5, 5, 16)                    0             
 #>  flatten (Flatten)                      (None, 400)                         0             
-#>  dense_136 (Dense)                      (None, 100)                         40100         
-#>  dense_135 (Dense)                      (None, 10)                          1010          
+#>  dense_111 (Dense)                      (None, 100)                         40100         
+#>  dense_110 (Dense)                      (None, 10)                          1010          
 #> ==========================================================================================
 #> Total params: 43,510
 #> Trainable params: 43,510
@@ -1721,8 +2565,6 @@ train_ds = mnist_dataset(
   train = TRUE,
   transform = transform_to_tensor
 )
-#> Processing...
-#> Done!
 
 test_ds = mnist_dataset(
   ".",
@@ -1889,7 +2731,7 @@ model %>%
       loss = loss_categorical_crossentropy
   )
 summary(model)
-#> Model: "sequential_37"
+#> Model: "sequential_33"
 #> __________________________________________________________________________________________
 #>  Layer (type)                           Output Shape                        Param #       
 #> ==========================================================================================
@@ -1898,8 +2740,8 @@ summary(model)
 #>  conv2d (Conv2D)                        (None, 11, 11, 16)                  2320          
 #>  max_pooling2d (MaxPooling2D)           (None, 5, 5, 16)                    0             
 #>  flatten (Flatten)                      (None, 400)                         0             
-#>  dense_136 (Dense)                      (None, 100)                         40100         
-#>  dense_135 (Dense)                      (None, 10)                          1010          
+#>  dense_111 (Dense)                      (None, 100)                         40100         
+#>  dense_110 (Dense)                      (None, 10)                          1010          
 #> ==========================================================================================
 #> Total params: 43,510
 #> Trainable params: 43,510
@@ -2240,13 +3082,13 @@ In the next step we want to freeze all layers except for our own last layer. Fre
 ```r
 model %>% freeze_weights(to = length(model$layers) - 1)
 summary(model)
-#> Model: "model_1"
+#> Model: "model"
 #> __________________________________________________________________________________________
 #>  Layer (type)             Output Shape     Param #  Connected to               Trainable  
 #> ==========================================================================================
-#>  input_3 (InputLayer)     [(None, 32, 32,  0        []                         N          
+#>  input_1 (InputLayer)     [(None, 32, 32,  0        []                         N          
 #>                            3)]                                                            
-#>  zero_padding2d (ZeroPadd  (None, 38, 38,   0       ['input_3[0][0]']          N          
+#>  zero_padding2d (ZeroPadd  (None, 38, 38,   0       ['input_1[0][0]']          N          
 #>  ing2D)                   3)                                                              
 #>  conv1/conv (Conv2D)      (None, 16, 16,   9408     ['zero_padding2d[0][0]']   N          
 #>                           64)                                                             
@@ -3850,9 +4692,9 @@ summary(model)
 #>                           20)                       [0]']                                 
 #>  relu (Activation)        (None, 1, 1, 19  0        ['bn[0][0]']               N          
 #>                           20)                                                             
-#>  dense_137 (Dense)        (None, 1, 1, 10  19210    ['relu[0][0]']             N          
+#>  dense_112 (Dense)        (None, 1, 1, 10  19210    ['relu[0][0]']             N          
 #>                           )                                                               
-#>  flatten_1 (Flatten)      (None, 10)       0        ['dense_137[0][0]']        Y          
+#>  flatten_1 (Flatten)      (None, 10)       0        ['dense_112[0][0]']        Y          
 #> ==========================================================================================
 #> Total params: 18,341,194
 #> Trainable params: 0
