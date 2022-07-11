@@ -200,6 +200,54 @@ coef(lm(Y~X))
 ```
 
 
+Let's optimize a linear regression model using tensorflow/torch, autodiff and stochastic gradient descent:
+
+```{r chunk_chapter4_9a_tf}
+
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+
+# Guessed weights and intercept.
+wTF = tf$Variable(matrix(rnorm(ncol(X), 0, 0.01), ncol(X), 1), dtype="float32")
+interceptTF = tf$Variable(matrix(rnorm(1, 0, .05)), 1, 1, dtype="float32") # Double, not float32.
+
+get_batch = function() {
+  indices = sample.int(nrow(X), 20)
+  return(list(tf$constant(X[indices,], dtype="float32"), tf$constant(as.matrix(Y)[indices,,drop=FALSE], dtype="float32")))
+}
+learning_rate = tf$constant( 0.1, dtype = "float32")
+for(i in 1:2000){
+  batch = get_batch()
+  xTF = batch[[1]]
+  yTF = batch[[2]]
+  
+  with(tf$GradientTape(persistent = TRUE) %as% tape,
+    {
+      pred = tf$add(interceptTF, tf$matmul(xTF, wTF))
+      loss = tf$sqrt(tf$reduce_mean(tf$square(yTF - pred)))
+    }
+  )
+  grads = tape$gradient(loss, wTF)
+  .n = wTF$assign( wTF - tf$multiply(learning_rate, grads ))
+  grads_inter = tape$gradient(loss, interceptTF)
+  .n = interceptTF$assign( interceptTF - tf$multiply(learning_rate, grads_inter ))
+
+  if(!i%%100){ k_print_tensor(loss, message = "Loss: ") }  # Every 10 times.
+}
+
+cat(wTF$numpy(), message = "Resulting weights:\n")
+cat("Original weights: ", coef(lm(Y~X)), "\n")
+k_print_tensor(interceptTF, message = "Resulting intercept:\n")
+cat("Original intercept: ", intercept, "\n")
+```
+
+
+
+
+
+
 ### Regularization
 
 Regularization means adding information or structure to a system in order to solve an ill-posed optimization problem or to prevent overfitting. There are many ways of regularizing a machine learning model. The most important distinction is between _shrinkage estimators_ and estimators based on _model averaging_. 

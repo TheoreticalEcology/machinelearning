@@ -83,53 +83,6 @@ For the moment, we will focus on the first two tasks, supervised and unsupervise
 
 
 
-```{=html}
-  <hr/>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">2. Question</span></strong>
-    </summary>
-    <p>
-      <script>
-        makeMultipleChoiceForm(
-         'In the lecture, it was said that, during training, ML parameters are optimised to get a good fit (loss function) to training data. Which of the following statements about loss functions is correct?',
-          'checkbox',
-          [
-            {
-              'answer':'A loss function measures the difference between the (current) ML model prediction and the data.',
-              'correct':true,
-              'explanationIfSelected':'',
-              'explanationIfNotSelected':'',
-              'explanationGeneral':''
-            },
-            {
-              'answer':'When we specify a simple line as our ML model, all loss functions will lead to the same line.',
-              'correct':false,
-              'explanationIfSelected':'',
-              'explanationIfNotSelected':'',
-              'explanationGeneral':''
-            },
-            {
-              'answer':'Cross-Entropy and Kullback–Leibler divergence are common loss functions.',
-              'correct':true,
-              'explanationIfSelected':'',
-              'explanationIfNotSelected':'',
-              'explanationGeneral':''
-            },
-            {
-              'answer':'For regression, there is only one sensible loss function, and this is the mean squared error.',
-              'correct':false,
-              'explanationIfSelected':'',
-              'explanationIfNotSelected':'',
-              'explanationGeneral':''
-            },
-          ],
-          ''
-        );
-      </script>
-    </p>
-  <hr/>
-```
-
 <img src="./images/biasVarianceTradeoff.png" width="100%" style="display: block; margin: auto;" />
 
 ```{=html}
@@ -997,9 +950,27 @@ Fitting the model:
 
 ```r
 set.seed(123)
-
+library(randomForest)
 m1 = randomForest(Species ~ ., data = iris)
+print(m1)
+#> 
+#> Call:
+#>  randomForest(formula = Species ~ ., data = iris) 
+#>                Type of random forest: classification
+#>                      Number of trees: 500
+#> No. of variables tried at each split: 2
+#> 
+#>         OOB estimate of  error rate: 4.67%
+#> Confusion matrix:
+#>            setosa versicolor virginica class.error
+#> setosa         50          0         0        0.00
+#> versicolor      0         47         3        0.06
+#> virginica       0          4        46        0.08
+
+varImpPlot(m1)
 ```
+
+<img src="03-intro_files/figure-html/chunk_chapter3_30-1.png" width="100%" style="display: block; margin: auto;" />
 
 Visualizing one of the fitted models:
   
