@@ -150,12 +150,13 @@ Our task is now to find the parameters $X1,\dots,X6$ for which this loss functio
 
 ```{r chunk_chapter4_5}
 linear_regression = function(w){
-  pred = w[1]*X[,1] + # Solar.R
-         w[2]*X[,2] + # Wind
-         w[3]*X[,3] + # Temp
-         w[4]*X[,4] + # Month
-         w[5]*X[,5] +
-         w[6]         # or X * w[1:5]^T + w[6]
+  pred = w[1] +  # intercept
+         w[2]*X[,1] + # Solar.R
+         w[3]*X[,2] + # Wind
+         w[4]*X[,3] + # Temp
+         w[5]*X[,4] + # Month
+         w[6]*X[,5] 
+  # or X * w[2:6]^T + w[1]
   # loss  = MSE, we want to find the optimal weights 
   # to minimize the sum of squared residuals.
   loss = mean((pred - Y)^2)
@@ -179,25 +180,32 @@ set.seed(123)
 random_search = matrix(runif(6*5000, -10, 10), 5000, 6)
 losses = apply(random_search, 1, linear_regression)
 plot(losses, type = "l")
+min(losses)
 random_search[which.min(losses),]
 ```
 
-In most cases, bruteforce isn't a good approach. It might work well with only a few parameters, but with increasing complexity and more parameters it will take a long time. Furthermore it is not guaranteed that it finds a stable solution on continuous data.
-
-In R the optim function helps computing the optimum faster.
+In most cases, bruteforce isn't a good approach. It might work well with only a few parameters, but with increasing complexity and more parameters it will take a long time. Furthermore it is not guaranteed that it finds a stable solution on continuous data. In R the optim function helps computing the optimum faster.
 
 ```{r chunk_chapter4_8}
-opt = optim(runif(6, -1, 1), linear_regression)
+opt = optim(runif(6, -1, 1), linear_regression, method = "BFGS")
 opt$par
+opt$value
 ```
 
-In the background, mostly some _gradient descent_ methods are used.
+We see, we have found a better loss value, with far few model evaluations. You can see the number of model evaluations via 
 
-By comparing the weights from the optimizer to the estimated weights of the lm() function, we see that our self-written code obtains the same weights as the lm. Keep in mind, that our simple method uses random numbers thus the results might differ each run (without setting the seed).
+```{r}
+opt$counts
+```
+
+By comparing the weights from the optimizer to the estimated weights of the lm() function, we see that our self-written code obtains the same weights as the lm. 
 
 ```{r chunk_chapter4_9}
 coef(lm(Y~X))
 ```
+
+When you look at these numbers, keep in mind that most optimization algorithms use random numbers thus the results might differ each run (without setting the seed).
+
 
 
 Let's optimize a linear regression model using tensorflow/torch, autodiff and stochastic gradient descent:
