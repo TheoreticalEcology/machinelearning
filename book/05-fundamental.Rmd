@@ -219,11 +219,12 @@ set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 # Guessed weights and intercept.
 wTF = tf$Variable(matrix(rnorm(ncol(X), 0, 0.01), ncol(X), 1), dtype="float32")
-interceptTF = tf$Variable(matrix(rnorm(1, 0, .05)), 1, 1, dtype="float32") # Double, not float32.
+interceptTF = tf$Variable(matrix(rnorm(1, 0, .05)), 1, 1, dtype="float32") 
 
 get_batch = function() {
   indices = sample.int(nrow(X), 20)
-  return(list(tf$constant(X[indices,], dtype="float32"), tf$constant(as.matrix(Y)[indices,,drop=FALSE], dtype="float32")))
+  return(list(tf$constant(X[indices,], dtype="float32"), 
+              tf$constant(as.matrix(Y)[indices,,drop=FALSE], dtype="float32")))
 }
 learning_rate = tf$constant( 0.5, dtype = "float32")
 for(i in 1:2000){
@@ -246,7 +247,7 @@ for(i in 1:2000){
 }
 ```
 
-```{r message=FALSE, warning=FALSE, echo=FALSE, include=FALSE}
+```{r message=FALSE, warning=FALSE, echo=FALSE, include=TRUE}
 cat("LM weights:\n",coef(lm(Y~X)))
 cat("Optim weights:\n",opt$par)
 cat("TF weights:\n",interceptTF$numpy(), wTF$numpy())
