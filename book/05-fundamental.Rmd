@@ -225,7 +225,7 @@ get_batch = function() {
   indices = sample.int(nrow(X), 20)
   return(list(tf$constant(X[indices,], dtype="float32"), tf$constant(as.matrix(Y)[indices,,drop=FALSE], dtype="float32")))
 }
-learning_rate = tf$constant( 0.1, dtype = "float32")
+learning_rate = tf$constant( 0.5, dtype = "float32")
 for(i in 1:2000){
   batch = get_batch()
   xTF = batch[[1]]
@@ -244,13 +244,13 @@ for(i in 1:2000){
 
   if(!i%%100){ k_print_tensor(loss, message = "Loss: ") }  # Every 10 times.
 }
-
-cat(wTF$numpy(), message = "Resulting weights:\n")
-cat("Original weights: ", coef(lm(Y~X)), "\n")
-k_print_tensor(interceptTF, message = "Resulting intercept:\n")
-cat("Original intercept: ", intercept, "\n")
 ```
 
+```{r message=FALSE, warning=FALSE, echo=FALSE, include=FALSE}
+cat("LM weights:\n",coef(lm(Y~X)))
+cat("Optim weights:\n",opt$par)
+cat("TF weights:\n",interceptTF$numpy(), wTF$numpy())
+```
 
 
 
