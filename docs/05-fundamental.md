@@ -140,12 +140,13 @@ Our task is now to find the parameters $X1,\dots,X6$ for which this loss functio
 
 ```r
 linear_regression = function(w){
-  pred = w[1]*X[,1] + # Solar.R
-         w[2]*X[,2] + # Wind
-         w[3]*X[,3] + # Temp
-         w[4]*X[,4] + # Month
-         w[5]*X[,5] +
-         w[6]         # or X * w[1:5]^T + w[6]
+  pred = w[1] +  # intercept
+         w[2]*X[,1] + # Solar.R
+         w[3]*X[,2] + # Wind
+         w[4]*X[,3] + # Temp
+         w[5]*X[,4] + # Month
+         w[6]*X[,5] 
+  # or X * w[2:6]^T + w[1]
   # loss  = MSE, we want to find the optimal weights 
   # to minimize the sum of squared residuals.
   loss = mean((pred - Y)^2)
@@ -177,24 +178,33 @@ plot(losses, type = "l")
 <img src="05-fundamental_files/figure-html/chunk_chapter4_7-1.png" width="100%" style="display: block; margin: auto;" />
 
 ```r
+min(losses)
+#> [1] 1602.35
 random_search[which.min(losses),]
-#> [1]  7.411631 -7.018960  9.376949  6.490659  5.432706  9.460573
+#> [1]  9.3257134  5.1024129 -9.6783025  7.6759366 -0.9435499 -1.4808634
 ```
 
-In most cases, bruteforce isn't a good approach. It might work well with only a few parameters, but with increasing complexity and more parameters it will take a long time. Furthermore it is not guaranteed that it finds a stable solution on continuous data.
-
-In R the optim function helps computing the optimum faster.
+In most cases, bruteforce isn't a good approach. It might work well with only a few parameters, but with increasing complexity and more parameters it will take a long time. Furthermore it is not guaranteed that it finds a stable solution on continuous data. In R the optim function helps computing the optimum faster.
 
 
 ```r
-opt = optim(runif(6, -1, 1), linear_regression)
+opt = optim(runif(6, -1, 1), linear_regression, method = "BFGS")
 opt$par
-#> [1]   1.631666 -17.272902  11.645608  -7.371417   1.754860  42.577956
+#> [1]  42.099071   4.582640 -11.806113  18.066734  -4.479160   2.384711
+opt$value
+#> [1] 411.5579
 ```
 
-In the background, mostly some _gradient descent_ methods are used.
+We see, we have found a better loss value, with far few model evaluations. You can see the number of model evaluations via 
 
-By comparing the weights from the optimizer to the estimated weights of the lm() function, we see that our self-written code obtains the same weights as the lm. Keep in mind, that our simple method uses random numbers thus the results might differ each run (without setting the seed).
+
+```r
+opt$counts
+#> function gradient 
+#>       22       11
+```
+
+By comparing the weights from the optimizer to the estimated weights of the lm() function, we see that our self-written code obtains the same weights as the lm. 
 
 
 ```r
@@ -202,6 +212,129 @@ coef(lm(Y~X))
 #> (Intercept)    XSolar.R       XWind       XTemp      XMonth        XDay 
 #>   42.099099    4.582620  -11.806072   18.066786   -4.479175    2.384705
 ```
+
+When you look at these numbers, keep in mind that most optimization algorithms use random numbers thus the results might differ each run (without setting the seed).
+
+
+Let's optimize a linear regression model using tensorflow/torch, autodiff and stochastic gradient descent. Gradient descent updates iteraviely the weights/variables of interest by the following rule:
+
+$$ w_{new} = w_{old} - \eta \nabla f(w_{old})   $$
+
+with \eta = learning rate (step size) and $f(x)$ our loss function.
+
+Also have a look at the Torch example, there we use (similar to the R optim example) the LFBGS optimizer. 
+
+::::: {.panelset}
+
+::: {.panel}
+[Tensorflow]{.panel-name}
+
+
+
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+#> Loaded Tensorflow version 2.9.1
+
+
+# Guessed weights and intercept.
+wTF = tf$Variable(matrix(rnorm(ncol(X), 0, 0.01), ncol(X), 1), dtype="float32")
+interceptTF = tf$Variable(matrix(rnorm(1, 0, .05)), 1, 1, dtype="float32") 
+
+get_batch = function() {
+  indices = sample.int(nrow(X), 20)
+  return(list(tf$constant(X[indices,], dtype="float32"), 
+              tf$constant(as.matrix(Y)[indices,,drop=FALSE], dtype="float32")))
+}
+learning_rate = tf$constant( 0.5, dtype = "float32")
+for(i in 1:2000){
+  batch = get_batch()
+  xTF = batch[[1]]
+  yTF = batch[[2]]
+  
+  with(tf$GradientTape(persistent = TRUE) %as% tape,
+    {
+      pred = tf$add(interceptTF, tf$matmul(xTF, wTF))
+      loss = tf$sqrt(tf$reduce_mean(tf$square(yTF - pred)))
+    }
+  )
+  grads = tape$gradient(loss, wTF)
+  .n = wTF$assign( wTF - tf$multiply(learning_rate, grads ))
+  grads_inter = tape$gradient(loss, interceptTF)
+  .n = interceptTF$assign( interceptTF - tf$multiply(learning_rate, grads_inter ))
+
+  if(!i%%100){ k_print_tensor(loss, message = "Loss: ") }  # Every 10 times.
+}
+```
+
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
+```r
+library(torch)
+
+
+# Guessed weights and intercept.
+wTorch = torch_tensor(matrix(rnorm(ncol(X), 0, 0.01), ncol(X), 1), 
+                      dtype=torch_float32(), requires_grad = TRUE)
+interceptTorch = torch_tensor(matrix(rnorm(1, 0, .05), 1, 1), dtype=torch_float32(), 
+                              requires_grad = TRUE)
+
+get_batch = function() {
+  indices = sample.int(nrow(X), 40)
+  return(list(torch_tensor(X[indices,], dtype=torch_float32()), 
+              torch_tensor(as.matrix(Y)[indices,,drop=FALSE], dtype=torch_float32())))
+}
+
+optim = torch::optim_lbfgs(params = list(wTorch, interceptTorch), lr = 0.1, line_search_fn =  "strong_wolfe")
+
+train_step = function() {
+  optim$zero_grad()
+  pred = torch_add(interceptTorch, torch_matmul(xTorch, wTorch))
+  loss = torch_sqrt(torch_mean(torch_pow(yTorch - pred, 2)))
+  loss$backward()
+  return(loss)
+}
+
+for(i in 1:30){
+  batch = get_batch()
+  xTorch = batch[[1]]
+  yTorch = batch[[2]]
+  
+  loss = optim$step(train_step)
+
+  if(!i%%10){ cat("Loss: ", as.numeric(loss), "\n")}  # Every 10 times.
+}
+#> Loss:  23.50033 
+#> Loss:  25.81845 
+#> Loss:  21.38388
+```
+
+
+:::
+
+:::::
+
+
+
+
+```
+#> LM weights:
+#>  42.0991 4.58262 -11.80607 18.06679 -4.479175 2.384705
+#> Optim weights:
+#> TF weights:
+#>  41.74698 4.607593 -10.34761 18.43785 -4.653901 2.504827
+#> Torch LBFGS weights:
+#>  45.92921 4.999026 -10.84635 24.09501 -8.427817 -4.406448
+```
+
+
+
 
 
 ### Regularization
@@ -786,7 +919,7 @@ A boosted regression tree (BRT) starts with a simple regression tree (weak learn
 There are two different strategies to do so:
 
 * _AdaBoost_: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.
-* _Gradient boosting_ (state of the art): Each sequential model will be fit on the residual errors of the previous model.
+* _Gradient boosting_ (state of the art): Each sequential model will be fit on the residual errors of the previous model (strongly simplified, the actual algorithm is very complex).
 
 We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix.
 
@@ -1078,7 +1211,7 @@ Tip: have a look at the boosting.gif.
   <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
 ```
 
-We implemented a simple boosted regression tree using R just for fun.
+We implemented a simplified boosted regression tree using R just for fun.
 Go through the code line by line and try to understand it. Ask, if you have any questions you cannot solve.
 
 ```{=html}
