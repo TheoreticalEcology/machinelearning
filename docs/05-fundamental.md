@@ -291,10 +291,10 @@ get_batch = function() {
               torch_tensor(as.matrix(Y)[indices,,drop=FALSE], dtype=torch_float32())))
 }
 
-opt = torch::optim_lbfgs(params = list(wTorch, interceptTorch), lr = 0.1, line_search_fn =  "strong_wolfe")
+optim = torch::optim_lbfgs(params = list(wTorch, interceptTorch), lr = 0.1, line_search_fn =  "strong_wolfe")
 
 train_step = function() {
-  opt$zero_grad()
+  optim$zero_grad()
   pred = torch_add(interceptTorch, torch_matmul(xTorch, wTorch))
   loss = torch_sqrt(torch_mean(torch_pow(yTorch - pred, 2)))
   loss$backward()
@@ -306,13 +306,13 @@ for(i in 1:30){
   xTorch = batch[[1]]
   yTorch = batch[[2]]
   
-  loss = opt$step(train_step)
+  loss = optim$step(train_step)
 
   if(!i%%10){ cat("Loss: ", as.numeric(loss), "\n")}  # Every 10 times.
 }
-#> Loss:  23.98323 
-#> Loss:  23.22318 
-#> Loss:  24.38782
+#> Loss:  23.50033 
+#> Loss:  25.81845 
+#> Loss:  21.38388
 ```
 
 
@@ -919,7 +919,7 @@ A boosted regression tree (BRT) starts with a simple regression tree (weak learn
 There are two different strategies to do so:
 
 * _AdaBoost_: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.
-* _Gradient boosting_ (state of the art): Each sequential model will be fit on the residual errors of the previous model.
+* _Gradient boosting_ (state of the art): Each sequential model will be fit on the residual errors of the previous model (strongly simplified, the actual algorithm is very complex).
 
 We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix.
 
@@ -1211,7 +1211,7 @@ Tip: have a look at the boosting.gif.
   <strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br/>
 ```
 
-We implemented a simple boosted regression tree using R just for fun.
+We implemented a simplified boosted regression tree using R just for fun.
 Go through the code line by line and try to understand it. Ask, if you have any questions you cannot solve.
 
 ```{=html}

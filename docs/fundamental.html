@@ -311,10 +311,10 @@
 <span>              <span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_tensor.html">torch_tensor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">[</span><span class="va">indices</span>,,drop<span class="op">=</span><span class="cn">FALSE</span><span class="op">]</span>, dtype<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_dtype.html">torch_float32</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="va">opt</span> <span class="op">=</span> <span class="fu">torch</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/optim_lbfgs.html">optim_lbfgs</a></span><span class="op">(</span>params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">wTorch</span>, <span class="va">interceptTorch</span><span class="op">)</span>, lr <span class="op">=</span> <span class="fl">0.1</span>, line_search_fn <span class="op">=</span>  <span class="st">"strong_wolfe"</span><span class="op">)</span></span>
+<span><span class="va">optim</span> <span class="op">=</span> <span class="fu">torch</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/optim_lbfgs.html">optim_lbfgs</a></span><span class="op">(</span>params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">wTorch</span>, <span class="va">interceptTorch</span><span class="op">)</span>, lr <span class="op">=</span> <span class="fl">0.1</span>, line_search_fn <span class="op">=</span>  <span class="st">"strong_wolfe"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">train_step</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">opt</span><span class="op">$</span><span class="fu">zero_grad</span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="va">optim</span><span class="op">$</span><span class="fu">zero_grad</span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_add.html">torch_add</a></span><span class="op">(</span><span class="va">interceptTorch</span>, <span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_matmul.html">torch_matmul</a></span><span class="op">(</span><span class="va">xTorch</span>, <span class="va">wTorch</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="va">loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_sqrt.html">torch_sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_mean.html">torch_mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_pow.html">torch_pow</a></span><span class="op">(</span><span class="va">yTorch</span> <span class="op">-</span> <span class="va">pred</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="va">loss</span><span class="op">$</span><span class="fu">backward</span><span class="op">(</span><span class="op">)</span></span>
@@ -326,13 +326,13 @@
 <span>  <span class="va">xTorch</span> <span class="op">=</span> <span class="va">batch</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span>  <span class="va">yTorch</span> <span class="op">=</span> <span class="va">batch</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
 <span>  </span>
-<span>  <span class="va">loss</span> <span class="op">=</span> <span class="va">opt</span><span class="op">$</span><span class="fu">step</span><span class="op">(</span><span class="va">train_step</span><span class="op">)</span></span>
+<span>  <span class="va">loss</span> <span class="op">=</span> <span class="va">optim</span><span class="op">$</span><span class="fu">step</span><span class="op">(</span><span class="va">train_step</span><span class="op">)</span></span>
 <span></span>
 <span>  <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="va">i</span><span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html">%%</a></span><span class="fl">10</span><span class="op">)</span><span class="op">{</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Loss: "</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">loss</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span><span class="op">}</span>  <span class="co"># Every 10 times.</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">#&gt; Loss:  23.98323 </span></span>
-<span><span class="co">#&gt; Loss:  23.22318 </span></span>
-<span><span class="co">#&gt; Loss:  24.38782</span></span></code></pre></div>
+<span><span class="co">#&gt; Loss:  23.50033 </span></span>
+<span><span class="co">#&gt; Loss:  25.81845 </span></span>
+<span><span class="co">#&gt; Loss:  21.38388</span></span></code></pre></div>
 </div>
 </div>
 <pre><code>#&gt; LM weights:
@@ -814,7 +814,7 @@ There are two different strategies to do so:</p>
 <li>
 <em>AdaBoost</em>: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.</li>
 <li>
-<em>Gradient boosting</em> (state of the art): Each sequential model will be fit on the residual errors of the previous model.</li>
+<em>Gradient boosting</em> (state of the art): Each sequential model will be fit on the residual errors of the previous model (strongly simplified, the actual algorithm is very complex).</li>
 </ul>
 <p>We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix.</p>
 <div class="sourceCode" id="cb205"><pre class="downlit sourceCode r">
@@ -1008,7 +1008,7 @@ What was wrong in the snippet above?</p>
 <!-- Just some examples: -->
     </p>
   </details><br><hr>
-<strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br><p>We implemented a simple boosted regression tree using R just for fun.
+<strong><span style="color: #0011AA; font-size:18px;">4. Task</span></strong><br><p>We implemented a simplified boosted regression tree using R just for fun.
 Go through the code line by line and try to understand it. Ask, if you have any questions you cannot solve.</p>
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
