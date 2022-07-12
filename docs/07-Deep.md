@@ -41,6 +41,68 @@ Recurrent neural networks are used to model sequential data, i.e. a temporal seq
   gyroscope; picture-in-picture" allowfullscreen>
   </iframe>
 
+
+#### Example: Predicting drought
+We will use a subset of the data explained in ![this github repository](https://github.com/Epistoteles/predicting-drought)
+
+```r
+utils::download.file("https://www.dropbox.com/s/bqooarazbvg1g7u/weather_soil.RDS?raw=1", destfile = "weather_soil.RDS")
+data = readRDS("weather_soil.RDS")
+X = data$train # Features of the last 180 days
+dim(X)
+#> [1] 999 180  21
+# 999 batches of 180 days with 21 features each
+Y = data$target
+dim(Y)
+#> [1] 999   6
+# 999 batches of 6 week drought predictions
+
+# let's visualize drought over 24 months:
+# -> We have to take 16 batches (16*6 = 96 weaks ( = 24 months) )
+plot(as.vector(Y[1:16,]), type = "l", xlab = "week", ylab = "Drought")
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_0_Rnn-1.png" width="100%" style="display: block; margin: auto;" />
+
+
+
+
+```r
+library(keras)
+
+holdout = 700:999
+
+model = keras_model_sequential()
+model %>% 
+  layer_rnn(cell = layer_lstm_cell(units = 60L),input_shape = dim(X)[2:3]) %>% 
+  layer_dense(units = 6L)
+
+model %>% compile(loss = loss_mean_squared_error, optimizer = optimizer_adamax(learning_rate = 0.01))
+  
+model %>% fit(x = X[-holdout,,], y = Y[-holdout,], epochs = 30L)
+
+preds = 
+  model %>% predict(x = X[-holdout,,], y = Y[-holdout,])
+
+
+matplot(cbind(as.vector(preds[1:48,]),  
+              as.vector(Y[701:748,])), 
+        col = c("darkblue", "darkred"),
+        type = "o", 
+        pch = c(15, 16),
+        xlab = "week", ylab = "Drought")
+legend("topright", bty = "n", 
+       col = c("darkblue", "darkred"),
+      pch = c(15, 16), 
+      legend = c("Prediction", "True Values"))
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_1_Rnn-1.png" width="100%" style="display: block; margin: auto;" />
+
+
+
+
+
 The following code snippet shows you many (technical) things you need for building more complex network structures, even with LSTM cells (the following example doesn't have any functionality, it is just an example for how to process two different inputs in different ways within one network):
 
 

@@ -32,180 +32,8 @@ In this section, we will discuss both, different (deep) network architectures an
 Deep neural networks are basically the same as simple artificial neural networks, only that they have more hidden layers.
 
 
-### Convolutional Neural Networks (CNNs)
 
-The main purpose of convolutional neural networks is image recognition. (Sound can be understood as an image as well!)
-In a convolutional neural network, we have at least one convolution layer, additional to the normal, fully connected deep neural network layers. 
-
-Neurons in a convolution layer are connected only to a small spatially contiguous area of the input layer (_receptive field_). We use this structure (_feature map_) to scan the **entire** features / neurons (e.g. picture). Think of the feature map as a _kernel_ or _filter_ (or imagine a sliding window with weighted pixels) that is used to scan the image. As the name is already indicating, this operation is a convolution in mathematics.
-The kernel weights are optimized, but we use the same weights across the entire input neurons (_shared weights_).
-
-The resulting (hidden) convolutional layer after training is called a _feature map_. You can think of the feature map as a map that shows you where the “shapes” expressed by the kernel appear in the input. One kernel / feature map will not be enough, we typically have many shapes that we want to recognize. Thus, the input layer is typically connected to several feature maps, which can be aggregated and followed by a second layer of feature maps, and so on.
-
-You get one convolution map/layer for each kernel of one convolutional layer.
-
-
-### Recurrent Neural Networks (RNNs)
-
-Recurrent neural networks are used to model sequential data, i.e. a temporal sequence that exhibits temporal dynamic behavior. Here is a good introduction to the topic:
-
-```{r chunk_chapter5_0, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-  '<iframe width="560" height="315" 
-  src="https://www.youtube.com/embed/SEnXr6v2ifU"
-  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
-
-The following code snippet shows you many (technical) things you need for building more complex network structures, even with LSTM cells (the following example doesn't have any functionality, it is just an example for how to process two different inputs in different ways within one network):
-
-
-::::: {.panelset}
-
-::: {.panel}
-[Keras]{.panel-name}
-
-
-```{r chunk_chapter5_1, message=FALSE, warning=FALSE}
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-tf$keras$backend$clear_session()  # Resets especially layer counter.
-
-inputDimension1 = 50L
-inputDimension2 = 10L
-
-input1 = layer_input(shape = inputDimension1)
-input2 = layer_input(shape = inputDimension2)
-
-modelInput2 = input2 %>%
-  layer_dropout(rate = 0.5) %>%
-  layer_dense(units = inputDimension2, activation = "gelu")
-
-modelMemory = input1 %>%
-  layer_embedding(input_dim = inputDimension1, output_dim = 64L) %>%
-  layer_lstm(units = 64L) %>%
-  layer_dropout(rate = 0.5) %>%
-  layer_dense(units = 2L, activation = "sigmoid")
-
-modelDeep = input1 %>%
-  layer_dropout(rate = 0.5) %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dropout(rate = 0.3) %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dense(units = 5L, activation = "sigmoid")
-
-modelMain = layer_concatenate(c(modelMemory, modelDeep, modelInput2)) %>%
-  layer_dropout(rate = 0.25) %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dropout(rate = 0.3) %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dense(units = 2L, activation = "sigmoid")
-
-model = keras_model(
-  inputs = c(input1, input2),
-  outputs = c(modelMain)  # Use the whole modelMain (resp. its output) as output.
-)
-
-summary(model)
-# model %>% plot_model()
-```
-
-:::
-
-::: {.panel}
-[Torch]{.panel-name}
-
-```{r chunk_chapter5_1_torch, message=FALSE, warning=FALSE}
-library(torch)
-
-model_torch = nn_module(
-  initialize = function(type, inputDimension1 = 50L, inputDimension2 = 10L) {
-    self$dim1 = inputDimension1
-    self$dim2 = inputDimension2
-    self$modelInput2 = nn_sequential(
-      nn_dropout(0.5),
-      nn_linear(in_features = self$dim2, out_features = self$dim2),
-      nn_selu()
-    )
-    self$modelMemory = nn_sequential(
-      nn_embedding(self$dim1, 64),
-      nn_lstm(64, 64)
-    )
-    self$modelMemoryOutput = nn_sequential(
-      nn_dropout(0.5),
-      nn_linear(64L, 2L),
-      nn_sigmoid()
-    )
-    
-    self$modelDeep = nn_sequential(
-      nn_dropout(0.5),
-      nn_linear(self$dim1, 64L),
-      nn_relu(),
-      nn_dropout(0.3),
-      nn_linear(64, 64),
-      nn_relu(),
-      nn_linear(64, 64),
-      nn_relu(),
-      nn_linear(64, 5),
-      nn_sigmoid()
-    )
-    
-    self$modelMain = nn_sequential(
-      nn_linear(7+self$dim2, 64),
-      nn_relu(),
-      nn_dropout(0.5),
-      nn_linear(64, 64),
-      nn_relu(),
-      nn_dropout(),
-      nn_linear(64, 2),
-      nn_sigmoid()
-    )
-  },
-  
-  forward = function(x) {
-    input1 = x[[1]]
-    input2 = x[[2]]
-    out2 = self$modelInput2(input2)
-    out1 = self$modelMemoryOutput( self$modelMemory(input1)$view(list(dim(input1)[1], -1)) )
-    out3 = self$modelDeep(input1)
-    out = self$modelMain(torch_cat(list(out1, out2, out3), 2))
-    return(out)
-  }
-  
-)
-
-(model_torch())
-
-```
-
-
-:::
-
-:::::
-
-### Natural Language Processing (NLP)
-
-Natural language processing is actually more of a task than a network structure, but in the area of deep learning for natural language processing, particular network structures are used. The following video should give you an idea about what NLP is about.
-
-```{r chunk_chapter5_2, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-  '<iframe width="560" height="315" 
-  src="https://www.youtube.com/embed/UFtXy0KRxVI"
-  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
-
-See also the blog post linked with the Youtube video with accompanying code. Moreover, here is an <a href="https://nlpforhackers.io/keras-intro/" target="_blank" rel="noopener">article</a> that shows how natural language processing works with Keras, however, written in Python. As a challenge, you can take the code and implement it in R.
-
-
-## Case Study: Dropout and Early Stopping in DNNs
+#### Case Study: Dropout and Early Stopping in DNNs
 
 Regularization in deep neural networks is very important because of the problem of overfitting. Standard regularization from statistics like $L1$ and $L2$ regularization are often fuzzy and require a lot of tuning. There are more stable and robust methods:
 
@@ -874,7 +702,7 @@ model_cito = dnn(
 :::::
 
 
-### Exercises
+#### Exercises
 ```{=html}
   <hr/>
   <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
@@ -1460,7 +1288,22 @@ write.csv(data.frame(y = pred), file = "submission_DNN_optimal.csv")
 ```
 
 
-## Case Study: Fitting a CNN on MNIST
+
+### Convolutional Neural Networks (CNNs)
+
+The main purpose of convolutional neural networks is image recognition. (Sound can be understood as an image as well!)
+In a convolutional neural network, we have at least one convolution layer, additional to the normal, fully connected deep neural network layers. 
+
+Neurons in a convolution layer are connected only to a small spatially contiguous area of the input layer (_receptive field_). We use this structure (_feature map_) to scan the **entire** features / neurons (e.g. picture). Think of the feature map as a _kernel_ or _filter_ (or imagine a sliding window with weighted pixels) that is used to scan the image. As the name is already indicating, this operation is a convolution in mathematics.
+The kernel weights are optimized, but we use the same weights across the entire input neurons (_shared weights_).
+
+The resulting (hidden) convolutional layer after training is called a _feature map_. You can think of the feature map as a map that shows you where the “shapes” expressed by the kernel appear in the input. One kernel / feature map will not be enough, we typically have many shapes that we want to recognize. Thus, the input layer is typically connected to several feature maps, which can be aggregated and followed by a second layer of feature maps, and so on.
+
+You get one convolution map/layer for each kernel of one convolutional layer.
+
+
+
+#### Case Study: Fitting a CNN on MNIST
 
 We will show the use of convolutional neural networks with the MNIST data set. This data set is maybe one of the most famous image data sets. It consists of 60,000 handwritten digits from 0-9.
 
@@ -1785,6 +1628,231 @@ test_accuracy
 :::
 
 :::::
+
+
+
+
+
+
+### Recurrent Neural Networks (RNNs)
+
+Recurrent neural networks are used to model sequential data, i.e. a temporal sequence that exhibits temporal dynamic behavior. Here is a good introduction to the topic:
+
+```{r chunk_chapter5_0, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/SEnXr6v2ifU"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+
+#### Example: Predicting drought
+We will use a subset of the data explained in ![this github repository](https://github.com/Epistoteles/predicting-drought)
+```{r chunk_chapter5_0_Rnn, message=FALSE, warning=FALSE}
+utils::download.file("https://www.dropbox.com/s/bqooarazbvg1g7u/weather_soil.RDS?raw=1", destfile = "weather_soil.RDS")
+data = readRDS("weather_soil.RDS")
+X = data$train # Features of the last 180 days
+dim(X)
+# 999 batches of 180 days with 21 features each
+Y = data$target
+dim(Y)
+# 999 batches of 6 week drought predictions
+
+# let's visualize drought over 24 months:
+# -> We have to take 16 batches (16*6 = 96 weaks ( = 24 months) )
+plot(as.vector(Y[1:16,]), type = "l", xlab = "week", ylab = "Drought")
+```
+
+
+
+```{r chunk_chapter5_1_Rnn, message=FALSE, warning=FALSE}
+library(keras)
+
+holdout = 700:999
+X_train = X[-holdout,,]
+X_test = X[-holdout,,]
+
+Y_train = Y[holdout,]
+Y_test = Y[holdout,]
+
+model = keras_model_sequential()
+model %>% 
+  layer_rnn(cell = layer_lstm_cell(units = 60L),input_shape = dim(X)[2:3]) %>% 
+  layer_dense(units = 6L)
+
+model %>% compile(loss = loss_mean_squared_error, optimizer = optimizer_adamax(learning_rate = 0.01))
+  
+model %>% fit(x = X_train, y = Y_train, epochs = 30L)
+
+preds = 
+  model %>% predict(X_test)
+
+
+matplot(cbind(as.vector(preds[1:48,]),  
+              as.vector(Y_test[1:48,])), 
+        col = c("darkblue", "darkred"),
+        type = "o", 
+        pch = c(15, 16),
+        xlab = "week", ylab = "Drought")
+legend("topright", bty = "n", 
+       col = c("darkblue", "darkred"),
+      pch = c(15, 16), 
+      legend = c("Prediction", "True Values"))
+
+```
+
+
+
+
+
+The following code snippet shows you many (technical) things you need for building more complex network structures, even with LSTM cells (the following example doesn't have any functionality, it is just an example for how to process two different inputs in different ways within one network):
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+
+```{r chunk_chapter5_1, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+tf$keras$backend$clear_session()  # Resets especially layer counter.
+
+inputDimension1 = 50L
+inputDimension2 = 10L
+
+input1 = layer_input(shape = inputDimension1)
+input2 = layer_input(shape = inputDimension2)
+
+modelInput2 = input2 %>%
+  layer_dropout(rate = 0.5) %>%
+  layer_dense(units = inputDimension2, activation = "gelu")
+
+modelMemory = input1 %>%
+  layer_embedding(input_dim = inputDimension1, output_dim = 64L) %>%
+  layer_lstm(units = 64L) %>%
+  layer_dropout(rate = 0.5) %>%
+  layer_dense(units = 2L, activation = "sigmoid")
+
+modelDeep = input1 %>%
+  layer_dropout(rate = 0.5) %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dense(units = 5L, activation = "sigmoid")
+
+modelMain = layer_concatenate(c(modelMemory, modelDeep, modelInput2)) %>%
+  layer_dropout(rate = 0.25) %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dense(units = 2L, activation = "sigmoid")
+
+model = keras_model(
+  inputs = c(input1, input2),
+  outputs = c(modelMain)  # Use the whole modelMain (resp. its output) as output.
+)
+
+summary(model)
+# model %>% plot_model()
+```
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+```{r chunk_chapter5_1_torch, message=FALSE, warning=FALSE}
+library(torch)
+
+model_torch = nn_module(
+  initialize = function(type, inputDimension1 = 50L, inputDimension2 = 10L) {
+    self$dim1 = inputDimension1
+    self$dim2 = inputDimension2
+    self$modelInput2 = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(in_features = self$dim2, out_features = self$dim2),
+      nn_selu()
+    )
+    self$modelMemory = nn_sequential(
+      nn_embedding(self$dim1, 64),
+      nn_lstm(64, 64)
+    )
+    self$modelMemoryOutput = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(64L, 2L),
+      nn_sigmoid()
+    )
+    
+    self$modelDeep = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(self$dim1, 64L),
+      nn_relu(),
+      nn_dropout(0.3),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_linear(64, 5),
+      nn_sigmoid()
+    )
+    
+    self$modelMain = nn_sequential(
+      nn_linear(7+self$dim2, 64),
+      nn_relu(),
+      nn_dropout(0.5),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_dropout(),
+      nn_linear(64, 2),
+      nn_sigmoid()
+    )
+  },
+  
+  forward = function(x) {
+    input1 = x[[1]]
+    input2 = x[[2]]
+    out2 = self$modelInput2(input2)
+    out1 = self$modelMemoryOutput( self$modelMemory(input1)$view(list(dim(input1)[1], -1)) )
+    out3 = self$modelDeep(input1)
+    out = self$modelMain(torch_cat(list(out1, out2, out3), 2))
+    return(out)
+  }
+  
+)
+
+(model_torch())
+
+```
+
+
+:::
+
+:::::
+
+<!-- ### Natural Language Processing (NLP) -->
+
+<!-- Natural language processing is actually more of a task than a network structure, but in the area of deep learning for natural language processing, particular network structures are used. The following video should give you an idea about what NLP is about. -->
+
+<!-- ```{r chunk_chapter5_2, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F} -->
+<!-- cat( -->
+<!--   '<iframe width="560" height="315"  -->
+<!--   src="https://www.youtube.com/embed/UFtXy0KRxVI" -->
+<!--   frameborder="0" allow="accelerometer; autoplay; encrypted-media; -->
+<!--   gyroscope; picture-in-picture" allowfullscreen> -->
+<!--   </iframe>' -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- See also the blog post linked with the Youtube video with accompanying code. Moreover, here is an <a href="https://nlpforhackers.io/keras-intro/" target="_blank" rel="noopener">article</a> that shows how natural language processing works with Keras, however, written in Python. As a challenge, you can take the code and implement it in R. -->
+
 
 
 

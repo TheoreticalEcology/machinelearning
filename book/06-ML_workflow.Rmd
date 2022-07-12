@@ -269,7 +269,6 @@ model %>%
 
 summary(model)
 
-model_history =
 model %>%
   compile(loss = loss_categorical_crossentropy,
           optimizer = keras::optimizer_adamax(learning_rate = 0.01))
@@ -391,9 +390,12 @@ pred =
   model %>%
     predict(x = as.matrix(sub_test[,-1]))
 
-predicted = ifelse(pred[,2] < 0.5, 0, 1) # Ternary operator.
+predicted = ifelse(pred[,2] < 0.5, 0, 1) 
 observed = sub_test[,1]
-(accuracy = mean(predicted == observed))  # (...): Show output.
+(accuracy = mean(predicted == observed))  
+
+# Let's calculate the AUC:
+Metrics::auc(observed, pred[,2])
 ```
 
 :::
@@ -409,6 +411,9 @@ preds_torch = nnf_softmax(model_torch(torch_tensor(as.matrix(sub_test[,-1]))),
 preds_torch = as.matrix(preds_torch)
 preds_torch = apply(preds_torch, 1, which.max)
 (accuracy = mean(preds_torch - 1 == observed))
+
+# Let's calculate the AUC:
+Metrics::auc(observed, preds_torch[,2])
 ```
 
 Don't forget to use the link function (softmax).
@@ -425,6 +430,8 @@ preds_cito = predict(model_cito, newdata = sub_test)
 preds_cito = ifelse(preds_cito > 0.5, 1, 0)
 (accuracy = mean(preds_cito == observed))
 
+# Let's calculate the AUC:
+Metrics::auc(observed, preds_cito)
 ```
 
 
@@ -451,16 +458,14 @@ pred = model %>%
   predict(as.matrix(submit))
 ```
 
-All values > 0.5 will be set to 1 and values < 0.5 to zero.
 For the submission it is critical to change the predictions into a data.frame, select the second column (the probability to survive), and save it with the write.csv function:
 
 ```{r chunk_chapter4_64, eval=FALSE}
-write.csv(data.frame(y = ifelse(pred[,2] < 0.5, 0, 1)), file = "Max_1.csv")
+write.csv(data.frame(y = pred[,2] ), file = "Max_1.csv")
 ```
 
 The file name is used as the ID on the submission server, so change it to whatever you want as long as you can identify yourself.
 
-<strong>Annotation: The AUC is (always) higher for probabilities than for 0/1 data (depending on the implementation and definition of the AUC). We expect you to upload 0/1 data (usage scenarios, no theoretical ones)! Hint for cheaters (or if you just forget conversion): Your upload is converted to 0/1 data according to ifelse(... < 0.5, 0, 1).</strong>
 
 
 ### Exercises
