@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 # Common Machine Learning algorithms {#fundamental}
 
 ```{=html}
@@ -110,10 +115,7 @@ func = function(x){ return(x^2) }
 This function is so easy, we can randomly probe it and identify the optimum by plotting.
 
 ```{r chunk_chapter4_2}
-set.seed(123)
-
-a = rnorm(100)
-plot(a, func(a))
+curve(func, -3,3)
 ```
 
 The minimal value is at $x = 0$ (to be honest, we can calculate this analytically in this simple case).
@@ -129,12 +131,9 @@ print(opt$par)
 
 opt$par will return the best values found by the optimizer, which is really close to zero :)
 
-
 ### Advanced Optimization Example
 
-Optimization is also done when fitting a linear regression model. Thereby, we optimize the weights (intercept and slope). Just using lm(y~x) is too simple. We want to do this by hand to also better understand what optimization is and how it works.
-
-As an example we take the airquality data set. First, we have to be sure to have no NAs in there. Then we split into response (Ozone) and predictors (Month, Day, Solar.R, Wind, Temp). Additionally it is beneficial for the optimizer, when the different predictors have the same support, and thus we scale them. 
+Also statistical models are fit by optimizing the parameters. Let's see how this works for a linear regression, using the example of the airquality data set. First, we have to be sure to have no NAs in there. Then we split into response (Ozone) and predictors (Month, Day, Solar.R, Wind, Temp). Additionally it is beneficial for the optimizer, when the different predictors have the same scale, and thus we scale them. 
 
 ```{r chunk_chapter4_4}
 data = airquality[complete.cases(airquality$Ozone) & complete.cases(airquality$Solar.R),]
@@ -150,16 +149,16 @@ Our task is now to find the parameters $X1,\dots,X6$ for which this loss functio
 
 ```{r chunk_chapter4_5}
 linear_regression = function(w){
-  pred = w[1] +  # intercept
+  prediction = w[1] +  # intercept
          w[2]*X[,1] + # Solar.R
          w[3]*X[,2] + # Wind
          w[4]*X[,3] + # Temp
          w[5]*X[,4] + # Month
-         w[6]*X[,5] 
+         w[6]*X[,5] # Day
   # or X * w[2:6]^T + w[1]
   # loss  = MSE, we want to find the optimal weights 
   # to minimize the sum of squared residuals.
-  loss = mean((pred - Y)^2)
+  loss = mean((prediction - Y)^2)
   return(loss)
 }
 ```
@@ -168,7 +167,6 @@ For example we can sample some weights and see how the loss changes with this we
 
 ```{r chunk_chapter4_6}
 set.seed(123)
-
 linear_regression(runif(6))
 ```
 
