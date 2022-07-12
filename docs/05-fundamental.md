@@ -216,12 +216,22 @@ coef(lm(Y~X))
 When you look at these numbers, keep in mind that most optimization algorithms use random numbers thus the results might differ each run (without setting the seed).
 
 
+Let's optimize a linear regression model using tensorflow/torch, autodiff and stochastic gradient descent. Gradient descent updates iteraviely the weights/variables of interest by the following rule:
 
-Let's optimize a linear regression model using tensorflow/torch, autodiff and stochastic gradient descent:
+$$ w_{new} = w_{old} - \eta \nabla f(w_{old})   $$
+
+with \eta = learning rate (step size) and $f(x)$ our loss function.
+
+Also have a look at the Torch example, there we use (similar to the R optim example) the LFBGS optimizer. 
+
+::::: {.panelset}
+
+::: {.panel}
+[Tensorflow]{.panel-name}
+
 
 
 ```r
-
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
@@ -259,13 +269,68 @@ for(i in 1:2000){
 ```
 
 
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
+```r
+library(torch)
+
+
+# Guessed weights and intercept.
+wTorch = torch_tensor(matrix(rnorm(ncol(X), 0, 0.01), ncol(X), 1), 
+                      dtype=torch_float32(), requires_grad = TRUE)
+interceptTorch = torch_tensor(matrix(rnorm(1, 0, .05), 1, 1), dtype=torch_float32(), 
+                              requires_grad = TRUE)
+
+get_batch = function() {
+  indices = sample.int(nrow(X), 40)
+  return(list(torch_tensor(X[indices,], dtype=torch_float32()), 
+              torch_tensor(as.matrix(Y)[indices,,drop=FALSE], dtype=torch_float32())))
+}
+
+opt = torch::optim_lbfgs(params = list(wTorch, interceptTorch), lr = 0.1, line_search_fn =  "strong_wolfe")
+
+train_step = function() {
+  opt$zero_grad()
+  pred = torch_add(interceptTorch, torch_matmul(xTorch, wTorch))
+  loss = torch_sqrt(torch_mean(torch_pow(yTorch - pred, 2)))
+  loss$backward()
+  return(loss)
+}
+
+for(i in 1:30){
+  batch = get_batch()
+  xTorch = batch[[1]]
+  yTorch = batch[[2]]
+  
+  loss = opt$step(train_step)
+
+  if(!i%%10){ cat("Loss: ", as.numeric(loss), "\n")}  # Every 10 times.
+}
+#> Loss:  23.98323 
+#> Loss:  23.22318 
+#> Loss:  24.38782
+```
+
+
+:::
+
+:::::
+
+
+
+
 ```
 #> LM weights:
 #>  42.0991 4.58262 -11.80607 18.06679 -4.479175 2.384705
 #> Optim weights:
-#>  42.09907 4.58264 -11.80611 18.06673 -4.47916 2.384711
 #> TF weights:
 #>  41.74698 4.607593 -10.34761 18.43785 -4.653901 2.504827
+#> Torch LBFGS weights:
+#>  45.92921 4.999026 -10.84635 24.09501 -8.427817 -4.406448
 ```
 
 
