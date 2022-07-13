@@ -541,7 +541,7 @@ For inspiration and data exploration notebooks, check out this <a href="https://
 <span class="header-section-number">9.5</span> Flower<a class="anchor" aria-label="anchor" href="#flower"><i class="fas fa-link"></i></a>
 </h2>
 <p>A collection of over 4000 flower images of 5 plant species. The data set is from <a href="https://www.kaggle.com/alxmamaev/flowers-recognition" target="_blank" rel="noopener">kaggle</a> but we downsampled the images from <span class="math inline">\(320*240\)</span> to <span class="math inline">\(80*80\)</span> pixels.
-You can download the data set <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a>.</p>
+You can a) download the data set <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a> or b) get it via the EcoData package.</p>
 <p><strong>Notes:</strong></p>
 <ul>
 <li>Check out convolutional neural network notebooks on kaggle (they are often written in Python but you can still copy the architectures), e.g. <a href="https://www.kaggle.com/alirazaaliqadri/flower-recognition-tensorflow-keras-sequential" target="_blank" rel="noopener">this one</a>.</li>
@@ -580,34 +580,12 @@ You can download the data set <a href="http://rhsbio7.uni-regensburg.de:8500" ta
 <span></span>
 <span><span class="co">### Model fitting ###</span></span>
 <span></span>
-<span><span class="va">epochs</span> <span class="op">=</span> <span class="fl">50L</span></span>
-<span><span class="va">batch_size</span> <span class="op">=</span> <span class="fl">25L</span></span>
-<span><span class="va">steps</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">floor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">/</span><span class="va">batch_size</span><span class="op">)</span></span>
-<span><span class="va">generator</span> <span class="op">=</span> <span class="fu">keras</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/keras/man/flow_images_from_data.html">flow_images_from_data</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">train</span>,</span>
-<span>                                         y <span class="op">=</span> <span class="fu">keras</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/keras/man/k_one_hot.html">k_one_hot</a></span><span class="op">(</span><span class="va">labels</span>, <span class="fl">5L</span><span class="op">)</span>,</span>
-<span>                                         batch_size <span class="op">=</span> <span class="va">batch_size</span><span class="op">)</span></span>
+<span><span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/compile.html">compile</a></span><span class="op">(</span>loss <span class="op">=</span> <span class="va">loss_categorical_crossentropy</span>, </span>
+<span>          optimizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/optimizer_adamax.html">optimizer_adamax</a></span><span class="op">(</span>learning_rate <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">optim</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/optimizer_adamax.html">optimizer_adamax</a></span><span class="op">(</span>learning_rate <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
-<span><span class="va">epoch_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="kw">for</span><span class="op">(</span><span class="va">e</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">epochs</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="va">epoch_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">s</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">steps</span><span class="op">)</span><span class="op">{</span></span>
-<span>    <span class="va">batch</span> <span class="op">=</span> <span class="fu">reticulate</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/iterate.html">iter_next</a></span><span class="op">(</span><span class="va">generator</span><span class="op">)</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/with.html">with</a></span><span class="op">(</span><span class="va">tf</span><span class="op">$</span><span class="fu">GradientTape</span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rstudio.github.io/reticulate/reference/with-as-operator.html">%as%</a></span> <span class="va">tape</span>,</span>
-<span>      <span class="op">{</span></span>
-<span>        <span class="va">pred</span> <span class="op">=</span> <span class="fu">model</span><span class="op">(</span><span class="va">batch</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span>        <span class="va">loss</span> <span class="op">=</span> <span class="fu">keras</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/keras/man/loss-functions.html">loss_categorical_crossentropy</a></span><span class="op">(</span><span class="va">batch</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>, <span class="va">pred</span><span class="op">)</span></span>
-<span>        <span class="va">loss</span> <span class="op">=</span> <span class="va">tf</span><span class="op">$</span><span class="fu">reduce_mean</span><span class="op">(</span><span class="va">loss</span><span class="op">)</span></span>
-<span>      <span class="op">}</span></span>
-<span>    <span class="op">)</span></span>
-<span>    <span class="va">gradients</span> <span class="op">=</span> <span class="va">tape</span><span class="op">$</span><span class="fu">gradient</span><span class="op">(</span>target <span class="op">=</span> <span class="va">loss</span>, sources <span class="op">=</span> <span class="va">model</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span>
-<span>    <span class="va">optim</span><span class="op">$</span><span class="fu">apply_gradients</span><span class="op">(</span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/transpose.html">transpose</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">gradients</span>, <span class="va">model</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">epoch_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">epoch_loss</span>, <span class="va">loss</span><span class="op">$</span><span class="fu">numpy</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span>  <span class="va">epoch_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">epoch_losses</span>, <span class="va">epoch_loss</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Epoch: "</span>, <span class="va">e</span>, <span class="st">" Loss: "</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">epoch_losses</span><span class="op">)</span>, <span class="st">" \n"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<span><span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html">fit</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">train</span>, y <span class="op">=</span> <span class="fu">keras</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/keras/man/k_one_hot.html">k_one_hot</a></span><span class="op">(</span><span class="va">labels</span>, <span class="fl">5L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Predictions:</li>
 </ol>

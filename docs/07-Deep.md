@@ -2705,6 +2705,8 @@ Follow the steps, we did above and build your own convolutional neural network.
 
 In the end, submit your predictions to the submission server. If you have extra time, have a look at kaggle and find the flower data set challenge for specific architectures tailored for this data set.
 
+**Tip:** Take a look at the dataset chapter. 
+
 ```{=html}
   <details>
     <summary>

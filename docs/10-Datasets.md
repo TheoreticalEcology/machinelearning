@@ -509,7 +509,7 @@ write.csv(data.frame(y = preds), file = "rf.csv")
 ## Flower
 
 A collection of over 4000 flower images of 5 plant species. The data set is from <a href="https://www.kaggle.com/alxmamaev/flowers-recognition" target="_blank" rel="noopener">kaggle</a> but we downsampled the images from $320*240$ to $80*80$ pixels. 
-You can download the data set <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a>.
+You can a) download the data set <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a> or b) get it via the EcoData package.
 
 **Notes:**
 
@@ -557,34 +557,13 @@ model %>%
 
 ### Model fitting ###
 
-epochs = 50L
-batch_size = 25L
-steps = floor(dim(train)[1]/batch_size)
-generator = keras::flow_images_from_data(x = train,
-                                         y = keras::k_one_hot(labels, 5L),
-                                         batch_size = batch_size)
+model %>% 
+  compile(loss = loss_categorical_crossentropy, 
+          optimizer = optimizer_adamax(learning_rate = 0.01))
 
-optim = optimizer_adamax(learning_rate = 0.01)
-epoch_losses = c()
+model %>% 
+  fit(x = train, y = keras::k_one_hot(labels, 5L))
 
-for(e in 1:epochs){
-  epoch_loss = c()
-  for(s in 1:steps){
-    batch = reticulate::iter_next(generator)
-    with(tf$GradientTape() %as% tape,
-      {
-        pred = model(batch[[1]])
-        loss = keras::loss_categorical_crossentropy(batch[[2]], pred)
-        loss = tf$reduce_mean(loss)
-      }
-    )
-    gradients = tape$gradient(target = loss, sources = model$weights)
-    optim$apply_gradients(purrr::transpose(list(gradients, model$weights)))
-    epoch_loss = c(epoch_loss, loss$numpy())
-  }
-  epoch_losses = c(epoch_losses, epoch_loss)
-  cat("Epoch: ", e, " Loss: ", mean(epoch_losses), " \n")
-}
 ```
 
 3. Predictions:
