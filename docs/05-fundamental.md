@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 # Common Machine Learning algorithms {#fundamental}
 
 ```{=html}
@@ -94,10 +99,7 @@ This function is so easy, we can randomly probe it and identify the optimum by p
 
 
 ```r
-set.seed(123)
-
-a = rnorm(100)
-plot(a, func(a))
+curve(func, -3,3)
 ```
 
 <img src="05-fundamental_files/figure-html/chunk_chapter4_2-1.png" width="100%" style="display: block; margin: auto;" />
@@ -117,12 +119,9 @@ print(opt$par)
 
 opt$par will return the best values found by the optimizer, which is really close to zero :)
 
-
 ### Advanced Optimization Example
 
-Optimization is also done when fitting a linear regression model. Thereby, we optimize the weights (intercept and slope). Just using lm(y~x) is too simple. We want to do this by hand to also better understand what optimization is and how it works.
-
-As an example we take the airquality data set. First, we have to be sure to have no NAs in there. Then we split into response (Ozone) and predictors (Month, Day, Solar.R, Wind, Temp). Additionally it is beneficial for the optimizer, when the different predictors have the same support, and thus we scale them. 
+Also statistical models are fit by optimizing the parameters. Let's see how this works for a linear regression, using the example of the airquality data set. First, we have to be sure to have no NAs in there. Then we split into response (Ozone) and predictors (Month, Day, Solar.R, Wind, Temp). Additionally it is beneficial for the optimizer, when the different predictors have the same scale, and thus we scale them. 
 
 
 ```r
@@ -140,16 +139,16 @@ Our task is now to find the parameters $X1,\dots,X6$ for which this loss functio
 
 ```r
 linear_regression = function(w){
-  pred = w[1] +  # intercept
+  prediction = w[1] +  # intercept
          w[2]*X[,1] + # Solar.R
          w[3]*X[,2] + # Wind
          w[4]*X[,3] + # Temp
          w[5]*X[,4] + # Month
-         w[6]*X[,5] 
+         w[6]*X[,5] # Day
   # or X * w[2:6]^T + w[1]
   # loss  = MSE, we want to find the optimal weights 
   # to minimize the sum of squared residuals.
-  loss = mean((pred - Y)^2)
+  loss = mean((prediction - Y)^2)
   return(loss)
 }
 ```
@@ -159,9 +158,8 @@ For example we can sample some weights and see how the loss changes with this we
 
 ```r
 set.seed(123)
-
 linear_regression(runif(6))
-#> [1] 2866.355
+#> [1] 2797.199
 ```
 
 We can try to find the optimum by bruteforce (what means we will use a random set of weights and see for which the loss function is minimal):
@@ -753,6 +751,426 @@ plot(losses, main = "Torch training history", xlab = "Epoch", ylab = "Loss")
 
 
 
+```r
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.005),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history2 =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>           0.04047703           0.98000002
+
+plot(model_history2)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########  -> (very) Low learning rate: May take (very) long 
+#           (and may need very many epochs) and get stuck in local optima.
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.00001),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history3 =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>           0.04046927           0.98000002
+
+plot(model_history3)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-2.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+keras::reset_states(model)
+
+# Try higher epoch number
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.00001),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history4 =
+  model %>%
+  fit(x = X, y = Y, epochs = 200L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>           0.04043195           0.98000002
+
+plot(model_history4)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-3.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########  -> (very) High learning rate (may skip optimum).
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 3),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history5 =
+  model %>%
+  fit(x = X, y = Y, epochs = 30L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>            1.1026534            0.3333333
+
+plot(model_history5)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-4.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########  -> Higher epoch number (possibly better fitting, maybe overfitting).
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 3),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history6 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>            1.1415949            0.3333333
+
+plot(model_history6)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-5.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.5),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history7 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>            1.0997989            0.3333333
+
+plot(model_history7)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-6.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.00001),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history8 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 20L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>            1.0997801            0.3333333
+
+plot(model_history8)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-7.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########  -> Lower batch size.
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 3),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history9 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 5L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>            1.1278787            0.3333333
+
+plot(model_history9)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-8.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.5),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history10 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 5L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>            1.1229721            0.3333333
+
+plot(model_history10)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-9.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.00001),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history11 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 5L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>            1.1222010            0.3333333
+
+plot(model_history11)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-10.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########  -> Higher batch size (faster but less accurate).
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 3),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history12 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 50L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>            1.1011598            0.3333333
+
+plot(model_history12)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-11.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.5),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history13 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 50L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>            1.0986328            0.3333333
+
+plot(model_history13)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-12.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.00001),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history14 =
+  model %>%
+  fit(x = X, y = Y, epochs = 100L, batch_size = 50L, shuffle = TRUE)
+
+model %>%
+  evaluate(X, Y)
+#>                 loss categorical_accuracy 
+#>            1.0986325            0.3333333
+
+plot(model_history14)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-13.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+####################
+####################
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.05),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history15 =
+  model %>%
+  fit(x = X, y = Y, epochs = 150L, batch_size = 50L, shuffle = TRUE)
+
+plot(model_history15)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-14.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########  -> shuffle = FALSE (some kind of overfitting)
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.05),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history16 =
+  model %>%
+  fit(x = X, y = Y, epochs = 150L, batch_size = 50L, shuffle = FALSE)
+
+plot(model_history16)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-15.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########  -> shuffle = FALSE + lower batch size
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.05),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history17 =
+  model %>%
+  fit(x = X, y = Y, epochs = 150L, batch_size = 5L, shuffle = FALSE)
+
+plot(model_history17)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-16.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########  -> shuffle = FALSE + higher batch size
+#           (Many samples are taken at once, so no "hopping" any longer.)
+
+keras::reset_states(model)
+
+model %>%
+  compile(loss = loss_categorical_crossentropy,
+          optimizer_adamax(learning_rate = 0.05),
+          metrics = c(metric_categorical_accuracy)
+  )
+
+model_history18 =
+  model %>%
+  fit(x = X, y = Y, epochs = 150L, batch_size = 75L, shuffle = FALSE)
+
+plot(model_history18)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1-17.png" width="100%" style="display: block; margin: auto;" />
 
 
 :::
@@ -761,6 +1179,84 @@ plot(losses, main = "Torch training history", xlab = "Epoch", ylab = "Loss")
 [Torch]{.panel-name}
 
 
+```r
+
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+batch_size = 20L
+X_torch = torch_tensor(X)
+Y_torch = torch_tensor(Yt, dtype = torch_long())
+losses = rep(NA, 500)
+for(i in 1:500){
+  indices = sample.int(nrow(X), batch_size)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_cross_entropy(pred, Y_torch[indices])
+  losses[[i]] = as.numeric(loss)
+  loss$sum()$backward()
+  opt$step()
+}
+
+plot(losses, main = "Torch training history", xlab = "Epoch", ylab = "Loss")
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########
+
+# reset parameters
+
+.n = lapply(model_torch$children, function(layer) { if(!is.null(layer$parameters)) layer$reset_parameters() } )
+opt = optim_adam(params = model_torch$parameters, lr = 5.5)
+
+batch_size = 20L
+X_torch = torch_tensor(X)
+Y_torch = torch_tensor(Yt, dtype = torch_long())
+losses = rep(NA, 500)
+for(i in 1:500){
+  indices = sample.int(nrow(X), batch_size)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_cross_entropy(pred, Y_torch[indices])
+  losses[[i]] = as.numeric(loss)
+  loss$sum()$backward()
+  opt$step()
+}
+
+plot(losses, main = "Torch training history", xlab = "Epoch", ylab = "Loss")
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1_torch-2.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+##########
+
+# reset parameters
+
+.n = lapply(model_torch$children, function(layer) { if(!is.null(layer$parameters)) layer$reset_parameters() } )
+opt = optim_adam(params = model_torch$parameters, lr = 15.5)
+
+batch_size = 20L
+X_torch = torch_tensor(X)
+Y_torch = torch_tensor(Yt, dtype = torch_long())
+losses = rep(NA, 500)
+for(i in 1:500){
+  indices = sample.int(nrow(X), batch_size)
+  opt$zero_grad()
+  pred = model_torch(X_torch[indices, ])
+  loss = nnf_cross_entropy(pred, Y_torch[indices])
+  losses[[i]] = as.numeric(loss)
+  loss$sum()$backward()
+  opt$step()
+}
+
+plot(losses, main = "Torch training history", xlab = "Epoch", ylab = "Loss")
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_1_torch-3.png" width="100%" style="display: block; margin: auto;" />
 
 
 :::
@@ -1067,9 +1563,33 @@ What was wrong in the snippet above?
 ```
 
 
-<!-- Approximately at mincut = 15, prediction is the best (mind overfitting). After mincut = 56, the prediction has no information at all and the RMSE stays constant. -->
+```r
+library(tree)
+set.seed(123)
 
-<!-- Mind the complete cases of the airquality data set, that was the error. -->
+data = airquality[complete.cases(airquality),]
+
+doTask = function(mincut){
+  rt = tree(Ozone~., data = data,
+            control = tree.control(mincut = mincut, nobs = nrow(data)))
+
+  pred = predict(rt, data)
+  plot(data$Temp, data$Ozone,
+       main = paste0(
+         "mincut: ", mincut,
+         "\nRMSE: ", round(sqrt(mean((data$Ozone - pred)^2)), 2)
+      )
+  )
+  lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+}
+
+for(i in c(1, 2, 3, 5, 10, 15, 25, 50, 54, 55, 56, 57, 75, 100)){ doTask(i) }
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-1.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-2.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-3.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-4.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-5.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-6.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-7.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-8.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-9.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-10.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-11.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-12.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-13.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_22-14.png" width="100%" style="display: block; margin: auto;" />
+Approximately at mincut = 15, prediction is the best (mind overfitting). After mincut = 56, the prediction has no information at all and the RMSE stays constant.
+
+Mind the complete cases of the airquality data set, that was the error.
 
 ```{=html}
     </p>
@@ -1121,9 +1641,33 @@ Try different values for the nodesize and mtry and describe how the predictions 
 ```
 
 
+```r
+library(randomForest)
+set.seed(123)
 
-<!-- Higher numbers for mtry smooth the prediction curve and yield less overfitting. The same holds for the nodesize. -->
-<!-- In other words: The bigger the nodesize, the smaller the trees and the more bias/less variance. -->
+data = airquality[complete.cases(airquality),]
+
+
+for(nodesize in c(1, 5, 15, 50, 100)){
+  for(mtry in c(1, 3, 5)){
+    rf = randomForest(Ozone~., data = data, mtry = mtry, nodesize = nodesize)
+    
+    pred = predict(rf, data)
+    
+    plot(data$Temp, data$Ozone, main = paste0(
+        "mtry: ", mtry, "    nodesize: ", nodesize,
+        "\nRMSE: ", round(sqrt(mean((data$Ozone - pred)^2)), 2)
+      )
+    )
+    lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+  }
+}
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-1.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-2.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-3.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-4.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-5.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-6.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-7.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-8.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-9.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-10.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-11.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-12.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-13.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-14.png" width="100%" style="display: block; margin: auto;" /><img src="05-fundamental_files/figure-html/chunk_chapter4_task_24-15.png" width="100%" style="display: block; margin: auto;" />
+
+Higher numbers for mtry smooth the prediction curve and yield less overfitting. The same holds for the nodesize.
+In other words: The bigger the nodesize, the smaller the trees and the more bias/less variance.
 
 ```{=html}
     </p>
@@ -1191,15 +1735,62 @@ Tip: have a look at the boosting.gif.
 ```
 
 
+```r
+library(xgboost)
+library(animation)
+set.seed(123)
 
-<!-- As the possibilities scale extremely, you must vary some parameters on yourself. -->
-<!-- You may use for example the following parameters: "eta", "gamma", "max_depth", "min_child_weight", "subsample", "colsample_bytree", "num_parallel_tree", "monotone_constraints" or "interaction_constraints". Or you look into the documentation: -->
+x1 = seq(-3, 3, length.out = 100)
+x2 = seq(-3, 3, length.out = 100)
+x = expand.grid(x1, x2)
+y = apply(x, 1, function(t) exp(-t[1]^2 - t[2]^2))
+
+image(matrix(y, 100, 100), main = "Original image", axes = FALSE, las = 2)
+axis(1, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1))
+axis(2, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+
+for(eta in c(.1, .3, .5, .7, .9)){
+  for(max_depth in c(3, 6, 10, 20)){
+    model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
+                             max_depth = max_depth, eta = eta,
+                             nrounds = 500, verbose = 0L)
+  
+    saveGIF(
+      {
+        for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
+          pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
+                         ntreelimit = i)
+          image(matrix(pred, 100, 100),
+                main = paste0("eta: ", eta,
+                              "    max_depth: ", max_depth,
+                              "    Trees: ", i),
+                axes = FALSE, las = 2)
+          axis(1, at = seq(0, 1, length.out = 10),
+               labels = round(seq(-3, 3, length.out = 10), 1))
+          axis(2, at = seq(0, 1, length.out = 10),
+               labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+        }
+      },
+      movie.name = paste0("boosting_", max_depth, "_", eta, ".gif"),
+      autobrowse = FALSE
+    )
+  }
+}
+```
+
+As the possibilities scale extremely, you must vary some parameters on yourself.
+You may use for example the following parameters: "eta", "gamma", "max_depth", "min_child_weight", "subsample", "colsample_bytree", "num_parallel_tree", "monotone_constraints" or "interaction_constraints". Or you look into the documentation:
 
 
+```r
+?xgboost::xgboost
+```
 
-<!-- Just some examples: -->
+Just some examples:
 
-
+<img src="./images/boosting_3_0.1.gif" width="100%" style="display: block; margin: auto;" /><img src="./images/boosting_6_0.7.gif" width="100%" style="display: block; margin: auto;" /><img src="./images/boosting_20_0.9.gif" width="100%" style="display: block; margin: auto;" />
 
 ```{=html}
     </p>
@@ -1509,9 +2100,33 @@ The response variable is "class". So you are trying to classify the class.
 ```
 
 
+```r
+library(mlbench)
+set.seed(123)
 
-<!-- Until you have strong reasons for that, 50/50 is no really good decision. You waste data/power. -->
-<!-- Do not forget scaling! -->
+data(Sonar)
+data = Sonar
+#str(data)
+
+# Do not forget scaling! This may be done implicitly by most functions.
+# Here, it's done explicitly for teaching purposes.
+data = cbind.data.frame(
+  scale(data[,-length(data)]),
+  "class" = data[,length(data)]
+)
+
+n = length(data[,1])
+indicesTrain = sample.int(n, (n+1) %/% 2) # Take (at least) 50 % of the data.
+
+train = data[indicesTrain,]
+test = data[-indicesTrain,]
+
+labelsTrain = train[,length(train)]
+labelsTest = test[,length(test)]
+```
+
+Until you have strong reasons for that, 50/50 is no really good decision. You waste data/power.
+Do not forget scaling!
 
 ```{=html}
     </p>
@@ -1534,12 +2149,39 @@ Fit a standard k-nearest-neighbor classifier and a support vector machine with a
 ```
 
 
+```r
+library(e1071)
+library(kknn)
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "rectangular")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
+predSVM = predict(sm, newdata = test)
+```
 
 
+```
+#> K-nearest-neighbor, standard (rectangular) kernel:
+#>        labelsTest
+#> predKNN  M  R
+#>       M 46 29
+#>       R  8 21
+#> Correctly classified:  67  /  104
+```
 
 
+```
+#> Support-vector machine, linear kernel:
+#>        labelsTest
+#> predSVM  M  R
+#>       M 41 15
+#>       R 13 35
+#> Correctly classified:  76  /  104
+```
 
-<!-- K-nearest neighbor fitted (slightly) better. -->
+K-nearest neighbor fitted (slightly) better.
 
 ```{=html}
     </p>
@@ -1562,6 +2204,12 @@ Calculate accuracies of both algorithms.
 ```
 
 
+```r
+(accKNN = mean(predKNN == labelsTest))
+#> [1] 0.6442308
+(accSVM = mean(predSVM == labelsTest))
+#> [1] 0.7307692
+```
 
 ```{=html}
     </p>
@@ -1584,6 +2232,19 @@ Fit again with different kernels and compare accuracies.
 ```
 
 
+```r
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "optimal")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "radial")
+predSVM = predict(sm, newdata = test)
+
+(accKNN = mean(predKNN == labelsTest))
+#> [1] 0.75
+(accSVM = mean(predSVM == labelsTest))
+#> [1] 0.8076923
+```
 
 ```{=html}
     </p>
@@ -1606,6 +2267,52 @@ Try the fit again with a different seed for training and test set generation.
 ```
 
 
+```r
+set.seed(42)
+
+data = Sonar
+data = cbind.data.frame(
+  scale(data[,-length(data)]),
+  "class" = data[,length(data)]
+)
+
+n = length(data[,1])
+indicesTrain = sample.int(n, (n+1) %/% 2)
+
+train = data[indicesTrain,]
+test = data[-indicesTrain,]
+
+labelsTrain = train[,length(train)]
+labelsTest = test[,length(test)]
+
+#####
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "rectangular")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
+predSVM = predict(sm, newdata = test)
+
+(accKNN = mean(predKNN == labelsTest))
+#> [1] 0.7115385
+(accSVM = mean(predSVM == labelsTest))
+#> [1] 0.75
+
+#####
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "optimal")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "radial")
+predSVM = predict(sm, newdata = test)
+
+(accKNN = mean(predKNN == labelsTest))
+#> [1] 0.8557692
+(accSVM = mean(predSVM == labelsTest))
+#> [1] 0.8365385
+```
 
 ```{=html}
     </p>
@@ -2023,8 +2730,44 @@ What happens if you change the regularization from $L1$ to $L2$?
 [Keras]{.panel-name}
 
 
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l2(10),
+             bias_regularizer = regularizer_l2(10))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_3-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+l2 = model$get_weights()
+```
 
 
+```
+#> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
+#> L1:          36.766 1.193 -8.446 13.394 -0.108 0.034
+#> L2:          3.756 0.976 -1.721 1.956 0.402 -0.112
+```
 
 :::
 
@@ -2032,15 +2775,80 @@ What happens if you change the regularization from $L1$ to $L2$?
 [Torch]{.panel-name}
 
 
+```r
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = matrix(data$Ozone, ncol = 1)
 
 
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+dataset = torch_dataset(x,y)
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+lambda = torch_tensor(10.)
+
+epochs = 50L
+train_losses = c()
+for(epoch in 1:epochs){
+  train_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        # if(length(dim(p)) > 1) loss = loss + torch_norm(p, p = 2L)
+        loss = loss + lambda*torch_norm(p, p = 2L)
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  train_losses = c(train_losses, mean(train_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
+}
+#> Loss at epoch 10: 1422.089020
+#> Loss at epoch 20: 1039.486465
+#> Loss at epoch 30: 1012.695160
+#> Loss at epoch 40: 1011.486572
+#> Loss at epoch 50: 1000.638733
+
+plot(train_losses, type = "o", pch = 15,
+        col = "darkblue", lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_3_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+l2_torch = model_torch$parameters
+
+linear = lm(y~x)
+```
+
+
+```
+#> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
+#> L1:          37.266 0.779 -6.594 14.665 -0.067 0.048
+#> L2:          37.334 4.262 -8.593 14.167 -2.081 0.365
+```
 
 :::
 
 :::::
 
-<!-- Weights 4 and 5 are strongly pushed towards zero with $L1$ regularization, but $L2$ regularization shrinks more in general. -->
-<!-- *Note*: The weights are not similar to the linear model! (But often, they keep their sign.) -->
+Weights 4 and 5 are strongly pushed towards zero with $L1$ regularization, but $L2$ regularization shrinks more in general.
+*Note*: The weights are not similar to the linear model! (But often, they keep their sign.)
 
 ```{=html}
     </p>
@@ -2073,12 +2881,84 @@ Try different regularization strengths, try to push the weights to zero. What is
 [Keras]{.panel-name}
 
 
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l1(1),
+             bias_regularizer = regularizer_l1(1))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_5-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+l1_lesser = model$get_weights()
+```
 
 
+```
+#> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
+#> L1:          36.766 1.193 -8.446 13.394 -0.108 0.034
+#> L1, lesser:  41.087 4.164 -11.617 17.043 -3.571 1.986
+```
 
 
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l2(1),
+             bias_regularizer = regularizer_l2(1))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_7-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+l2_lesser = model$get_weights()
+```
 
 
+```
+#> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
+#> L2:          3.756 0.976 -1.721 1.956 0.402 -0.112
+#> L2, lesser:  20.999 3.726 -7.585 9.065 -0.065 0.669
+```
 
 
 :::
@@ -2089,21 +2969,152 @@ Try different regularization strengths, try to push the weights to zero. What is
 
 
 
+```r
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = matrix(data$Ozone, ncol = 1L)
+
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+dataset = torch_dataset(x,y)
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+lambda = torch_tensor(1.)
+
+epochs = 50L
+train_losses = c()
+for(epoch in 1:epochs){
+  train_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        # if(length(dim(p)) > 1) loss = loss + torch_norm(p, p = 2L)
+        loss = loss + lambda*torch_norm(p, p = 1L)
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  train_losses = c(train_losses, mean(train_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
+}
+#> Loss at epoch 10: 1099.858826
+#> Loss at epoch 20: 582.395599
+#> Loss at epoch 30: 504.676323
+#> Loss at epoch 40: 493.882896
+#> Loss at epoch 50: 486.528419
+
+plot(train_losses, type = "o", pch = 15,
+        col = "darkblue", lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_5_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+l1_torch_lesser = model_torch$parameters
+
+linear = lm(y~x)
+```
+
+
+```
+#> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
+#> L1:          37.266 0.779 -6.594 14.665 -0.067 0.048
+#> L1 lesser:          41.631 3.814 -9.777 17.704 -3.5 0.993
+```
 
 
 
 
+```r
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = matrix(data$Ozone, ncol = 1L)
 
 
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+dataset = torch_dataset(x,y)
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+lambda = torch_tensor(1.)
+
+epochs = 50L
+train_losses = c()
+for(epoch in 1:epochs){
+  train_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        # if(length(dim(p)) > 1) loss = loss + torch_norm(p, p = 2L)
+        loss = loss + lambda*torch_norm(p, p = 2L)
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  train_losses = c(train_losses, mean(train_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
+}
+#> Loss at epoch 10: 1084.756989
+#> Loss at epoch 20: 564.938286
+#> Loss at epoch 30: 487.880241
+#> Loss at epoch 40: 475.524956
+#> Loss at epoch 50: 469.579903
+
+plot(train_losses, type = "o", pch = 15,
+        col = "darkblue", lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_6_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
 
 
+l2_torch_lesser = model_torch$parameters
+
+linear = lm(y~x)
+```
+
+
+```
+#> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
+#> L2:          37.334 4.262 -8.593 14.167 -2.081 0.365
+#> L2 lesser:          41.624 4.172 -10.056 17.798 -4.058 1.171
+```
 
 :::
 
 :::::
 
 
-<!-- **And with more regularization:** -->
+**And with more regularization:**
 
 ::::: {.panelset}
 
@@ -2111,12 +3122,86 @@ Try different regularization strengths, try to push the weights to zero. What is
 [Keras]{.panel-name}
 
 
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l1(25),
+             bias_regularizer = regularizer_l1(25))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_9-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+l1_higher = model$get_weights()
+```
 
 
+```
+#> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
+#> L1:          36.766 1.193 -8.446 13.394 -0.108 0.034
+#> L1, lesser:  41.087 4.164 -11.617 17.043 -3.571 1.986
+#> L1, higher:  29.367 0.112 -3.354 8.732 0.058 0.03
+```
 
 
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l2(25),
+             bias_regularizer = regularizer_l2(25))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_11-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+l2_higher = model$get_weights()
+```
 
 
+```
+#> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
+#> L2:          3.756 0.976 -1.721 1.956 0.402 -0.112
+#> L2, lesser:  20.999 3.726 -7.585 9.065 -0.065 0.669
+#> L2, higher:  1.564 0.414 -0.797 0.83 0.165 0.048
+```
 
 :::
 
@@ -2125,13 +3210,169 @@ Try different regularization strengths, try to push the weights to zero. What is
 
 
 
+```r
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = matrix(data$Ozone, ncol = 1L)
+
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+dataset = torch_dataset(x,y)
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+lambda = torch_tensor(25.)
+
+epochs = 50L
+train_losses = c()
+for(epoch in 1:epochs){
+  train_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        # if(length(dim(p)) > 1) loss = loss + torch_norm(p, p = 2L)
+        loss = loss + lambda*torch_norm(p, p = 1L)
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  train_losses = c(train_losses, mean(train_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
+}
+#> Loss at epoch 10: 2087.138885
+#> Loss at epoch 20: 1849.129852
+#> Loss at epoch 30: 1875.545776
+#> Loss at epoch 40: 1881.110138
+#> Loss at epoch 50: 1850.213867
+
+plot(train_losses, type = "o", pch = 15,
+        col = "darkblue", lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_10_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+
+l1_torch_higher = model_torch$parameters
+
+linear = lm(y~x)
+```
+
+
+```
+#> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
+#> L1:          37.266 0.779 -6.594 14.665 -0.067 0.048
+#> L1 lesser:          41.631 3.814 -9.777 17.704 -3.5 0.993
+#> L1 higher:          29.636 0.123 -1.257 10.496 -0.013 0.032
+```
 
 
 
+```r
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = matrix(data$Ozone, ncol = 1L)
 
 
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+dataset = torch_dataset(x,y)
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+lambda = torch_tensor(25.)
+
+epochs = 50L
+train_losses = c()
+for(epoch in 1:epochs){
+  train_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        # if(length(dim(p)) > 1) loss = loss + torch_norm(p, p = 2L)
+        loss = loss + lambda*torch_norm(p, p = 2L)
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  train_losses = c(train_losses, mean(train_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
+}
+#> Loss at epoch 10: 1937.392212
+#> Loss at epoch 20: 1719.033783
+#> Loss at epoch 30: 1739.214966
+#> Loss at epoch 40: 1743.116486
+#> Loss at epoch 50: 1720.508759
+
+plot(train_losses, type = "o", pch = 15,
+        col = "darkblue", lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_11_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+l2_torch_higher = model_torch$parameters
+
+linear = lm(y~x)
+summary(linear)
+#> 
+#> Call:
+#> lm(formula = y ~ x)
+#> 
+#> Residuals:
+#>     Min      1Q  Median      3Q     Max 
+#> -37.014 -12.284  -3.302   8.454  95.348 
+#> 
+#> Coefficients:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)   42.099      1.980  21.264  < 2e-16 ***
+#> xSolar.R       4.583      2.135   2.147   0.0341 *  
+#> xWind        -11.806      2.293  -5.149 1.23e-06 ***
+#> xTemp         18.067      2.610   6.922 3.66e-10 ***
+#> xMonth        -4.479      2.230  -2.009   0.0471 *  
+#> xDay           2.385      2.000   1.192   0.2358    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 20.86 on 105 degrees of freedom
+#> Multiple R-squared:  0.6249,	Adjusted R-squared:  0.6071 
+#> F-statistic: 34.99 on 5 and 105 DF,  p-value: < 2.2e-16
+```
 
 
+```
+#> Linear:      42.099 4.583 -11.806 18.067 -4.479 2.385
+#> L2:          37.334 4.262 -8.593 14.167 -2.081 0.365
+#> L2 lesser:          41.624 4.172 -10.056 17.798 -4.058 1.171
+#> L2 higher:          30.026 3.192 -5.988 9.622 -0.353 -0.043
+```
 
 
 :::
@@ -2139,8 +3380,8 @@ Try different regularization strengths, try to push the weights to zero. What is
 :::::
 
 
-<!-- For pushing weights towards zero, $L1$ regularization is used rather than $L2$. -->
-<!-- Higher regularization leads to smaller parameters (maybe in combination with smaller learning rates). -->
+For pushing weights towards zero, $L1$ regularization is used rather than $L2$.
+Higher regularization leads to smaller parameters (maybe in combination with smaller learning rates).
 
 Play around on your own! Ask questions if you have any.
 
@@ -2173,6 +3414,32 @@ Use a combination of $L1$ and a $L2$ regularization (there is a Keras function f
 
 
 
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = data$Ozone
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 1L, activation = "linear", input_shape = list(dim(x)[2]), 
+             kernel_regularizer = regularizer_l1_l2(10),
+             bias_regularizer = regularizer_l1_l2(10))
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.5))
+
+model_history =
+  model %>%
+    fit(x = x, y = y, epochs = 60L, batch_size = 20L, shuffle = TRUE)
+
+plot(model_history)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_13-1.png" width="100%" style="display: block; margin: auto;" />
 
 
 :::
@@ -2182,13 +3449,66 @@ Use a combination of $L1$ and a $L2$ regularization (there is a Keras function f
 
 
 
+```r
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = matrix(data$Ozone, ncol = 1L)
+
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.5)
+
+dataset = torch_dataset(x,y)
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+lambda = torch_tensor(10.)
+
+epochs = 50L
+train_losses = c()
+for(epoch in 1:epochs){
+  train_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        # if(length(dim(p)) > 1) loss = loss + torch_norm(p, p = 2L)
+        loss = loss + lambda*torch_norm(p, p = 2L) + lambda*torch_norm(p, p = 1L)
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  train_losses = c(train_losses, mean(train_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
+}
+#> Loss at epoch 10: 1860.722168
+#> Loss at epoch 20: 1589.371826
+#> Loss at epoch 30: 1598.806152
+#> Loss at epoch 40: 1604.344147
+#> Loss at epoch 50: 1583.508484
+
+plot(train_losses, type = "o", pch = 15,
+        col = "darkblue", lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_13_torch-1.png" width="100%" style="display: block; margin: auto;" />
 
 :::
 
 :::::
 
 
-<!-- This kind of regularization is called **Elastic net**. It is a combination of LASSO ($L1$) and Ridge. It is more flexible than $L1$ and less flexible than $L2$ and higher computational cost. Elastic net does shrinkage as well, but does not separate highly correlated parameters out that much. -->
+This kind of regularization is called **Elastic net**. It is a combination of LASSO ($L1$) and Ridge. It is more flexible than $L1$ and less flexible than $L2$ and higher computational cost. Elastic net does shrinkage as well, but does not separate highly correlated parameters out that much.
 
 ```{=html}
     </p>
@@ -2396,7 +3716,7 @@ Run the code and view the loss for the train and the validation (test) set in th
     <p>
 ```
 
-<!-- The training loss keeps decreasing, but the validation loss increases after a time. This increase in validation loss is due to overfitting. -->
+The training loss keeps decreasing, but the validation loss increases after a time. This increase in validation loss is due to overfitting.
 
 ```{=html}
     </p>
@@ -2430,6 +3750,38 @@ Explain the strategy that helps to achieve this.
 
 
 
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+data = data[complete.cases(data),]
+x = scale(data[,2:6])
+y = data[,1]
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 100L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear")
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.1))
+
+model_history =
+  model %>%
+    fit(x = x, y = matrix(y, ncol = 1L), epochs = 150L, batch_size = 20L,
+        shuffle = TRUE, validation_split = 0.2)
+
+plot(model_history)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_15-1.png" width="100%" style="display: block; margin: auto;" />
 
 
 :::
@@ -2438,6 +3790,80 @@ Explain the strategy that helps to achieve this.
 [Torch]{.panel-name}
 
 
+```r
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = matrix(data$Ozone, ncol = 1L)
+
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 50L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 50L, out_features = 50L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 50L, out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.1)
+
+indices = sample.int(nrow(x), 0.8*nrow(x))
+dataset = torch_dataset(x[indices, ],y[indices, ,drop=FALSE])
+dataset_val = torch_dataset(x[-indices, ],y[-indices, ,drop=FALSE])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 50L
+train_losses = c()
+val_losses = c()
+lambda = torch_tensor(0.01)
+for(epoch in 1:epochs){
+  train_loss = c()
+  val_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        if(length(dim(p)) > 1) loss = loss + lambda*torch_norm(p, p = 2L) + lambda*torch_norm(p, p = 1L)
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  ## Calculate validation loss ##
+  coro::loop(
+    for(batch in dataloader_val) { 
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      val_loss = c(val_loss, loss$item())
+    }
+  )
+  
+  
+  train_losses = c(train_losses, mean(train_loss))
+  val_losses = c(val_losses, mean(val_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+}
+#> Loss at epoch 10: 300.949865  Val loss: 282.833649
+#> Loss at epoch 20: 209.744151  Val loss: 221.161560
+#> Loss at epoch 30: 226.921717  Val loss: 232.360367
+#> Loss at epoch 40: 141.118450  Val loss: 100.483439
+#> Loss at epoch 50: 82.738002  Val loss: 64.462316
+
+matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", 
+       legend = c("Train loss", "Val loss"), 
+       pch = c(15, 16), col = c("darkblue", "darkred"))
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_141_torch-1.png" width="100%" style="display: block; margin: auto;" />
 
 
 :::
@@ -2446,6 +3872,60 @@ Explain the strategy that helps to achieve this.
 [Cito]{.panel-name}
 
 
+```r
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 5.,
+            alpha = 0.5)
+#> Loss at epoch 1: training: 5132.135, validation: 4803.128, lr: 0.01000
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_15_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 4037.754, validation: 4055.183, lr: 0.01000
+#> Loss at epoch 3: training: 3452.531, validation: 3794.270, lr: 0.01000
+#> Loss at epoch 4: training: 3333.292, validation: 3802.902, lr: 0.01000
+#> Loss at epoch 5: training: 3276.066, validation: 3594.412, lr: 0.01000
+#> Loss at epoch 6: training: 3033.098, validation: 3234.983, lr: 0.01000
+#> Loss at epoch 7: training: 2651.150, validation: 2627.195, lr: 0.01000
+#> Loss at epoch 8: training: 2032.167, validation: 1708.311, lr: 0.01000
+#> Loss at epoch 9: training: 1506.195, validation: 1635.094, lr: 0.01000
+#> Loss at epoch 10: training: 1518.036, validation: 1269.873, lr: 0.01000
+#> Loss at epoch 11: training: 1225.803, validation: 1164.637, lr: 0.01000
+#> Loss at epoch 12: training: 1197.830, validation: 1069.938, lr: 0.01000
+#> Loss at epoch 13: training: 1067.111, validation: 1020.187, lr: 0.01000
+#> Loss at epoch 14: training: 1013.407, validation: 1091.277, lr: 0.01000
+#> Loss at epoch 15: training: 980.605, validation: 935.250, lr: 0.01000
+#> Loss at epoch 16: training: 931.649, validation: 868.834, lr: 0.01000
+#> Loss at epoch 17: training: 907.558, validation: 848.919, lr: 0.01000
+#> Loss at epoch 18: training: 865.158, validation: 883.693, lr: 0.01000
+#> Loss at epoch 19: training: 852.313, validation: 852.561, lr: 0.01000
+#> Loss at epoch 20: training: 828.706, validation: 792.463, lr: 0.01000
+#> Loss at epoch 21: training: 810.910, validation: 770.522, lr: 0.01000
+#> Loss at epoch 22: training: 789.190, validation: 780.262, lr: 0.01000
+#> Loss at epoch 23: training: 773.155, validation: 772.059, lr: 0.01000
+#> Loss at epoch 24: training: 759.146, validation: 743.177, lr: 0.01000
+#> Loss at epoch 25: training: 746.524, validation: 727.122, lr: 0.01000
+#> Loss at epoch 26: training: 733.988, validation: 725.905, lr: 0.01000
+#> Loss at epoch 27: training: 723.263, validation: 720.861, lr: 0.01000
+#> Loss at epoch 28: training: 714.193, validation: 709.049, lr: 0.01000
+#> Loss at epoch 29: training: 705.598, validation: 696.874, lr: 0.01000
+#> Loss at epoch 30: training: 695.459, validation: 694.254, lr: 0.01000
+#> Loss at epoch 31: training: 687.815, validation: 687.747, lr: 0.01000
+#> Loss at epoch 32: training: 680.873, validation: 680.050, lr: 0.01000
+```
 
 
 :::
@@ -2461,6 +3941,38 @@ Explain the strategy that helps to achieve this.
 [Keras]{.panel-name}
 
 
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+data = data[complete.cases(data),]
+x = scale(data[,2:6])
+y = data[,1]
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 100L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(15),
+              bias_regularizer = regularizer_l1(2)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(15),
+              bias_regularizer = regularizer_l1(2)) %>%
+  # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear")
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.1))
+
+model_history =
+  model %>%
+    fit(x = x, y = matrix(y, ncol = 1L), epochs = 150L, batch_size = 20L,
+        shuffle = TRUE, validation_split = 0.2)
+
+plot(model_history)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_16-1.png" width="100%" style="display: block; margin: auto;" />
 
 
 :::
@@ -2469,6 +3981,80 @@ Explain the strategy that helps to achieve this.
 [Torch]{.panel-name}
 
 
+```r
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = matrix(data$Ozone, ncol = 1L)
+
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 50L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 50L, out_features = 50L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 50L, out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.1)
+
+indices = sample.int(nrow(x), 0.8*nrow(x))
+dataset = torch_dataset(x[indices, ],y[indices, ,drop=FALSE])
+dataset_val = torch_dataset(x[-indices, ],y[-indices, ,drop=FALSE])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 50L
+train_losses = c()
+val_losses = c()
+lambda = torch_tensor(15.01)
+for(epoch in 1:epochs){
+  train_loss = c()
+  val_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        if(length(dim(p)) > 1) loss = loss + lambda*torch_norm(p, p = 2L) + lambda*torch_norm(p, p = 1L)
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  ## Calculate validation loss ##
+  coro::loop(
+    for(batch in dataloader_val) { 
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      val_loss = c(val_loss, loss$item())
+    }
+  )
+  
+  
+  train_losses = c(train_losses, mean(train_loss))
+  val_losses = c(val_losses, mean(val_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+}
+#> Loss at epoch 10: 1944.234131  Val loss: 356.418696
+#> Loss at epoch 20: 1554.797770  Val loss: 333.019099
+#> Loss at epoch 30: 1410.753906  Val loss: 315.205480
+#> Loss at epoch 40: 1357.596029  Val loss: 308.515640
+#> Loss at epoch 50: 1323.215129  Val loss: 311.642059
+
+matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", 
+       legend = c("Train loss", "Val loss"), 
+       pch = c(15, 16), col = c("darkblue", "darkred"))
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_142_torch-1.png" width="100%" style="display: block; margin: auto;" />
 
 
 
@@ -2478,6 +4064,60 @@ Explain the strategy that helps to achieve this.
 [Cito]{.panel-name}
 
 
+```r
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 15.,
+            alpha = 0.5)
+#> Loss at epoch 1: training: 9552.711, validation: 8833.547, lr: 0.01000
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_16_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 6291.424, validation: 6609.855, lr: 0.01000
+#> Loss at epoch 3: training: 4579.450, validation: 5919.222, lr: 0.01000
+#> Loss at epoch 4: training: 4309.572, validation: 6043.946, lr: 0.01000
+#> Loss at epoch 5: training: 4259.564, validation: 5675.108, lr: 0.01000
+#> Loss at epoch 6: training: 3825.695, validation: 5207.552, lr: 0.01000
+#> Loss at epoch 7: training: 3425.054, validation: 5009.489, lr: 0.01000
+#> Loss at epoch 8: training: 3317.930, validation: 4927.411, lr: 0.01000
+#> Loss at epoch 9: training: 3175.219, validation: 4710.522, lr: 0.01000
+#> Loss at epoch 10: training: 2984.521, validation: 4582.708, lr: 0.01000
+#> Loss at epoch 11: training: 2884.176, validation: 4484.433, lr: 0.01000
+#> Loss at epoch 12: training: 2782.358, validation: 4367.329, lr: 0.01000
+#> Loss at epoch 13: training: 2683.173, validation: 4267.801, lr: 0.01000
+#> Loss at epoch 14: training: 2615.296, validation: 4177.524, lr: 0.01000
+#> Loss at epoch 15: training: 2514.327, validation: 4042.495, lr: 0.01000
+#> Loss at epoch 16: training: 2414.864, validation: 3891.489, lr: 0.01000
+#> Loss at epoch 17: training: 2278.778, validation: 3689.674, lr: 0.01000
+#> Loss at epoch 18: training: 2108.258, validation: 3383.650, lr: 0.01000
+#> Loss at epoch 19: training: 1878.854, validation: 3008.444, lr: 0.01000
+#> Loss at epoch 20: training: 1694.769, validation: 2751.500, lr: 0.01000
+#> Loss at epoch 21: training: 1668.852, validation: 2631.541, lr: 0.01000
+#> Loss at epoch 22: training: 1638.752, validation: 2559.595, lr: 0.01000
+#> Loss at epoch 23: training: 1553.259, validation: 2487.396, lr: 0.01000
+#> Loss at epoch 24: training: 1476.663, validation: 2376.811, lr: 0.01000
+#> Loss at epoch 25: training: 1405.264, validation: 2221.899, lr: 0.01000
+#> Loss at epoch 26: training: 1332.830, validation: 2051.245, lr: 0.01000
+#> Loss at epoch 27: training: 1261.815, validation: 1904.627, lr: 0.01000
+#> Loss at epoch 28: training: 1205.749, validation: 1804.344, lr: 0.01000
+#> Loss at epoch 29: training: 1164.656, validation: 1711.746, lr: 0.01000
+#> Loss at epoch 30: training: 1126.807, validation: 1653.241, lr: 0.01000
+#> Loss at epoch 31: training: 1095.497, validation: 1604.578, lr: 0.01000
+#> Loss at epoch 32: training: 1068.875, validation: 1576.547, lr: 0.01000
+```
 
 :::
 
@@ -2495,6 +4135,38 @@ Explain the strategy that helps to achieve this.
 [Keras]{.panel-name}
 
 
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+data = data[complete.cases(data),]
+x = scale(data[,2:6])
+y = data[,1]
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 100L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear")
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.2))
+
+model_history =
+  model %>%
+    fit(x = x, y = matrix(y, ncol = 1L), epochs = 150L, batch_size = 20L,
+        shuffle = TRUE, validation_split = 0.2)
+
+plot(model_history)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_17-1.png" width="100%" style="display: block; margin: auto;" />
 
 :::
 
@@ -2502,6 +4174,80 @@ Explain the strategy that helps to achieve this.
 [Torch]{.panel-name}
 
 
+```r
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = matrix(data$Ozone, ncol = 1L)
+
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 100L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 100L, out_features = 100L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 100L, out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.2)
+
+indices = sample.int(nrow(x), 0.8*nrow(x))
+dataset = torch_dataset(x[indices, ],y[indices, ,drop=FALSE])
+dataset_val = torch_dataset(x[-indices, ],y[-indices, ,drop=FALSE])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 50L
+train_losses = c()
+val_losses = c()
+lambda = torch_tensor(5.01)
+for(epoch in 1:epochs){
+  train_loss = c()
+  val_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        if(length(dim(p)) > 1) loss = loss + lambda*torch_norm(p, p = 2L) + lambda*torch_norm(p, p = 1L)
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  ## Calculate validation loss ##
+  coro::loop(
+    for(batch in dataloader_val) { 
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      val_loss = c(val_loss, loss$item())
+    }
+  )
+  
+  
+  train_losses = c(train_losses, mean(train_loss))
+  val_losses = c(val_losses, mean(val_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+}
+#> Loss at epoch 10: 3204.276042  Val loss: 330.965973
+#> Loss at epoch 20: 1794.335531  Val loss: 299.112269
+#> Loss at epoch 30: 1603.631795  Val loss: 309.878225
+#> Loss at epoch 40: 1629.516439  Val loss: 310.106389
+#> Loss at epoch 50: 1622.235474  Val loss: 306.825373
+
+matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", 
+       legend = c("Train loss", "Val loss"), 
+       pch = c(15, 16), col = c("darkblue", "darkred"))
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_143_torch-1.png" width="100%" style="display: block; margin: auto;" />
 
 
 
@@ -2514,6 +4260,61 @@ Explain the strategy that helps to achieve this.
 
 
 
+```r
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 5.,
+            lr = 0.2,
+            alpha = 0.5)
+#> Loss at epoch 1: training: 16327.440, validation: 9144.548, lr: 0.20000
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_17_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 8257.439, validation: 10667.663, lr: 0.20000
+#> Loss at epoch 3: training: 9044.628, validation: 9300.070, lr: 0.20000
+#> Loss at epoch 4: training: 10603.996, validation: 13365.126, lr: 0.20000
+#> Loss at epoch 5: training: 12835.686, validation: 12399.452, lr: 0.20000
+#> Loss at epoch 6: training: 11700.891, validation: 11565.099, lr: 0.20000
+#> Loss at epoch 7: training: 11422.474, validation: 11568.539, lr: 0.20000
+#> Loss at epoch 8: training: 11357.537, validation: 11374.830, lr: 0.20000
+#> Loss at epoch 9: training: 10686.151, validation: 10641.263, lr: 0.20000
+#> Loss at epoch 10: training: 10102.818, validation: 11116.869, lr: 0.20000
+#> Loss at epoch 11: training: 10570.798, validation: 10257.980, lr: 0.20000
+#> Loss at epoch 12: training: 9340.195, validation: 9118.415, lr: 0.20000
+#> Loss at epoch 13: training: 8630.348, validation: 9357.287, lr: 0.20000
+#> Loss at epoch 14: training: 8727.984, validation: 8561.631, lr: 0.20000
+#> Loss at epoch 15: training: 7800.990, validation: 7962.877, lr: 0.20000
+#> Loss at epoch 16: training: 7334.145, validation: 7406.061, lr: 0.20000
+#> Loss at epoch 17: training: 6769.643, validation: 6981.447, lr: 0.20000
+#> Loss at epoch 18: training: 6306.741, validation: 6560.812, lr: 0.20000
+#> Loss at epoch 19: training: 5819.032, validation: 6281.702, lr: 0.20000
+#> Loss at epoch 20: training: 5548.384, validation: 5723.558, lr: 0.20000
+#> Loss at epoch 21: training: 5083.281, validation: 5456.334, lr: 0.20000
+#> Loss at epoch 22: training: 4798.322, validation: 5083.321, lr: 0.20000
+#> Loss at epoch 23: training: 4363.521, validation: 4730.824, lr: 0.20000
+#> Loss at epoch 24: training: 4066.876, validation: 4505.259, lr: 0.20000
+#> Loss at epoch 25: training: 3808.684, validation: 4172.278, lr: 0.20000
+#> Loss at epoch 26: training: 3513.810, validation: 3944.718, lr: 0.20000
+#> Loss at epoch 27: training: 3254.075, validation: 3783.761, lr: 0.20000
+#> Loss at epoch 28: training: 3112.667, validation: 3505.463, lr: 0.20000
+#> Loss at epoch 29: training: 2900.247, validation: 3282.843, lr: 0.20000
+#> Loss at epoch 30: training: 2720.389, validation: 3258.859, lr: 0.20000
+#> Loss at epoch 31: training: 2549.015, validation: 3055.973, lr: 0.20000
+#> Loss at epoch 32: training: 2407.888, validation: 2907.814, lr: 0.20000
+```
 
 
 :::
@@ -2530,6 +4331,38 @@ Explain the strategy that helps to achieve this.
 
 
 
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+data = data[complete.cases(data),]
+x = scale(data[,2:6])
+y = data[,1]
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 100L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear")
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.001))
+
+model_history =
+  model %>%
+    fit(x = x, y = matrix(y, ncol = 1L), epochs = 150L, batch_size = 20L,
+        shuffle = TRUE, validation_split = 0.2)
+
+plot(model_history)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_18-1.png" width="100%" style="display: block; margin: auto;" />
 
 
 :::
@@ -2538,6 +4371,80 @@ Explain the strategy that helps to achieve this.
 [Torch]{.panel-name}
 
 
+```r
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = matrix(data$Ozone, ncol = 1L)
+
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 100L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 100L, out_features = 100L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 100L, out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.001)
+
+indices = sample.int(nrow(x), 0.8*nrow(x))
+dataset = torch_dataset(x[indices, ],y[indices, ,drop=FALSE])
+dataset_val = torch_dataset(x[-indices, ],y[-indices, ,drop=FALSE])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 50L
+train_losses = c()
+val_losses = c()
+lambda = torch_tensor(5.01)
+for(epoch in 1:epochs){
+  train_loss = c()
+  val_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        if(length(dim(p)) > 1) loss = loss + lambda*torch_norm(p, p = 2L) + lambda*torch_norm(p, p = 1L)
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  ## Calculate validation loss ##
+  coro::loop(
+    for(batch in dataloader_val) { 
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      val_loss = c(val_loss, loss$item())
+    }
+  )
+  
+  
+  train_losses = c(train_losses, mean(train_loss))
+  val_losses = c(val_losses, mean(val_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+}
+#> Loss at epoch 10: 4884.132324  Val loss: 2972.590088
+#> Loss at epoch 20: 3938.917399  Val loss: 2947.057292
+#> Loss at epoch 30: 3391.578451  Val loss: 2912.526693
+#> Loss at epoch 40: 3227.987549  Val loss: 2897.406576
+#> Loss at epoch 50: 3073.570109  Val loss: 2700.849609
+
+matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", 
+       legend = c("Train loss", "Val loss"), 
+       pch = c(15, 16), col = c("darkblue", "darkred"))
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_144_torch-1.png" width="100%" style="display: block; margin: auto;" />
 
 
 
@@ -2548,13 +4455,68 @@ Explain the strategy that helps to achieve this.
 [Cito]{.panel-name}
 
 
+```r
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 5.,
+            lr = 0.001,
+            alpha = 0.5)
+#> Loss at epoch 1: training: 5269.452, validation: 6856.531, lr: 0.00100
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_18_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 5116.475, validation: 6706.862, lr: 0.00100
+#> Loss at epoch 3: training: 4968.938, validation: 6562.477, lr: 0.00100
+#> Loss at epoch 4: training: 4826.538, validation: 6422.984, lr: 0.00100
+#> Loss at epoch 5: training: 4689.030, validation: 6288.589, lr: 0.00100
+#> Loss at epoch 6: training: 4556.492, validation: 6158.768, lr: 0.00100
+#> Loss at epoch 7: training: 4428.344, validation: 6033.175, lr: 0.00100
+#> Loss at epoch 8: training: 4304.363, validation: 5911.759, lr: 0.00100
+#> Loss at epoch 9: training: 4184.625, validation: 5794.792, lr: 0.00100
+#> Loss at epoch 10: training: 4069.390, validation: 5682.192, lr: 0.00100
+#> Loss at epoch 11: training: 3958.662, validation: 5574.551, lr: 0.00100
+#> Loss at epoch 12: training: 3852.800, validation: 5471.527, lr: 0.00100
+#> Loss at epoch 13: training: 3751.311, validation: 5372.250, lr: 0.00100
+#> Loss at epoch 14: training: 3653.724, validation: 5277.475, lr: 0.00100
+#> Loss at epoch 15: training: 3560.818, validation: 5187.348, lr: 0.00100
+#> Loss at epoch 16: training: 3472.308, validation: 5101.110, lr: 0.00100
+#> Loss at epoch 17: training: 3387.640, validation: 5019.347, lr: 0.00100
+#> Loss at epoch 18: training: 3308.011, validation: 4942.825, lr: 0.00100
+#> Loss at epoch 19: training: 3233.465, validation: 4871.195, lr: 0.00100
+#> Loss at epoch 20: training: 3163.757, validation: 4804.116, lr: 0.00100
+#> Loss at epoch 21: training: 3098.194, validation: 4740.721, lr: 0.00100
+#> Loss at epoch 22: training: 3036.596, validation: 4681.640, lr: 0.00100
+#> Loss at epoch 23: training: 2979.298, validation: 4626.847, lr: 0.00100
+#> Loss at epoch 24: training: 2926.640, validation: 4576.861, lr: 0.00100
+#> Loss at epoch 25: training: 2878.261, validation: 4530.707, lr: 0.00100
+#> Loss at epoch 26: training: 2833.971, validation: 4488.954, lr: 0.00100
+#> Loss at epoch 27: training: 2794.252, validation: 4451.900, lr: 0.00100
+#> Loss at epoch 28: training: 2759.278, validation: 4419.588, lr: 0.00100
+#> Loss at epoch 29: training: 2728.856, validation: 4391.416, lr: 0.00100
+#> Loss at epoch 30: training: 2702.543, validation: 4367.263, lr: 0.00100
+#> Loss at epoch 31: training: 2680.425, validation: 4347.477, lr: 0.00100
+#> Loss at epoch 32: training: 2662.657, validation: 4332.176, lr: 0.00100
+```
 
 
 :::
 
 :::::
 
-<!-- Look at the constantly lower validation loss. -->
+Look at the constantly lower validation loss.
 
 **Adding low regularization (**$L1$ **and** $L2$**) and use a very low learning rate:**
 
@@ -2565,6 +4527,38 @@ Explain the strategy that helps to achieve this.
 
 
 
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = airquality
+data = data[complete.cases(data),]
+x = scale(data[,2:6])
+y = data[,1]
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 100L, activation = "relu", input_shape = list(5L)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(.5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  layer_dense(units = 100L, kernel_regularizer = regularizer_l1_l2(.5),
+              bias_regularizer = regularizer_l1(2)) %>%
+  # One output dimension with a linear activation function.
+  layer_dense(units = 1L, activation = "linear")
+
+model %>%
+  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.001))
+
+model_history =
+  model %>%
+    fit(x = x, y = matrix(y, ncol = 1L), epochs = 150L, batch_size = 20L,
+        shuffle = TRUE, validation_split = 0.2)
+
+plot(model_history)
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_19-1.png" width="100%" style="display: block; margin: auto;" />
 
 
 
@@ -2574,6 +4568,80 @@ Explain the strategy that helps to achieve this.
 [Torch]{.panel-name}
 
 
+```r
+library(torch)
+torch_manual_seed(321L)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+x = scale(data[,-1])
+y = matrix(data$Ozone, ncol = 1L)
+
+
+model_torch = nn_sequential(
+  nn_linear(in_features = dim(x)[2], out_features = 100L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 100L, out_features = 100L,  bias = TRUE),
+  nn_relu(),
+  nn_linear(in_features = 100L, out_features = 1L,  bias = TRUE)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.001)
+
+indices = sample.int(nrow(x), 0.8*nrow(x))
+dataset = torch_dataset(x[indices, ],y[indices, ,drop=FALSE])
+dataset_val = torch_dataset(x[-indices, ],y[-indices, ,drop=FALSE])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 50L
+train_losses = c()
+val_losses = c()
+lambda = torch_tensor(0.5)
+for(epoch in 1:epochs){
+  train_loss = c()
+  val_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        if(length(dim(p)) > 1) loss = loss + lambda*torch_norm(p, p = 2L) + lambda*torch_norm(p, p = 1L)
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  ## Calculate validation loss ##
+  coro::loop(
+    for(batch in dataloader_val) { 
+      pred = model_torch(batch[[1]])
+      loss = nnf_mse_loss(pred, batch[[2]])
+      val_loss = c(val_loss, loss$item())
+    }
+  )
+  
+  
+  train_losses = c(train_losses, mean(train_loss))
+  val_losses = c(val_losses, mean(val_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+}
+#> Loss at epoch 10: 3108.818441  Val loss: 2841.741455
+#> Loss at epoch 20: 2590.243896  Val loss: 2306.140015
+#> Loss at epoch 30: 1566.245809  Val loss: 1252.434570
+#> Loss at epoch 40: 815.307373  Val loss: 510.054240
+#> Loss at epoch 50: 672.642598  Val loss: 376.353760
+
+matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", 
+       legend = c("Train loss", "Val loss"), 
+       pch = c(15, 16), col = c("darkblue", "darkred"))
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_145_torch-1.png" width="100%" style="display: block; margin: auto;" />
 
 
 
@@ -2584,6 +4652,61 @@ Explain the strategy that helps to achieve this.
 
 
 
+```r
+# devtools::install_github("citoverse/cito")
+library(cito)
+
+data = airquality
+data = data[complete.cases(data), ]
+data[,2:6] = scale(data[,2:6])
+
+model = dnn(Ozone~., 
+            data = data, 
+            loss = "mse", 
+            hidden = rep(100L, 3L), 
+            activation = rep("relu", 3),
+            validation = 0.2,
+            lambda = 0.5,
+            lr = 0.001,
+            alpha = 0.5)
+#> Loss at epoch 1: training: 2785.256, validation: 4461.933, lr: 0.00100
+```
+
+<img src="05-fundamental_files/figure-html/chunk_chapter4_task_19_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 2764.665, validation: 4439.806, lr: 0.00100
+#> Loss at epoch 3: training: 2744.952, validation: 4417.255, lr: 0.00100
+#> Loss at epoch 4: training: 2724.453, validation: 4392.339, lr: 0.00100
+#> Loss at epoch 5: training: 2701.842, validation: 4363.474, lr: 0.00100
+#> Loss at epoch 6: training: 2675.523, validation: 4328.545, lr: 0.00100
+#> Loss at epoch 7: training: 2643.902, validation: 4284.910, lr: 0.00100
+#> Loss at epoch 8: training: 2604.654, validation: 4229.163, lr: 0.00100
+#> Loss at epoch 9: training: 2555.259, validation: 4157.910, lr: 0.00100
+#> Loss at epoch 10: training: 2492.967, validation: 4067.148, lr: 0.00100
+#> Loss at epoch 11: training: 2414.684, validation: 3952.364, lr: 0.00100
+#> Loss at epoch 12: training: 2317.212, validation: 3809.021, lr: 0.00100
+#> Loss at epoch 13: training: 2197.632, validation: 3632.981, lr: 0.00100
+#> Loss at epoch 14: training: 2053.995, validation: 3420.942, lr: 0.00100
+#> Loss at epoch 15: training: 1885.708, validation: 3171.264, lr: 0.00100
+#> Loss at epoch 16: training: 1694.612, validation: 2885.631, lr: 0.00100
+#> Loss at epoch 17: training: 1486.422, validation: 2569.979, lr: 0.00100
+#> Loss at epoch 18: training: 1271.472, validation: 2236.279, lr: 0.00100
+#> Loss at epoch 19: training: 1065.475, validation: 1903.281, lr: 0.00100
+#> Loss at epoch 20: training: 887.979, validation: 1595.156, lr: 0.00100
+#> Loss at epoch 21: training: 756.957, validation: 1336.443, lr: 0.00100
+#> Loss at epoch 22: training: 679.964, validation: 1143.067, lr: 0.00100
+#> Loss at epoch 23: training: 646.783, validation: 1014.218, lr: 0.00100
+#> Loss at epoch 24: training: 632.946, validation: 934.839, lr: 0.00100
+#> Loss at epoch 25: training: 615.736, validation: 887.774, lr: 0.00100
+#> Loss at epoch 26: training: 587.875, validation: 862.232, lr: 0.00100
+#> Loss at epoch 27: training: 555.525, validation: 852.343, lr: 0.00100
+#> Loss at epoch 28: training: 527.259, validation: 852.554, lr: 0.00100
+#> Loss at epoch 29: training: 507.079, validation: 856.364, lr: 0.00100
+#> Loss at epoch 30: training: 494.097, validation: 857.859, lr: 0.00100
+#> Loss at epoch 31: training: 485.339, validation: 853.622, lr: 0.00100
+#> Loss at epoch 32: training: 478.174, validation: 843.091, lr: 0.00100
+```
 
 
 :::

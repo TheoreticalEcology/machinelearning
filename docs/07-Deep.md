@@ -1,4 +1,4 @@
-# Deep Learning {#deep}
+# Deep Learning Architectures{#deep}
 
 ```{=html}
 <!-- Put this here (right after the first markdown headline) and only here for each document! -->
@@ -11,281 +11,14 @@
 In this section, we will discuss both, different (deep) network architectures and different means to regularize and improve those deep architectures. 
 
 
-## Network Architectures
 
-### Deep Neural Networks (DNNs)
+## Deep Neural Networks (DNNs)
 
 Deep neural networks are basically the same as simple artificial neural networks, only that they have more hidden layers.
 
 
-### Convolutional Neural Networks (CNNs)
 
-The main purpose of convolutional neural networks is image recognition. (Sound can be understood as an image as well!)
-In a convolutional neural network, we have at least one convolution layer, additional to the normal, fully connected deep neural network layers. 
-
-Neurons in a convolution layer are connected only to a small spatially contiguous area of the input layer (_receptive field_). We use this structure (_feature map_) to scan the **entire** features / neurons (e.g. picture). Think of the feature map as a _kernel_ or _filter_ (or imagine a sliding window with weighted pixels) that is used to scan the image. As the name is already indicating, this operation is a convolution in mathematics.
-The kernel weights are optimized, but we use the same weights across the entire input neurons (_shared weights_).
-
-The resulting (hidden) convolutional layer after training is called a _feature map_. You can think of the feature map as a map that shows you where the “shapes” expressed by the kernel appear in the input. One kernel / feature map will not be enough, we typically have many shapes that we want to recognize. Thus, the input layer is typically connected to several feature maps, which can be aggregated and followed by a second layer of feature maps, and so on.
-
-You get one convolution map/layer for each kernel of one convolutional layer.
-
-
-### Recurrent Neural Networks (RNNs)
-
-Recurrent neural networks are used to model sequential data, i.e. a temporal sequence that exhibits temporal dynamic behavior. Here is a good introduction to the topic:
-
-<iframe width="560" height="315" 
-  src="https://www.youtube.com/embed/SEnXr6v2ifU"
-  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>
-
-
-#### Example: Predicting drought
-We will use a subset of the data explained in ![this github repository](https://github.com/Epistoteles/predicting-drought)
-
-```r
-utils::download.file("https://www.dropbox.com/s/bqooarazbvg1g7u/weather_soil.RDS?raw=1", destfile = "weather_soil.RDS")
-data = readRDS("weather_soil.RDS")
-X = data$train # Features of the last 180 days
-dim(X)
-#> [1] 999 180  21
-# 999 batches of 180 days with 21 features each
-Y = data$target
-dim(Y)
-#> [1] 999   6
-# 999 batches of 6 week drought predictions
-
-# let's visualize drought over 24 months:
-# -> We have to take 16 batches (16*6 = 96 weaks ( = 24 months) )
-plot(as.vector(Y[1:16,]), type = "l", xlab = "week", ylab = "Drought")
-```
-
-<img src="07-Deep_files/figure-html/chunk_chapter5_0_Rnn-1.png" width="100%" style="display: block; margin: auto;" />
-
-
-
-
-```r
-library(keras)
-
-holdout = 700:999
-
-model = keras_model_sequential()
-model %>% 
-  layer_rnn(cell = layer_lstm_cell(units = 60L),input_shape = dim(X)[2:3]) %>% 
-  layer_dense(units = 6L)
-
-model %>% compile(loss = loss_mean_squared_error, optimizer = optimizer_adamax(learning_rate = 0.01))
-  
-model %>% fit(x = X[-holdout,,], y = Y[-holdout,], epochs = 30L)
-
-preds = 
-  model %>% predict(x = X[-holdout,,], y = Y[-holdout,])
-
-
-matplot(cbind(as.vector(preds[1:48,]),  
-              as.vector(Y[701:748,])), 
-        col = c("darkblue", "darkred"),
-        type = "o", 
-        pch = c(15, 16),
-        xlab = "week", ylab = "Drought")
-legend("topright", bty = "n", 
-       col = c("darkblue", "darkred"),
-      pch = c(15, 16), 
-      legend = c("Prediction", "True Values"))
-```
-
-<img src="07-Deep_files/figure-html/chunk_chapter5_1_Rnn-1.png" width="100%" style="display: block; margin: auto;" />
-
-
-
-
-
-The following code snippet shows you many (technical) things you need for building more complex network structures, even with LSTM cells (the following example doesn't have any functionality, it is just an example for how to process two different inputs in different ways within one network):
-
-
-::::: {.panelset}
-
-::: {.panel}
-[Keras]{.panel-name}
-
-
-
-```r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-tf$keras$backend$clear_session()  # Resets especially layer counter.
-
-inputDimension1 = 50L
-inputDimension2 = 10L
-
-input1 = layer_input(shape = inputDimension1)
-input2 = layer_input(shape = inputDimension2)
-
-modelInput2 = input2 %>%
-  layer_dropout(rate = 0.5) %>%
-  layer_dense(units = inputDimension2, activation = "gelu")
-
-modelMemory = input1 %>%
-  layer_embedding(input_dim = inputDimension1, output_dim = 64L) %>%
-  layer_lstm(units = 64L) %>%
-  layer_dropout(rate = 0.5) %>%
-  layer_dense(units = 2L, activation = "sigmoid")
-
-modelDeep = input1 %>%
-  layer_dropout(rate = 0.5) %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dropout(rate = 0.3) %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dense(units = 5L, activation = "sigmoid")
-
-modelMain = layer_concatenate(c(modelMemory, modelDeep, modelInput2)) %>%
-  layer_dropout(rate = 0.25) %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dropout(rate = 0.3) %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dense(units = 2L, activation = "sigmoid")
-
-model = keras_model(
-  inputs = c(input1, input2),
-  outputs = c(modelMain)  # Use the whole modelMain (resp. its output) as output.
-)
-
-summary(model)
-#> Model: "model"
-#> __________________________________________________________________________________________
-#>  Layer (type)                Output Shape        Param #    Connected to                  
-#> ==========================================================================================
-#>  input_1 (InputLayer)        [(None, 50)]        0          []                            
-#>  dropout_3 (Dropout)         (None, 50)          0          ['input_1[0][0]']             
-#>  dense_5 (Dense)             (None, 64)          3264       ['dropout_3[0][0]']           
-#>  embedding (Embedding)       (None, 50, 64)      3200       ['input_1[0][0]']             
-#>  dropout_2 (Dropout)         (None, 64)          0          ['dense_5[0][0]']             
-#>  lstm (LSTM)                 (None, 64)          33024      ['embedding[0][0]']           
-#>  dense_4 (Dense)             (None, 64)          4160       ['dropout_2[0][0]']           
-#>  input_2 (InputLayer)        [(None, 10)]        0          []                            
-#>  dropout_1 (Dropout)         (None, 64)          0          ['lstm[0][0]']                
-#>  dense_3 (Dense)             (None, 64)          4160       ['dense_4[0][0]']             
-#>  dropout (Dropout)           (None, 10)          0          ['input_2[0][0]']             
-#>  dense_1 (Dense)             (None, 2)           130        ['dropout_1[0][0]']           
-#>  dense_2 (Dense)             (None, 5)           325        ['dense_3[0][0]']             
-#>  dense (Dense)               (None, 10)          110        ['dropout[0][0]']             
-#>  concatenate (Concatenate)   (None, 17)          0          ['dense_1[0][0]',             
-#>                                                              'dense_2[0][0]',             
-#>                                                              'dense[0][0]']               
-#>  dropout_5 (Dropout)         (None, 17)          0          ['concatenate[0][0]']         
-#>  dense_8 (Dense)             (None, 64)          1152       ['dropout_5[0][0]']           
-#>  dropout_4 (Dropout)         (None, 64)          0          ['dense_8[0][0]']             
-#>  dense_7 (Dense)             (None, 64)          4160       ['dropout_4[0][0]']           
-#>  dense_6 (Dense)             (None, 2)           130        ['dense_7[0][0]']             
-#> ==========================================================================================
-#> Total params: 53,815
-#> Trainable params: 53,815
-#> Non-trainable params: 0
-#> __________________________________________________________________________________________
-# model %>% plot_model()
-```
-
-:::
-
-::: {.panel}
-[Torch]{.panel-name}
-
-
-```r
-library(torch)
-
-model_torch = nn_module(
-  initialize = function(type, inputDimension1 = 50L, inputDimension2 = 10L) {
-    self$dim1 = inputDimension1
-    self$dim2 = inputDimension2
-    self$modelInput2 = nn_sequential(
-      nn_dropout(0.5),
-      nn_linear(in_features = self$dim2, out_features = self$dim2),
-      nn_selu()
-    )
-    self$modelMemory = nn_sequential(
-      nn_embedding(self$dim1, 64),
-      nn_lstm(64, 64)
-    )
-    self$modelMemoryOutput = nn_sequential(
-      nn_dropout(0.5),
-      nn_linear(64L, 2L),
-      nn_sigmoid()
-    )
-    
-    self$modelDeep = nn_sequential(
-      nn_dropout(0.5),
-      nn_linear(self$dim1, 64L),
-      nn_relu(),
-      nn_dropout(0.3),
-      nn_linear(64, 64),
-      nn_relu(),
-      nn_linear(64, 64),
-      nn_relu(),
-      nn_linear(64, 5),
-      nn_sigmoid()
-    )
-    
-    self$modelMain = nn_sequential(
-      nn_linear(7+self$dim2, 64),
-      nn_relu(),
-      nn_dropout(0.5),
-      nn_linear(64, 64),
-      nn_relu(),
-      nn_dropout(),
-      nn_linear(64, 2),
-      nn_sigmoid()
-    )
-  },
-  
-  forward = function(x) {
-    input1 = x[[1]]
-    input2 = x[[2]]
-    out2 = self$modelInput2(input2)
-    out1 = self$modelMemoryOutput( self$modelMemory(input1)$view(list(dim(input1)[1], -1)) )
-    out3 = self$modelDeep(input1)
-    out = self$modelMain(torch_cat(list(out1, out2, out3), 2))
-    return(out)
-  }
-  
-)
-
-(model_torch())
-#> An `nn_module` containing 54,071 parameters.
-#> 
-#> ── Modules ───────────────────────────────────────────────────────────────────────────────
-#> • modelInput2: <nn_sequential> #110 parameters
-#> • modelMemory: <nn_sequential> #36,480 parameters
-#> • modelMemoryOutput: <nn_sequential> #130 parameters
-#> • modelDeep: <nn_sequential> #11,909 parameters
-#> • modelMain: <nn_sequential> #5,442 parameters
-```
-
-
-:::
-
-:::::
-
-### Natural Language Processing (NLP)
-
-Natural language processing is actually more of a task than a network structure, but in the area of deep learning for natural language processing, particular network structures are used. The following video should give you an idea about what NLP is about.
-
-<iframe width="560" height="315" 
-  src="https://www.youtube.com/embed/UFtXy0KRxVI"
-  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>
-
-See also the blog post linked with the Youtube video with accompanying code. Moreover, here is an <a href="https://nlpforhackers.io/keras-intro/" target="_blank" rel="noopener">article</a> that shows how natural language processing works with Keras, however, written in Python. As a challenge, you can take the code and implement it in R.
-
-
-## Case Study: Dropout and Early Stopping in DNNs
+### Dropout and Early Stopping in DNNs
 
 Regularization in deep neural networks is very important because of the problem of overfitting. Standard regularization from statistics like $L1$ and $L2$ regularization are often fuzzy and require a lot of tuning. There are more stable and robust methods:
 
@@ -374,6 +107,7 @@ Y = model.matrix(~0+as.factor(Hazardous), data = Y)
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+#> Loaded Tensorflow version 2.9.1
 
 model = keras_model_sequential()
 model %>%
@@ -390,10 +124,10 @@ summary(model)
 #> __________________________________________________________________________________________
 #>  Layer (type)                           Output Shape                        Param #       
 #> ==========================================================================================
-#>  dense_12 (Dense)                       (None, 50)                          1900          
-#>  dense_11 (Dense)                       (None, 50)                          2550          
-#>  dense_10 (Dense)                       (None, 50)                          2550          
-#>  dense_9 (Dense)                        (None, 2)                           102           
+#>  dense_3 (Dense)                        (None, 50)                          1900          
+#>  dense_2 (Dense)                        (None, 50)                          2550          
+#>  dense_1 (Dense)                        (None, 50)                          2550          
+#>  dense (Dense)                          (None, 2)                           102           
 #> ==========================================================================================
 #> Total params: 7,102
 #> Trainable params: 7,102
@@ -598,10 +332,10 @@ summary(model)
 #> __________________________________________________________________________________________
 #>  Layer (type)                           Output Shape                        Param #       
 #> ==========================================================================================
-#>  dense_16 (Dense)                       (None, 50)                          1900          
-#>  dense_15 (Dense)                       (None, 50)                          2550          
-#>  dense_14 (Dense)                       (None, 50)                          2550          
-#>  dense_13 (Dense)                       (None, 2)                           102           
+#>  dense_7 (Dense)                        (None, 50)                          1900          
+#>  dense_6 (Dense)                        (None, 50)                          2550          
+#>  dense_5 (Dense)                        (None, 50)                          2550          
+#>  dense_4 (Dense)                        (None, 2)                           102           
 #> ==========================================================================================
 #> Total params: 7,102
 #> Trainable params: 7,102
@@ -810,10 +544,10 @@ summary(model)
 #> __________________________________________________________________________________________
 #>  Layer (type)                           Output Shape                        Param #       
 #> ==========================================================================================
-#>  dense_20 (Dense)                       (None, 50)                          1900          
-#>  dense_19 (Dense)                       (None, 50)                          2550          
-#>  dense_18 (Dense)                       (None, 50)                          2550          
-#>  dense_17 (Dense)                       (None, 2)                           102           
+#>  dense_11 (Dense)                       (None, 50)                          1900          
+#>  dense_10 (Dense)                       (None, 50)                          2550          
+#>  dense_9 (Dense)                        (None, 50)                          2550          
+#>  dense_8 (Dense)                        (None, 2)                           102           
 #> ==========================================================================================
 #> Total params: 7,102
 #> Trainable params: 7,102
@@ -1195,7 +929,7 @@ model_cito = dnn(
   <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
 ```
 
-In this section, we will go through tuning a "deep" neural network, using the NASA data set from kaggle (available via EcoData, see data description via help). You can start immediately, or get inspiration by reading section above ("Case study: dropout and early stopping in a deep neural network").
+In this section, we will fit a DNN on the NASA data set from kaggle (available via EcoData, see data description via help) by using a 10-CV. You can start immediately, or get inspiration by reading section above ("Case study: dropout and early stopping in a deep neural network").
 
 A basic network for this problem follows:
 
@@ -2505,12 +2239,23 @@ pred = round(predict(model, as.matrix(test[,-1])))
 write.csv(data.frame(y = pred), file = "submission_DNN_optimal.csv")
 ```
 
-```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">3. Task</span></strong><br/>
-```
 
 
-## Case Study: Fitting a CNN on MNIST
+## Convolutional Neural Networks (CNNs)
+
+The main purpose of convolutional neural networks is image recognition. (Sound can be understood as an image as well!)
+In a convolutional neural network, we have at least one convolution layer, additional to the normal, fully connected deep neural network layers. 
+
+Neurons in a convolution layer are connected only to a small spatially contiguous area of the input layer (_receptive field_). We use this structure (_feature map_) to scan the **entire** features / neurons (e.g. picture). Think of the feature map as a _kernel_ or _filter_ (or imagine a sliding window with weighted pixels) that is used to scan the image. As the name is already indicating, this operation is a convolution in mathematics.
+The kernel weights are optimized, but we use the same weights across the entire input neurons (_shared weights_).
+
+The resulting (hidden) convolutional layer after training is called a _feature map_. You can think of the feature map as a map that shows you where the “shapes” expressed by the kernel appear in the input. One kernel / feature map will not be enough, we typically have many shapes that we want to recognize. Thus, the input layer is typically connected to several feature maps, which can be aggregated and followed by a second layer of feature maps, and so on.
+
+You get one convolution map/layer for each kernel of one convolutional layer.
+
+
+
+### Example MNIST
 
 We will show the use of convolutional neural networks with the MNIST data set. This data set is maybe one of the most famous image data sets. It consists of 60,000 handwritten digits from 0-9.
 
@@ -2588,7 +2333,7 @@ model %>%
  layer_dense(100L, activation = "relu") %>%
  layer_dense(10L, activation = "softmax")
 summary(model)
-#> Model: "sequential_33"
+#> Model: "sequential_37"
 #> __________________________________________________________________________________________
 #>  Layer (type)                           Output Shape                        Param #       
 #> ==========================================================================================
@@ -2597,8 +2342,8 @@ summary(model)
 #>  conv2d (Conv2D)                        (None, 11, 11, 16)                  2320          
 #>  max_pooling2d (MaxPooling2D)           (None, 5, 5, 16)                    0             
 #>  flatten (Flatten)                      (None, 400)                         0             
-#>  dense_111 (Dense)                      (None, 100)                         40100         
-#>  dense_110 (Dense)                      (None, 10)                          1010          
+#>  dense_127 (Dense)                      (None, 100)                         40100         
+#>  dense_126 (Dense)                      (None, 10)                          1010          
 #> ==========================================================================================
 #> Total params: 43,510
 #> Trainable params: 43,510
@@ -2793,7 +2538,7 @@ model %>%
       loss = loss_categorical_crossentropy
   )
 summary(model)
-#> Model: "sequential_33"
+#> Model: "sequential_37"
 #> __________________________________________________________________________________________
 #>  Layer (type)                           Output Shape                        Param #       
 #> ==========================================================================================
@@ -2802,8 +2547,8 @@ summary(model)
 #>  conv2d (Conv2D)                        (None, 11, 11, 16)                  2320          
 #>  max_pooling2d (MaxPooling2D)           (None, 5, 5, 16)                    0             
 #>  flatten (Flatten)                      (None, 400)                         0             
-#>  dense_111 (Dense)                      (None, 100)                         40100         
-#>  dense_110 (Dense)                      (None, 10)                          1010          
+#>  dense_127 (Dense)                      (None, 100)                         40100         
+#>  dense_126 (Dense)                      (None, 10)                          1010          
 #> ==========================================================================================
 #> Total params: 43,510
 #> Trainable params: 43,510
@@ -2894,6 +2639,412 @@ test_accuracy
 :::
 
 :::::
+
+### Example CIFAR
+
+CIFAR10 is another famous dataset. It consists of ten classes with colored images (see https://www.cs.toronto.edu/~kriz/cifar.html).
+
+
+```r
+library(keras)
+data = keras::dataset_cifar10()
+train = data$train
+test = data$test
+image = train$x[1,,,]
+image %>% 
+ image_to_array() %>%
+ `/`(., 255) %>%
+ as.raster() %>%
+ plot()
+## normalize pixel to 0-1
+train_x = array(train$x/255, c(dim(train$x)))
+test_x = array(test$x/255, c(dim(test$x)))
+train_y = to_categorical(train$y, 10)
+test_y = to_categorical(test$y, 10)
+model = keras_model_sequential()
+model %>% 
+ layer_conv_2d(input_shape = c(32L, 32L,3L),filters = 16L, kernel_size = c(2L,2L), activation = "relu") %>% 
+ layer_max_pooling_2d() %>% 
+ layer_dropout(0.3) %>% 
+ layer_conv_2d(filters = 16L, kernel_size = c(3L,3L), activation = "relu") %>% 
+ layer_max_pooling_2d() %>% 
+ layer_flatten() %>% 
+ layer_dense(10, activation = "softmax")
+summary(model)
+model %>% 
+ compile(
+ optimizer = optimizer_adamax(),
+ loss = loss_categorical_crossentropy
+ )
+early = callback_early_stopping(patience = 5L)
+epochs = 1L
+batch_size =20L
+model %>% fit(
+ x = train_x, 
+ y = train_y,
+ epochs = epochs,
+ batch_size = batch_size,
+ shuffle = TRUE,
+ validation_split = 0.2,
+ callbacks = c(early)
+)
+```
+
+
+
+### Exercise
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
+```
+
+The next exercise is on the flower data set in the Ecodata package.
+
+Follow the steps, we did above and build your own convolutional neural network.
+
+In the end, submit your predictions to the submission server. If you have extra time, have a look at kaggle and find the flower data set challenge for specific architectures tailored for this data set.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+The following code shows different behavior in the context of data augmentation and model complexity.
+
+The topic of overfitting can be seen cleary: Compare the simple model and its performance on the training and the test data. Then compare the more complex or even the regularized models and their performance on training and test data.
+
+You see that the very simple models tend to overfit.
+
+
+
+```r
+  # Prepare training and test sets:
+
+  ## Outer split -> dataset$train and dataset$test, dataset$labels are the labels for dataset$train
+  dataset = EcoData::dataset_flower()
+
+  ## Inner split:
+  train = dataset$train/255
+  indicesTrain = sample.int(nrow(train), 0.8 * nrow(train))
+  test = train[-indicesTrain,,,]
+  train = train[indicesTrain,,,]
+  
+  labelsTrain = dataset$labels
+  labelsTest = labelsTrain[-indicesTrain]
+  labelsTrain = labelsTrain[indicesTrain]
+```
+
+
+
+
+
+<!-- **Even more complex model:** -->
+
+<!-- The following snippet offers a solution for data generation with oversampling and undersampling, because the distribution of classes is not equal in the flower data set. -->
+
+
+
+<!-- Read in for example the following way: -->
+
+
+
+<!-- <h2>Be careful, this exercise uses A LOT OF MEMORY!! If you have a SSD, you might want to turn pagefile / swap off. If you don't have at least 8 GB RAM, don't try to run this exercise, it won't work.</h2> -->
+
+<!-- To avoid crashes of your system, you might want to do some memory management, like: -->
+
+<!-- * After model training, unload the training set and load the test set. -->
+<!-- * Generally remove data that is used no longer. -->
+<!-- * Lazy load new images (not shown here) out of a generator (later shown in section \@ref(gan), but with manually written training loop). -->
+
+
+
+<!-- As you can see, the network works in principle (76% accuracy for training data). Mind, that this is not a binary classification problem and we are expecting roughly 20% accuracy by chance. -->
+
+<!-- Just a little hint: More complex networks are not always better. This won't be shown explicitly (as it is very computing-intensive). You can try for example 64 filter kernels per layer or copy one of the convolutional layers (including pooling layer) to see what happens. -->
+
+<!-- Now, we are training without holdouts to get the most power. -->
+
+
+
+<!-- Maybe you can find (much?) better networks, that fit already better than 84% on the training data. -->
+<!-- Mind, that there are 5 classes. If your model predicts only 3 or 4 of them, is is not surprising, that the accuracy is low. -->
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
+
+
+
+## Recurrent Neural Networks (RNNs)
+
+Recurrent neural networks are used to model sequential data, i.e. a temporal sequence that exhibits temporal dynamic behavior. Here is a good introduction to the topic:
+
+<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/SEnXr6v2ifU"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>
+
+
+### Case Study: Predicting drought
+We will use a subset of the data explained in [this github repository](https://github.com/Epistoteles/predicting-drought)
+
+```r
+utils::download.file("https://www.dropbox.com/s/bqooarazbvg1g7u/weather_soil.RDS?raw=1", destfile = "weather_soil.RDS")
+data = readRDS("weather_soil.RDS")
+X = data$train # Features of the last 180 days
+dim(X)
+#> [1] 999 180  21
+# 999 batches of 180 days with 21 features each
+Y = data$target
+dim(Y)
+#> [1] 999   6
+# 999 batches of 6 week drought predictions
+
+# let's visualize drought over 24 months:
+# -> We have to take 16 batches (16*6 = 96 weaks ( = 24 months) )
+plot(as.vector(Y[1:16,]), type = "l", xlab = "week", ylab = "Drought")
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_0_Rnn-1.png" width="100%" style="display: block; margin: auto;" />
+
+
+
+
+```r
+library(keras)
+
+holdout = 700:999
+X_train = X[-holdout,,]
+X_test = X[holdout,,]
+
+Y_train = Y[-holdout,]
+Y_test = Y[holdout,]
+
+model = keras_model_sequential()
+model %>% 
+  layer_rnn(cell = layer_lstm_cell(units = 60L),input_shape = dim(X)[2:3]) %>% 
+  layer_dense(units = 6L)
+
+model %>% compile(loss = loss_mean_squared_error, optimizer = optimizer_adamax(learning_rate = 0.01))
+  
+model %>% fit(x = X_train, y = Y_train, epochs = 30L)
+
+preds = 
+  model %>% predict(X_test)
+
+
+matplot(cbind(as.vector(preds[1:48,]),  
+              as.vector(Y_test[1:48,])), 
+        col = c("darkblue", "darkred"),
+        type = "o", 
+        pch = c(15, 16),
+        xlab = "week", ylab = "Drought")
+legend("topright", bty = "n", 
+       col = c("darkblue", "darkred"),
+      pch = c(15, 16), 
+      legend = c("Prediction", "True Values"))
+```
+
+<img src="07-Deep_files/figure-html/chunk_chapter5_1_Rnn-1.png" width="100%" style="display: block; margin: auto;" />
+
+
+
+
+
+The following code snippet shows you many (technical) things you need for building more complex network structures, even with LSTM cells (the following example doesn't have any functionality, it is just an example for how to process two different inputs in different ways within one network):
+
+
+::::: {.panelset}
+
+::: {.panel}
+[Keras]{.panel-name}
+
+
+
+```r
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+tf$keras$backend$clear_session()  # Resets especially layer counter.
+
+inputDimension1 = 50L
+inputDimension2 = 10L
+
+input1 = layer_input(shape = inputDimension1)
+input2 = layer_input(shape = inputDimension2)
+
+modelInput2 = input2 %>%
+  layer_dropout(rate = 0.5) %>%
+  layer_dense(units = inputDimension2, activation = "gelu")
+
+modelMemory = input1 %>%
+  layer_embedding(input_dim = inputDimension1, output_dim = 64L) %>%
+  layer_lstm(units = 64L) %>%
+  layer_dropout(rate = 0.5) %>%
+  layer_dense(units = 2L, activation = "sigmoid")
+
+modelDeep = input1 %>%
+  layer_dropout(rate = 0.5) %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dense(units = 5L, activation = "sigmoid")
+
+modelMain = layer_concatenate(c(modelMemory, modelDeep, modelInput2)) %>%
+  layer_dropout(rate = 0.25) %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dense(units = 2L, activation = "sigmoid")
+
+model = keras_model(
+  inputs = c(input1, input2),
+  outputs = c(modelMain)  # Use the whole modelMain (resp. its output) as output.
+)
+
+summary(model)
+#> Model: "model"
+#> __________________________________________________________________________________________
+#>  Layer (type)                Output Shape        Param #    Connected to                  
+#> ==========================================================================================
+#>  input_1 (InputLayer)        [(None, 50)]        0          []                            
+#>  dropout_3 (Dropout)         (None, 50)          0          ['input_1[0][0]']             
+#>  dense_5 (Dense)             (None, 64)          3264       ['dropout_3[0][0]']           
+#>  embedding (Embedding)       (None, 50, 64)      3200       ['input_1[0][0]']             
+#>  dropout_2 (Dropout)         (None, 64)          0          ['dense_5[0][0]']             
+#>  lstm (LSTM)                 (None, 64)          33024      ['embedding[0][0]']           
+#>  dense_4 (Dense)             (None, 64)          4160       ['dropout_2[0][0]']           
+#>  input_2 (InputLayer)        [(None, 10)]        0          []                            
+#>  dropout_1 (Dropout)         (None, 64)          0          ['lstm[0][0]']                
+#>  dense_3 (Dense)             (None, 64)          4160       ['dense_4[0][0]']             
+#>  dropout (Dropout)           (None, 10)          0          ['input_2[0][0]']             
+#>  dense_1 (Dense)             (None, 2)           130        ['dropout_1[0][0]']           
+#>  dense_2 (Dense)             (None, 5)           325        ['dense_3[0][0]']             
+#>  dense (Dense)               (None, 10)          110        ['dropout[0][0]']             
+#>  concatenate (Concatenate)   (None, 17)          0          ['dense_1[0][0]',             
+#>                                                              'dense_2[0][0]',             
+#>                                                              'dense[0][0]']               
+#>  dropout_5 (Dropout)         (None, 17)          0          ['concatenate[0][0]']         
+#>  dense_8 (Dense)             (None, 64)          1152       ['dropout_5[0][0]']           
+#>  dropout_4 (Dropout)         (None, 64)          0          ['dense_8[0][0]']             
+#>  dense_7 (Dense)             (None, 64)          4160       ['dropout_4[0][0]']           
+#>  dense_6 (Dense)             (None, 2)           130        ['dense_7[0][0]']             
+#> ==========================================================================================
+#> Total params: 53,815
+#> Trainable params: 53,815
+#> Non-trainable params: 0
+#> __________________________________________________________________________________________
+# model %>% plot_model()
+```
+
+:::
+
+::: {.panel}
+[Torch]{.panel-name}
+
+
+```r
+library(torch)
+
+model_torch = nn_module(
+  initialize = function(type, inputDimension1 = 50L, inputDimension2 = 10L) {
+    self$dim1 = inputDimension1
+    self$dim2 = inputDimension2
+    self$modelInput2 = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(in_features = self$dim2, out_features = self$dim2),
+      nn_selu()
+    )
+    self$modelMemory = nn_sequential(
+      nn_embedding(self$dim1, 64),
+      nn_lstm(64, 64)
+    )
+    self$modelMemoryOutput = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(64L, 2L),
+      nn_sigmoid()
+    )
+    
+    self$modelDeep = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(self$dim1, 64L),
+      nn_relu(),
+      nn_dropout(0.3),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_linear(64, 5),
+      nn_sigmoid()
+    )
+    
+    self$modelMain = nn_sequential(
+      nn_linear(7+self$dim2, 64),
+      nn_relu(),
+      nn_dropout(0.5),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_dropout(),
+      nn_linear(64, 2),
+      nn_sigmoid()
+    )
+  },
+  
+  forward = function(x) {
+    input1 = x[[1]]
+    input2 = x[[2]]
+    out2 = self$modelInput2(input2)
+    out1 = self$modelMemoryOutput( self$modelMemory(input1)$view(list(dim(input1)[1], -1)) )
+    out3 = self$modelDeep(input1)
+    out = self$modelMain(torch_cat(list(out1, out2, out3), 2))
+    return(out)
+  }
+  
+)
+
+(model_torch())
+#> An `nn_module` containing 54,071 parameters.
+#> 
+#> ── Modules ───────────────────────────────────────────────────────────────────────────────
+#> • modelInput2: <nn_sequential> #110 parameters
+#> • modelMemory: <nn_sequential> #36,480 parameters
+#> • modelMemoryOutput: <nn_sequential> #130 parameters
+#> • modelDeep: <nn_sequential> #11,909 parameters
+#> • modelMain: <nn_sequential> #5,442 parameters
+```
+
+
+:::
+
+:::::
+
+<!-- ### Natural Language Processing (NLP) -->
+
+<!-- Natural language processing is actually more of a task than a network structure, but in the area of deep learning for natural language processing, particular network structures are used. The following video should give you an idea about what NLP is about. -->
+
+<!-- ```{r chunk_chapter5_2, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F} -->
+<!-- cat( -->
+<!--   '<iframe width="560" height="315"  -->
+<!--   src="https://www.youtube.com/embed/UFtXy0KRxVI" -->
+<!--   frameborder="0" allow="accelerometer; autoplay; encrypted-media; -->
+<!--   gyroscope; picture-in-picture" allowfullscreen> -->
+<!--   </iframe>' -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- See also the blog post linked with the Youtube video with accompanying code. Moreover, here is an <a href="https://nlpforhackers.io/keras-intro/" target="_blank" rel="noopener">article</a> that shows how natural language processing works with Keras, however, written in Python. As a challenge, you can take the code and implement it in R. -->
+
 
 
 
@@ -3144,13 +3295,13 @@ In the next step we want to freeze all layers except for our own last layer. Fre
 ```r
 model %>% freeze_weights(to = length(model$layers) - 1)
 summary(model)
-#> Model: "model"
+#> Model: "model_1"
 #> __________________________________________________________________________________________
 #>  Layer (type)             Output Shape     Param #  Connected to               Trainable  
 #> ==========================================================================================
-#>  input_1 (InputLayer)     [(None, 32, 32,  0        []                         N          
+#>  input_3 (InputLayer)     [(None, 32, 32,  0        []                         N          
 #>                            3)]                                                            
-#>  zero_padding2d (ZeroPadd  (None, 38, 38,   0       ['input_1[0][0]']          N          
+#>  zero_padding2d (ZeroPadd  (None, 38, 38,   0       ['input_3[0][0]']          N          
 #>  ing2D)                   3)                                                              
 #>  conv1/conv (Conv2D)      (None, 16, 16,   9408     ['zero_padding2d[0][0]']   N          
 #>                           64)                                                             
@@ -4754,9 +4905,9 @@ summary(model)
 #>                           20)                       [0]']                                 
 #>  relu (Activation)        (None, 1, 1, 19  0        ['bn[0][0]']               N          
 #>                           20)                                                             
-#>  dense_112 (Dense)        (None, 1, 1, 10  19210    ['relu[0][0]']             N          
+#>  dense_9 (Dense)          (None, 1, 1, 10  19210    ['relu[0][0]']             N          
 #>                           )                                                               
-#>  flatten_1 (Flatten)      (None, 10)       0        ['dense_112[0][0]']        Y          
+#>  flatten (Flatten)        (None, 10)       0        ['dense_9[0][0]']          Y          
 #> ==========================================================================================
 #> Total params: 18,341,194
 #> Trainable params: 0
@@ -4927,923 +5078,358 @@ pred = apply(pred, 1, which.max) - 1
 ```
 
 
-### Batch Size and Learning Rate
-
-In this chapter, the influence of batch size and learning rate is explored using the MNIST data set.
-If you are more interested in this topic (you should be), read this 
-<a href="https://medium.com/mini-distill/effect-of-batch-size-on-training-dynamics-21c14f7a716e" target="_blank" rel="noopener">article</a>.
-
-
-#### Batch Size
-
-Different batch sizes may massively influence the outcome of a training step. Finding a suitable batch size is a task itself.
-
-As a general rule of thumb:
-
-* The lower the batch size, the longer the calculations take, the less (!) memory is needed and the more accurate the training (including less overfitting).
-* The higher the batch size, the wider the training steps (like with a higher learning rate).
-* Changing batch sizes and learning rates is always possible and this might "heal" previous mistakes. Maybe you have to "push" the system out of its local neighborhood.
-* It also depends on the respective problem.
-
-
-```r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-data = dataset_mnist()
-train = data$train
-test = data$test
-
-train_x = array(train$x/255, c(dim(train$x), 1))
-test_x = array(test$x/255, c(dim(test$x), 1))
-train_y = to_categorical(train$y, 10)
-
-model = keras_model_sequential()
-model %>%
-  layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L,
-               kernel_size = c(2L, 2L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_flatten() %>%
-  layer_dense(100L, activation = "relu") %>%
-  layer_dense(10L, activation = "softmax")
-
-model %>%
-  keras::compile(
-      optimizer = keras::optimizer_adamax(learning_rate = 0.01),
-      loss = loss_categorical_crossentropy
-  )
-
-epochs = 5L
-batch_size = 32L
-model %>%
-  fit(
-    x = train_x, 
-    y = train_y,
-    epochs = epochs,
-    batch_size = batch_size,
-    shuffle = TRUE,
-    validation_split = 0.2
-  )
-
-pred = model %>% predict(test_x) %>% apply(1, which.max) - 1
-Metrics::accuracy(pred, test$y) # 0.9884
-#> [1] 0.989
-```
-
-**Higher batch size:**
-
-
-```r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-data = dataset_mnist()
-train = data$train
-test = data$test
-
-train_x = array(train$x/255, c(dim(train$x), 1))
-test_x = array(test$x/255, c(dim(test$x), 1))
-train_y = to_categorical(train$y, 10)
-
-model = keras_model_sequential()
-model %>%
-  layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L,
-               kernel_size = c(2L, 2L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_flatten() %>%
-  layer_dense(100L, activation = "relu") %>%
-  layer_dense(10L, activation = "softmax")
-
-model %>%
-  keras::compile(
-    optimizer = keras::optimizer_adamax(learning_rate = 0.01),
-    loss = loss_categorical_crossentropy
-  )
-
-epochs = 5L
-batch_size = 100L
-model %>%
-  fit(
-    x = train_x, 
-    y = train_y,
-    epochs = epochs,
-    batch_size = batch_size,
-    shuffle = TRUE,
-    validation_split = 0.2
-  )
-
-pred = model %>% predict(test_x) %>% apply(1, which.max) - 1
-Metrics::accuracy(pred, test$y) # 0.9864
-#> [1] 0.987
-```
-
-**Lower batch size:**
-
-
-```r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-data = dataset_mnist()
-train = data$train
-test = data$test
-
-train_x = array(train$x/255, c(dim(train$x), 1))
-test_x = array(test$x/255, c(dim(test$x), 1))
-train_y = to_categorical(train$y, 10)
-
-model = keras_model_sequential()
-model %>%
-  layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L,
-               kernel_size = c(2L, 2L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_flatten() %>%
-  layer_dense(100L, activation = "relu") %>%
-  layer_dense(10L, activation = "softmax")
-
-model %>%
-  keras::compile(
-    optimizer = keras::optimizer_adamax(learning_rate = 0.01),
-    loss = loss_categorical_crossentropy
-  )
-
-epochs = 5L
-batch_size = 10L
-model %>%
-  fit(
-    x = train_x, 
-    y = train_y,
-    epochs = epochs,
-    batch_size = batch_size,
-    shuffle = TRUE,
-    validation_split = 0.2
-  )
-
-pred = model %>% predict(test_x) %>% apply(1, which.max) - 1
-Metrics::accuracy(pred, test$y) # 0.9869
-#> [1] 0.9877
-```
-
-**Lowest (1) batch size:**
-
-
-```r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-data = dataset_mnist()
-train = data$train
-test = data$test
-
-train_x = array(train$x/255, c(dim(train$x), 1))
-test_x = array(test$x/255, c(dim(test$x), 1))
-train_y = to_categorical(train$y, 10)
-
-model = keras_model_sequential()
-model %>%
-  layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L,
-               kernel_size = c(2L, 2L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_flatten() %>%
-  layer_dense(100L, activation = "relu") %>%
-  layer_dense(10L, activation = "softmax")
-
-model %>%
-  keras::compile(
-    optimizer = keras::optimizer_adamax(learning_rate = 0.01),
-    loss = loss_categorical_crossentropy
-  )
-
-epochs = 5L
-batch_size = 1L
-model %>%
-  fit(
-    x = train_x, 
-    y = train_y,
-    epochs = epochs,
-    batch_size = batch_size,
-    shuffle = TRUE,
-    validation_split = 0.2
-  )
-
-pred = model %>% predict(test_x) %>% apply(1, which.max) - 1
-Metrics::accuracy(pred, test$y) # 0.982
-#> [1] 0.9822
-```
-
-**Highest (complete) batch size:**
-
-This might not run, because too much memory is needed.
-
-
-```r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-data = dataset_mnist()
-train = data$train
-test = data$test
-
-train_x = array(train$x/255, c(dim(train$x), 1))
-test_x = array(test$x/255, c(dim(test$x), 1))
-train_y = to_categorical(train$y, 10)
-
-model = keras_model_sequential()
-model %>%
-  layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L,
-               kernel_size = c(2L, 2L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_flatten() %>%
-  layer_dense(100L, activation = "relu") %>%
-  layer_dense(10L, activation = "softmax")
-
-model %>%
-  keras::compile(
-    optimizer = keras::optimizer_adamax(learning_rate = 0.01),
-    loss = loss_categorical_crossentropy
-  )
-
-epochs = 5L
-batch_size = nrow(test_x)
-model %>%
-  fit(
-    x = train_x, 
-    y = train_y,
-    epochs = epochs,
-    batch_size = batch_size,
-    shuffle = TRUE,
-    validation_split = 0.2
-  )
-
-pred = model %>% predict(test_x) %>% apply(1, which.max) - 1
-Metrics::accuracy(pred, test$y) # ???
-```
-
-
-#### Learning Rate
-
-Choosing a high learning rate at the beginning may yield acceptable results relatively fast. It would take much more time to get there with a small learning rate. But keeping the learning rate this high may result in jumping over the desired optimal values. So decreasing the learning rate with time might help.
-
-TensorFlow / Keras can manage a changing learning rate. This may also be a periodic function or an increase one. You are not limited to a decreasing learning rate. Defining own learning rates is a bit more complicated than just using the inbuilt Keras functions. If you need a self-made learning rate, you can find some recipe <a href="http://thecooldata.com/2018/12/changing-learning-rate-during-training-on-each-batch-iteration-using-callbacks-in-r-keras/" target="_blank" rel="noopener">here</a>.
-
-**An example of the inbuilt functions for managing learning rates in Keras:**
-
-The function declaration of the adamax optimizer is as follows:
-
-
-```r
-optimizer_adamax(
-  learning_rate = 0.002,
-  beta_1 = 0.9,
-  beta_2 = 0.999,
-  epsilon = NULL,
-  decay = 0,
-  clipnorm = NULL,
-  clipvalue = NULL,
-  ...
-)
-# learning_rate:  float >= 0. Learning rate.
-# beta_1:         The exponential decay rate for the 1st moment estimates.
-                  # float, 0 < beta < 1. Generally close to 1.
-# beta_2: 	      The exponential decay rate for the 2nd moment estimates.
-                  # float, 0 < beta < 1. Generally close to 1.
-# epsilon:        float >= 0. Fuzz factor. If NULL, defaults to k_epsilon().
-# decay:	        float >= 0. Learning rate decay over each update.
-# clipnorm:       Gradients will be clipped when their L2 norm exceeds this value.
-# clipvalue:      Gradients will be clipped when their absolute value exceeds this value.
-```
-
-You can easily specify a decay this way. Mind interval boundaries and suitable parameter values!
-
-
-```r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-data = dataset_mnist()
-train = data$train
-test = data$test
-
-train_x = array(train$x/255, c(dim(train$x), 1))
-test_x = array(test$x/255, c(dim(test$x), 1))
-train_y = to_categorical(train$y, 10)
-
-model = keras_model_sequential()
-model %>%
-  layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L,
-               kernel_size = c(2L, 2L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_flatten() %>%
-  layer_dense(100L, activation = "relu") %>%
-  layer_dense(10L, activation = "softmax")
-
-model %>%
-  keras::compile(
-    optimizer = keras::optimizer_adamax(learning_rate = 0.02, decay = 0.002),
-    loss = loss_categorical_crossentropy
-  )
-
-epochs = 5L
-batch_size = 32L
-model %>%
-  fit(
-    x = train_x, 
-    y = train_y,
-    epochs = epochs,
-    batch_size = batch_size,
-    shuffle = TRUE,
-    validation_split = 0.2
-  )
-
-pred = model %>% predict(test_x) %>% apply(1, which.max) - 1
-Metrics::accuracy(pred, test$y) # 0.9882
-#> [1] 0.9884
-```
-
-Except for the decay in learning rate, this example is identical to the first one concerning the batch size (0.9884).
-
-
-#### Conclusion
-
-There is a (very) complex interplay of batch size, learning rate and optimization algorithm. This topic is to deep for this course.
-
-Most times, doing a longer training or increasing the batch size rather than decreasing the learning rate is recommended.
-But this is a matter of further research and also personal attitude. Of course, it also depends on the respective problem.
-
-
-#### Caveat About Learning Rates and Activation Functions (already mentioned in the intro)
-
-Depending on activation functions, it might occur that the network won't get updated, even with high learning rates (called *vanishing gradient*, especially for "sigmoid" functions).
-Furthermore, updates might overshoot (called *exploding gradients*) or activation functions will result in many zeros (especially for "relu", *dying relu*).
-
-In general, the first layers of a network tend to learn (much) more slowly than subsequent ones.
-
-### Exercise
-
-```{=html}
-  <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">Task</span></strong><br/>
-```
-
-The next exercise is on the flower data set in the Ecodata package.
-
-Follow the steps, we did above and build your own convolutional neural network.
-
-In the end, submit your predictions to the submission server. If you have extra time, have a look at kaggle and find the flower data set challenge for specific architectures tailored for this data set.
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-The following code shows different behavior in the context of data augmentation and model complexity.
-
-The topic of overfitting can be seen cleary: Compare the simple model and its performance on the training and the test data. Then compare the more complex or even the regularized models and their performance on training and test data.
-
-You see that the very simple models tend to overfit.
-
-
-```r
-library(tensorflow)
-library(keras)
-
-flowerCNN = function(
-  networkSize = c("small", "medium", "big")[3],
-  useGenerator = c(1, 2, NA)[3],
-  batch_size = 25L,
-  epochs = 10L,
-  learning_rate = 0.01,
-  percentageTrain = 0.9
-){
-  gc(FALSE) # Clean up system (use garbage collection).
-  set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-  
-  ###############
-  # Prepare training and test sets:
-  
-  train = EcoData::dataset_flower()$train/255
-  indicesTrain = sample.int(nrow(train), percentageTrain * nrow(train))
-  test = train[-indicesTrain,,,]
-  train = train[indicesTrain,,,]
-  
-  labelsTrain = EcoData::dataset_flower()$labels
-  labelsTest = labelsTrain[-indicesTrain]
-  labelsTrain = labelsTrain[indicesTrain]
-  
-  
-  ###############
-  # Models:
-  
-  model = keras_model_sequential()
-  
-  if(networkSize == "small"){
-    modelString = "small model"
-    
-    model %>% 
-      layer_conv_2d(filters = 4L, kernel_size = 2L,
-                    input_shape = list(80L, 80L, 3L)) %>% 
-      layer_max_pooling_2d() %>% 
-      layer_flatten() %>% 
-      layer_dense(units = 5L, activation = "softmax")
-    
-  }else if(networkSize == "medium"){
-    modelString = "medium model"
-    
-    model %>%
-      layer_conv_2d(filter = 16L, kernel_size = c(5L, 5L),
-                    input_shape = c(80L, 80L, 3L), activation = "relu") %>%
-      layer_max_pooling_2d() %>%
-      layer_conv_2d(filter = 32L, kernel_size = c(3L, 3L),
-                    activation = "relu") %>%
-      layer_max_pooling_2d() %>%
-      layer_conv_2d(filter = 64L, kernel_size = c(3L, 3L),
-                    strides = c(2L, 2L), activation = "relu") %>%
-      layer_max_pooling_2d() %>%
-      layer_flatten() %>%
-      layer_dropout(0.5) %>%
-      layer_dense(units = 5L, activation = "softmax")
-    
-  } else if(networkSize == "big"){
-    modelString = "big model"
-    
-    model %>%
-      layer_conv_2d(filter = 48L, kernel_size = c(5L, 5L),
-                    input_shape = c(80L, 80L, 3L), activation = "leaky_relu") %>%
-      layer_max_pooling_2d() %>%
-      layer_conv_2d(filter = 48L, kernel_size = c(3L, 3L),
-                    activation = "leaky_relu") %>%
-      layer_max_pooling_2d() %>%
-      layer_conv_2d(filter = 64L, kernel_size = c(3L, 3L),
-                    strides = c(2L, 2L), activation = "leaky_relu") %>%
-      layer_max_pooling_2d() %>%
-      layer_flatten() %>%
-      layer_dropout(0.35) %>%
-      layer_dense(units = 256L, activation = "relu",
-                  bias_regularizer = regularizer_l2(.25)
-      ) %>%
-      layer_dropout(0.4) %>%
-      layer_dense(units = 128L, activation = "leaky_relu") %>%
-      layer_dropout(0.4) %>%
-      layer_dense(units = 64L, activation = "leaky_relu") %>%
-      layer_dropout(0.4) %>%
-      layer_dense(units = 5L, activation = "softmax")
-  }
-
-
-  ###############
-  # Generators for augmentation:
-  
-  if(!is.na(useGenerator)){
-    if(useGenerator == 1){
-      generatorString = "generator 1"
-      
-      generator = keras::flow_images_from_data(
-        x = train,
-        y = k_one_hot(labelsTrain, num_classes = 5L),
-        generator = keras::image_data_generator(
-          rotation_range = 180,
-          zoom_range = c(0.3),
-          horizontal_flip = TRUE,
-          vertical_flip = TRUE,
-          samplewise_center = TRUE,
-          samplewise_std_normalization = TRUE),
-        batch_size = batch_size,
-        shuffle = TRUE
-      )
-      
-    }else if(useGenerator == 2){
-      generatorString = "generator 2"
-      
-      generator = keras::flow_images_from_data(
-        x = train,
-        y = keras::k_one_hot(labelsTrain, 5L),
-        batch_size = batch_size
-      )
-    }
-  }else{ generatorString = "no generator" }
-  
-  
-  ###############
-  # Model selection and compilation:
-
-  model %>%
-    keras::compile(loss = loss_categorical_crossentropy,
-                   optimizer = keras::optimizer_adamax(learning_rate = learning_rate))
-  
-  if(is.na(useGenerator)){ # Use no generator.
-    model %>%
-      fit(x = train, y = to_categorical(matrix(labelsTrain, ncol = 1L), 5L),
-          epochs = epochs, batch_size = batch_size, shuffle = TRUE)
-  }else{
-    model %>%
-      fit(generator, epochs = epochs, batch_size = batch_size, shuffle = TRUE)
-  }
-  
-  
-  ###############
-  # Predictions:
-  
-  cat(paste0("\nModalities: ", modelString, ", ", generatorString, "\n"))
-  
-  # Predictions on the training set:
-  predTrain = predict(model, train) %>% apply(1, which.max) - 1
-  cat(paste0("\nAccuracy on training set: ",
-               round(Metrics::accuracy(predTrain, labelsTrain), 2), "\n"))
-  print(round(table(predTrain) / nrow(train), 2))
-  
-  # Predictions on the test set:
-  predTest = predict(model, test) %>% apply(1, which.max) - 1
-  cat(paste0("\nAccuracy on test set: ",
-               round(Metrics::accuracy(predTest, labelsTest), 2), "\n"))
-  print(round(table(predTest) / nrow(test), 2))
-  
-  # Predictions on the holdout for submission:
-  predHoldout = predict(model, EcoData::dataset_flower()$test/255) %>%
-    apply(1, which.max) - 1
-  
-  return(predHoldout)
-}
-
-
-for(networkSize in c("small", "medium", "big")){
-  for(useGenerator in c(1, 2, NA)){
-    pred = flowerCNN(networkSize = networkSize, useGenerator = useGenerator)
-  }
-}
-#> 
-#> Modalities: small model, generator 1
-#> 
-#> Accuracy on training set: 0.33
-#> predTrain
-#>    0    1    2    3    4 
-#> 0.36 0.48 0.12 0.00 0.03 
-#> 
-#> Accuracy on test set: 0.37
-#> predTest
-#>    0    1    2    4 
-#> 0.37 0.45 0.13 0.05 
-#> 
-#> Modalities: small model, generator 2
-#> 
-#> Accuracy on training set: 0.89
-#> predTrain
-#>    0    1    2    3    4 
-#> 0.16 0.26 0.16 0.18 0.24 
-#> 
-#> Accuracy on test set: 0.45
-#> predTest
-#>    0    1    2    3    4 
-#> 0.11 0.31 0.13 0.24 0.22 
-#> 
-#> Modalities: small model, no generator
-#> 
-#> Accuracy on training set: 0.91
-#> predTrain
-#>    0    1    2    3    4 
-#> 0.16 0.27 0.17 0.17 0.23 
-#> 
-#> Accuracy on test set: 0.46
-#> predTest
-#>    0    1    2    3    4 
-#> 0.13 0.31 0.17 0.22 0.17 
-#> 
-#> Modalities: medium model, generator 1
-#> 
-#> Accuracy on training set: 0.28
-#> predTrain
-#>    0    1    2    4 
-#> 0.00 0.93 0.05 0.01 
-#> 
-#> Accuracy on test set: 0.3
-#> predTest
-#>    1    2    4 
-#> 0.92 0.06 0.01 
-#> 
-#> Modalities: medium model, generator 2
-#> 
-#> Accuracy on training set: 0.69
-#> predTrain
-#>    0    1    2    3    4 
-#> 0.18 0.30 0.14 0.20 0.17 
-#> 
-#> Accuracy on test set: 0.65
-#> predTest
-#>    0    1    2    3    4 
-#> 0.18 0.29 0.16 0.21 0.17 
-#> 
-#> Modalities: medium model, no generator
-#> 
-#> Accuracy on training set: 0.74
-#> predTrain
-#>    0    1    2    3    4 
-#> 0.15 0.31 0.24 0.16 0.14 
-#> 
-#> Accuracy on test set: 0.66
-#> predTest
-#>    0    1    2    3    4 
-#> 0.14 0.31 0.24 0.16 0.14 
-#> 
-#> Modalities: big model, generator 1
-#> 
-#> Accuracy on training set: 0.27
-#> predTrain
-#>    1    2    4 
-#> 0.95 0.02 0.02 
-#> 
-#> Accuracy on test set: 0.29
-#> predTest
-#>    1    2    4 
-#> 0.95 0.03 0.02 
-#> 
-#> Modalities: big model, generator 2
-#> 
-#> Accuracy on training set: 0.68
-#> predTrain
-#>    0    1    2    3    4 
-#> 0.19 0.33 0.05 0.19 0.24 
-#> 
-#> Accuracy on test set: 0.61
-#> predTest
-#>    0    1    2    3    4 
-#> 0.17 0.36 0.05 0.19 0.23 
-#> 
-#> Modalities: big model, no generator
-#> 
-#> Accuracy on training set: 0.71
-#> predTrain
-#>    0    1    2    3    4 
-#> 0.15 0.28 0.12 0.18 0.27 
-#> 
-#> Accuracy on test set: 0.64
-#> predTest
-#>    0    1    2    3    4 
-#> 0.14 0.31 0.12 0.16 0.28
-```
-
-**Even more complex model:**
-
-The following snippet offers a solution for data generation with oversampling and undersampling, because the distribution of classes is not equal in the flower data set.
-
-
-```r
-getData = function(oversample = TRUE, undersample = FALSE){
-  # "undersample" has priority over "oversample".
-  
-  # As the whole task is very compute-intensive and needs much memory,
-  # pack data acquisition in a function.
-  # The used local memory is cleaned automatically at the end of the scope.
-  
-  data = EcoData::dataset_flower()
-  # <<-: Global scope.
-  trainLocal = data$train/255
-  labelsLocal = data$labels
-  
-  
-  print(table(labelsLocal)) # The classes are not equally distributed.
-  # Many models tend to predict class 1 overproportionally often.
-  
-  if(undersample){
-    n = min(table(labelsLocal))
-    
-    # Minimal size of classes times number of classes.
-    total = n * length(levels(as.factor(labelsLocal)))
-    newIndices = rep(FALSE, total)
-    
-    for(i in 1:length(levels(as.factor(labelsLocal)))){
-      newIndices[sample(which(labelsLocal == i - 1), n, replace = FALSE)] = TRUE
-    }
-    
-    newIndices = which(newIndices)
-    
-    trainingSet <- trainLocal[newIndices,,,]
-    flowerLabels <- labelsLocal[newIndices]
-    
-    print(table(flowerLabels))
-    return(list(trainingSet, flowerLabels, trainLocal))
-  }
-  
-  if(!oversample){
-    trainingSet <- trainLocal
-    flowerLabels <- labelsLocal
-    return(list(trainingSet, flowerLabels, trainLocal))
-  }
-  
-  n = round(max(table(labelsLocal)) + 14) # Number of samples to extend each class to.
-  
-  ## Sample new data (with replacement):
-  for(i in 1:length(levels(as.factor(labelsLocal)))){
-    missing = n - table(labelsLocal)[i]  # Number of elements missing compared to n.
-    indices = which(labelsLocal == i - 1)  # Indices of all elements of class i.
-    newIndices = sample(indices, missing, replace = TRUE)
-    
-    trainLocal <- abind::abind(trainLocal, trainLocal[newIndices,,,], along = 1)
-    # As only new indices are added, there is no confusion with using the old ones.
-    
-    labelsLocal = c(labelsLocal, rep(as.integer(i - 1), missing))
-  }
-  
-  trainingSet <- trainLocal
-  flowerLabels <- labelsLocal
-  
-  print(table(flowerLabels))
-  
-  return(list(trainingSet, flowerLabels, trainLocal))
-}
-```
-
-Read in for example the following way:
-
-
-```r
-if(!exists("done")){  # Do not calculate this more often than 1 time.
-  trainingSet = c()
-  flowerLabels = c()
-  data = getData(oversample = FALSE, undersample = FALSE)
-  trainingSet = data[[1]]
-  flowerLabels = data[[2]]
-  trainLocal = data[[3]]
-  done = 1
-}
-```
-
-<h2>Be careful, this exercise uses A LOT OF MEMORY!! If you have a SSD, you might want to turn pagefile / swap off. If you don't have at least 8 GB RAM, don't try to run this exercise, it won't work.</h2>
-
-To avoid crashes of your system, you might want to do some memory management, like:
-
-* After model training, unload the training set and load the test set.
-* Generally remove data that is used no longer.
-* Lazy load new images (not shown here) out of a generator (later shown in section \@ref(gan), but with manually written training loop).
-
-
-```r
-library(keras)
-library(tensorflow)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-if(!exists("doneWithTest")){  # Do not calculate this more often than 1 time.
-  trainingSet = c()
-  flowerLabels = c()
-  data = getData(oversample = FALSE, undersample = FALSE)
-  trainingSet = data[[1]]
-  flowerLabels = data[[2]]
-  trainLocal = data[[3]]
-  doneWithTest = 1
-}
-#> labelsLocal
-#>   0   1   2   3   4 
-#> 538 736 548 513 688
-
-model = keras_model_sequential()
-model %>%
-  layer_conv_2d(filter = 48L, kernel_size = c(4L, 4L),
-                input_shape = c(80L, 80L, 3L), activation = "relu") %>% 
-  layer_max_pooling_2d() %>%
-  layer_conv_2d(filter = 48L, kernel_size = c(3L, 3L), activation = "elu") %>% 
-  layer_max_pooling_2d() %>%
-  layer_conv_2d(filter = 64L, kernel_size = c(2L, 2L), activation = "gelu") %>% 
-  layer_max_pooling_2d() %>%
-  layer_flatten() %>%
-  layer_dropout(0.33) %>%
-  layer_dense(units = 750L, activation = "gelu",
-              bias_regularizer = regularizer_l1(.75),
-              kernel_regularizer = regularizer_l2(.0055)
-  ) %>%
-  layer_dropout(0.4) %>%
-  layer_dense(units = 175L, activation = "gelu") %>%
-  layer_dropout(0.35) %>%
-  layer_dense(units = 75L, activation = "relu") %>%
-  layer_dense(units = 50L, activation = "gelu",
-              bias_regularizer = regularizer_l2(.75),
-              kernel_regularizer = regularizer_l1(.0055)
-  ) %>%
-  layer_dropout(0.3) %>% 
-  layer_dense(units = 5L, activation = "softmax")
-
-model %>%
-  keras::compile(loss = loss_categorical_crossentropy,
-                 optimizer = optimizer_adamax(learning_rate = 0.011))
-
-model %>%
-  fit(x = trainingSet, y = to_categorical(matrix(flowerLabels, ncol = 1L), 5L),
-      epochs = 50L, batch_size = 100L, shuffle = TRUE, validation_split = 0.2)
-
-pred = model %>% predict(trainingSet)
-pred_classes = apply(pred, 1, which.max)
-print(table(pred_classes))
-#> pred_classes
-#>   1   2   3   4 
-#> 566 933 660 864
-
-Metrics::accuracy(pred_classes - 1L, flowerLabels)
-#> [1] 0.5630169
-
-#pred_classes = model %>% predict(EcoData::dataset_flower()$test/255) %>%
-#  apply(1, which.max) - 1L  # Do not forget "/255" and  "- 1L"!!
-
-#write.csv(pred_classes, file = "flower_CNN.csv")
-```
-
-As you can see, the network works in principle (76% accuracy for training data). Mind, that this is not a binary classification problem and we are expecting roughly 20% accuracy by chance.
-
-Just a little hint: More complex networks are not always better. This won't be shown explicitly (as it is very computing-intensive). You can try for example 64 filter kernels per layer or copy one of the convolutional layers (including pooling layer) to see what happens.
-
-Now, we are training without holdouts to get the most power.
-
-
-```r
-library(keras)
-library(tensorflow)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-if(!exists("doneWithoutTest")){  # Do not calculate this more often than 1 time.
-  trainingSet = c()
-  flowerLabels = c()
-  data = getData(oversample = FALSE, undersample = FALSE)
-  trainingSet = data[[1]]
-  flowerLabels = data[[2]]
-  trainLocal = data[[3]]
-  doneWithoutTest = 1
-}
-#> labelsLocal
-#>   0   1   2   3   4 
-#> 538 736 548 513 688
-
-model = keras_model_sequential()
-model %>% 
-  layer_conv_2d(filter = 48L, kernel_size = c(4L, 4L),
-                input_shape = c(80L, 80L, 3L), activation = "relu") %>% 
-  layer_max_pooling_2d() %>%
-  layer_conv_2d(filter = 48L, kernel_size = c(3L, 3L), activation = "elu") %>% 
-  layer_max_pooling_2d() %>%
-  layer_conv_2d(filter = 64L, kernel_size = c(2L, 2L), activation = "gelu") %>% 
-  layer_max_pooling_2d() %>%
-  layer_flatten() %>%
-  layer_dropout(0.33) %>%
-  layer_dense(units = 750L, activation = "gelu",
-              bias_regularizer = regularizer_l1(.75),
-              kernel_regularizer = regularizer_l2(.0055)
-  ) %>%
-  layer_dropout(0.4) %>%
-  layer_dense(units = 175L, activation = "gelu") %>%
-  layer_dropout(0.35) %>%
-  layer_dense(units = 75L, activation = "relu") %>%
-  layer_dense(units = 50L, activation = "gelu",
-              bias_regularizer = regularizer_l2(.75),
-              kernel_regularizer = regularizer_l1(.0055)
-  ) %>%
-  layer_dropout(0.3) %>% 
-  layer_dense(units = 5L, activation = "softmax")
-
-model %>%
-  keras::compile(loss = loss_categorical_crossentropy,
-                 optimizer = optimizer_adamax(learning_rate = 0.011))
-
-model %>%
-  fit(x = trainingSet, y = to_categorical(matrix(flowerLabels, ncol = 1L), 5L),
-      epochs = 50L, batch_size = 100L, shuffle = TRUE)
-
-pred_classes = apply(model %>% predict(trainingSet), 1, which.max)
-print(table(pred_classes))
-#> pred_classes
-#>    1    2    3    4    5 
-#>  639 1232  205   46  901
-
-Metrics::accuracy(pred_classes - 1L, flowerLabels)
-#> [1] 0.5732716
-
-pred_classes = model %>% predict(EcoData::dataset_flower()$test/255) %>%
-  apply(1, which.max) - 1L  # Do not forget "/255" and  "- 1L"!!
-
-write.csv(pred_classes, file = "flower_CNN.csv")
-```
-
-Maybe you can find (much?) better networks, that fit already better than 84% on the training data.
-Mind, that there are 5 classes. If your model predicts only 3 or 4 of them, is is not surprising, that the accuracy is low.
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
+<!-- ### Batch Size and Learning Rate -->
+
+<!-- In this chapter, the influence of batch size and learning rate is explored using the MNIST data set. -->
+<!-- If you are more interested in this topic (you should be), read this  -->
+<!-- <a href="https://medium.com/mini-distill/effect-of-batch-size-on-training-dynamics-21c14f7a716e" target="_blank" rel="noopener">article</a>. -->
+
+
+<!-- #### Batch Size -->
+
+<!-- Different batch sizes may massively influence the outcome of a training step. Finding a suitable batch size is a task itself. -->
+
+<!-- As a general rule of thumb: -->
+
+<!-- * The lower the batch size, the longer the calculations take, the less (!) memory is needed and the more accurate the training -->
+<!-- * The higher the batch size, the wider the training steps (like with a higher learning rate). -->
+<!-- * Changing batch sizes and learning rates is always possible and this might "heal" previous mistakes. Maybe you have to "push" the system out of its local neighborhood. -->
+<!-- * It also depends on the respective problem. -->
+
+<!-- ```{r chunk_chapter5_34, eval=TRUE} -->
+<!-- library(tensorflow) -->
+<!-- library(keras) -->
+<!-- set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed. -->
+
+<!-- data = dataset_mnist() -->
+<!-- train = data$train -->
+<!-- test = data$test -->
+
+<!-- train_x = array(train$x/255, c(dim(train$x), 1)) -->
+<!-- test_x = array(test$x/255, c(dim(test$x), 1)) -->
+<!-- train_y = to_categorical(train$y, 10) -->
+
+<!-- model = keras_model_sequential() -->
+<!-- model %>% -->
+<!--   layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L, -->
+<!--                kernel_size = c(2L, 2L), activation = "relu") %>% -->
+<!--   layer_max_pooling_2d() %>% -->
+<!--   layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>% -->
+<!--   layer_max_pooling_2d() %>% -->
+<!--   layer_flatten() %>% -->
+<!--   layer_dense(100L, activation = "relu") %>% -->
+<!--   layer_dense(10L, activation = "softmax") -->
+
+<!-- model %>% -->
+<!--   keras::compile( -->
+<!--       optimizer = keras::optimizer_adamax(learning_rate = 0.01), -->
+<!--       loss = loss_categorical_crossentropy -->
+<!--   ) -->
+
+<!-- epochs = 5L -->
+<!-- batch_size = 32L -->
+<!-- model %>% -->
+<!--   fit( -->
+<!--     x = train_x,  -->
+<!--     y = train_y, -->
+<!--     epochs = epochs, -->
+<!--     batch_size = batch_size, -->
+<!--     shuffle = TRUE, -->
+<!--     validation_split = 0.2 -->
+<!--   ) -->
+
+<!-- pred = model %>% predict(test_x) %>% apply(1, which.max) - 1 -->
+<!-- Metrics::accuracy(pred, test$y) # 0.9884 -->
+<!-- ``` -->
+
+<!-- **Higher batch size:** -->
+
+<!-- ```{r chunk_chapter5_35, eval=TRUE} -->
+<!-- library(tensorflow) -->
+<!-- library(keras) -->
+<!-- set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed. -->
+
+<!-- data = dataset_mnist() -->
+<!-- train = data$train -->
+<!-- test = data$test -->
+
+<!-- train_x = array(train$x/255, c(dim(train$x), 1)) -->
+<!-- test_x = array(test$x/255, c(dim(test$x), 1)) -->
+<!-- train_y = to_categorical(train$y, 10) -->
+
+<!-- model = keras_model_sequential() -->
+<!-- model %>% -->
+<!--   layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L, -->
+<!--                kernel_size = c(2L, 2L), activation = "relu") %>% -->
+<!--   layer_max_pooling_2d() %>% -->
+<!--   layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>% -->
+<!--   layer_max_pooling_2d() %>% -->
+<!--   layer_flatten() %>% -->
+<!--   layer_dense(100L, activation = "relu") %>% -->
+<!--   layer_dense(10L, activation = "softmax") -->
+
+<!-- model %>% -->
+<!--   keras::compile( -->
+<!--     optimizer = keras::optimizer_adamax(learning_rate = 0.01), -->
+<!--     loss = loss_categorical_crossentropy -->
+<!--   ) -->
+
+<!-- epochs = 5L -->
+<!-- batch_size = 100L -->
+<!-- model %>% -->
+<!--   fit( -->
+<!--     x = train_x,  -->
+<!--     y = train_y, -->
+<!--     epochs = epochs, -->
+<!--     batch_size = batch_size, -->
+<!--     shuffle = TRUE, -->
+<!--     validation_split = 0.2 -->
+<!--   ) -->
+
+<!-- pred = model %>% predict(test_x) %>% apply(1, which.max) - 1 -->
+<!-- Metrics::accuracy(pred, test$y) # 0.9864 -->
+<!-- ``` -->
+
+<!-- **Lower batch size:** -->
+
+<!-- ```{r chunk_chapter5_36, eval=TRUE} -->
+<!-- library(tensorflow) -->
+<!-- library(keras) -->
+<!-- set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed. -->
+
+<!-- data = dataset_mnist() -->
+<!-- train = data$train -->
+<!-- test = data$test -->
+
+<!-- train_x = array(train$x/255, c(dim(train$x), 1)) -->
+<!-- test_x = array(test$x/255, c(dim(test$x), 1)) -->
+<!-- train_y = to_categorical(train$y, 10) -->
+
+<!-- model = keras_model_sequential() -->
+<!-- model %>% -->
+<!--   layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L, -->
+<!--                kernel_size = c(2L, 2L), activation = "relu") %>% -->
+<!--   layer_max_pooling_2d() %>% -->
+<!--   layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>% -->
+<!--   layer_max_pooling_2d() %>% -->
+<!--   layer_flatten() %>% -->
+<!--   layer_dense(100L, activation = "relu") %>% -->
+<!--   layer_dense(10L, activation = "softmax") -->
+
+<!-- model %>% -->
+<!--   keras::compile( -->
+<!--     optimizer = keras::optimizer_adamax(learning_rate = 0.01), -->
+<!--     loss = loss_categorical_crossentropy -->
+<!--   ) -->
+
+<!-- epochs = 1L -->
+<!-- batch_size = 10L -->
+<!-- model %>% -->
+<!--   fit( -->
+<!--     x = train_x,  -->
+<!--     y = train_y, -->
+<!--     epochs = epochs, -->
+<!--     batch_size = batch_size, -->
+<!--     shuffle = TRUE, -->
+<!--     validation_split = 0.2 -->
+<!--   ) -->
+
+<!-- pred = model %>% predict(test_x) %>% apply(1, which.max) - 1 -->
+<!-- Metrics::accuracy(pred, test$y) # 0.9869 -->
+<!-- ``` -->
+
+<!-- **Lowest (1) batch size:** -->
+
+<!-- ```{r chunk_chapter5_37, eval=TRUE} -->
+<!-- library(tensorflow) -->
+<!-- library(keras) -->
+<!-- set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed. -->
+
+<!-- data = dataset_mnist() -->
+<!-- train = data$train -->
+<!-- test = data$test -->
+
+<!-- train_x = array(train$x/255, c(dim(train$x), 1)) -->
+<!-- test_x = array(test$x/255, c(dim(test$x), 1)) -->
+<!-- train_y = to_categorical(train$y, 10) -->
+
+<!-- model = keras_model_sequential() -->
+<!-- model %>% -->
+<!--   layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L, -->
+<!--                kernel_size = c(2L, 2L), activation = "relu") %>% -->
+<!--   layer_max_pooling_2d() %>% -->
+<!--   layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>% -->
+<!--   layer_max_pooling_2d() %>% -->
+<!--   layer_flatten() %>% -->
+<!--   layer_dense(100L, activation = "relu") %>% -->
+<!--   layer_dense(10L, activation = "softmax") -->
+
+<!-- model %>% -->
+<!--   keras::compile( -->
+<!--     optimizer = keras::optimizer_adamax(learning_rate = 0.01), -->
+<!--     loss = loss_categorical_crossentropy -->
+<!--   ) -->
+
+<!-- epochs = 1L -->
+<!-- batch_size = 1L -->
+<!-- model %>% -->
+<!--   fit( -->
+<!--     x = train_x,  -->
+<!--     y = train_y, -->
+<!--     epochs = epochs, -->
+<!--     batch_size = batch_size, -->
+<!--     shuffle = TRUE, -->
+<!--     validation_split = 0.2 -->
+<!--   ) -->
+
+<!-- pred = model %>% predict(test_x) %>% apply(1, which.max) - 1 -->
+<!-- Metrics::accuracy(pred, test$y) # 0.982 -->
+<!-- ``` -->
+
+<!-- **Highest (complete) batch size:** -->
+
+<!-- This might not run, because too much memory is needed. -->
+
+<!-- ```{r chunk_chapter5_38, eval=FALSE, purl=FALSE} -->
+<!-- library(tensorflow) -->
+<!-- library(keras) -->
+<!-- set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed. -->
+
+<!-- data = dataset_mnist() -->
+<!-- train = data$train -->
+<!-- test = data$test -->
+
+<!-- train_x = array(train$x/255, c(dim(train$x), 1)) -->
+<!-- test_x = array(test$x/255, c(dim(test$x), 1)) -->
+<!-- train_y = to_categorical(train$y, 10) -->
+
+<!-- model = keras_model_sequential() -->
+<!-- model %>% -->
+<!--   layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L, -->
+<!--                kernel_size = c(2L, 2L), activation = "relu") %>% -->
+<!--   layer_max_pooling_2d() %>% -->
+<!--   layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>% -->
+<!--   layer_max_pooling_2d() %>% -->
+<!--   layer_flatten() %>% -->
+<!--   layer_dense(100L, activation = "relu") %>% -->
+<!--   layer_dense(10L, activation = "softmax") -->
+
+<!-- model %>% -->
+<!--   keras::compile( -->
+<!--     optimizer = keras::optimizer_adamax(learning_rate = 0.01), -->
+<!--     loss = loss_categorical_crossentropy -->
+<!--   ) -->
+
+<!-- epochs = 1L -->
+<!-- batch_size = nrow(test_x) -->
+<!-- model %>% -->
+<!--   fit( -->
+<!--     x = train_x,  -->
+<!--     y = train_y, -->
+<!--     epochs = epochs, -->
+<!--     batch_size = batch_size, -->
+<!--     shuffle = TRUE, -->
+<!--     validation_split = 0.2 -->
+<!--   ) -->
+
+<!-- pred = model %>% predict(test_x) %>% apply(1, which.max) - 1 -->
+<!-- Metrics::accuracy(pred, test$y) # ??? -->
+<!-- ``` -->
+
+
+<!-- #### Learning Rate -->
+
+<!-- Choosing a high learning rate at the beginning may yield acceptable results relatively fast. It would take much more time to get there with a small learning rate. But keeping the learning rate this high may result in jumping over the desired optimal values. So decreasing the learning rate with time might help. -->
+
+<!-- TensorFlow / Keras can manage a changing learning rate. This may also be a periodic function or an increase one. You are not limited to a decreasing learning rate. Defining own learning rates is a bit more complicated than just using the inbuilt Keras functions. If you need a self-made learning rate, you can find some recipe <a href="http://thecooldata.com/2018/12/changing-learning-rate-during-training-on-each-batch-iteration-using-callbacks-in-r-keras/" target="_blank" rel="noopener">here</a>. -->
+
+<!-- **An example of the inbuilt functions for managing learning rates in Keras:** -->
+
+<!-- The function declaration of the adamax optimizer is as follows: -->
+
+<!-- ```{r chunk_chapter5_39, eval=FALSE, purl=FALSE} -->
+<!-- optimizer_adamax( -->
+<!--   learning_rate = 0.002, -->
+<!--   beta_1 = 0.9, -->
+<!--   beta_2 = 0.999, -->
+<!--   epsilon = NULL, -->
+<!--   decay = 0, -->
+<!--   clipnorm = NULL, -->
+<!--   clipvalue = NULL, -->
+<!--   ... -->
+<!-- ) -->
+<!-- # learning_rate:  float >= 0. Learning rate. -->
+<!-- # beta_1:         The exponential decay rate for the 1st moment estimates. -->
+<!--                   # float, 0 < beta < 1. Generally close to 1. -->
+<!-- # beta_2: 	      The exponential decay rate for the 2nd moment estimates. -->
+<!--                   # float, 0 < beta < 1. Generally close to 1. -->
+<!-- # epsilon:        float >= 0. Fuzz factor. If NULL, defaults to k_epsilon(). -->
+<!-- # decay:	        float >= 0. Learning rate decay over each update. -->
+<!-- # clipnorm:       Gradients will be clipped when their L2 norm exceeds this value. -->
+<!-- # clipvalue:      Gradients will be clipped when their absolute value exceeds this value. -->
+<!-- ``` -->
+
+<!-- You can easily specify a decay this way. Mind interval boundaries and suitable parameter values! -->
+
+<!-- ```{r chunk_chapter5_40, eval=TRUE} -->
+<!-- library(tensorflow) -->
+<!-- library(keras) -->
+<!-- set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed. -->
+
+<!-- data = dataset_mnist() -->
+<!-- train = data$train -->
+<!-- test = data$test -->
+
+<!-- train_x = array(train$x/255, c(dim(train$x), 1)) -->
+<!-- test_x = array(test$x/255, c(dim(test$x), 1)) -->
+<!-- train_y = to_categorical(train$y, 10) -->
+
+<!-- model = keras_model_sequential() -->
+<!-- model %>% -->
+<!--   layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L, -->
+<!--                kernel_size = c(2L, 2L), activation = "relu") %>% -->
+<!--   layer_max_pooling_2d() %>% -->
+<!--   layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>% -->
+<!--   layer_max_pooling_2d() %>% -->
+<!--   layer_flatten() %>% -->
+<!--   layer_dense(100L, activation = "relu") %>% -->
+<!--   layer_dense(10L, activation = "softmax") -->
+
+<!-- model %>% -->
+<!--   keras::compile( -->
+<!--     optimizer = keras::optimizer_adamax(learning_rate = 0.02, decay = 0.002), -->
+<!--     loss = loss_categorical_crossentropy -->
+<!--   ) -->
+
+<!-- epochs = 1L -->
+<!-- batch_size = 32L -->
+<!-- model %>% -->
+<!--   fit( -->
+<!--     x = train_x,  -->
+<!--     y = train_y, -->
+<!--     epochs = epochs, -->
+<!--     batch_size = batch_size, -->
+<!--     shuffle = TRUE, -->
+<!--     validation_split = 0.2 -->
+<!--   ) -->
+
+<!-- pred = model %>% predict(test_x) %>% apply(1, which.max) - 1 -->
+<!-- Metrics::accuracy(pred, test$y) # 0.9882 -->
+<!-- ``` -->
+
+<!-- Except for the decay in learning rate, this example is identical to the first one concerning the batch size (0.9884). -->
+
+
+<!-- #### Conclusion -->
+
+<!-- There is a (very) complex interplay of batch size, learning rate and optimization algorithm. This topic is to deep for this course. -->
+
+<!-- Most times, doing a longer training or increasing the batch size rather than decreasing the learning rate is recommended. -->
+<!-- But this is a matter of further research and also personal attitude. Of course, it also depends on the respective problem. -->
+
+
+<!-- ### Caveat About Learning Rates and Activation Functions (already mentioned in the intro) -->
+
+<!-- Depending on activation functions, it might occur that the network won't get updated, even with high learning rates (called *vanishing gradient*, especially for "sigmoid" functions). -->
+<!-- Furthermore, updates might overshoot (called *exploding gradients*) or activation functions will result in many zeros (especially for "relu", *dying relu*). -->
 

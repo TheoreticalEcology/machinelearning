@@ -79,7 +79,7 @@
 <li><a class="" href="tensorflowintro.html"><span class="header-section-number">3</span> Introduction to TensorFlow, Keras, and Torch</a></li>
 <li><a class="" href="fundamental.html"><span class="header-section-number">4</span> Common Machine Learning algorithms</a></li>
 <li><a class="" href="workflow.html"><span class="header-section-number">5</span> Machine Learning workflow</a></li>
-<li><a class="" href="deep.html"><span class="header-section-number">6</span> Deep Learning</a></li>
+<li><a class="" href="deep.html"><span class="header-section-number">6</span> Deep Learning Architectures</a></li>
 <li><a class="active" href="interpretation.html"><span class="header-section-number">7</span> Interpretation and Causality With Machine Learning</a></li>
 <li><a class="" href="gan.html"><span class="header-section-number">8</span> Generative Modeling and Reinforcement Learning</a></li>
 <li><a class="" href="datasets.html"><span class="header-section-number">9</span> Data sets</a></li>
@@ -107,7 +107,7 @@
 </h3>
 <p>In this lecture we will work with another famous data set, the <em>Boston housing</em> data set:</p>
 <p>We will fit a random forest and use the iml package for xAI, see <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>.</p>
-<div class="sourceCode" id="cb379"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb470"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://christophm.github.io/iml/">iml</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.stat.berkeley.edu/~breiman/RandomForests/">randomForest</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; randomForest 4.7-1.1</span></span>
@@ -118,7 +118,7 @@
 <span><span class="va">rf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/randomForest/man/randomForest.html">randomForest</a></span><span class="op">(</span><span class="va">medv</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">Boston</span>, ntree <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></code></pre></div>
 <p>xAI packages are written generic, i.e. they can handle almost all machine learning models.
 When we want to use them, we first have to create a predictor object, that holds the model and the data. The iml package uses R6 classes, that means new objects can be created by calling Predictor$new(). (Do not worry if you do not know what R6 classes are, just use the command.)</p>
-<div class="sourceCode" id="cb380"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb471"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">X</span> <span class="op">=</span> <span class="va">Boston</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">Boston</span><span class="op">)</span> <span class="op">!=</span> <span class="st">"medv"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">predictor</span> <span class="op">=</span> <span class="va"><a href="https://christophm.github.io/iml/reference/Predictor.html">Predictor</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">rf</span>, data <span class="op">=</span> <span class="va">X</span>, y <span class="op">=</span> <span class="va">Boston</span><span class="op">$</span><span class="va">medv</span><span class="op">)</span></span>
 <span><span class="co"># "Predictor" is an object generator.</span></span></code></pre></div>
@@ -128,7 +128,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <span class="header-section-number">7.1.2</span> Feature Importance<a class="anchor" aria-label="anchor" href="#feature-importance"><i class="fas fa-link"></i></a>
 </h3>
 <p>Feature importance should not be mistaken with the random forest variable importance though they are related. It tells us how important the individual variables are for predictions, can be calculated for all machine learning models and is based on a permutation approach (have a look at the book):</p>
-<div class="sourceCode" id="cb381"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb472"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">imp</span> <span class="op">=</span> <span class="va"><a href="https://christophm.github.io/iml/reference/FeatureImp.html">FeatureImp</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">predictor</span>, loss <span class="op">=</span> <span class="st">"mae"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">imp</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="08-xAI_files/figure-html/chunk_chapter6_2-1.png" width="100%" style="display: block; margin: auto;"></div>
@@ -138,13 +138,13 @@ When we want to use them, we first have to create a predictor object, that holds
 <span class="header-section-number">7.1.3</span> Partial Dependencies<a class="anchor" aria-label="anchor" href="#partial-dependencies"><i class="fas fa-link"></i></a>
 </h3>
 <p>Partial dependencies are similar to allEffects plots for normal regressions. The idea is to visualize “marginal effects” of predictors (with the “feature” argument we specify the variable we want to visualize):</p>
-<div class="sourceCode" id="cb382"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb473"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">eff</span> <span class="op">=</span> <span class="va"><a href="https://christophm.github.io/iml/reference/FeatureEffect.html">FeatureEffect</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">predictor</span>, feature <span class="op">=</span> <span class="st">"rm"</span>, method <span class="op">=</span> <span class="st">"pdp"</span>,</span>
 <span>                        grid.size <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="08-xAI_files/figure-html/chunk_chapter6_3-1.png" width="100%" style="display: block; margin: auto;"></div>
 <p>Partial dependencies can also be plotted for single observations:</p>
-<div class="sourceCode" id="cb383"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb474"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">eff</span> <span class="op">=</span> <span class="va"><a href="https://christophm.github.io/iml/reference/FeatureEffect.html">FeatureEffect</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">predictor</span>, feature <span class="op">=</span> <span class="st">"rm"</span>, method <span class="op">=</span> <span class="st">"pdp+ice"</span>,</span>
 <span>                        grid.size <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span></span></code></pre></div>
@@ -156,7 +156,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <span class="header-section-number">7.1.4</span> Accumulated Local Effects<a class="anchor" aria-label="anchor" href="#accumulated-local-effects"><i class="fas fa-link"></i></a>
 </h3>
 <p>Accumulated local effects (ALE) are basically partial dependencies plots but try to correct for correlations between predictors.</p>
-<div class="sourceCode" id="cb384"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb475"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ale</span> <span class="op">=</span> <span class="va"><a href="https://christophm.github.io/iml/reference/FeatureEffect.html">FeatureEffect</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">predictor</span>, feature <span class="op">=</span> <span class="st">"rm"</span>, method <span class="op">=</span> <span class="st">"ale"</span><span class="op">)</span></span>
 <span><span class="va">ale</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="08-xAI_files/figure-html/chunk_chapter6_5-1.png" width="100%" style="display: block; margin: auto;"></div>
@@ -167,7 +167,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <span class="header-section-number">7.1.5</span> Friedman’s H-statistic<a class="anchor" aria-label="anchor" href="#friedmans-h-statistic"><i class="fas fa-link"></i></a>
 </h3>
 <p>The H-statistic can be used to find interactions between predictors. However, again, keep in mind that the H-statistic is sensible to correlation between predictors:</p>
-<div class="sourceCode" id="cb385"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb476"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">interact</span> <span class="op">=</span> <span class="va"><a href="https://christophm.github.io/iml/reference/Interaction.html">Interaction</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">predictor</span>, <span class="st">"lstat"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">interact</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="08-xAI_files/figure-html/chunk_chapter6_6-1.png" width="100%" style="display: block; margin: auto;"></div>
@@ -177,7 +177,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <span class="header-section-number">7.1.6</span> Global Explainer - Simplifying the Machine Learning Model<a class="anchor" aria-label="anchor" href="#global-explainer---simplifying-the-machine-learning-model"><i class="fas fa-link"></i></a>
 </h3>
 <p>Another idea is simplifying the machine learning model with another simpler model such as a decision tree. We create predictions with the machine learning model for a lot of different input values and then we fit a decision tree on these predictions. We can then interpret the easier model.</p>
-<div class="sourceCode" id="cb386"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb477"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://partykit.r-forge.r-project.org/partykit/">partykit</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">tree</span> <span class="op">=</span> <span class="va"><a href="https://christophm.github.io/iml/reference/TreeSurrogate.html">TreeSurrogate</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">predictor</span>, maxdepth <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -190,7 +190,7 @@ When we want to use them, we first have to create a predictor object, that holds
 </h3>
 <p>The global approach is to simplify the entire machine learning-black-box model via a simpler model, which is then interpretable.</p>
 <p>However, sometimes we are only interested in understanding how single predictions are generated. The LIME (Local interpretable model-agnostic explanations) approach explores the feature space around one observation and based on this locally fits a simpler model (e.g. a linear model):</p>
-<div class="sourceCode" id="cb387"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb478"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lime.explain</span> <span class="op">=</span> <span class="va"><a href="https://christophm.github.io/iml/reference/LocalModel.html">LocalModel</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">predictor</span>, x.interest <span class="op">=</span> <span class="va">X</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">lime.explain</span><span class="op">$</span><span class="va">results</span></span>
 <span><span class="co">#&gt;               beta x.recoded    effect x.original feature feature.value</span></span>
@@ -205,7 +205,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <span class="header-section-number">7.1.8</span> Local Explainer - Shapley<a class="anchor" aria-label="anchor" href="#local-explainer---shapley"><i class="fas fa-link"></i></a>
 </h3>
 <p>The Shapley method computes the so called Shapley value, feature contributions for single predictions, and is based on an approach from cooperative game theory. The idea is that each feature value of the instance is a “player” in a game, where the prediction is the reward. The Shapley value tells us how to fairly distribute the reward among the features.</p>
-<div class="sourceCode" id="cb388"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb479"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">shapley</span> <span class="op">=</span> <span class="va"><a href="https://christophm.github.io/iml/reference/Shapley.html">Shapley</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">predictor</span>, x.interest <span class="op">=</span> <span class="va">X</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">shapley</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="08-xAI_files/figure-html/chunk_chapter6_9-1.png" width="100%" style="display: block; margin: auto;"></div>
@@ -225,7 +225,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <p>Multiple regression and few other methods are able to correct for other predictors and thus isolate the causal effect. The same is not necessarily true for machine learning algorithms and xAI methods. This is not a bug, but a feature - for making good predictions, it is often no problem, but rather an advantage to also use non-causal predictors.</p>
 <p>Here an example for the indicators of variable importance in the random forest algorithm. The purpose of this script is to show that random forest variable importance will split importance values for collinear variables evenly, even if collinearity is low enough so that variables are separable and would be correctly separated by an lm / ANOVA.</p>
 <p>We first simulate a data set with 2 predictors that are strongly correlated, but only one of them has an effect on the response.</p>
-<div class="sourceCode" id="cb389"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb480"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Simulation parameters.</span></span>
@@ -239,7 +239,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <span><span class="co"># Response is only influenced by x1.</span></span>
 <span><span class="va">y</span> <span class="op">=</span> <span class="va">x1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span></code></pre></div>
 <p>lm / anova correctly identify <span class="math inline">\(x1\)</span> as causal variable.</p>
-<div class="sourceCode" id="cb390"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb481"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
@@ -261,7 +261,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <span><span class="co">#&gt; Multiple R-squared:  0.08104,    Adjusted R-squared:  0.0792 </span></span>
 <span><span class="co">#&gt; F-statistic: 43.96 on 2 and 997 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
 <p>Fit random forest and show variable importance:</p>
-<div class="sourceCode" id="cb391"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb482"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fit</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/randomForest/man/randomForest.html">randomForest</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>, importance <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -280,7 +280,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <span class="header-section-number">7.2.2</span> Structural Equation Models<a class="anchor" aria-label="anchor" href="#structural-equation-models"><i class="fas fa-link"></i></a>
 </h3>
 <p>If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). Structural equation models are designed to estimate entire causal diagrams. There are two main SEM packages in R: For anything that is non-normal, you will currently have to estimate the directed acyclic graph (that depicts causal relations) piece-wise with CRAN package piecewiseSEM. Example for a vegetation data set:</p>
-<div class="sourceCode" id="cb392"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb483"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jslefche/">piecewiseSEM</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/piecewiseSEM/man/psem.html">psem</a></span><span class="op">(</span></span>
@@ -292,7 +292,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
 <p>For linear structural equation models, we can estimate the entire directed acyclic graph at once. This also allows having unobserved variables in the directed acyclic graph. One of the most popular packages for this is lavaan.</p>
-<div class="sourceCode" id="cb393"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb484"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lavaan.ugent.be">lavaan</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">mod</span> <span class="op">=</span> <span class="st">"</span></span>
@@ -347,13 +347,13 @@ When we want to use them, we first have to create a predictor object, that holds
 <span><span class="co">#&gt;    .firesev            1.887    0.281    6.708    0.000</span></span>
 <span><span class="co">#&gt;    .cover              0.081    0.012    6.708    0.000</span></span></code></pre></div>
 <p>The default plot options are not so nice as before.</p>
-<div class="sourceCode" id="cb394"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb485"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/alishinski/lavaanPlot">lavaanPlot</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/lavaanPlot/man/lavaanPlot.html">lavaanPlot</a></span><span class="op">(</span>model <span class="op">=</span> <span class="va">fit</span><span class="op">)</span></span></code></pre></div>
 <div id="htmlwidget-c178c715e4eb61ca4c30" style="width:100%;height:480px;" class="grViz html-widget"></div>
 <script type="application/json" data-for="htmlwidget-c178c715e4eb61ca4c30">{"x":{"diagram":" digraph plot { \n graph [ overlap = true, fontsize = 10 ] \n node [ shape = box ] \n node [shape = box] \n distance; elev; abiotic; age; hetero; firesev; cover; rich \n node [shape = oval] \n  \n \n edge [ color = black ] \n distance->rich elev->rich abiotic->rich age->rich hetero->rich firesev->rich cover->rich elev->firesev age->firesev cover->firesev age->cover elev->cover abiotic->cover  \n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>Another plotting option is using semPlot.</p>
-<div class="sourceCode" id="cb395"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb486"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/SachaEpskamp/semPlot">semPlot</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/semPlot/man/semPaths.html">semPaths</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
@@ -364,15 +364,15 @@ When we want to use them, we first have to create a predictor object, that holds
 <span class="header-section-number">7.2.3</span> Automatic Causal Discovery<a class="anchor" aria-label="anchor" href="#automatic-causal-discovery"><i class="fas fa-link"></i></a>
 </h3>
 <p>But how to get the causal graph? In statistics, it is common to “guess” it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the <em>PC algorithm</em>. Here an example using the pcalg package:</p>
-<div class="sourceCode" id="cb396"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb487"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://pcalg.r-forge.r-project.org/">pcalg</a></span><span class="op">)</span></span></code></pre></div>
 <p>Loading the data:</p>
-<div class="sourceCode" id="cb397"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb488"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"gmG"</span>, package <span class="op">=</span> <span class="st">"pcalg"</span><span class="op">)</span> <span class="co"># Loads data sets gmG and gmG8.</span></span>
 <span><span class="va">suffStat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>C <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="va">gmG8</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>, n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">gmG8</span><span class="op">$</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">varNames</span> <span class="op">=</span> <span class="va">gmG8</span><span class="op">$</span><span class="va">g</span><span class="op">@</span><span class="va">nodes</span></span></code></pre></div>
 <p>First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph).</p>
-<div class="sourceCode" id="cb398"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb489"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">skel.gmG8</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/pcalg/man/skeleton.html">skeleton</a></span><span class="op">(</span><span class="va">suffStat</span>, indepTest <span class="op">=</span> <span class="va">gaussCItest</span>,</span>
 <span>labels <span class="op">=</span> <span class="va">varNames</span>, alpha <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
 <span><span class="fu">Rgraphviz</span><span class="fu">::</span><span class="fu">plot</span><span class="op">(</span><span class="va">skel.gmG8</span><span class="op">)</span></span>
@@ -380,7 +380,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <span><span class="co">#&gt; 'logical(1)'</span></span></code></pre></div>
 <div class="inline-figure"><img src="08-xAI_files/figure-html/chunk_chapter6_19-1.png" width="100%" style="display: block; margin: auto;"></div>
 <p>What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.</p>
-<div class="sourceCode" id="cb399"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb490"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pc.gmG8</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/pcalg/man/pc.html">pc</a></span><span class="op">(</span><span class="va">suffStat</span>, indepTest <span class="op">=</span> <span class="va">gaussCItest</span>,</span>
 <span>labels <span class="op">=</span> <span class="va">varNames</span>, alpha <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
 <span><span class="fu">Rgraphviz</span><span class="fu">::</span><span class="fu">plot</span><span class="op">(</span><span class="va">pc.gmG8</span> <span class="op">)</span></span>
@@ -393,7 +393,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <span class="header-section-number">7.2.4</span> Causal Inference on Dynamic Data<a class="anchor" aria-label="anchor" href="#causal-inference-on-dynamic-data"><i class="fas fa-link"></i></a>
 </h3>
 <p>When working with dynamic data, we can use an additional piece of information - the cause usually precedes the effect, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as <em>Granger causality</em>, or Granger methods. Here an example:</p>
-<div class="sourceCode" id="cb400"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb491"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">lmtest</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">## What came first: the chicken or the egg?</span></span>
@@ -432,7 +432,7 @@ When we want to use them, we first have to create a predictor object, that holds
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb401"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb492"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.stat.berkeley.edu/~breiman/RandomForests/">randomForest</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://christophm.github.io/iml/">"iml"</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
@@ -482,7 +482,7 @@ When we want to use them, we first have to create a predictor object, that holds
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">importance</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="08-xAI_files/figure-html/chunk_chapter6_task_0-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb402"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb493"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Comparison between standard importance and IML importance:</span></span>
 <span><span class="va">importanceRf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">rf</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">rf</span><span class="op">$</span><span class="va">importance</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span></span>
@@ -512,7 +512,7 @@ Variable importance is a measure for determining importance while creating the f
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb403"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb494"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dmlc/xgboost">xgboost</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
 <span></span>
@@ -593,7 +593,7 @@ Variable importance is a measure for determining importance while creating the f
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb404"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb495"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">123L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -724,7 +724,7 @@ Variable importance is a measure for determining importance while creating the f
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="08-xAI_files/figure-html/chunk_chapter6_task_2-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb405"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb496"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Accuracy on training set (!)</span></span>
 <span><span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">model</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">which.max</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span>
@@ -753,7 +753,7 @@ Variable importance is a measure for determining importance while creating the f
 <p>Recognize overfitting of your model selection strategy by changing the seed few times (while keeping the model constant) and increase the percentage of test data.
 Furthermore, consider fitting a random forest for good quality as well.</p>
 <p>For the final predictions, we use the whole data set without holdouts:</p>
-<div class="sourceCode" id="cb406"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb497"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
@@ -811,7 +811,7 @@ Furthermore, consider fitting a random forest for good quality as well.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="08-xAI_files/figure-html/chunk_chapter6_task_3-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb407"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb498"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Accuracy on training set (!)</span></span>
 <span><span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">model</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">which.max</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span>
@@ -834,7 +834,7 @@ Furthermore, consider fitting a random forest for good quality as well.</p>
 </div>
 </div>
   <div class="chapter-nav">
-<div class="prev"><a href="deep.html"><span class="header-section-number">6</span> Deep Learning</a></div>
+<div class="prev"><a href="deep.html"><span class="header-section-number">6</span> Deep Learning Architectures</a></div>
 <div class="next"><a href="gan.html"><span class="header-section-number">8</span> Generative Modeling and Reinforcement Learning</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
@@ -879,7 +879,7 @@ Furthermore, consider fitting a random forest for good quality as well.</p>
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Machine Learning and AI in TensorFlow and R</strong>" was written by Maximilian Pichler and Florian Hartig. It was last built on 2022-07-12.</p>
+    <p>"<strong>Machine Learning and AI in TensorFlow and R</strong>" was written by Maximilian Pichler and Florian Hartig. It was last built on 2022-07-13.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

@@ -79,7 +79,7 @@
 <li><a class="" href="tensorflowintro.html"><span class="header-section-number">3</span> Introduction to TensorFlow, Keras, and Torch</a></li>
 <li><a class="" href="fundamental.html"><span class="header-section-number">4</span> Common Machine Learning algorithms</a></li>
 <li><a class="active" href="workflow.html"><span class="header-section-number">5</span> Machine Learning workflow</a></li>
-<li><a class="" href="deep.html"><span class="header-section-number">6</span> Deep Learning</a></li>
+<li><a class="" href="deep.html"><span class="header-section-number">6</span> Deep Learning Architectures</a></li>
 <li><a class="" href="interpretation.html"><span class="header-section-number">7</span> Interpretation and Causality With Machine Learning</a></li>
 <li><a class="" href="gan.html"><span class="header-section-number">8</span> Generative Modeling and Reinforcement Learning</a></li>
 <li><a class="" href="datasets.html"><span class="header-section-number">9</span> Data sets</a></li>
@@ -126,15 +126,15 @@
 <span class="header-section-number">5.1.1</span> Data Cleaning<a class="anchor" aria-label="anchor" href="#data-cleaning"><i class="fas fa-link"></i></a>
 </h3>
 <p>Load necessary libraries:</p>
-<div class="sourceCode" id="cb237"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb320"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span></code></pre></div>
 <p>Load data set:</p>
-<div class="sourceCode" id="cb238"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb321"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/TheoreticalEcology/">EcoData</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">titanic_ml</span><span class="op">)</span></span>
 <span><span class="va">data</span> <span class="op">=</span> <span class="va">titanic_ml</span></span></code></pre></div>
 <p>Standard summaries:</p>
-<div class="sourceCode" id="cb239"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb322"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
 <span><span class="co">#&gt; 'data.frame':    1309 obs. of  14 variables:</span></span>
 <span><span class="co">#&gt;  $ pclass   : int  2 1 3 3 3 3 3 1 3 1 ...</span></span>
@@ -192,7 +192,7 @@
 <span><span class="co">#&gt; 1252             364499  8.050              S        50                         </span></span>
 <span><span class="co">#&gt; 1170 SOTON/O.Q. 3101262  7.250              S        32</span></span></code></pre></div>
 <p>The name variable consists of 1309 unique factors (there are 1309 observations…):</p>
-<div class="sourceCode" id="cb240"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb323"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">name</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1307</span></span></code></pre></div>
 <p>However, there is a title in each name. Let’s extract the titles:</p>
@@ -200,13 +200,13 @@
 <li>We will extract all names and split each name after each comma “,”</li>
 <li>We will split the second split of the name after a point “.” and extract the titles.</li>
 </ol>
-<div class="sourceCode" id="cb241"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb324"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">first_split</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">name</span>,</span>
 <span>                     <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_split.html">str_split</a></span><span class="op">(</span><span class="va">x</span>, pattern <span class="op">=</span> <span class="st">","</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">titles</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">first_split</span>,</span>
 <span>                <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/strsplit.html">strsplit</a></span><span class="op">(</span><span class="va">x</span>, <span class="st">"."</span>,fixed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p>We get 18 unique titles:</p>
-<div class="sourceCode" id="cb242"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb325"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">titles</span><span class="op">)</span></span>
 <span><span class="co">#&gt; titles</span></span>
 <span><span class="co">#&gt;          Capt           Col           Don          Dona            Dr      Jonkheer </span></span>
@@ -216,7 +216,7 @@
 <span><span class="co">#&gt;            Mr           Mrs            Ms           Rev           Sir  the Countess </span></span>
 <span><span class="co">#&gt;           757           197             2             8             1             1</span></span></code></pre></div>
 <p>A few titles have a very low occurrence rate:</p>
-<div class="sourceCode" id="cb243"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb326"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">titles</span> <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_trim.html">str_trim</a></span><span class="op">(</span><span class="op">(</span><span class="va">titles</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">titles</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span> <span class="fu"><a href="https://forcats.tidyverse.org/reference/fct_count.html">fct_count</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -242,7 +242,7 @@
 <span><span class="co">#&gt; 17 Sir              1</span></span>
 <span><span class="co">#&gt; 18 the Countess     1</span></span></code></pre></div>
 <p>We will combine titles with low occurrences into one title, which we can easily do with the forcats package.</p>
-<div class="sourceCode" id="cb244"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb327"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">titles2</span> <span class="op">=</span></span>
 <span>  <span class="fu">forcats</span><span class="fu">::</span><span class="fu"><a href="https://forcats.tidyverse.org/reference/fct_collapse.html">fct_collapse</a></span><span class="op">(</span><span class="va">titles</span>,</span>
 <span>                        officer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Capt"</span>, <span class="st">"Col"</span>, <span class="st">"Major"</span>, <span class="st">"Dr"</span>, <span class="st">"Rev"</span><span class="op">)</span>,</span>
@@ -252,7 +252,7 @@
 <span>                        mrs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Mrs"</span>, <span class="st">"Mme"</span>, <span class="st">"Ms"</span><span class="op">)</span></span>
 <span>                        <span class="op">)</span></span></code></pre></div>
 <p>We can count titles again to see the new number of titles:</p>
-<div class="sourceCode" id="cb245"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb328"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">titles2</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>  </span>
 <span>   <span class="fu"><a href="https://forcats.tidyverse.org/reference/fct_count.html">fct_count</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 6 × 2</span></span>
@@ -265,13 +265,13 @@
 <span><span class="co">#&gt; 5 mrs       200</span></span>
 <span><span class="co">#&gt; 6 Mr        757</span></span></code></pre></div>
 <p>Add new title variable to data set:</p>
-<div class="sourceCode" id="cb246"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb329"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">=</span></span>
 <span>  <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>title <span class="op">=</span> <span class="va">titles2</span><span class="op">)</span></span></code></pre></div>
 <p>As a second example, we will explore and clean the numeric “age” variable.</p>
 <p>Explore the variable:</p>
-<div class="sourceCode" id="cb247"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb330"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      pclass         survived          name               sex           age         </span></span>
 <span><span class="co">#&gt;  Min.   :1.000   Min.   :0.0000   Length:1309        female:466   Min.   : 0.1667  </span></span>
@@ -311,7 +311,7 @@
 Either we remove all observations with NAs, or we impute (fill) the missing values, e.g. with the median age. However, age itself might depend on other variables such as sex, class and title. We want to fill the NAs with the median age of these groups.
 In tidyverse we can easily “group” the data, i.e. we will nest the observations (here: group_by after sex, pclass and title).
 After grouping, all operations (such as our median(age….)) will be done within the specified groups.</p>
-<div class="sourceCode" id="cb248"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb331"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">=</span></span>
 <span>  <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">sex</span>, <span class="va">pclass</span>, <span class="va">title</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
@@ -326,7 +326,7 @@ After grouping, all operations (such as our median(age….)) will be done within
 <p>We want to use Keras in our example, but it cannot handle factors and requires the data to be scaled.</p>
 <p>Normally, one would do this for all predictors, but as we only show the pipeline here, we have sub-selected a bunch of predictors and do this only for them.
 We first scale the numeric predictors and change the factors with only two groups/levels into integers (this can be handled by Keras).</p>
-<div class="sourceCode" id="cb249"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb332"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_sub</span> <span class="op">=</span></span>
 <span>  <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">survived</span>, <span class="va">sex</span>, <span class="va">age2</span>, <span class="va">fare2</span>, <span class="va">title</span>, <span class="va">pclass</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
@@ -335,7 +335,7 @@ We first scale the numeric predictors and change the factors with only two group
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="va">sex</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1L</span>,</span>
 <span>           title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="va">title</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1L</span>, pclass <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="va">pclass</span> <span class="op">-</span> <span class="fl">1L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Factors with more than two levels should be <strong>one hot encoded</strong> (Make columns for every different factor level and write 1 in the respective column for every taken feature value and 0 else. For example: <span class="math inline">\(\{red, green, green, blue, red\} \rightarrow \{(0,0,1), (0,1,0), (0,1,0), (1,0,0), (0,0,1)\}\)</span>):</p>
-<div class="sourceCode" id="cb250"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb333"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">one_title</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html">model.matrix</a></span><span class="op">(</span><span class="op">~</span><span class="fl">0</span><span class="op">+</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">title</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">data_sub</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">one_title</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">title</span><span class="op">)</span></span>
 <span></span>
@@ -345,7 +345,7 @@ We first scale the numeric predictors and change the factors with only two group
 <span><span class="va">one_pclass</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html">model.matrix</a></span><span class="op">(</span><span class="op">~</span><span class="fl">0</span><span class="op">+</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">pclass</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">data_sub</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">one_pclass</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">pclass</span><span class="op">)</span><span class="op">)</span>, <span class="st">"pclass"</span><span class="op">)</span></span></code></pre></div>
 <p>And we have to add the dummy encoded variables to the data set:</p>
-<div class="sourceCode" id="cb251"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb334"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_sub</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>survived<span class="op">=</span> <span class="va">data_sub</span><span class="op">$</span><span class="va">survived</span><span class="op">)</span>,</span>
 <span>                 <span class="va">one_title</span>, <span class="va">one_sex</span>, age <span class="op">=</span> <span class="va">data_sub</span><span class="op">$</span><span class="va">age2</span>,</span>
 <span>                 fare <span class="op">=</span> <span class="va">data_sub</span><span class="op">$</span><span class="va">fare2</span>, <span class="va">one_pclass</span><span class="op">)</span></span>
@@ -376,11 +376,11 @@ We first scale the numeric predictors and change the factors with only two group
 The inner split is important to assess the model’s performance and potential overfitting.</li>
 </ul>
 <p>Outer split:</p>
-<div class="sourceCode" id="cb252"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb335"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">train</span> <span class="op">=</span> <span class="va">data_sub</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">data_sub</span><span class="op">$</span><span class="va">survived</span><span class="op">)</span>,<span class="op">]</span></span>
 <span><span class="va">test</span> <span class="op">=</span> <span class="va">data_sub</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">data_sub</span><span class="op">$</span><span class="va">survived</span><span class="op">)</span>,<span class="op">]</span></span></code></pre></div>
 <p>Inner split:</p>
-<div class="sourceCode" id="cb253"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb336"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">indices</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample.int</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span>, <span class="fl">0.7</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">sub_train</span> <span class="op">=</span> <span class="va">train</span><span class="op">[</span><span class="va">indices</span>,<span class="op">]</span></span>
 <span><span class="va">sub_test</span> <span class="op">=</span> <span class="va">train</span><span class="op">[</span><span class="op">-</span><span class="va">indices</span>,<span class="op">]</span></span></code></pre></div>
@@ -394,10 +394,11 @@ The inner split is important to assess the model’s performance and potential o
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb254"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb337"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/tensorflow">tensorflow</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://keras.rstudio.com">keras</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
+<span><span class="co">#&gt; Loaded Tensorflow version 2.9.1</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/keras_model_sequential.html">keras_model_sequential</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
@@ -423,7 +424,6 @@ The inner split is important to assess the model’s performance and potential o
 <span><span class="co">#&gt; Non-trainable params: 0</span></span>
 <span><span class="co">#&gt; __________________________________________________________________________________________</span></span>
 <span></span>
-<span><span class="va">model_history</span> <span class="op">=</span></span>
 <span><span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/compile.html">compile</a></span><span class="op">(</span>loss <span class="op">=</span> <span class="va">loss_categorical_crossentropy</span>,</span>
 <span>          optimizer <span class="op">=</span> <span class="fu">keras</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/keras/man/optimizer_adamax.html">optimizer_adamax</a></span><span class="op">(</span>learning_rate <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span><span class="op">)</span></span>
@@ -441,7 +441,7 @@ The inner split is important to assess the model’s performance and potential o
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
-<div class="sourceCode" id="cb255"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb338"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">321L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -494,11 +494,11 @@ The inner split is important to assess the model’s performance and potential o
 <span>  <span class="va">train_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">train_losses</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">train_loss</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="va">epoch</span><span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html">%%</a></span><span class="fl">10</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span><span class="op">(</span><span class="st">"Loss at epoch %d: %3f\n"</span>, <span class="va">epoch</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">train_loss</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">#&gt; Loss at epoch 10: 0.479470</span></span>
-<span><span class="co">#&gt; Loss at epoch 20: 0.476513</span></span>
-<span><span class="co">#&gt; Loss at epoch 30: 0.464416</span></span>
-<span><span class="co">#&gt; Loss at epoch 40: 0.458047</span></span>
-<span><span class="co">#&gt; Loss at epoch 50: 0.443187</span></span>
+<span><span class="co">#&gt; Loss at epoch 10: 0.472101</span></span>
+<span><span class="co">#&gt; Loss at epoch 20: 0.427827</span></span>
+<span><span class="co">#&gt; Loss at epoch 30: 0.441465</span></span>
+<span><span class="co">#&gt; Loss at epoch 40: 0.418385</span></span>
+<span><span class="co">#&gt; Loss at epoch 50: 0.409456</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">train_losses</span>, type <span class="op">=</span> <span class="st">"o"</span>, pch <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>        col <span class="op">=</span> <span class="st">"darkblue"</span>, lty <span class="op">=</span> <span class="fl">1</span>, xlab <span class="op">=</span> <span class="st">"Epoch"</span>,</span>
@@ -509,43 +509,43 @@ The inner split is important to assess the model’s performance and potential o
 <div class="panel">
 <p><span class="panel-name">Cito</span></p>
 <p>Cito can handle factors but as we have already prepared the data for torch and tensorflow we will use also the processed data:</p>
-<div class="sourceCode" id="cb256"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb339"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cito</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model_cito</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/cito/man/dnn.html">dnn</a></span><span class="op">(</span><span class="va">survived</span><span class="op">~</span><span class="va">.</span>, data <span class="op">=</span> <span class="va">sub_train</span>, loss <span class="op">=</span> <span class="st">"binomial"</span>, hidden <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">3</span><span class="op">)</span>, activation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="st">"relu"</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loss at epoch 1: 0.628682, lr: 0.01000</span></span></code></pre></div>
+<span><span class="co">#&gt; Loss at epoch 1: 0.600531, lr: 0.01000</span></span></code></pre></div>
 <div class="inline-figure"><img src="06-ML_workflow_files/figure-html/cito_chunk_1-1.png" width="100%" style="display: block; margin: auto;"></div>
-<pre><code>#&gt; Loss at epoch 2: 0.555334, lr: 0.01000
-#&gt; Loss at epoch 3: 0.514781, lr: 0.01000
-#&gt; Loss at epoch 4: 0.493197, lr: 0.01000
-#&gt; Loss at epoch 5: 0.486173, lr: 0.01000
-#&gt; Loss at epoch 6: 0.485266, lr: 0.01000
-#&gt; Loss at epoch 7: 0.477691, lr: 0.01000
-#&gt; Loss at epoch 8: 0.478282, lr: 0.01000
-#&gt; Loss at epoch 9: 0.470990, lr: 0.01000
-#&gt; Loss at epoch 10: 0.474267, lr: 0.01000
-#&gt; Loss at epoch 11: 0.466413, lr: 0.01000
-#&gt; Loss at epoch 12: 0.471069, lr: 0.01000
-#&gt; Loss at epoch 13: 0.467679, lr: 0.01000
-#&gt; Loss at epoch 14: 0.462538, lr: 0.01000
-#&gt; Loss at epoch 15: 0.461307, lr: 0.01000
-#&gt; Loss at epoch 16: 0.464263, lr: 0.01000
-#&gt; Loss at epoch 17: 0.458622, lr: 0.01000
-#&gt; Loss at epoch 18: 0.458754, lr: 0.01000
-#&gt; Loss at epoch 19: 0.459127, lr: 0.01000
-#&gt; Loss at epoch 20: 0.458725, lr: 0.01000
-#&gt; Loss at epoch 21: 0.456209, lr: 0.01000
-#&gt; Loss at epoch 22: 0.461059, lr: 0.01000
-#&gt; Loss at epoch 23: 0.453386, lr: 0.01000
-#&gt; Loss at epoch 24: 0.455715, lr: 0.01000
-#&gt; Loss at epoch 25: 0.456063, lr: 0.01000
-#&gt; Loss at epoch 26: 0.453903, lr: 0.01000
-#&gt; Loss at epoch 27: 0.456146, lr: 0.01000
-#&gt; Loss at epoch 28: 0.454714, lr: 0.01000
-#&gt; Loss at epoch 29: 0.452475, lr: 0.01000
-#&gt; Loss at epoch 30: 0.456571, lr: 0.01000
-#&gt; Loss at epoch 31: 0.449390, lr: 0.01000
-#&gt; Loss at epoch 32: 0.453715, lr: 0.01000</code></pre>
+<pre><code>#&gt; Loss at epoch 2: 0.509749, lr: 0.01000
+#&gt; Loss at epoch 3: 0.493219, lr: 0.01000
+#&gt; Loss at epoch 4: 0.472807, lr: 0.01000
+#&gt; Loss at epoch 5: 0.457317, lr: 0.01000
+#&gt; Loss at epoch 6: 0.450954, lr: 0.01000
+#&gt; Loss at epoch 7: 0.450918, lr: 0.01000
+#&gt; Loss at epoch 8: 0.448424, lr: 0.01000
+#&gt; Loss at epoch 9: 0.445191, lr: 0.01000
+#&gt; Loss at epoch 10: 0.443014, lr: 0.01000
+#&gt; Loss at epoch 11: 0.440268, lr: 0.01000
+#&gt; Loss at epoch 12: 0.438975, lr: 0.01000
+#&gt; Loss at epoch 13: 0.437326, lr: 0.01000
+#&gt; Loss at epoch 14: 0.436003, lr: 0.01000
+#&gt; Loss at epoch 15: 0.432731, lr: 0.01000
+#&gt; Loss at epoch 16: 0.433298, lr: 0.01000
+#&gt; Loss at epoch 17: 0.431003, lr: 0.01000
+#&gt; Loss at epoch 18: 0.429302, lr: 0.01000
+#&gt; Loss at epoch 19: 0.432288, lr: 0.01000
+#&gt; Loss at epoch 20: 0.427699, lr: 0.01000
+#&gt; Loss at epoch 21: 0.427732, lr: 0.01000
+#&gt; Loss at epoch 22: 0.429185, lr: 0.01000
+#&gt; Loss at epoch 23: 0.430716, lr: 0.01000
+#&gt; Loss at epoch 24: 0.429191, lr: 0.01000
+#&gt; Loss at epoch 25: 0.426934, lr: 0.01000
+#&gt; Loss at epoch 26: 0.424996, lr: 0.01000
+#&gt; Loss at epoch 27: 0.424771, lr: 0.01000
+#&gt; Loss at epoch 28: 0.423187, lr: 0.01000
+#&gt; Loss at epoch 29: 0.426409, lr: 0.01000
+#&gt; Loss at epoch 30: 0.428100, lr: 0.01000
+#&gt; Loss at epoch 31: 0.424026, lr: 0.01000
+#&gt; Loss at epoch 32: 0.420966, lr: 0.01000</code></pre>
 </div>
 </div>
 </div>
@@ -557,36 +557,48 @@ The inner split is important to assess the model’s performance and potential o
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
-<div class="sourceCode" id="cb258"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb341"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred</span> <span class="op">=</span></span>
 <span>  <span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">sub_test</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">predicted</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">pred</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="op">&lt;</span> <span class="fl">0.5</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span> <span class="co"># Ternary operator.</span></span>
+<span><span class="va">predicted</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">pred</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="op">&lt;</span> <span class="fl">0.5</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span> </span>
 <span><span class="va">observed</span> <span class="op">=</span> <span class="va">sub_test</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span></span>
-<span><span class="op">(</span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">predicted</span> <span class="op">==</span> <span class="va">observed</span><span class="op">)</span><span class="op">)</span>  <span class="co"># (...): Show output.</span></span>
-<span><span class="co">#&gt; [1] 0.8121827</span></span></code></pre></div>
+<span><span class="op">(</span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">predicted</span> <span class="op">==</span> <span class="va">observed</span><span class="op">)</span><span class="op">)</span>  </span>
+<span><span class="co">#&gt; [1] 0.7918782</span></span>
+<span></span>
+<span><span class="co"># Let's calculate the AUC:</span></span>
+<span><span class="fu">Metrics</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/auc.html">auc</a></span><span class="op">(</span><span class="va">observed</span>, <span class="va">pred</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.8395022</span></span></code></pre></div>
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
-<div class="sourceCode" id="cb259"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb342"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model_torch</span><span class="op">$</span><span class="fu">eval</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">preds_torch</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nnf_softmax.html">nnf_softmax</a></span><span class="op">(</span><span class="fu">model_torch</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_tensor.html">torch_tensor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">sub_test</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                          dim <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span>
 <span><span class="va">preds_torch</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">preds_torch</span><span class="op">)</span></span>
-<span><span class="va">preds_torch</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">preds_torch</span>, <span class="fl">1</span>, <span class="va">which.max</span><span class="op">)</span></span>
-<span><span class="op">(</span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">preds_torch</span> <span class="op">-</span> <span class="fl">1</span> <span class="op">==</span> <span class="va">observed</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.7817259</span></span></code></pre></div>
+<span><span class="va">preds_response</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">preds_torch</span>, <span class="fl">1</span>, <span class="va">which.max</span><span class="op">)</span></span>
+<span><span class="op">(</span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">preds_response</span> <span class="op">-</span> <span class="fl">1</span> <span class="op">==</span> <span class="va">observed</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.7918782</span></span>
+<span></span>
+<span><span class="co"># Let's calculate the AUC:</span></span>
+<span><span class="fu">Metrics</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/auc.html">auc</a></span><span class="op">(</span><span class="va">observed</span>, <span class="va">preds_torch</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.8381494</span></span></code></pre></div>
 <p>Don’t forget to use the link function (softmax).</p>
 </div>
 <div class="panel">
 <p><span class="panel-name">Cito</span></p>
-<div class="sourceCode" id="cb260"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb343"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">preds_cito</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">model_cito</span>, newdata <span class="op">=</span> <span class="va">sub_test</span><span class="op">)</span></span>
 <span><span class="va">preds_cito</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">preds_cito</span> <span class="op">&gt;</span> <span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span></span>
 <span><span class="op">(</span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">preds_cito</span> <span class="op">==</span> <span class="va">observed</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.8071066</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.7766497</span></span>
+<span></span>
+<span><span class="co"># Let's calculate the AUC:</span></span>
+<span><span class="fu">Metrics</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/auc.html">auc</a></span><span class="op">(</span><span class="va">observed</span>, <span class="va">preds_cito</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.7375541</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -596,21 +608,19 @@ The inner split is important to assess the model’s performance and potential o
 </h3>
 <p>When we are satisfied with the performance of our model in the inner split, we will create predictions for the test data of the outer split.
 To do so, we take all observations that belong to the outer test split (use the filter function) and remove the survived (NAs) columns:</p>
-<div class="sourceCode" id="cb261"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb344"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">submit</span> <span class="op">=</span> </span>
 <span>  <span class="va">test</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">survived</span><span class="op">)</span></span></code></pre></div>
 <p>We cannot assess the performance on the test split because the true survival ratio is unknown, however, we can now submit our predictions to the submission server at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a>.
 To do so, we have to transform our survived probabilities into actual 0/1 predictions (probabilities are not allowed) and create a .csv file:</p>
-<div class="sourceCode" id="cb262"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb345"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred</span> <span class="op">=</span> <span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">submit</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>All values &gt; 0.5 will be set to 1 and values &lt; 0.5 to zero.
-For the submission it is critical to change the predictions into a data.frame, select the second column (the probability to survive), and save it with the write.csv function:</p>
-<div class="sourceCode" id="cb263"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.csv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">pred</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="op">&lt;</span> <span class="fl">0.5</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, file <span class="op">=</span> <span class="st">"Max_1.csv"</span><span class="op">)</span></span></code></pre></div>
+<p>For the submission it is critical to change the predictions into a data.frame, select the second column (the probability to survive), and save it with the write.csv function:</p>
+<div class="sourceCode" id="cb346"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.csv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">pred</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="op">)</span>, file <span class="op">=</span> <span class="st">"Max_1.csv"</span><span class="op">)</span></span></code></pre></div>
 <p>The file name is used as the ID on the submission server, so change it to whatever you want as long as you can identify yourself.</p>
-<p><strong>Annotation: The AUC is (always) higher for probabilities than for 0/1 data (depending on the implementation and definition of the AUC). We expect you to upload 0/1 data (usage scenarios, no theoretical ones)! Hint for cheaters (or if you just forget conversion): Your upload is converted to 0/1 data according to ifelse(… &lt; 0.5, 0, 1).</strong></p>
 </div>
 <div id="exercises-5" class="section level3" number="5.1.7">
 <h3>
@@ -622,7 +632,7 @@ For the submission it is critical to change the predictions into a data.frame, s
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb264"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb347"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.stat.berkeley.edu/~breiman/RandomForests/">randomForest</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bethatkinson/rpart">rpart</a></span><span class="op">)</span></span>
@@ -631,7 +641,7 @@ For the submission it is critical to change the predictions into a data.frame, s
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">titanic_ml</span><span class="op">)</span></span>
 <span><span class="va">data</span> <span class="op">=</span> <span class="va">titanic_ml</span></span></code></pre></div>
-<div class="sourceCode" id="cb265"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb348"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
 <span><span class="co">#&gt; 'data.frame':    1309 obs. of  14 variables:</span></span>
 <span><span class="co">#&gt;  $ pclass   : int  2 1 3 3 3 3 3 1 3 1 ...</span></span>
@@ -698,7 +708,7 @@ For the submission it is critical to change the predictions into a data.frame, s
 <span>                         control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/rpart/man/rpart.control.html">rpart.control</a></span><span class="op">(</span>minsplit <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="fu">rpart.plot</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rpart.plot/man/rpart.plot.html">rpart.plot</a></span><span class="op">(</span><span class="va">regressionTree</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_40-1.png" width="100%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb266"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb349"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="va">prediction</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">regressionTree</span>, <span class="va">toPredict</span><span class="op">)</span></span>
 <span>  </span>
 <span>  <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">prediction</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
@@ -795,12 +805,195 @@ For the submission it is critical to change the predictions into a data.frame, s
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
+<div class="sourceCode" id="cb350"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">4321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="co"># Already sets R's random seed.</span></span>
+<span></span>
+<span><span class="va">model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/keras_model_sequential.html">keras_model_sequential</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">20L</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span>, activation <span class="op">=</span> <span class="st">"relu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">20L</span>, activation <span class="op">=</span> <span class="st">"relu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">20L</span>, activation <span class="op">=</span> <span class="st">"relu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">20L</span>, activation <span class="op">=</span> <span class="st">"relu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">2L</span>, activation <span class="op">=</span> <span class="st">"softmax"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_history</span> <span class="op">=</span></span>
+<span>  <span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://generics.r-lib.org/reference/compile.html">compile</a></span><span class="op">(</span>loss <span class="op">=</span> <span class="va">loss_categorical_crossentropy</span>,</span>
+<span>            optimizer <span class="op">=</span> <span class="fu">keras</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/keras/man/optimizer_adamax.html">optimizer_adamax</a></span><span class="op">(</span>learning_rate <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_history</span> <span class="op">=</span></span>
+<span>  <span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html">fit</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">train</span>,   <span class="co"># Be careful! You need a matrix, no data.frame!</span></span>
+<span>        y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/to_categorical.html">to_categorical</a></span><span class="op">(</span><span class="va">labelsTrain</span>, num_classes <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span>, epochs <span class="op">=</span> <span class="fl">60L</span>,</span>
+<span>        batch_size <span class="op">=</span> <span class="fl">60</span>,</span>
+<span>        validation_split <span class="op">=</span> <span class="fl">0.2</span>, shuffle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_41-1.png" width="100%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb351"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">prediction</span> <span class="op">=</span></span>
+<span>  <span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">test</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Take label with highest probability:</span></span>
+<span><span class="va">prediction</span> <span class="op">=</span> <span class="op">(</span><span class="va">prediction</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">&lt;</span> <span class="va">prediction</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">prediction</span>, <span class="va">labelsTest</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           labelsTest</span></span>
+<span><span class="co">#&gt; prediction   0   1</span></span>
+<span><span class="co">#&gt;          0 106  14</span></span>
+<span><span class="co">#&gt;          1  15  62</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Accuracy:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Accuracy:</span></span>
+<span><span class="op">(</span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">prediction</span> <span class="op">==</span> <span class="va">labelsTest</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.8527919</span></span></code></pre></div>
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
+<div class="sourceCode" id="cb352"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_torch</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_sequential.html">nn_sequential</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span>in_features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span>, out_features <span class="op">=</span> <span class="fl">20L</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_relu.html">nn_relu</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span><span class="fl">20L</span>, <span class="fl">20L</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_relu.html">nn_relu</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span><span class="fl">20L</span>, <span class="fl">20L</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_relu.html">nn_relu</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span><span class="fl">20L</span>, <span class="fl">20L</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_relu.html">nn_relu</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span><span class="fl">20L</span>, <span class="fl">20L</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_relu.html">nn_relu</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span><span class="fl">20L</span>, <span class="fl">2L</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">opt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/optim_adam.html">optim_adam</a></span><span class="op">(</span>params <span class="op">=</span> <span class="va">model_torch</span><span class="op">$</span><span class="va">parameters</span>, lr <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">indices</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample.int</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span>, <span class="fl">0.8</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">dataset</span> <span class="op">=</span> <span class="fu">torch_dataset</span><span class="op">(</span><span class="va">train</span><span class="op">[</span><span class="va">indices</span>, <span class="op">]</span>,<span class="op">(</span><span class="va">labelsTrain</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span><span class="op">[</span><span class="va">indices</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">dataset_val</span> <span class="op">=</span> <span class="fu">torch_dataset</span><span class="op">(</span><span class="va">train</span><span class="op">[</span><span class="op">-</span><span class="va">indices</span>, <span class="op">]</span>,<span class="op">(</span><span class="va">labelsTrain</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="va">indices</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">dataloader</span> <span class="op">=</span> <span class="fu">torch</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/dataloader.html">dataloader</a></span><span class="op">(</span><span class="va">dataset</span>, batch_size <span class="op">=</span> <span class="fl">30L</span>, shuffle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">dataloader_val</span> <span class="op">=</span> <span class="fu">torch</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/dataloader.html">dataloader</a></span><span class="op">(</span><span class="va">dataset</span>, batch_size <span class="op">=</span> <span class="fl">30L</span>, shuffle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">epochs</span> <span class="op">=</span> <span class="fl">50L</span></span>
+<span><span class="va">train_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">val_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="kw">for</span><span class="op">(</span><span class="va">epoch</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">epochs</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">train_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="va">val_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu">coro</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/coro/man/collect.html">loop</a></span><span class="op">(</span></span>
+<span>    <span class="kw">for</span><span class="op">(</span><span class="va">batch</span> <span class="kw">in</span> <span class="va">dataloader</span><span class="op">)</span> <span class="op">{</span> </span>
+<span>      <span class="va">opt</span><span class="op">$</span><span class="fu">zero_grad</span><span class="op">(</span><span class="op">)</span></span>
+<span>      <span class="va">pred</span> <span class="op">=</span> <span class="fu">model_torch</span><span class="op">(</span><span class="va">batch</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>      <span class="va">loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nnf_cross_entropy.html">nnf_cross_entropy</a></span><span class="op">(</span><span class="va">pred</span>, <span class="va">batch</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>      <span class="va">loss</span><span class="op">$</span><span class="fu">backward</span><span class="op">(</span><span class="op">)</span></span>
+<span>      <span class="va">opt</span><span class="op">$</span><span class="fu">step</span><span class="op">(</span><span class="op">)</span></span>
+<span>      <span class="va">train_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">train_loss</span>, <span class="va">loss</span><span class="op">$</span><span class="fu">item</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">}</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="co">## Calculate validation loss ##</span></span>
+<span>  <span class="fu">coro</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/coro/man/collect.html">loop</a></span><span class="op">(</span></span>
+<span>    <span class="kw">for</span><span class="op">(</span><span class="va">batch</span> <span class="kw">in</span> <span class="va">dataloader_val</span><span class="op">)</span> <span class="op">{</span> </span>
+<span>      <span class="va">pred</span> <span class="op">=</span> <span class="fu">model_torch</span><span class="op">(</span><span class="va">batch</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>      <span class="va">loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nnf_cross_entropy.html">nnf_cross_entropy</a></span><span class="op">(</span><span class="va">pred</span>, <span class="va">batch</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>      <span class="va">val_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">val_loss</span>, <span class="va">loss</span><span class="op">$</span><span class="fu">item</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">}</span></span>
+<span>  <span class="op">)</span></span>
+<span>  </span>
+<span>  </span>
+<span>  <span class="va">train_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">train_losses</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">train_loss</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">val_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">val_losses</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">val_loss</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="va">epoch</span><span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html">%%</a></span><span class="fl">10</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span><span class="op">(</span><span class="st">"Loss at epoch %d: %3f  Val loss: %3f\n"</span>, <span class="va">epoch</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">train_loss</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">val_loss</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co">#&gt; Loss at epoch 10: 0.025540  Val loss: 0.019194</span></span>
+<span><span class="co">#&gt; Loss at epoch 20: 0.029742  Val loss: 0.018663</span></span>
+<span><span class="co">#&gt; Loss at epoch 30: 0.034941  Val loss: 0.018538</span></span>
+<span><span class="co">#&gt; Loss at epoch 40: 0.031349  Val loss: 0.020607</span></span>
+<span><span class="co">#&gt; Loss at epoch 50: 0.036149  Val loss: 0.043006</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html">matplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">train_losses</span>, <span class="va">val_losses</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"o"</span>, pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">16</span><span class="op">)</span>,</span>
+<span>        col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"darkblue"</span>, <span class="st">"darkred"</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">1</span>, xlab <span class="op">=</span> <span class="st">"Epoch"</span>,</span>
+<span>        ylab <span class="op">=</span> <span class="st">"Loss"</span>, las <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, bty <span class="op">=</span> <span class="st">"n"</span>, </span>
+<span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Train loss"</span>, <span class="st">"Val loss"</span><span class="op">)</span>, </span>
+<span>       pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">16</span><span class="op">)</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"darkblue"</span>, <span class="st">"darkred"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_41_torch-1.png" width="100%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb353"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">model_torch</span><span class="op">$</span><span class="fu">eval</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">prediction</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/nnf_softmax.html">nnf_softmax</a></span><span class="op">(</span><span class="fu">model_torch</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_tensor.html">torch_tensor</a></span><span class="op">(</span><span class="va">test</span><span class="op">)</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Take label with highest probability:</span></span>
+<span><span class="va">prediction</span> <span class="op">=</span> <span class="op">(</span><span class="va">prediction</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">&lt;</span> <span class="va">prediction</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">prediction</span>, <span class="va">labelsTest</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           labelsTest</span></span>
+<span><span class="co">#&gt; prediction   0   1</span></span>
+<span><span class="co">#&gt;          0 114  10</span></span>
+<span><span class="co">#&gt;          1   7  66</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Accuracy:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Accuracy:</span></span>
+<span><span class="op">(</span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">prediction</span> <span class="op">==</span> <span class="va">labelsTest</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.9137056</span></span></code></pre></div>
 </div>
 <div class="panel">
 <p><span class="panel-name">Cito</span></p>
+<div class="sourceCode" id="cb354"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cito</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">data_train</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>survived <span class="op">=</span> <span class="va">labelsTrain</span>, <span class="va">train</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_cito</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/cito/man/dnn.html">dnn</a></span><span class="op">(</span><span class="va">survived</span><span class="op">~</span><span class="va">.</span>, data <span class="op">=</span> <span class="va">data_train</span>, loss <span class="op">=</span> <span class="st">"binomial"</span>, hidden <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">4</span><span class="op">)</span>, activation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="st">"relu"</span>, <span class="fl">4</span><span class="op">)</span>, validation <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loss at epoch 1: training: 0.684, validation: 0.589, lr: 0.01000</span></span></code></pre></div>
+<div class="inline-figure"><img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_41_cito-1.png" width="100%" style="display: block; margin: auto;"></div>
+<pre><code>#&gt; Loss at epoch 2: training: 0.392, validation: 0.349, lr: 0.01000
+#&gt; Loss at epoch 3: training: 0.039, validation: 0.513, lr: 0.01000
+#&gt; Loss at epoch 4: training: 0.089, validation: 0.568, lr: 0.01000
+#&gt; Loss at epoch 5: training: 0.040, validation: 0.458, lr: 0.01000
+#&gt; Loss at epoch 6: training: 0.037, validation: 0.296, lr: 0.01000
+#&gt; Loss at epoch 7: training: 0.019, validation: 0.287, lr: 0.01000
+#&gt; Loss at epoch 8: training: 0.016, validation: 0.319, lr: 0.01000
+#&gt; Loss at epoch 9: training: 0.015, validation: 0.337, lr: 0.01000
+#&gt; Loss at epoch 10: training: 0.014, validation: 0.355, lr: 0.01000
+#&gt; Loss at epoch 11: training: 0.014, validation: 0.370, lr: 0.01000
+#&gt; Loss at epoch 12: training: 0.013, validation: 0.394, lr: 0.01000
+#&gt; Loss at epoch 13: training: 0.013, validation: 0.410, lr: 0.01000
+#&gt; Loss at epoch 14: training: 0.013, validation: 0.399, lr: 0.01000
+#&gt; Loss at epoch 15: training: 0.012, validation: 0.414, lr: 0.01000
+#&gt; Loss at epoch 16: training: 0.012, validation: 0.422, lr: 0.01000
+#&gt; Loss at epoch 17: training: 0.013, validation: 0.439, lr: 0.01000
+#&gt; Loss at epoch 18: training: 0.012, validation: 0.450, lr: 0.01000
+#&gt; Loss at epoch 19: training: 0.012, validation: 0.460, lr: 0.01000
+#&gt; Loss at epoch 20: training: 0.012, validation: 0.447, lr: 0.01000
+#&gt; Loss at epoch 21: training: 0.011, validation: 0.488, lr: 0.01000
+#&gt; Loss at epoch 22: training: 0.012, validation: 0.482, lr: 0.01000
+#&gt; Loss at epoch 23: training: 0.011, validation: 0.495, lr: 0.01000
+#&gt; Loss at epoch 24: training: 0.010, validation: 0.516, lr: 0.01000
+#&gt; Loss at epoch 25: training: 0.012, validation: 0.481, lr: 0.01000
+#&gt; Loss at epoch 26: training: 0.009, validation: 0.516, lr: 0.01000
+#&gt; Loss at epoch 27: training: 0.015, validation: 0.477, lr: 0.01000
+#&gt; Loss at epoch 28: training: 0.010, validation: 0.521, lr: 0.01000
+#&gt; Loss at epoch 29: training: 0.011, validation: 0.567, lr: 0.01000
+#&gt; Loss at epoch 30: training: 0.009, validation: 0.603, lr: 0.01000
+#&gt; Loss at epoch 31: training: 0.011, validation: 0.558, lr: 0.01000
+#&gt; Loss at epoch 32: training: 0.008, validation: 0.612, lr: 0.01000
+
+prediction = predict(model_cito, newdata = data.frame(survived = 0, test))
+
+
+# Take label with highest probability:
+prediction = (prediction &gt; 0.5)*1
+
+table(prediction, labelsTest)
+#&gt;           labelsTest
+#&gt; prediction   0   1
+#&gt;          0 119  19
+#&gt;          1   2  57
+cat("Accuracy:\n")
+#&gt; Accuracy:
+(accuracy = mean(prediction == labelsTest))
+#&gt; [1] 0.893401</code></pre>
 </div>
 </div>
     
@@ -815,12 +1008,278 @@ Every activation function has its own properties, requirements (!), advantages a
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
+<div class="sourceCode" id="cb356"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">4321L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="co"># Already sets R's random seed.</span></span>
+<span></span>
+<span><span class="va">model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/keras_model_sequential.html">keras_model_sequential</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">150L</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span>, activation <span class="op">=</span> <span class="st">"relu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">50L</span>, activation <span class="op">=</span> <span class="st">"relu"</span>,</span>
+<span>              bias_regularizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/regularizer_l1.html">regularizer_l1</a></span><span class="op">(</span><span class="fl">1.5</span><span class="op">)</span>,</span>
+<span>              kernel_regularizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/regularizer_l1.html">regularizer_l2</a></span><span class="op">(</span><span class="fl">.075</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">20L</span>, activation <span class="op">=</span> <span class="st">"selu"</span>,</span>
+<span>              bias_regularizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/regularizer_l1.html">regularizer_l1_l2</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>,</span>
+<span>              kernel_regularizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/regularizer_l1.html">regularizer_l1</a></span><span class="op">(</span><span class="fl">.0025</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">50L</span>, activation <span class="op">=</span> <span class="st">"gelu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">20L</span>, activation <span class="op">=</span> <span class="st">"relu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">7L</span>, activation <span class="op">=</span> <span class="st">"elu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">2L</span>, activation <span class="op">=</span> <span class="st">"softmax"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_history</span> <span class="op">=</span></span>
+<span>  <span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://generics.r-lib.org/reference/compile.html">compile</a></span><span class="op">(</span>loss <span class="op">=</span> <span class="va">loss_categorical_crossentropy</span>,</span>
+<span>            optimizer <span class="op">=</span> <span class="fu">keras</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/keras/man/optimizer_adamax.html">optimizer_adamax</a></span><span class="op">(</span>learning_rate <span class="op">=</span> <span class="fl">0.011</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_history</span> <span class="op">=</span></span>
+<span>  <span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html">fit</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">train</span>,   <span class="co"># Be careful! You need a matrix, no data.frame!</span></span>
+<span>        y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/to_categorical.html">to_categorical</a></span><span class="op">(</span><span class="va">labelsTrain</span>, num_classes <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span>, epochs <span class="op">=</span> <span class="fl">75L</span>,</span>
+<span>        batch_size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html">%/%</a></span> <span class="fl">9</span>,   <span class="co"># 10 batches per epoch (rounded).</span></span>
+<span>        validation_split <span class="op">=</span> <span class="fl">0.2</span>, shuffle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_42-1.png" width="100%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb357"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">prediction</span> <span class="op">=</span></span>
+<span>  <span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">test</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Take label with highest probability:</span></span>
+<span><span class="va">prediction</span> <span class="op">=</span> <span class="op">(</span><span class="va">prediction</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">&lt;</span> <span class="va">prediction</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">prediction</span>, <span class="va">labelsTest</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           labelsTest</span></span>
+<span><span class="co">#&gt; prediction   0   1</span></span>
+<span><span class="co">#&gt;          0 120   5</span></span>
+<span><span class="co">#&gt;          1   1  71</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Accuracy:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Accuracy:</span></span>
+<span><span class="op">(</span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">prediction</span> <span class="op">==</span> <span class="va">labelsTest</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.9695431</span></span></code></pre></div>
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
+<div class="sourceCode" id="cb358"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">42L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_torch</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_sequential.html">nn_sequential</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span>in_features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span>, out_features <span class="op">=</span> <span class="fl">150L</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_selu.html">nn_selu</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span><span class="fl">150L</span>, <span class="fl">50L</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_selu.html">nn_selu</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span><span class="fl">50L</span>, <span class="fl">20L</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_selu.html">nn_selu</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span><span class="fl">20L</span>, <span class="fl">2L</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">opt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/optim_adam.html">optim_adam</a></span><span class="op">(</span>params <span class="op">=</span> <span class="va">model_torch</span><span class="op">$</span><span class="va">parameters</span>, lr <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">indices</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample.int</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span>, <span class="fl">0.8</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">dataset</span> <span class="op">=</span> <span class="fu">torch_dataset</span><span class="op">(</span><span class="va">train</span><span class="op">[</span><span class="va">indices</span>, <span class="op">]</span>,<span class="op">(</span><span class="va">labelsTrain</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span><span class="op">[</span><span class="va">indices</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">dataset_val</span> <span class="op">=</span> <span class="fu">torch_dataset</span><span class="op">(</span><span class="va">train</span><span class="op">[</span><span class="op">-</span><span class="va">indices</span>, <span class="op">]</span>,<span class="op">(</span><span class="va">labelsTrain</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="va">indices</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">dataloader</span> <span class="op">=</span> <span class="fu">torch</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/dataloader.html">dataloader</a></span><span class="op">(</span><span class="va">dataset</span>, batch_size <span class="op">=</span> <span class="fl">30L</span>, shuffle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">dataloader_val</span> <span class="op">=</span> <span class="fu">torch</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/dataloader.html">dataloader</a></span><span class="op">(</span><span class="va">dataset</span>, batch_size <span class="op">=</span> <span class="fl">30L</span>, shuffle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">epochs</span> <span class="op">=</span> <span class="fl">30L</span></span>
+<span><span class="va">train_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">val_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">lambda</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_tensor.html">torch_tensor</a></span><span class="op">(</span><span class="fl">0.01</span><span class="op">)</span></span>
+<span><span class="va">alpha</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_tensor.html">torch_tensor</a></span><span class="op">(</span><span class="fl">0.2</span><span class="op">)</span></span>
+<span><span class="kw">for</span><span class="op">(</span><span class="va">epoch</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">epochs</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">train_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="va">val_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu">coro</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/coro/man/collect.html">loop</a></span><span class="op">(</span></span>
+<span>    <span class="kw">for</span><span class="op">(</span><span class="va">batch</span> <span class="kw">in</span> <span class="va">dataloader</span><span class="op">)</span> <span class="op">{</span> </span>
+<span>      <span class="va">opt</span><span class="op">$</span><span class="fu">zero_grad</span><span class="op">(</span><span class="op">)</span></span>
+<span>      <span class="va">pred</span> <span class="op">=</span> <span class="fu">model_torch</span><span class="op">(</span><span class="va">batch</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>      <span class="va">loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nnf_cross_entropy.html">nnf_cross_entropy</a></span><span class="op">(</span><span class="va">pred</span>, <span class="va">batch</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>      <span class="kw">for</span><span class="op">(</span><span class="va">p</span> <span class="kw">in</span> <span class="va">model_torch</span><span class="op">$</span><span class="va">parameters</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="va">loss</span> <span class="op">=</span> <span class="va">loss</span> <span class="op">+</span> <span class="va">lambda</span><span class="op">*</span><span class="op">(</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">alpha</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_norm.html">torch_norm</a></span><span class="op">(</span><span class="va">p</span>, <span class="fl">1L</span><span class="op">)</span> <span class="op">+</span> <span class="va">alpha</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_norm.html">torch_norm</a></span><span class="op">(</span><span class="va">p</span>, <span class="fl">2L</span><span class="op">)</span><span class="op">)</span></span>
+<span>      <span class="op">}</span></span>
+<span>      <span class="va">loss</span><span class="op">$</span><span class="fu">backward</span><span class="op">(</span><span class="op">)</span></span>
+<span>      <span class="va">opt</span><span class="op">$</span><span class="fu">step</span><span class="op">(</span><span class="op">)</span></span>
+<span>      <span class="va">train_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">train_loss</span>, <span class="va">loss</span><span class="op">$</span><span class="fu">item</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">}</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="co">## Calculate validation loss ##</span></span>
+<span>  <span class="fu">coro</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/coro/man/collect.html">loop</a></span><span class="op">(</span></span>
+<span>    <span class="kw">for</span><span class="op">(</span><span class="va">batch</span> <span class="kw">in</span> <span class="va">dataloader_val</span><span class="op">)</span> <span class="op">{</span> </span>
+<span>      <span class="va">pred</span> <span class="op">=</span> <span class="fu">model_torch</span><span class="op">(</span><span class="va">batch</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>      <span class="va">loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nnf_cross_entropy.html">nnf_cross_entropy</a></span><span class="op">(</span><span class="va">pred</span>, <span class="va">batch</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>      <span class="va">val_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">val_loss</span>, <span class="va">loss</span><span class="op">$</span><span class="fu">item</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">}</span></span>
+<span>  <span class="op">)</span></span>
+<span>  </span>
+<span>  </span>
+<span>  <span class="va">train_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">train_losses</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">train_loss</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">val_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">val_losses</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">val_loss</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="va">epoch</span><span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html">%%</a></span><span class="fl">10</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span><span class="op">(</span><span class="st">"Loss at epoch %d: %3f  Val loss: %3f\n"</span>, <span class="va">epoch</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">train_loss</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">val_loss</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co">#&gt; Loss at epoch 10: 0.876616  Val loss: 0.034014</span></span>
+<span><span class="co">#&gt; Loss at epoch 20: 0.822761  Val loss: 0.030682</span></span>
+<span><span class="co">#&gt; Loss at epoch 30: 0.790959  Val loss: 0.028789</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html">matplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">train_losses</span>, <span class="va">val_losses</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"o"</span>, pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">16</span><span class="op">)</span>,</span>
+<span>        col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"darkblue"</span>, <span class="st">"darkred"</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">1</span>, xlab <span class="op">=</span> <span class="st">"Epoch"</span>,</span>
+<span>        ylab <span class="op">=</span> <span class="st">"Loss"</span>, las <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, bty <span class="op">=</span> <span class="st">"n"</span>, </span>
+<span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Train loss"</span>, <span class="st">"Val loss"</span><span class="op">)</span>, </span>
+<span>       pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">16</span><span class="op">)</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"darkblue"</span>, <span class="st">"darkred"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_42_torch-1.png" width="100%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb359"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">model_torch</span><span class="op">$</span><span class="fu">eval</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">prediction</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/nnf_softmax.html">nnf_softmax</a></span><span class="op">(</span><span class="fu">model_torch</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_tensor.html">torch_tensor</a></span><span class="op">(</span><span class="va">test</span><span class="op">)</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Take label with highest probability:</span></span>
+<span><span class="va">prediction</span> <span class="op">=</span> <span class="op">(</span><span class="va">prediction</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">&lt;</span> <span class="va">prediction</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">prediction</span>, <span class="va">labelsTest</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           labelsTest</span></span>
+<span><span class="co">#&gt; prediction   0   1</span></span>
+<span><span class="co">#&gt;          0 121   5</span></span>
+<span><span class="co">#&gt;          1   0  71</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Accuracy:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Accuracy:</span></span>
+<span><span class="op">(</span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">prediction</span> <span class="op">==</span> <span class="va">labelsTest</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.9746193</span></span></code></pre></div>
 </div>
 <div class="panel">
 <p><span class="panel-name">Cito</span></p>
+<div class="sourceCode" id="cb360"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cito</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">data_train</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>survived <span class="op">=</span> <span class="va">labelsTrain</span>, <span class="va">train</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_cito</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/cito/man/dnn.html">dnn</a></span><span class="op">(</span><span class="va">survived</span><span class="op">~</span><span class="va">.</span>, </span>
+<span>                 data <span class="op">=</span> <span class="va">data_train</span>, </span>
+<span>                 loss <span class="op">=</span> <span class="st">"binomial"</span>, </span>
+<span>                 hidden <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">4</span><span class="op">)</span>, </span>
+<span>                 activation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="st">"selu"</span>, <span class="fl">4</span><span class="op">)</span>, </span>
+<span>                 validation <span class="op">=</span> <span class="fl">0.2</span>, </span>
+<span>                 alpha <span class="op">=</span> <span class="fl">0.2</span>, </span>
+<span>                 early_stopping <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>                 epochs <span class="op">=</span> <span class="fl">100L</span>, </span>
+<span>                 lambda <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loss at epoch 1: training: 4.259, validation: 1.953, lr: 0.01000</span></span></code></pre></div>
+<div class="inline-figure"><img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_42_cito-1.png" width="100%" style="display: block; margin: auto;"></div>
+<pre><code>#&gt; Loss at epoch 2: training: 1.675, validation: 1.278, lr: 0.01000
+#&gt; Loss at epoch 3: training: 1.110, validation: 0.908, lr: 0.01000
+#&gt; Loss at epoch 4: training: 0.821, validation: 0.740, lr: 0.01000
+#&gt; Loss at epoch 5: training: 0.679, validation: 0.683, lr: 0.01000
+#&gt; Loss at epoch 6: training: 0.621, validation: 0.607, lr: 0.01000
+#&gt; Loss at epoch 7: training: 0.580, validation: 0.629, lr: 0.01000
+#&gt; Loss at epoch 8: training: 0.550, validation: 0.562, lr: 0.01000
+#&gt; Loss at epoch 9: training: 0.533, validation: 0.568, lr: 0.01000
+#&gt; Loss at epoch 10: training: 0.521, validation: 0.547, lr: 0.01000
+#&gt; Loss at epoch 11: training: 0.508, validation: 0.553, lr: 0.01000
+#&gt; Loss at epoch 12: training: 0.493, validation: 0.518, lr: 0.01000
+#&gt; Loss at epoch 13: training: 0.483, validation: 0.532, lr: 0.01000
+#&gt; Loss at epoch 14: training: 0.472, validation: 0.490, lr: 0.01000
+#&gt; Loss at epoch 15: training: 0.469, validation: 0.533, lr: 0.01000
+#&gt; Loss at epoch 16: training: 0.456, validation: 0.483, lr: 0.01000
+#&gt; Loss at epoch 17: training: 0.449, validation: 0.517, lr: 0.01000
+#&gt; Loss at epoch 18: training: 0.441, validation: 0.482, lr: 0.01000
+#&gt; Loss at epoch 19: training: 0.432, validation: 0.476, lr: 0.01000
+#&gt; Loss at epoch 20: training: 0.438, validation: 0.484, lr: 0.01000
+#&gt; Loss at epoch 21: training: 0.433, validation: 0.480, lr: 0.01000
+#&gt; Loss at epoch 22: training: 0.427, validation: 0.487, lr: 0.01000
+#&gt; Loss at epoch 23: training: 0.433, validation: 0.485, lr: 0.01000
+#&gt; Loss at epoch 24: training: 0.428, validation: 0.483, lr: 0.01000
+#&gt; Loss at epoch 25: training: 0.423, validation: 0.472, lr: 0.01000
+#&gt; Loss at epoch 26: training: 0.421, validation: 0.468, lr: 0.01000
+#&gt; Loss at epoch 27: training: 0.417, validation: 0.464, lr: 0.01000
+#&gt; Loss at epoch 28: training: 0.419, validation: 0.466, lr: 0.01000
+#&gt; Loss at epoch 29: training: 0.416, validation: 0.456, lr: 0.01000
+#&gt; Loss at epoch 30: training: 0.415, validation: 0.460, lr: 0.01000
+#&gt; Loss at epoch 31: training: 0.414, validation: 0.452, lr: 0.01000
+#&gt; Loss at epoch 32: training: 0.418, validation: 0.500, lr: 0.01000
+#&gt; Loss at epoch 33: training: 0.416, validation: 0.465, lr: 0.01000
+#&gt; Loss at epoch 34: training: 0.413, validation: 0.456, lr: 0.01000
+#&gt; Loss at epoch 35: training: 0.409, validation: 0.454, lr: 0.01000
+#&gt; Loss at epoch 36: training: 0.408, validation: 0.455, lr: 0.01000
+#&gt; Loss at epoch 37: training: 0.406, validation: 0.445, lr: 0.01000
+#&gt; Loss at epoch 38: training: 0.406, validation: 0.480, lr: 0.01000
+#&gt; Loss at epoch 39: training: 0.407, validation: 0.439, lr: 0.01000
+#&gt; Loss at epoch 40: training: 0.425, validation: 0.454, lr: 0.01000
+#&gt; Loss at epoch 41: training: 0.423, validation: 0.445, lr: 0.01000
+#&gt; Loss at epoch 42: training: 0.415, validation: 0.468, lr: 0.01000
+#&gt; Loss at epoch 43: training: 0.404, validation: 0.450, lr: 0.01000
+#&gt; Loss at epoch 44: training: 0.397, validation: 0.443, lr: 0.01000
+#&gt; Loss at epoch 45: training: 0.399, validation: 0.457, lr: 0.01000
+#&gt; Loss at epoch 46: training: 0.396, validation: 0.451, lr: 0.01000
+#&gt; Loss at epoch 47: training: 0.391, validation: 0.451, lr: 0.01000
+#&gt; Loss at epoch 48: training: 0.392, validation: 0.441, lr: 0.01000
+#&gt; Loss at epoch 49: training: 0.390, validation: 0.460, lr: 0.01000
+#&gt; Loss at epoch 50: training: 0.391, validation: 0.449, lr: 0.01000
+#&gt; Loss at epoch 51: training: 0.389, validation: 0.437, lr: 0.01000
+#&gt; Loss at epoch 52: training: 0.390, validation: 0.443, lr: 0.01000
+#&gt; Loss at epoch 53: training: 0.390, validation: 0.446, lr: 0.01000
+#&gt; Loss at epoch 54: training: 0.389, validation: 0.449, lr: 0.01000
+#&gt; Loss at epoch 55: training: 0.390, validation: 0.442, lr: 0.01000
+#&gt; Loss at epoch 56: training: 0.390, validation: 0.440, lr: 0.01000
+#&gt; Loss at epoch 57: training: 0.388, validation: 0.450, lr: 0.01000
+#&gt; Loss at epoch 58: training: 0.389, validation: 0.449, lr: 0.01000
+#&gt; Loss at epoch 59: training: 0.386, validation: 0.449, lr: 0.01000
+#&gt; Loss at epoch 60: training: 0.384, validation: 0.458, lr: 0.01000
+#&gt; Loss at epoch 61: training: 0.385, validation: 0.443, lr: 0.01000
+#&gt; Loss at epoch 62: training: 0.384, validation: 0.428, lr: 0.01000
+#&gt; Loss at epoch 63: training: 0.386, validation: 0.445, lr: 0.01000
+#&gt; Loss at epoch 64: training: 0.384, validation: 0.444, lr: 0.01000
+#&gt; Loss at epoch 65: training: 0.384, validation: 0.429, lr: 0.01000
+#&gt; Loss at epoch 66: training: 0.383, validation: 0.447, lr: 0.01000
+#&gt; Loss at epoch 67: training: 0.379, validation: 0.441, lr: 0.01000
+#&gt; Loss at epoch 68: training: 0.381, validation: 0.437, lr: 0.01000
+#&gt; Loss at epoch 69: training: 0.377, validation: 0.430, lr: 0.01000
+#&gt; Loss at epoch 70: training: 0.375, validation: 0.440, lr: 0.01000
+#&gt; Loss at epoch 71: training: 0.378, validation: 0.426, lr: 0.01000
+#&gt; Loss at epoch 72: training: 0.377, validation: 0.434, lr: 0.01000
+#&gt; Loss at epoch 73: training: 0.379, validation: 0.439, lr: 0.01000
+#&gt; Loss at epoch 74: training: 0.375, validation: 0.446, lr: 0.01000
+#&gt; Loss at epoch 75: training: 0.377, validation: 0.445, lr: 0.01000
+#&gt; Loss at epoch 76: training: 0.376, validation: 0.452, lr: 0.01000
+#&gt; Loss at epoch 77: training: 0.374, validation: 0.444, lr: 0.01000
+#&gt; Loss at epoch 78: training: 0.378, validation: 0.446, lr: 0.01000
+#&gt; Loss at epoch 79: training: 0.376, validation: 0.429, lr: 0.01000
+#&gt; Loss at epoch 80: training: 0.379, validation: 0.428, lr: 0.01000
+#&gt; Loss at epoch 81: training: 0.376, validation: 0.439, lr: 0.01000
+#&gt; Loss at epoch 82: training: 0.376, validation: 0.437, lr: 0.01000
+#&gt; Loss at epoch 83: training: 0.379, validation: 0.428, lr: 0.01000
+#&gt; Loss at epoch 84: training: 0.374, validation: 0.451, lr: 0.01000
+#&gt; Loss at epoch 85: training: 0.377, validation: 0.474, lr: 0.01000
+#&gt; Loss at epoch 86: training: 0.376, validation: 0.447, lr: 0.01000
+#&gt; Loss at epoch 87: training: 0.373, validation: 0.453, lr: 0.01000
+#&gt; Loss at epoch 88: training: 0.378, validation: 0.448, lr: 0.01000
+#&gt; Loss at epoch 89: training: 0.374, validation: 0.423, lr: 0.01000
+#&gt; Loss at epoch 90: training: 0.378, validation: 0.457, lr: 0.01000
+#&gt; Loss at epoch 91: training: 0.376, validation: 0.442, lr: 0.01000
+#&gt; Loss at epoch 92: training: 0.378, validation: 0.439, lr: 0.01000
+#&gt; Loss at epoch 93: training: 0.377, validation: 0.421, lr: 0.01000
+#&gt; Loss at epoch 94: training: 0.376, validation: 0.453, lr: 0.01000
+#&gt; Loss at epoch 95: training: 0.378, validation: 0.449, lr: 0.01000
+#&gt; Loss at epoch 96: training: 0.377, validation: 0.448, lr: 0.01000
+#&gt; Loss at epoch 97: training: 0.378, validation: 0.457, lr: 0.01000
+#&gt; Loss at epoch 98: training: 0.378, validation: 0.462, lr: 0.01000
+#&gt; Loss at epoch 99: training: 0.376, validation: 0.455, lr: 0.01000
+#&gt; Loss at epoch 100: training: 0.375, validation: 0.439, lr: 0.01000
+
+prediction = predict(model_cito, newdata = data.frame(survived = 0, test))
+
+
+# Take label with highest probability:
+prediction = (prediction &gt; 0.5)*1
+
+table(prediction, labelsTest)
+#&gt;           labelsTest
+#&gt; prediction   0   1
+#&gt;          0 121   4
+#&gt;          1   0  72
+cat("Accuracy:\n")
+#&gt; Accuracy:
+(accuracy = mean(prediction == labelsTest))
+#&gt; [1] 0.9796954</code></pre>
 </div>
 </div>
     
@@ -832,12 +1291,277 @@ Every activation function has its own properties, requirements (!), advantages a
 <div class="panelset">
 <div class="panel">
 <p><span class="panel-name">Keras</span></p>
+<div class="sourceCode" id="cb362"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/tensorflow/man/set_random_seed.html">set_random_seed</a></span><span class="op">(</span><span class="fl">123L</span>, disable_gpu <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># Already sets R's random seed.</span></span>
+<span></span>
+<span><span class="va">model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/keras_model_sequential.html">keras_model_sequential</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">150L</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span>, activation <span class="op">=</span> <span class="st">"relu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">50L</span>, activation <span class="op">=</span> <span class="st">"relu"</span>,</span>
+<span>              bias_regularizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/regularizer_l1.html">regularizer_l1</a></span><span class="op">(</span><span class="fl">1.5</span><span class="op">)</span>,</span>
+<span>              kernel_regularizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/regularizer_l1.html">regularizer_l2</a></span><span class="op">(</span><span class="fl">.075</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">20L</span>, activation <span class="op">=</span> <span class="st">"selu"</span>,</span>
+<span>              bias_regularizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/regularizer_l1.html">regularizer_l1_l2</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>,</span>
+<span>              kernel_regularizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/regularizer_l1.html">regularizer_l1</a></span><span class="op">(</span><span class="fl">.0025</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">50L</span>, activation <span class="op">=</span> <span class="st">"gelu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">20L</span>, activation <span class="op">=</span> <span class="st">"relu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">7L</span>, activation <span class="op">=</span> <span class="st">"elu"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/keras/man/layer_dense.html">layer_dense</a></span><span class="op">(</span>units <span class="op">=</span> <span class="fl">2L</span>, activation <span class="op">=</span> <span class="st">"softmax"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_history</span> <span class="op">=</span></span>
+<span>  <span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://generics.r-lib.org/reference/compile.html">compile</a></span><span class="op">(</span>loss <span class="op">=</span> <span class="va">loss_categorical_crossentropy</span>,</span>
+<span>            optimizer <span class="op">=</span> <span class="fu">keras</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/keras/man/optimizer_adamax.html">optimizer_adamax</a></span><span class="op">(</span>learning_rate <span class="op">=</span> <span class="fl">0.011</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_history</span> <span class="op">=</span></span>
+<span>  <span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html">fit</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">train</span>,   <span class="co"># Be careful! You need a matrix, no data.frame!</span></span>
+<span>        y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/keras/man/to_categorical.html">to_categorical</a></span><span class="op">(</span><span class="va">labelsTrain</span>, num_classes <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span>, epochs <span class="op">=</span> <span class="fl">75L</span>,</span>
+<span>        batch_size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html">%/%</a></span> <span class="fl">9</span>,   <span class="co"># 10 batches per epoch (rounded).</span></span>
+<span>        validation_split <span class="op">=</span> <span class="fl">0.2</span>, shuffle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">model_history</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_43-1.png" width="100%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb363"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">prediction</span> <span class="op">=</span></span>
+<span>  <span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">test</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Take label with highest probability:</span></span>
+<span><span class="va">prediction</span> <span class="op">=</span> <span class="op">(</span><span class="va">prediction</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">&lt;</span> <span class="va">prediction</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">prediction</span>, <span class="va">labelsTest</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           labelsTest</span></span>
+<span><span class="co">#&gt; prediction   0   1</span></span>
+<span><span class="co">#&gt;          0 112   5</span></span>
+<span><span class="co">#&gt;          1   9  71</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Accuracy:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Accuracy:</span></span>
+<span><span class="op">(</span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">prediction</span> <span class="op">==</span> <span class="va">labelsTest</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.928934</span></span></code></pre></div>
 </div>
 <div class="panel">
 <p><span class="panel-name">Torch</span></p>
+<div class="sourceCode" id="cb364"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://torch.mlverse.org/docs">torch</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_manual_seed.html">torch_manual_seed</a></span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_torch</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_sequential.html">nn_sequential</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span>in_features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span>, out_features <span class="op">=</span> <span class="fl">150L</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_selu.html">nn_selu</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span><span class="fl">150L</span>, <span class="fl">50L</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_selu.html">nn_selu</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span><span class="fl">50L</span>, <span class="fl">20L</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_selu.html">nn_selu</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nn_linear.html">nn_linear</a></span><span class="op">(</span><span class="fl">20L</span>, <span class="fl">2L</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">opt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/optim_adam.html">optim_adam</a></span><span class="op">(</span>params <span class="op">=</span> <span class="va">model_torch</span><span class="op">$</span><span class="va">parameters</span>, lr <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">indices</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample.int</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span>, <span class="fl">0.8</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">train</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">dataset</span> <span class="op">=</span> <span class="fu">torch_dataset</span><span class="op">(</span><span class="va">train</span><span class="op">[</span><span class="va">indices</span>, <span class="op">]</span>,<span class="op">(</span><span class="va">labelsTrain</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span><span class="op">[</span><span class="va">indices</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">dataset_val</span> <span class="op">=</span> <span class="fu">torch_dataset</span><span class="op">(</span><span class="va">train</span><span class="op">[</span><span class="op">-</span><span class="va">indices</span>, <span class="op">]</span>,<span class="op">(</span><span class="va">labelsTrain</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="va">indices</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">dataloader</span> <span class="op">=</span> <span class="fu">torch</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/dataloader.html">dataloader</a></span><span class="op">(</span><span class="va">dataset</span>, batch_size <span class="op">=</span> <span class="fl">30L</span>, shuffle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">dataloader_val</span> <span class="op">=</span> <span class="fu">torch</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/dataloader.html">dataloader</a></span><span class="op">(</span><span class="va">dataset</span>, batch_size <span class="op">=</span> <span class="fl">30L</span>, shuffle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">epochs</span> <span class="op">=</span> <span class="fl">30L</span></span>
+<span><span class="va">train_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">val_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">lambda</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_tensor.html">torch_tensor</a></span><span class="op">(</span><span class="fl">0.01</span><span class="op">)</span></span>
+<span><span class="va">alpha</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_tensor.html">torch_tensor</a></span><span class="op">(</span><span class="fl">0.2</span><span class="op">)</span></span>
+<span><span class="kw">for</span><span class="op">(</span><span class="va">epoch</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">epochs</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">train_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="va">val_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu">coro</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/coro/man/collect.html">loop</a></span><span class="op">(</span></span>
+<span>    <span class="kw">for</span><span class="op">(</span><span class="va">batch</span> <span class="kw">in</span> <span class="va">dataloader</span><span class="op">)</span> <span class="op">{</span> </span>
+<span>      <span class="va">opt</span><span class="op">$</span><span class="fu">zero_grad</span><span class="op">(</span><span class="op">)</span></span>
+<span>      <span class="va">pred</span> <span class="op">=</span> <span class="fu">model_torch</span><span class="op">(</span><span class="va">batch</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>      <span class="va">loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nnf_cross_entropy.html">nnf_cross_entropy</a></span><span class="op">(</span><span class="va">pred</span>, <span class="va">batch</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>      <span class="kw">for</span><span class="op">(</span><span class="va">p</span> <span class="kw">in</span> <span class="va">model_torch</span><span class="op">$</span><span class="va">parameters</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="va">loss</span> <span class="op">=</span> <span class="va">loss</span> <span class="op">+</span> <span class="va">lambda</span><span class="op">*</span><span class="op">(</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">alpha</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_norm.html">torch_norm</a></span><span class="op">(</span><span class="va">p</span>, <span class="fl">1L</span><span class="op">)</span> <span class="op">+</span> <span class="va">alpha</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_norm.html">torch_norm</a></span><span class="op">(</span><span class="va">p</span>, <span class="fl">2L</span><span class="op">)</span><span class="op">)</span></span>
+<span>      <span class="op">}</span></span>
+<span>      <span class="va">loss</span><span class="op">$</span><span class="fu">backward</span><span class="op">(</span><span class="op">)</span></span>
+<span>      <span class="va">opt</span><span class="op">$</span><span class="fu">step</span><span class="op">(</span><span class="op">)</span></span>
+<span>      <span class="va">train_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">train_loss</span>, <span class="va">loss</span><span class="op">$</span><span class="fu">item</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">}</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="co">## Calculate validation loss ##</span></span>
+<span>  <span class="fu">coro</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/coro/man/collect.html">loop</a></span><span class="op">(</span></span>
+<span>    <span class="kw">for</span><span class="op">(</span><span class="va">batch</span> <span class="kw">in</span> <span class="va">dataloader_val</span><span class="op">)</span> <span class="op">{</span> </span>
+<span>      <span class="va">pred</span> <span class="op">=</span> <span class="fu">model_torch</span><span class="op">(</span><span class="va">batch</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>      <span class="va">loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/torch/man/nnf_cross_entropy.html">nnf_cross_entropy</a></span><span class="op">(</span><span class="va">pred</span>, <span class="va">batch</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>      <span class="va">val_loss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">val_loss</span>, <span class="va">loss</span><span class="op">$</span><span class="fu">item</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">}</span></span>
+<span>  <span class="op">)</span></span>
+<span>  </span>
+<span>  </span>
+<span>  <span class="va">train_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">train_losses</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">train_loss</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">val_losses</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">val_losses</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">val_loss</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="va">epoch</span><span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html">%%</a></span><span class="fl">10</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span><span class="op">(</span><span class="st">"Loss at epoch %d: %3f  Val loss: %3f\n"</span>, <span class="va">epoch</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">train_loss</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">val_loss</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co">#&gt; Loss at epoch 10: 0.868399  Val loss: 0.025504</span></span>
+<span><span class="co">#&gt; Loss at epoch 20: 0.801106  Val loss: 0.022459</span></span>
+<span><span class="co">#&gt; Loss at epoch 30: 0.764257  Val loss: 0.019600</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html">matplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">train_losses</span>, <span class="va">val_losses</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"o"</span>, pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">16</span><span class="op">)</span>,</span>
+<span>        col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"darkblue"</span>, <span class="st">"darkred"</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">1</span>, xlab <span class="op">=</span> <span class="st">"Epoch"</span>,</span>
+<span>        ylab <span class="op">=</span> <span class="st">"Loss"</span>, las <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, bty <span class="op">=</span> <span class="st">"n"</span>, </span>
+<span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Train loss"</span>, <span class="st">"Val loss"</span><span class="op">)</span>, </span>
+<span>       pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">16</span><span class="op">)</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"darkblue"</span>, <span class="st">"darkred"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_43_torch-1.png" width="100%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb365"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">model_torch</span><span class="op">$</span><span class="fu">eval</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">prediction</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/nnf_softmax.html">nnf_softmax</a></span><span class="op">(</span><span class="fu">model_torch</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/torch/man/torch_tensor.html">torch_tensor</a></span><span class="op">(</span><span class="va">test</span><span class="op">)</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Take label with highest probability:</span></span>
+<span><span class="va">prediction</span> <span class="op">=</span> <span class="op">(</span><span class="va">prediction</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">&lt;</span> <span class="va">prediction</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">prediction</span>, <span class="va">labelsTest</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           labelsTest</span></span>
+<span><span class="co">#&gt; prediction   0   1</span></span>
+<span><span class="co">#&gt;          0 121   5</span></span>
+<span><span class="co">#&gt;          1   0  71</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Accuracy:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Accuracy:</span></span>
+<span><span class="op">(</span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">prediction</span> <span class="op">==</span> <span class="va">labelsTest</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.9746193</span></span></code></pre></div>
 </div>
 <div class="panel">
 <p><span class="panel-name">Cito</span></p>
+<div class="sourceCode" id="cb366"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cito</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">data_train</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>survived <span class="op">=</span> <span class="va">labelsTrain</span>, <span class="va">train</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model_cito</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/cito/man/dnn.html">dnn</a></span><span class="op">(</span><span class="va">survived</span><span class="op">~</span><span class="va">.</span>, </span>
+<span>                 data <span class="op">=</span> <span class="va">data_train</span>, </span>
+<span>                 loss <span class="op">=</span> <span class="st">"binomial"</span>, </span>
+<span>                 hidden <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">4</span><span class="op">)</span>, </span>
+<span>                 activation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="st">"selu"</span>, <span class="fl">4</span><span class="op">)</span>, </span>
+<span>                 validation <span class="op">=</span> <span class="fl">0.2</span>, </span>
+<span>                 alpha <span class="op">=</span> <span class="fl">0.2</span>, </span>
+<span>                 early_stopping <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>                 epochs <span class="op">=</span> <span class="fl">100L</span>, </span>
+<span>                 lambda <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loss at epoch 1: training: 4.275, validation: 1.939, lr: 0.01000</span></span></code></pre></div>
+<div class="inline-figure"><img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_43_cito-1.png" width="100%" style="display: block; margin: auto;"></div>
+<pre><code>#&gt; Loss at epoch 2: training: 1.766, validation: 1.395, lr: 0.01000
+#&gt; Loss at epoch 3: training: 1.242, validation: 1.141, lr: 0.01000
+#&gt; Loss at epoch 4: training: 1.060, validation: 1.027, lr: 0.01000
+#&gt; Loss at epoch 5: training: 0.995, validation: 1.005, lr: 0.01000
+#&gt; Loss at epoch 6: training: 0.975, validation: 0.970, lr: 0.01000
+#&gt; Loss at epoch 7: training: 0.963, validation: 0.985, lr: 0.01000
+#&gt; Loss at epoch 8: training: 0.962, validation: 0.975, lr: 0.01000
+#&gt; Loss at epoch 9: training: 0.958, validation: 0.965, lr: 0.01000
+#&gt; Loss at epoch 10: training: 0.959, validation: 0.977, lr: 0.01000
+#&gt; Loss at epoch 11: training: 0.955, validation: 0.967, lr: 0.01000
+#&gt; Loss at epoch 12: training: 0.953, validation: 0.971, lr: 0.01000
+#&gt; Loss at epoch 13: training: 0.956, validation: 0.967, lr: 0.01000
+#&gt; Loss at epoch 14: training: 0.952, validation: 0.972, lr: 0.01000
+#&gt; Loss at epoch 15: training: 0.952, validation: 0.976, lr: 0.01000
+#&gt; Loss at epoch 16: training: 0.952, validation: 0.954, lr: 0.01000
+#&gt; Loss at epoch 17: training: 0.950, validation: 0.974, lr: 0.01000
+#&gt; Loss at epoch 18: training: 0.949, validation: 0.970, lr: 0.01000
+#&gt; Loss at epoch 19: training: 0.950, validation: 0.964, lr: 0.01000
+#&gt; Loss at epoch 20: training: 0.951, validation: 0.972, lr: 0.01000
+#&gt; Loss at epoch 21: training: 0.950, validation: 0.962, lr: 0.01000
+#&gt; Loss at epoch 22: training: 0.950, validation: 0.975, lr: 0.01000
+#&gt; Loss at epoch 23: training: 0.952, validation: 0.966, lr: 0.01000
+#&gt; Loss at epoch 24: training: 0.951, validation: 0.967, lr: 0.01000
+#&gt; Loss at epoch 25: training: 0.951, validation: 0.978, lr: 0.01000
+#&gt; Loss at epoch 26: training: 0.952, validation: 0.963, lr: 0.01000
+#&gt; Loss at epoch 27: training: 0.952, validation: 0.971, lr: 0.01000
+#&gt; Loss at epoch 28: training: 0.953, validation: 0.974, lr: 0.01000
+#&gt; Loss at epoch 29: training: 0.951, validation: 0.974, lr: 0.01000
+#&gt; Loss at epoch 30: training: 0.953, validation: 0.970, lr: 0.01000
+#&gt; Loss at epoch 31: training: 0.954, validation: 0.965, lr: 0.01000
+#&gt; Loss at epoch 32: training: 0.951, validation: 0.981, lr: 0.01000
+#&gt; Loss at epoch 33: training: 0.954, validation: 0.972, lr: 0.01000
+#&gt; Loss at epoch 34: training: 0.954, validation: 0.968, lr: 0.01000
+#&gt; Loss at epoch 35: training: 0.953, validation: 0.983, lr: 0.01000
+#&gt; Loss at epoch 36: training: 0.954, validation: 0.969, lr: 0.01000
+#&gt; Loss at epoch 37: training: 0.954, validation: 0.971, lr: 0.01000
+#&gt; Loss at epoch 38: training: 0.954, validation: 0.976, lr: 0.01000
+#&gt; Loss at epoch 39: training: 0.953, validation: 0.974, lr: 0.01000
+#&gt; Loss at epoch 40: training: 0.955, validation: 0.978, lr: 0.01000
+#&gt; Loss at epoch 41: training: 0.955, validation: 0.966, lr: 0.01000
+#&gt; Loss at epoch 42: training: 0.953, validation: 0.980, lr: 0.01000
+#&gt; Loss at epoch 43: training: 0.955, validation: 0.976, lr: 0.01000
+#&gt; Loss at epoch 44: training: 0.954, validation: 0.967, lr: 0.01000
+#&gt; Loss at epoch 45: training: 0.955, validation: 0.978, lr: 0.01000
+#&gt; Loss at epoch 46: training: 0.955, validation: 0.969, lr: 0.01000
+#&gt; Loss at epoch 47: training: 0.953, validation: 0.978, lr: 0.01000
+#&gt; Loss at epoch 48: training: 0.956, validation: 0.970, lr: 0.01000
+#&gt; Loss at epoch 49: training: 0.954, validation: 0.974, lr: 0.01000
+#&gt; Loss at epoch 50: training: 0.954, validation: 0.982, lr: 0.01000
+#&gt; Loss at epoch 51: training: 0.956, validation: 0.960, lr: 0.01000
+#&gt; Loss at epoch 52: training: 0.955, validation: 0.978, lr: 0.01000
+#&gt; Loss at epoch 53: training: 0.954, validation: 0.978, lr: 0.01000
+#&gt; Loss at epoch 54: training: 0.954, validation: 0.971, lr: 0.01000
+#&gt; Loss at epoch 55: training: 0.956, validation: 0.976, lr: 0.01000
+#&gt; Loss at epoch 56: training: 0.954, validation: 0.972, lr: 0.01000
+#&gt; Loss at epoch 57: training: 0.953, validation: 0.980, lr: 0.01000
+#&gt; Loss at epoch 58: training: 0.957, validation: 0.968, lr: 0.01000
+#&gt; Loss at epoch 59: training: 0.954, validation: 0.974, lr: 0.01000
+#&gt; Loss at epoch 60: training: 0.954, validation: 0.981, lr: 0.01000
+#&gt; Loss at epoch 61: training: 0.956, validation: 0.965, lr: 0.01000
+#&gt; Loss at epoch 62: training: 0.954, validation: 0.977, lr: 0.01000
+#&gt; Loss at epoch 63: training: 0.955, validation: 0.977, lr: 0.01000
+#&gt; Loss at epoch 64: training: 0.955, validation: 0.973, lr: 0.01000
+#&gt; Loss at epoch 65: training: 0.955, validation: 0.974, lr: 0.01000
+#&gt; Loss at epoch 66: training: 0.955, validation: 0.967, lr: 0.01000
+#&gt; Loss at epoch 67: training: 0.954, validation: 0.980, lr: 0.01000
+#&gt; Loss at epoch 68: training: 0.955, validation: 0.975, lr: 0.01000
+#&gt; Loss at epoch 69: training: 0.955, validation: 0.969, lr: 0.01000
+#&gt; Loss at epoch 70: training: 0.955, validation: 0.982, lr: 0.01000
+#&gt; Loss at epoch 71: training: 0.954, validation: 0.971, lr: 0.01000
+#&gt; Loss at epoch 72: training: 0.954, validation: 0.971, lr: 0.01000
+#&gt; Loss at epoch 73: training: 0.956, validation: 0.975, lr: 0.01000
+#&gt; Loss at epoch 74: training: 0.953, validation: 0.977, lr: 0.01000
+#&gt; Loss at epoch 75: training: 0.955, validation: 0.977, lr: 0.01000
+#&gt; Loss at epoch 76: training: 0.956, validation: 0.964, lr: 0.01000
+#&gt; Loss at epoch 77: training: 0.953, validation: 0.983, lr: 0.01000
+#&gt; Loss at epoch 78: training: 0.955, validation: 0.976, lr: 0.01000
+#&gt; Loss at epoch 79: training: 0.955, validation: 0.965, lr: 0.01000
+#&gt; Loss at epoch 80: training: 0.955, validation: 0.982, lr: 0.01000
+#&gt; Loss at epoch 81: training: 0.954, validation: 0.969, lr: 0.01000
+#&gt; Loss at epoch 82: training: 0.955, validation: 0.977, lr: 0.01000
+#&gt; Loss at epoch 83: training: 0.955, validation: 0.973, lr: 0.01000
+#&gt; Loss at epoch 84: training: 0.954, validation: 0.975, lr: 0.01000
+#&gt; Loss at epoch 85: training: 0.955, validation: 0.981, lr: 0.01000
+#&gt; Loss at epoch 86: training: 0.955, validation: 0.962, lr: 0.01000
+#&gt; Loss at epoch 87: training: 0.954, validation: 0.978, lr: 0.01000
+#&gt; Loss at epoch 88: training: 0.955, validation: 0.977, lr: 0.01000
+#&gt; Loss at epoch 89: training: 0.954, validation: 0.973, lr: 0.01000
+#&gt; Loss at epoch 90: training: 0.955, validation: 0.976, lr: 0.01000
+#&gt; Loss at epoch 91: training: 0.955, validation: 0.970, lr: 0.01000
+#&gt; Loss at epoch 92: training: 0.953, validation: 0.982, lr: 0.01000
+#&gt; Loss at epoch 93: training: 0.956, validation: 0.967, lr: 0.01000
+#&gt; Loss at epoch 94: training: 0.955, validation: 0.972, lr: 0.01000
+#&gt; Loss at epoch 95: training: 0.954, validation: 0.984, lr: 0.01000
+#&gt; Loss at epoch 96: training: 0.955, validation: 0.966, lr: 0.01000
+#&gt; Loss at epoch 97: training: 0.955, validation: 0.974, lr: 0.01000
+#&gt; Loss at epoch 98: training: 0.954, validation: 0.979, lr: 0.01000
+#&gt; Loss at epoch 99: training: 0.954, validation: 0.974, lr: 0.01000
+#&gt; Loss at epoch 100: training: 0.956, validation: 0.973, lr: 0.01000
+
+prediction = predict(model_cito, newdata = data.frame(survived = 0, test))
+
+
+# Take label with highest probability:
+prediction = (prediction &gt; 0.5)*1
+
+table(prediction, labelsTest)
+#&gt;           labelsTest
+#&gt; prediction   0   1
+#&gt;          0 121  76
+cat("Accuracy:\n")
+#&gt; Accuracy:
+(accuracy = mean(prediction == labelsTest))
+#&gt; [1] 0.6142132</code></pre>
 </div>
 </div>
     
@@ -846,7 +1570,7 @@ Every activation function has its own properties, requirements (!), advantages a
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb267"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb368"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prediction</span> <span class="op">=</span></span>
 <span>  <span class="va">model</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">predict</span><span class="op">)</span></span>
@@ -884,7 +1608,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span class="header-section-number">5.2.1</span> mlr3 - The Basic Workflow<a class="anchor" aria-label="anchor" href="#mlr3---the-basic-workflow"><i class="fas fa-link"></i></a>
 </h3>
 <p>The mlr3 package actually consists of several packages for different tasks (e.g. mlr3tuning for hyperparameter tuning, mlr3pipelines for data preparation pipes). But let’s start with the basic workflow:</p>
-<div class="sourceCode" id="cb268"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb369"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/TheoreticalEcology/">EcoData</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3.mlr-org.com">mlr3</a></span><span class="op">)</span></span>
@@ -936,7 +1660,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span><span class="co">#&gt;  $ Equinox                     : Factor w/ 1 level "J2000": 1 1 NA 1 1 1 1 1 1 1 ...</span></span>
 <span><span class="co">#&gt;  $ Hazardous                   : int  0 0 0 1 1 0 0 0 1 1 ...</span></span></code></pre></div>
 <p>Let’s drop time, name and ID variable and create a classification task:</p>
-<div class="sourceCode" id="cb269"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb370"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">=</span> <span class="va">nasa</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">Orbit.Determination.Date</span>,</span>
 <span>                       <span class="op">-</span><span class="va">Close.Approach.Date</span>, <span class="op">-</span><span class="va">Name</span>, <span class="op">-</span><span class="va">Neo.Reference.ID</span><span class="op">)</span></span>
 <span><span class="va">data</span><span class="op">$</span><span class="va">Hazardous</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Hazardous</span><span class="op">)</span></span>
@@ -945,7 +1669,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span><span class="va">task</span> <span class="op">=</span> <span class="va"><a href="https://mlr3.mlr-org.com/reference/TaskClassif.html">TaskClassif</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>id <span class="op">=</span> <span class="st">"nasa"</span>, backend <span class="op">=</span> <span class="va">data</span>,</span>
 <span>                       target <span class="op">=</span> <span class="st">"Hazardous"</span>, positive <span class="op">=</span> <span class="st">"1"</span><span class="op">)</span></span></code></pre></div>
 <p>Create a generic pipeline of data transformation (imputation <span class="math inline">\(\rightarrow\)</span> scaling <span class="math inline">\(\rightarrow\)</span> encoding of categorical variables):</p>
-<div class="sourceCode" id="cb270"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb371"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Let's create the preprocessing graph.</span></span>
@@ -982,7 +1706,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span><span class="co">#&gt;          Orbiting.Body.Earth       Orbiting.Body..MISSING </span></span>
 <span><span class="co">#&gt;                            0                            0</span></span></code></pre></div>
 <p>We can even visualize the preprocessing graph:</p>
-<div class="sourceCode" id="cb271"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb372"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">preprocessing</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="06-ML_workflow_files/figure-html/chunk_chapter4_68-1.png" width="100%" style="display: block; margin: auto;"></div>
 <p>Now, to test our model (random forest) 10-fold cross-validated, we will do:</p>
@@ -991,7 +1715,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <li>Specify the cross-validation, the learner (the machine learning model we want to use), and the measurement (AUC).</li>
 <li>Run (benchmark) our model.</li>
 </ul>
-<div class="sourceCode" id="cb272"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb373"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">transformed_task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span>
@@ -1121,7 +1845,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span><span class="va">cv10</span> <span class="op">=</span> <span class="fu">mlr3</span><span class="fu">::</span><span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">10L</span><span class="op">)</span></span>
 <span><span class="va">rf</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span></span>
 <span><span class="va">measurement</span> <span class="op">=</span>  <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html">msr</a></span><span class="op">(</span><span class="st">"classif.auc"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb273"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb374"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result</span> <span class="op">=</span> <span class="fu">mlr3</span><span class="fu">::</span><span class="fu"><a href="https://mlr3.mlr-org.com/reference/resample.html">resample</a></span><span class="op">(</span><span class="va">transformed_task</span>,</span>
 <span>                        <span class="va">rf</span>, resampling <span class="op">=</span> <span class="va">cv10</span>, store_models <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
@@ -1129,7 +1853,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span><span class="va">result</span><span class="op">$</span><span class="fu">aggregate</span><span class="op">(</span><span class="va">measurement</span><span class="op">)</span></span></code></pre></div>
 <p>Very cool! Preprocessing + 10-fold cross-validation model evaluation in a few lines of code!</p>
 <p>Let’s create the final predictions:</p>
-<div class="sourceCode" id="cb274"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb375"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="va">result</span><span class="op">$</span><span class="va">learners</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="fu">predict</span><span class="op">(</span><span class="va">transformed_task</span>,</span>
 <span>row_ids <span class="op">=</span> <span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Hazardous</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">prob</span><span class="op">[</span>, <span class="st">"1"</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">pred</span><span class="op">)</span></span>
@@ -1165,7 +1889,7 @@ Every activation function has its own properties, requirements (!), advantages a
 </ul>
 <p>With mlr3, we can easily extend the above example to do hyperparameter tuning within nested cross-validation (the tuning has its own inner cross-validation).</p>
 <p>Print the hyperparameter space of our random forest learner:</p>
-<div class="sourceCode" id="cb275"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb376"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rf</span><span class="op">$</span><span class="va">param_set</span></span>
 <span><span class="co">#&gt; &lt;ParamSet&gt;</span></span>
 <span><span class="co">#&gt;                               id    class lower upper nlevels        default    parents</span></span>
@@ -1231,7 +1955,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span><span class="co">#&gt; 29:      </span></span>
 <span><span class="co">#&gt;     value</span></span></code></pre></div>
 <p>Define the hyperparameter space of the random forest:</p>
-<div class="sourceCode" id="cb276"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb377"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://paradox.mlr-org.com">paradox</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rf_pars</span> <span class="op">=</span> </span>
@@ -1252,7 +1976,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <li>Tuning method (e.g. random or block search).</li>
 <li>Tuning terminator (When should we stop tuning? E.g. after <span class="math inline">\(n\)</span> iterations).</li>
 </ul>
-<div class="sourceCode" id="cb277"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb378"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">inner3</span> <span class="op">=</span> <span class="fu">mlr3</span><span class="fu">::</span><span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span>
@@ -1282,7 +2006,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span><span class="co">#&gt; * Properties: hotstart_backward, importance, multiclass, oob_error, twoclass,</span></span>
 <span><span class="co">#&gt;   weights</span></span></code></pre></div>
 <p>Now we can wrap it normally into the 10-fold cross-validated setup as done previously:</p>
-<div class="sourceCode" id="cb278"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb379"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">outer3</span> <span class="op">=</span> <span class="fu">mlr3</span><span class="fu">::</span><span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span>
@@ -1293,7 +2017,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span><span class="va">result</span><span class="op">$</span><span class="fu">aggregate</span><span class="op">(</span><span class="va">measurement</span><span class="op">)</span></span></code></pre></div>
 <p>Yeah, we were able to improve the performance!</p>
 <p>Let’s create the final predictions:</p>
-<div class="sourceCode" id="cb279"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb380"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="va">result</span><span class="op">$</span><span class="va">learners</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="fu">predict</span><span class="op">(</span><span class="va">transformed_task</span>,</span>
 <span>row_ids <span class="op">=</span> <span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Hazardous</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">prob</span><span class="op">[</span>, <span class="st">"1"</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">pred</span><span class="op">)</span></span>
@@ -1304,7 +2028,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span class="header-section-number">5.2.3</span> mlr3 - Hyperparameter Tuning with Oversampling<a class="anchor" aria-label="anchor" href="#mlr3---hyperparameter-tuning-with-oversampling"><i class="fas fa-link"></i></a>
 </h3>
 <p>Let’s go one step back, maybe you have noticed that our classes are unbalanced:</p>
-<div class="sourceCode" id="cb280"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb381"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Hazardous</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   0   1 </span></span>
@@ -1317,7 +2041,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <li>SMOTE <em>Synthetic Minority Over-sampling Technique</em> (very briefly, we will use a k-nearest-neighbors classification to create new samples around our undersampled class).</li>
 </ul>
 <p>Here, we will use oversampling which we can do by extending our random forest learner:</p>
-<div class="sourceCode" id="cb281"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb382"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rf_over</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3pipelines.mlr-org.com/reference/po.html">po</a></span><span class="op">(</span><span class="st">"classbalancing"</span>, id <span class="op">=</span> <span class="st">"over"</span>, adjust <span class="op">=</span> <span class="st">"minor"</span><span class="op">)</span> <span class="op"><a href="https://mlr3pipelines.mlr-org.com/reference/grapes-greater-than-greater-than-grapes.html">%&gt;&gt;%</a></span> <span class="va">rf</span></span>
@@ -1336,7 +2060,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span><span class="co">#&gt; * Properties: featureless, hotstart_backward, hotstart_forward, importance,</span></span>
 <span><span class="co">#&gt;   loglik, missings, multiclass, oob_error, selected_features, twoclass, weights</span></span></code></pre></div>
 <p>The learner has now a new feature space:</p>
-<div class="sourceCode" id="cb282"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb383"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rf_over_learner</span><span class="op">$</span><span class="va">param_set</span></span>
 <span><span class="co">#&gt; &lt;ParamSetCollection&gt;</span></span>
 <span><span class="co">#&gt;                                              id    class lower upper nlevels</span></span>
@@ -1410,7 +2134,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span><span class="co">#&gt; 33: &lt;NoDefault[3]&gt;                            TRUE</span></span>
 <span><span class="co">#&gt;            default                   parents value</span></span></code></pre></div>
 <p>We can also tune the oversampling rate!</p>
-<div class="sourceCode" id="cb283"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb384"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rf_pars_over</span> <span class="op">=</span> </span>
@@ -1448,7 +2172,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span><span class="co">#&gt; * Feature Types: logical, integer, numeric, character, factor, ordered</span></span>
 <span><span class="co">#&gt; * Properties: hotstart_backward, importance, multiclass, oob_error, twoclass,</span></span>
 <span><span class="co">#&gt;   weights</span></span></code></pre></div>
-<div class="sourceCode" id="cb284"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb385"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">outer3</span> <span class="op">=</span> <span class="fu">mlr3</span><span class="fu">::</span><span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span>
@@ -1459,7 +2183,7 @@ Every activation function has its own properties, requirements (!), advantages a
 <span><span class="va">result</span><span class="op">$</span><span class="fu">aggregate</span><span class="op">(</span><span class="va">measurement</span><span class="op">)</span></span></code></pre></div>
 <p>5 iterations in the hyperspace is not very much…</p>
 <p>Let’s create the final predictions:</p>
-<div class="sourceCode" id="cb285"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb386"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="va">result</span><span class="op">$</span><span class="va">learners</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="fu">predict</span><span class="op">(</span><span class="va">transformed_task</span>,</span>
 <span>row_ids <span class="op">=</span> <span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Hazardous</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">prob</span><span class="op">[</span>, <span class="st">"1"</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">pred</span><span class="op">)</span></span>
@@ -1470,7 +2194,7 @@ Alternatively, you can also use other data sets from our challenge (e.g. the pl
   <details><summary><strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
     </summary><p>
 </p>
-<div class="sourceCode" id="cb286"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb387"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/TheoreticalEcology/">EcoData</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3.mlr-org.com">mlr3</a></span><span class="op">)</span></span>
@@ -1552,7 +2276,7 @@ Alternatively, you can also use other data sets from our challenge (e.g. the pl
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="fundamental.html"><span class="header-section-number">4</span> Common Machine Learning algorithms</a></div>
-<div class="next"><a href="deep.html"><span class="header-section-number">6</span> Deep Learning</a></div>
+<div class="next"><a href="deep.html"><span class="header-section-number">6</span> Deep Learning Architectures</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
@@ -1592,7 +2316,7 @@ Alternatively, you can also use other data sets from our challenge (e.g. the pl
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Machine Learning and AI in TensorFlow and R</strong>" was written by Maximilian Pichler and Florian Hartig. It was last built on 2022-07-12.</p>
+    <p>"<strong>Machine Learning and AI in TensorFlow and R</strong>" was written by Maximilian Pichler and Florian Hartig. It was last built on 2022-07-13.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

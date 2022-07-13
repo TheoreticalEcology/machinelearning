@@ -391,6 +391,7 @@ In the next step we will fit a Keras model on the training data of the inner spl
 library(tensorflow)
 library(keras)
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+#> Loaded Tensorflow version 2.9.1
 
 model = keras_model_sequential()
 model %>%
@@ -416,7 +417,6 @@ summary(model)
 #> Non-trainable params: 0
 #> __________________________________________________________________________________________
 
-model_history =
 model %>%
   compile(loss = loss_categorical_crossentropy,
           optimizer = keras::optimizer_adamax(learning_rate = 0.01))
@@ -494,11 +494,11 @@ for(epoch in 1:epochs){
   train_losses = c(train_losses, mean(train_loss))
   if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
 }
-#> Loss at epoch 10: 0.479470
-#> Loss at epoch 20: 0.476513
-#> Loss at epoch 30: 0.464416
-#> Loss at epoch 40: 0.458047
-#> Loss at epoch 50: 0.443187
+#> Loss at epoch 10: 0.472101
+#> Loss at epoch 20: 0.427827
+#> Loss at epoch 30: 0.441465
+#> Loss at epoch 40: 0.418385
+#> Loss at epoch 50: 0.409456
 
 plot(train_losses, type = "o", pch = 15,
         col = "darkblue", lty = 1, xlab = "Epoch",
@@ -523,43 +523,43 @@ Cito can handle factors but as we have already prepared the data for torch and t
 library(cito)
 
 model_cito = dnn(survived~., data = sub_train, loss = "binomial", hidden = rep(30, 3), activation = rep("relu", 3))
-#> Loss at epoch 1: 0.628682, lr: 0.01000
+#> Loss at epoch 1: 0.600531, lr: 0.01000
 ```
 
 <img src="06-ML_workflow_files/figure-html/cito_chunk_1-1.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Loss at epoch 2: 0.555334, lr: 0.01000
-#> Loss at epoch 3: 0.514781, lr: 0.01000
-#> Loss at epoch 4: 0.493197, lr: 0.01000
-#> Loss at epoch 5: 0.486173, lr: 0.01000
-#> Loss at epoch 6: 0.485266, lr: 0.01000
-#> Loss at epoch 7: 0.477691, lr: 0.01000
-#> Loss at epoch 8: 0.478282, lr: 0.01000
-#> Loss at epoch 9: 0.470990, lr: 0.01000
-#> Loss at epoch 10: 0.474267, lr: 0.01000
-#> Loss at epoch 11: 0.466413, lr: 0.01000
-#> Loss at epoch 12: 0.471069, lr: 0.01000
-#> Loss at epoch 13: 0.467679, lr: 0.01000
-#> Loss at epoch 14: 0.462538, lr: 0.01000
-#> Loss at epoch 15: 0.461307, lr: 0.01000
-#> Loss at epoch 16: 0.464263, lr: 0.01000
-#> Loss at epoch 17: 0.458622, lr: 0.01000
-#> Loss at epoch 18: 0.458754, lr: 0.01000
-#> Loss at epoch 19: 0.459127, lr: 0.01000
-#> Loss at epoch 20: 0.458725, lr: 0.01000
-#> Loss at epoch 21: 0.456209, lr: 0.01000
-#> Loss at epoch 22: 0.461059, lr: 0.01000
-#> Loss at epoch 23: 0.453386, lr: 0.01000
-#> Loss at epoch 24: 0.455715, lr: 0.01000
-#> Loss at epoch 25: 0.456063, lr: 0.01000
-#> Loss at epoch 26: 0.453903, lr: 0.01000
-#> Loss at epoch 27: 0.456146, lr: 0.01000
-#> Loss at epoch 28: 0.454714, lr: 0.01000
-#> Loss at epoch 29: 0.452475, lr: 0.01000
-#> Loss at epoch 30: 0.456571, lr: 0.01000
-#> Loss at epoch 31: 0.449390, lr: 0.01000
-#> Loss at epoch 32: 0.453715, lr: 0.01000
+#> Loss at epoch 2: 0.509749, lr: 0.01000
+#> Loss at epoch 3: 0.493219, lr: 0.01000
+#> Loss at epoch 4: 0.472807, lr: 0.01000
+#> Loss at epoch 5: 0.457317, lr: 0.01000
+#> Loss at epoch 6: 0.450954, lr: 0.01000
+#> Loss at epoch 7: 0.450918, lr: 0.01000
+#> Loss at epoch 8: 0.448424, lr: 0.01000
+#> Loss at epoch 9: 0.445191, lr: 0.01000
+#> Loss at epoch 10: 0.443014, lr: 0.01000
+#> Loss at epoch 11: 0.440268, lr: 0.01000
+#> Loss at epoch 12: 0.438975, lr: 0.01000
+#> Loss at epoch 13: 0.437326, lr: 0.01000
+#> Loss at epoch 14: 0.436003, lr: 0.01000
+#> Loss at epoch 15: 0.432731, lr: 0.01000
+#> Loss at epoch 16: 0.433298, lr: 0.01000
+#> Loss at epoch 17: 0.431003, lr: 0.01000
+#> Loss at epoch 18: 0.429302, lr: 0.01000
+#> Loss at epoch 19: 0.432288, lr: 0.01000
+#> Loss at epoch 20: 0.427699, lr: 0.01000
+#> Loss at epoch 21: 0.427732, lr: 0.01000
+#> Loss at epoch 22: 0.429185, lr: 0.01000
+#> Loss at epoch 23: 0.430716, lr: 0.01000
+#> Loss at epoch 24: 0.429191, lr: 0.01000
+#> Loss at epoch 25: 0.426934, lr: 0.01000
+#> Loss at epoch 26: 0.424996, lr: 0.01000
+#> Loss at epoch 27: 0.424771, lr: 0.01000
+#> Loss at epoch 28: 0.423187, lr: 0.01000
+#> Loss at epoch 29: 0.426409, lr: 0.01000
+#> Loss at epoch 30: 0.428100, lr: 0.01000
+#> Loss at epoch 31: 0.424026, lr: 0.01000
+#> Loss at epoch 32: 0.420966, lr: 0.01000
 ```
 
 
@@ -586,10 +586,14 @@ pred =
   model %>%
     predict(x = as.matrix(sub_test[,-1]))
 
-predicted = ifelse(pred[,2] < 0.5, 0, 1) # Ternary operator.
+predicted = ifelse(pred[,2] < 0.5, 0, 1) 
 observed = sub_test[,1]
-(accuracy = mean(predicted == observed))  # (...): Show output.
-#> [1] 0.8121827
+(accuracy = mean(predicted == observed))  
+#> [1] 0.7918782
+
+# Let's calculate the AUC:
+Metrics::auc(observed, pred[,2])
+#> [1] 0.8395022
 ```
 
 :::
@@ -604,9 +608,13 @@ model_torch$eval()
 preds_torch = nnf_softmax(model_torch(torch_tensor(as.matrix(sub_test[,-1]))),
                           dim = 2L)
 preds_torch = as.matrix(preds_torch)
-preds_torch = apply(preds_torch, 1, which.max)
-(accuracy = mean(preds_torch - 1 == observed))
-#> [1] 0.7817259
+preds_response = apply(preds_torch, 1, which.max)
+(accuracy = mean(preds_response - 1 == observed))
+#> [1] 0.7918782
+
+# Let's calculate the AUC:
+Metrics::auc(observed, preds_torch[,2])
+#> [1] 0.8381494
 ```
 
 Don't forget to use the link function (softmax).
@@ -623,7 +631,11 @@ Don't forget to use the link function (softmax).
 preds_cito = predict(model_cito, newdata = sub_test)
 preds_cito = ifelse(preds_cito > 0.5, 1, 0)
 (accuracy = mean(preds_cito == observed))
-#> [1] 0.8071066
+#> [1] 0.7766497
+
+# Let's calculate the AUC:
+Metrics::auc(observed, preds_cito)
+#> [1] 0.7375541
 ```
 
 
@@ -652,17 +664,15 @@ pred = model %>%
   predict(as.matrix(submit))
 ```
 
-All values > 0.5 will be set to 1 and values < 0.5 to zero.
 For the submission it is critical to change the predictions into a data.frame, select the second column (the probability to survive), and save it with the write.csv function:
 
 
 ```r
-write.csv(data.frame(y = ifelse(pred[,2] < 0.5, 0, 1)), file = "Max_1.csv")
+write.csv(data.frame(y = pred[,2] ), file = "Max_1.csv")
 ```
 
 The file name is used as the ID on the submission server, so change it to whatever you want as long as you can identify yourself.
 
-<strong>Annotation: The AUC is (always) higher for probabilities than for 0/1 data (depending on the implementation and definition of the AUC). We expect you to upload 0/1 data (usage scenarios, no theoretical ones)! Hint for cheaters (or if you just forget conversion): Your upload is converted to 0/1 data according to ifelse(... < 0.5, 0, 1).</strong>
 
 
 ### Exercises
@@ -885,6 +895,53 @@ Build a neural network to make predictions and check performance on the hold-out
 
 
 
+```r
+set_random_seed(4321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 20L, input_shape = ncol(train), activation = "relu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 2L, activation = "softmax")
+
+model_history =
+  model %>%
+    compile(loss = loss_categorical_crossentropy,
+            optimizer = keras::optimizer_adamax(learning_rate = 0.01))
+
+model_history =
+  model %>%
+    fit(x = train,   # Be careful! You need a matrix, no data.frame!
+        y = to_categorical(labelsTrain, num_classes = 2L), epochs = 60L,
+        batch_size = 60,
+        validation_split = 0.2, shuffle = TRUE)
+
+plot(model_history)
+```
+
+<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_41-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+prediction =
+  model %>%
+    predict(x = test)
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+#>           labelsTest
+#> prediction   0   1
+#>          0 106  14
+#>          1  15  62
+cat("Accuracy:\n")
+#> Accuracy:
+(accuracy = mean(prediction == labelsTest))
+#> [1] 0.8527919
+```
 
 
 :::
@@ -893,6 +950,95 @@ Build a neural network to make predictions and check performance on the hold-out
 [Torch]{.panel-name}
 
 
+```r
+library(torch)
+
+model_torch = nn_sequential(
+  nn_linear(in_features = ncol(train), out_features = 20L),
+  nn_relu(),
+  nn_linear(20L, 20L),
+  nn_relu(),
+  nn_linear(20L, 20L),
+  nn_relu(),
+  nn_linear(20L, 20L),
+  nn_relu(),
+  nn_linear(20L, 20L),
+  nn_relu(),
+  nn_linear(20L, 2L)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.01)
+
+indices = sample.int(nrow(train), 0.8*nrow(train))
+dataset = torch_dataset(train[indices, ],(labelsTrain+1)[indices])
+dataset_val = torch_dataset(train[-indices, ],(labelsTrain+1)[-indices])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 50L
+train_losses = c()
+val_losses = c()
+for(epoch in 1:epochs){
+  train_loss = c()
+  val_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  ## Calculate validation loss ##
+  coro::loop(
+    for(batch in dataloader_val) { 
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      val_loss = c(val_loss, loss$item())
+    }
+  )
+  
+  
+  train_losses = c(train_losses, mean(train_loss))
+  val_losses = c(val_losses, mean(val_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+}
+#> Loss at epoch 10: 0.025540  Val loss: 0.019194
+#> Loss at epoch 20: 0.029742  Val loss: 0.018663
+#> Loss at epoch 30: 0.034941  Val loss: 0.018538
+#> Loss at epoch 40: 0.031349  Val loss: 0.020607
+#> Loss at epoch 50: 0.036149  Val loss: 0.043006
+
+
+matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", 
+       legend = c("Train loss", "Val loss"), 
+       pch = c(15, 16), col = c("darkblue", "darkred"))
+```
+
+<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_41_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+model_torch$eval()
+prediction = as.matrix(nnf_softmax(model_torch(torch_tensor(test)), dim = 2))
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+#>           labelsTest
+#> prediction   0   1
+#>          0 114  10
+#>          1   7  66
+cat("Accuracy:\n")
+#> Accuracy:
+(accuracy = mean(prediction == labelsTest))
+#> [1] 0.9137056
+```
 
 
 :::
@@ -902,6 +1048,66 @@ Build a neural network to make predictions and check performance on the hold-out
 
 
 
+```r
+library(cito)
+
+data_train = data.frame(survived = labelsTrain, train)
+
+model_cito = dnn(survived~., data = data_train, loss = "binomial", hidden = rep(20, 4), activation = rep("relu", 4), validation = 0.2)
+#> Loss at epoch 1: training: 0.684, validation: 0.589, lr: 0.01000
+```
+
+<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_41_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 0.392, validation: 0.349, lr: 0.01000
+#> Loss at epoch 3: training: 0.039, validation: 0.513, lr: 0.01000
+#> Loss at epoch 4: training: 0.089, validation: 0.568, lr: 0.01000
+#> Loss at epoch 5: training: 0.040, validation: 0.458, lr: 0.01000
+#> Loss at epoch 6: training: 0.037, validation: 0.296, lr: 0.01000
+#> Loss at epoch 7: training: 0.019, validation: 0.287, lr: 0.01000
+#> Loss at epoch 8: training: 0.016, validation: 0.319, lr: 0.01000
+#> Loss at epoch 9: training: 0.015, validation: 0.337, lr: 0.01000
+#> Loss at epoch 10: training: 0.014, validation: 0.355, lr: 0.01000
+#> Loss at epoch 11: training: 0.014, validation: 0.370, lr: 0.01000
+#> Loss at epoch 12: training: 0.013, validation: 0.394, lr: 0.01000
+#> Loss at epoch 13: training: 0.013, validation: 0.410, lr: 0.01000
+#> Loss at epoch 14: training: 0.013, validation: 0.399, lr: 0.01000
+#> Loss at epoch 15: training: 0.012, validation: 0.414, lr: 0.01000
+#> Loss at epoch 16: training: 0.012, validation: 0.422, lr: 0.01000
+#> Loss at epoch 17: training: 0.013, validation: 0.439, lr: 0.01000
+#> Loss at epoch 18: training: 0.012, validation: 0.450, lr: 0.01000
+#> Loss at epoch 19: training: 0.012, validation: 0.460, lr: 0.01000
+#> Loss at epoch 20: training: 0.012, validation: 0.447, lr: 0.01000
+#> Loss at epoch 21: training: 0.011, validation: 0.488, lr: 0.01000
+#> Loss at epoch 22: training: 0.012, validation: 0.482, lr: 0.01000
+#> Loss at epoch 23: training: 0.011, validation: 0.495, lr: 0.01000
+#> Loss at epoch 24: training: 0.010, validation: 0.516, lr: 0.01000
+#> Loss at epoch 25: training: 0.012, validation: 0.481, lr: 0.01000
+#> Loss at epoch 26: training: 0.009, validation: 0.516, lr: 0.01000
+#> Loss at epoch 27: training: 0.015, validation: 0.477, lr: 0.01000
+#> Loss at epoch 28: training: 0.010, validation: 0.521, lr: 0.01000
+#> Loss at epoch 29: training: 0.011, validation: 0.567, lr: 0.01000
+#> Loss at epoch 30: training: 0.009, validation: 0.603, lr: 0.01000
+#> Loss at epoch 31: training: 0.011, validation: 0.558, lr: 0.01000
+#> Loss at epoch 32: training: 0.008, validation: 0.612, lr: 0.01000
+
+prediction = predict(model_cito, newdata = data.frame(survived = 0, test))
+
+
+# Take label with highest probability:
+prediction = (prediction > 0.5)*1
+
+table(prediction, labelsTest)
+#>           labelsTest
+#> prediction   0   1
+#>          0 119  19
+#>          1   2  57
+cat("Accuracy:\n")
+#> Accuracy:
+(accuracy = mean(prediction == labelsTest))
+#> [1] 0.893401
+```
 
 
 :::
@@ -945,6 +1151,59 @@ You should get an accuracy of at least 90%. Try to be better than the solution.
 
 
 
+```r
+set_random_seed(4321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 150L, input_shape = ncol(train), activation = "relu") %>%
+  layer_dense(units = 50L, activation = "relu",
+              bias_regularizer = regularizer_l1(1.5),
+              kernel_regularizer = regularizer_l2(.075)) %>%
+  layer_dense(units = 20L, activation = "selu",
+              bias_regularizer = regularizer_l1_l2(1),
+              kernel_regularizer = regularizer_l1(.0025)) %>%
+  layer_dense(units = 50L, activation = "gelu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 7L, activation = "elu") %>%
+  layer_dense(units = 2L, activation = "softmax")
+
+model_history =
+  model %>%
+    compile(loss = loss_categorical_crossentropy,
+            optimizer = keras::optimizer_adamax(learning_rate = 0.011))
+
+model_history =
+  model %>%
+    fit(x = train,   # Be careful! You need a matrix, no data.frame!
+        y = to_categorical(labelsTrain, num_classes = 2L), epochs = 75L,
+        batch_size = nrow(train) %/% 9,   # 10 batches per epoch (rounded).
+        validation_split = 0.2, shuffle = TRUE)
+
+plot(model_history)
+```
+
+<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_42-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+prediction =
+  model %>%
+    predict(x = test)
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+#>           labelsTest
+#> prediction   0   1
+#>          0 120   5
+#>          1   1  71
+cat("Accuracy:\n")
+#> Accuracy:
+(accuracy = mean(prediction == labelsTest))
+#> [1] 0.9695431
+```
 
 
 :::
@@ -953,6 +1212,95 @@ You should get an accuracy of at least 90%. Try to be better than the solution.
 [Torch]{.panel-name}
 
 
+```r
+library(torch)
+torch_manual_seed(42L)
+
+model_torch = nn_sequential(
+  nn_linear(in_features = ncol(train), out_features = 150L),
+  nn_selu(),
+  nn_linear(150L, 50L),
+  nn_selu(),
+  nn_linear(50L, 20L),
+  nn_selu(),
+  nn_linear(20L, 2L)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.01)
+
+indices = sample.int(nrow(train), 0.8*nrow(train))
+dataset = torch_dataset(train[indices, ],(labelsTrain+1)[indices])
+dataset_val = torch_dataset(train[-indices, ],(labelsTrain+1)[-indices])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 30L
+train_losses = c()
+val_losses = c()
+lambda = torch_tensor(0.01)
+alpha = torch_tensor(0.2)
+for(epoch in 1:epochs){
+  train_loss = c()
+  val_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        if(length(dim(p)) > 1) loss = loss + lambda*((1-alpha)*torch_norm(p, 1L) + alpha*torch_norm(p, 2L))
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  ## Calculate validation loss ##
+  coro::loop(
+    for(batch in dataloader_val) { 
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      val_loss = c(val_loss, loss$item())
+    }
+  )
+  
+  
+  train_losses = c(train_losses, mean(train_loss))
+  val_losses = c(val_losses, mean(val_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+}
+#> Loss at epoch 10: 0.876616  Val loss: 0.034014
+#> Loss at epoch 20: 0.822761  Val loss: 0.030682
+#> Loss at epoch 30: 0.790959  Val loss: 0.028789
+
+
+matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", 
+       legend = c("Train loss", "Val loss"), 
+       pch = c(15, 16), col = c("darkblue", "darkred"))
+```
+
+<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_42_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+model_torch$eval()
+prediction = as.matrix(nnf_softmax(model_torch(torch_tensor(test)), dim = 2))
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+#>           labelsTest
+#> prediction   0   1
+#>          0 121   5
+#>          1   0  71
+cat("Accuracy:\n")
+#> Accuracy:
+(accuracy = mean(prediction == labelsTest))
+#> [1] 0.9746193
+```
 
 
 :::
@@ -961,6 +1309,143 @@ You should get an accuracy of at least 90%. Try to be better than the solution.
 [Cito]{.panel-name}
 
 
+```r
+library(cito)
+
+data_train = data.frame(survived = labelsTrain, train)
+
+model_cito = dnn(survived~., 
+                 data = data_train, 
+                 loss = "binomial", 
+                 hidden = rep(50, 4), 
+                 activation = rep("selu", 4), 
+                 validation = 0.2, 
+                 alpha = 0.2, 
+                 early_stopping = TRUE, 
+                 epochs = 100L, 
+                 lambda = 0.01)
+#> Loss at epoch 1: training: 4.259, validation: 1.953, lr: 0.01000
+```
+
+<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_42_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 1.675, validation: 1.278, lr: 0.01000
+#> Loss at epoch 3: training: 1.110, validation: 0.908, lr: 0.01000
+#> Loss at epoch 4: training: 0.821, validation: 0.740, lr: 0.01000
+#> Loss at epoch 5: training: 0.679, validation: 0.683, lr: 0.01000
+#> Loss at epoch 6: training: 0.621, validation: 0.607, lr: 0.01000
+#> Loss at epoch 7: training: 0.580, validation: 0.629, lr: 0.01000
+#> Loss at epoch 8: training: 0.550, validation: 0.562, lr: 0.01000
+#> Loss at epoch 9: training: 0.533, validation: 0.568, lr: 0.01000
+#> Loss at epoch 10: training: 0.521, validation: 0.547, lr: 0.01000
+#> Loss at epoch 11: training: 0.508, validation: 0.553, lr: 0.01000
+#> Loss at epoch 12: training: 0.493, validation: 0.518, lr: 0.01000
+#> Loss at epoch 13: training: 0.483, validation: 0.532, lr: 0.01000
+#> Loss at epoch 14: training: 0.472, validation: 0.490, lr: 0.01000
+#> Loss at epoch 15: training: 0.469, validation: 0.533, lr: 0.01000
+#> Loss at epoch 16: training: 0.456, validation: 0.483, lr: 0.01000
+#> Loss at epoch 17: training: 0.449, validation: 0.517, lr: 0.01000
+#> Loss at epoch 18: training: 0.441, validation: 0.482, lr: 0.01000
+#> Loss at epoch 19: training: 0.432, validation: 0.476, lr: 0.01000
+#> Loss at epoch 20: training: 0.438, validation: 0.484, lr: 0.01000
+#> Loss at epoch 21: training: 0.433, validation: 0.480, lr: 0.01000
+#> Loss at epoch 22: training: 0.427, validation: 0.487, lr: 0.01000
+#> Loss at epoch 23: training: 0.433, validation: 0.485, lr: 0.01000
+#> Loss at epoch 24: training: 0.428, validation: 0.483, lr: 0.01000
+#> Loss at epoch 25: training: 0.423, validation: 0.472, lr: 0.01000
+#> Loss at epoch 26: training: 0.421, validation: 0.468, lr: 0.01000
+#> Loss at epoch 27: training: 0.417, validation: 0.464, lr: 0.01000
+#> Loss at epoch 28: training: 0.419, validation: 0.466, lr: 0.01000
+#> Loss at epoch 29: training: 0.416, validation: 0.456, lr: 0.01000
+#> Loss at epoch 30: training: 0.415, validation: 0.460, lr: 0.01000
+#> Loss at epoch 31: training: 0.414, validation: 0.452, lr: 0.01000
+#> Loss at epoch 32: training: 0.418, validation: 0.500, lr: 0.01000
+#> Loss at epoch 33: training: 0.416, validation: 0.465, lr: 0.01000
+#> Loss at epoch 34: training: 0.413, validation: 0.456, lr: 0.01000
+#> Loss at epoch 35: training: 0.409, validation: 0.454, lr: 0.01000
+#> Loss at epoch 36: training: 0.408, validation: 0.455, lr: 0.01000
+#> Loss at epoch 37: training: 0.406, validation: 0.445, lr: 0.01000
+#> Loss at epoch 38: training: 0.406, validation: 0.480, lr: 0.01000
+#> Loss at epoch 39: training: 0.407, validation: 0.439, lr: 0.01000
+#> Loss at epoch 40: training: 0.425, validation: 0.454, lr: 0.01000
+#> Loss at epoch 41: training: 0.423, validation: 0.445, lr: 0.01000
+#> Loss at epoch 42: training: 0.415, validation: 0.468, lr: 0.01000
+#> Loss at epoch 43: training: 0.404, validation: 0.450, lr: 0.01000
+#> Loss at epoch 44: training: 0.397, validation: 0.443, lr: 0.01000
+#> Loss at epoch 45: training: 0.399, validation: 0.457, lr: 0.01000
+#> Loss at epoch 46: training: 0.396, validation: 0.451, lr: 0.01000
+#> Loss at epoch 47: training: 0.391, validation: 0.451, lr: 0.01000
+#> Loss at epoch 48: training: 0.392, validation: 0.441, lr: 0.01000
+#> Loss at epoch 49: training: 0.390, validation: 0.460, lr: 0.01000
+#> Loss at epoch 50: training: 0.391, validation: 0.449, lr: 0.01000
+#> Loss at epoch 51: training: 0.389, validation: 0.437, lr: 0.01000
+#> Loss at epoch 52: training: 0.390, validation: 0.443, lr: 0.01000
+#> Loss at epoch 53: training: 0.390, validation: 0.446, lr: 0.01000
+#> Loss at epoch 54: training: 0.389, validation: 0.449, lr: 0.01000
+#> Loss at epoch 55: training: 0.390, validation: 0.442, lr: 0.01000
+#> Loss at epoch 56: training: 0.390, validation: 0.440, lr: 0.01000
+#> Loss at epoch 57: training: 0.388, validation: 0.450, lr: 0.01000
+#> Loss at epoch 58: training: 0.389, validation: 0.449, lr: 0.01000
+#> Loss at epoch 59: training: 0.386, validation: 0.449, lr: 0.01000
+#> Loss at epoch 60: training: 0.384, validation: 0.458, lr: 0.01000
+#> Loss at epoch 61: training: 0.385, validation: 0.443, lr: 0.01000
+#> Loss at epoch 62: training: 0.384, validation: 0.428, lr: 0.01000
+#> Loss at epoch 63: training: 0.386, validation: 0.445, lr: 0.01000
+#> Loss at epoch 64: training: 0.384, validation: 0.444, lr: 0.01000
+#> Loss at epoch 65: training: 0.384, validation: 0.429, lr: 0.01000
+#> Loss at epoch 66: training: 0.383, validation: 0.447, lr: 0.01000
+#> Loss at epoch 67: training: 0.379, validation: 0.441, lr: 0.01000
+#> Loss at epoch 68: training: 0.381, validation: 0.437, lr: 0.01000
+#> Loss at epoch 69: training: 0.377, validation: 0.430, lr: 0.01000
+#> Loss at epoch 70: training: 0.375, validation: 0.440, lr: 0.01000
+#> Loss at epoch 71: training: 0.378, validation: 0.426, lr: 0.01000
+#> Loss at epoch 72: training: 0.377, validation: 0.434, lr: 0.01000
+#> Loss at epoch 73: training: 0.379, validation: 0.439, lr: 0.01000
+#> Loss at epoch 74: training: 0.375, validation: 0.446, lr: 0.01000
+#> Loss at epoch 75: training: 0.377, validation: 0.445, lr: 0.01000
+#> Loss at epoch 76: training: 0.376, validation: 0.452, lr: 0.01000
+#> Loss at epoch 77: training: 0.374, validation: 0.444, lr: 0.01000
+#> Loss at epoch 78: training: 0.378, validation: 0.446, lr: 0.01000
+#> Loss at epoch 79: training: 0.376, validation: 0.429, lr: 0.01000
+#> Loss at epoch 80: training: 0.379, validation: 0.428, lr: 0.01000
+#> Loss at epoch 81: training: 0.376, validation: 0.439, lr: 0.01000
+#> Loss at epoch 82: training: 0.376, validation: 0.437, lr: 0.01000
+#> Loss at epoch 83: training: 0.379, validation: 0.428, lr: 0.01000
+#> Loss at epoch 84: training: 0.374, validation: 0.451, lr: 0.01000
+#> Loss at epoch 85: training: 0.377, validation: 0.474, lr: 0.01000
+#> Loss at epoch 86: training: 0.376, validation: 0.447, lr: 0.01000
+#> Loss at epoch 87: training: 0.373, validation: 0.453, lr: 0.01000
+#> Loss at epoch 88: training: 0.378, validation: 0.448, lr: 0.01000
+#> Loss at epoch 89: training: 0.374, validation: 0.423, lr: 0.01000
+#> Loss at epoch 90: training: 0.378, validation: 0.457, lr: 0.01000
+#> Loss at epoch 91: training: 0.376, validation: 0.442, lr: 0.01000
+#> Loss at epoch 92: training: 0.378, validation: 0.439, lr: 0.01000
+#> Loss at epoch 93: training: 0.377, validation: 0.421, lr: 0.01000
+#> Loss at epoch 94: training: 0.376, validation: 0.453, lr: 0.01000
+#> Loss at epoch 95: training: 0.378, validation: 0.449, lr: 0.01000
+#> Loss at epoch 96: training: 0.377, validation: 0.448, lr: 0.01000
+#> Loss at epoch 97: training: 0.378, validation: 0.457, lr: 0.01000
+#> Loss at epoch 98: training: 0.378, validation: 0.462, lr: 0.01000
+#> Loss at epoch 99: training: 0.376, validation: 0.455, lr: 0.01000
+#> Loss at epoch 100: training: 0.375, validation: 0.439, lr: 0.01000
+
+prediction = predict(model_cito, newdata = data.frame(survived = 0, test))
+
+
+# Take label with highest probability:
+prediction = (prediction > 0.5)*1
+
+table(prediction, labelsTest)
+#>           labelsTest
+#> prediction   0   1
+#>          0 121   4
+#>          1   0  72
+cat("Accuracy:\n")
+#> Accuracy:
+(accuracy = mean(prediction == labelsTest))
+#> [1] 0.9796954
+```
 
 :::
 
@@ -993,6 +1478,59 @@ Now try your above solution (**the exactly same one!**) with another seed to che
 [Keras]{.panel-name}
 
 
+```r
+set_random_seed(123L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+model = keras_model_sequential()
+model %>%
+  layer_dense(units = 150L, input_shape = ncol(train), activation = "relu") %>%
+  layer_dense(units = 50L, activation = "relu",
+              bias_regularizer = regularizer_l1(1.5),
+              kernel_regularizer = regularizer_l2(.075)) %>%
+  layer_dense(units = 20L, activation = "selu",
+              bias_regularizer = regularizer_l1_l2(1),
+              kernel_regularizer = regularizer_l1(.0025)) %>%
+  layer_dense(units = 50L, activation = "gelu") %>%
+  layer_dense(units = 20L, activation = "relu") %>%
+  layer_dense(units = 7L, activation = "elu") %>%
+  layer_dense(units = 2L, activation = "softmax")
+
+model_history =
+  model %>%
+    compile(loss = loss_categorical_crossentropy,
+            optimizer = keras::optimizer_adamax(learning_rate = 0.011))
+
+model_history =
+  model %>%
+    fit(x = train,   # Be careful! You need a matrix, no data.frame!
+        y = to_categorical(labelsTrain, num_classes = 2L), epochs = 75L,
+        batch_size = nrow(train) %/% 9,   # 10 batches per epoch (rounded).
+        validation_split = 0.2, shuffle = TRUE)
+
+plot(model_history)
+```
+
+<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_43-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+prediction =
+  model %>%
+    predict(x = test)
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+#>           labelsTest
+#> prediction   0   1
+#>          0 112   5
+#>          1   9  71
+cat("Accuracy:\n")
+#> Accuracy:
+(accuracy = mean(prediction == labelsTest))
+#> [1] 0.928934
+```
 
 :::
 
@@ -1000,6 +1538,95 @@ Now try your above solution (**the exactly same one!**) with another seed to che
 [Torch]{.panel-name}
 
 
+```r
+library(torch)
+torch_manual_seed(1L)
+
+model_torch = nn_sequential(
+  nn_linear(in_features = ncol(train), out_features = 150L),
+  nn_selu(),
+  nn_linear(150L, 50L),
+  nn_selu(),
+  nn_linear(50L, 20L),
+  nn_selu(),
+  nn_linear(20L, 2L)
+)
+opt = optim_adam(params = model_torch$parameters, lr = 0.01)
+
+indices = sample.int(nrow(train), 0.8*nrow(train))
+dataset = torch_dataset(train[indices, ],(labelsTrain+1)[indices])
+dataset_val = torch_dataset(train[-indices, ],(labelsTrain+1)[-indices])
+dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+dataloader_val = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
+
+epochs = 30L
+train_losses = c()
+val_losses = c()
+lambda = torch_tensor(0.01)
+alpha = torch_tensor(0.2)
+for(epoch in 1:epochs){
+  train_loss = c()
+  val_loss = c()
+  coro::loop(
+    for(batch in dataloader) { 
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      for(p in model_torch$parameters) {
+        if(length(dim(p)) > 1) loss = loss + lambda*((1-alpha)*torch_norm(p, 1L) + alpha*torch_norm(p, 2L))
+      }
+      loss$backward()
+      opt$step()
+      train_loss = c(train_loss, loss$item())
+    }
+  )
+  ## Calculate validation loss ##
+  coro::loop(
+    for(batch in dataloader_val) { 
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]])
+      val_loss = c(val_loss, loss$item())
+    }
+  )
+  
+  
+  train_losses = c(train_losses, mean(train_loss))
+  val_losses = c(val_losses, mean(val_loss))
+  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f  Val loss: %3f\n", epoch, mean(train_loss), mean(val_loss)))
+}
+#> Loss at epoch 10: 0.868399  Val loss: 0.025504
+#> Loss at epoch 20: 0.801106  Val loss: 0.022459
+#> Loss at epoch 30: 0.764257  Val loss: 0.019600
+
+
+matplot(cbind(train_losses, val_losses), type = "o", pch = c(15, 16),
+        col = c("darkblue", "darkred"), lty = 1, xlab = "Epoch",
+        ylab = "Loss", las = 1)
+legend("topright", bty = "n", 
+       legend = c("Train loss", "Val loss"), 
+       pch = c(15, 16), col = c("darkblue", "darkred"))
+```
+
+<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_43_torch-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+
+model_torch$eval()
+prediction = as.matrix(nnf_softmax(model_torch(torch_tensor(test)), dim = 2))
+
+# Take label with highest probability:
+prediction = (prediction[,1] < prediction[,2]) * 1
+
+table(prediction, labelsTest)
+#>           labelsTest
+#> prediction   0   1
+#>          0 121   5
+#>          1   0  71
+cat("Accuracy:\n")
+#> Accuracy:
+(accuracy = mean(prediction == labelsTest))
+#> [1] 0.9746193
+```
 
 
 
@@ -1009,6 +1636,142 @@ Now try your above solution (**the exactly same one!**) with another seed to che
 [Cito]{.panel-name}
 
 
+```r
+library(cito)
+
+data_train = data.frame(survived = labelsTrain, train)
+
+model_cito = dnn(survived~., 
+                 data = data_train, 
+                 loss = "binomial", 
+                 hidden = rep(50, 4), 
+                 activation = rep("selu", 4), 
+                 validation = 0.2, 
+                 alpha = 0.2, 
+                 early_stopping = TRUE, 
+                 epochs = 100L, 
+                 lambda = 0.01)
+#> Loss at epoch 1: training: 4.275, validation: 1.939, lr: 0.01000
+```
+
+<img src="06-ML_workflow_files/figure-html/chunk_chapter4_task_43_cito-1.png" width="100%" style="display: block; margin: auto;" />
+
+```
+#> Loss at epoch 2: training: 1.766, validation: 1.395, lr: 0.01000
+#> Loss at epoch 3: training: 1.242, validation: 1.141, lr: 0.01000
+#> Loss at epoch 4: training: 1.060, validation: 1.027, lr: 0.01000
+#> Loss at epoch 5: training: 0.995, validation: 1.005, lr: 0.01000
+#> Loss at epoch 6: training: 0.975, validation: 0.970, lr: 0.01000
+#> Loss at epoch 7: training: 0.963, validation: 0.985, lr: 0.01000
+#> Loss at epoch 8: training: 0.962, validation: 0.975, lr: 0.01000
+#> Loss at epoch 9: training: 0.958, validation: 0.965, lr: 0.01000
+#> Loss at epoch 10: training: 0.959, validation: 0.977, lr: 0.01000
+#> Loss at epoch 11: training: 0.955, validation: 0.967, lr: 0.01000
+#> Loss at epoch 12: training: 0.953, validation: 0.971, lr: 0.01000
+#> Loss at epoch 13: training: 0.956, validation: 0.967, lr: 0.01000
+#> Loss at epoch 14: training: 0.952, validation: 0.972, lr: 0.01000
+#> Loss at epoch 15: training: 0.952, validation: 0.976, lr: 0.01000
+#> Loss at epoch 16: training: 0.952, validation: 0.954, lr: 0.01000
+#> Loss at epoch 17: training: 0.950, validation: 0.974, lr: 0.01000
+#> Loss at epoch 18: training: 0.949, validation: 0.970, lr: 0.01000
+#> Loss at epoch 19: training: 0.950, validation: 0.964, lr: 0.01000
+#> Loss at epoch 20: training: 0.951, validation: 0.972, lr: 0.01000
+#> Loss at epoch 21: training: 0.950, validation: 0.962, lr: 0.01000
+#> Loss at epoch 22: training: 0.950, validation: 0.975, lr: 0.01000
+#> Loss at epoch 23: training: 0.952, validation: 0.966, lr: 0.01000
+#> Loss at epoch 24: training: 0.951, validation: 0.967, lr: 0.01000
+#> Loss at epoch 25: training: 0.951, validation: 0.978, lr: 0.01000
+#> Loss at epoch 26: training: 0.952, validation: 0.963, lr: 0.01000
+#> Loss at epoch 27: training: 0.952, validation: 0.971, lr: 0.01000
+#> Loss at epoch 28: training: 0.953, validation: 0.974, lr: 0.01000
+#> Loss at epoch 29: training: 0.951, validation: 0.974, lr: 0.01000
+#> Loss at epoch 30: training: 0.953, validation: 0.970, lr: 0.01000
+#> Loss at epoch 31: training: 0.954, validation: 0.965, lr: 0.01000
+#> Loss at epoch 32: training: 0.951, validation: 0.981, lr: 0.01000
+#> Loss at epoch 33: training: 0.954, validation: 0.972, lr: 0.01000
+#> Loss at epoch 34: training: 0.954, validation: 0.968, lr: 0.01000
+#> Loss at epoch 35: training: 0.953, validation: 0.983, lr: 0.01000
+#> Loss at epoch 36: training: 0.954, validation: 0.969, lr: 0.01000
+#> Loss at epoch 37: training: 0.954, validation: 0.971, lr: 0.01000
+#> Loss at epoch 38: training: 0.954, validation: 0.976, lr: 0.01000
+#> Loss at epoch 39: training: 0.953, validation: 0.974, lr: 0.01000
+#> Loss at epoch 40: training: 0.955, validation: 0.978, lr: 0.01000
+#> Loss at epoch 41: training: 0.955, validation: 0.966, lr: 0.01000
+#> Loss at epoch 42: training: 0.953, validation: 0.980, lr: 0.01000
+#> Loss at epoch 43: training: 0.955, validation: 0.976, lr: 0.01000
+#> Loss at epoch 44: training: 0.954, validation: 0.967, lr: 0.01000
+#> Loss at epoch 45: training: 0.955, validation: 0.978, lr: 0.01000
+#> Loss at epoch 46: training: 0.955, validation: 0.969, lr: 0.01000
+#> Loss at epoch 47: training: 0.953, validation: 0.978, lr: 0.01000
+#> Loss at epoch 48: training: 0.956, validation: 0.970, lr: 0.01000
+#> Loss at epoch 49: training: 0.954, validation: 0.974, lr: 0.01000
+#> Loss at epoch 50: training: 0.954, validation: 0.982, lr: 0.01000
+#> Loss at epoch 51: training: 0.956, validation: 0.960, lr: 0.01000
+#> Loss at epoch 52: training: 0.955, validation: 0.978, lr: 0.01000
+#> Loss at epoch 53: training: 0.954, validation: 0.978, lr: 0.01000
+#> Loss at epoch 54: training: 0.954, validation: 0.971, lr: 0.01000
+#> Loss at epoch 55: training: 0.956, validation: 0.976, lr: 0.01000
+#> Loss at epoch 56: training: 0.954, validation: 0.972, lr: 0.01000
+#> Loss at epoch 57: training: 0.953, validation: 0.980, lr: 0.01000
+#> Loss at epoch 58: training: 0.957, validation: 0.968, lr: 0.01000
+#> Loss at epoch 59: training: 0.954, validation: 0.974, lr: 0.01000
+#> Loss at epoch 60: training: 0.954, validation: 0.981, lr: 0.01000
+#> Loss at epoch 61: training: 0.956, validation: 0.965, lr: 0.01000
+#> Loss at epoch 62: training: 0.954, validation: 0.977, lr: 0.01000
+#> Loss at epoch 63: training: 0.955, validation: 0.977, lr: 0.01000
+#> Loss at epoch 64: training: 0.955, validation: 0.973, lr: 0.01000
+#> Loss at epoch 65: training: 0.955, validation: 0.974, lr: 0.01000
+#> Loss at epoch 66: training: 0.955, validation: 0.967, lr: 0.01000
+#> Loss at epoch 67: training: 0.954, validation: 0.980, lr: 0.01000
+#> Loss at epoch 68: training: 0.955, validation: 0.975, lr: 0.01000
+#> Loss at epoch 69: training: 0.955, validation: 0.969, lr: 0.01000
+#> Loss at epoch 70: training: 0.955, validation: 0.982, lr: 0.01000
+#> Loss at epoch 71: training: 0.954, validation: 0.971, lr: 0.01000
+#> Loss at epoch 72: training: 0.954, validation: 0.971, lr: 0.01000
+#> Loss at epoch 73: training: 0.956, validation: 0.975, lr: 0.01000
+#> Loss at epoch 74: training: 0.953, validation: 0.977, lr: 0.01000
+#> Loss at epoch 75: training: 0.955, validation: 0.977, lr: 0.01000
+#> Loss at epoch 76: training: 0.956, validation: 0.964, lr: 0.01000
+#> Loss at epoch 77: training: 0.953, validation: 0.983, lr: 0.01000
+#> Loss at epoch 78: training: 0.955, validation: 0.976, lr: 0.01000
+#> Loss at epoch 79: training: 0.955, validation: 0.965, lr: 0.01000
+#> Loss at epoch 80: training: 0.955, validation: 0.982, lr: 0.01000
+#> Loss at epoch 81: training: 0.954, validation: 0.969, lr: 0.01000
+#> Loss at epoch 82: training: 0.955, validation: 0.977, lr: 0.01000
+#> Loss at epoch 83: training: 0.955, validation: 0.973, lr: 0.01000
+#> Loss at epoch 84: training: 0.954, validation: 0.975, lr: 0.01000
+#> Loss at epoch 85: training: 0.955, validation: 0.981, lr: 0.01000
+#> Loss at epoch 86: training: 0.955, validation: 0.962, lr: 0.01000
+#> Loss at epoch 87: training: 0.954, validation: 0.978, lr: 0.01000
+#> Loss at epoch 88: training: 0.955, validation: 0.977, lr: 0.01000
+#> Loss at epoch 89: training: 0.954, validation: 0.973, lr: 0.01000
+#> Loss at epoch 90: training: 0.955, validation: 0.976, lr: 0.01000
+#> Loss at epoch 91: training: 0.955, validation: 0.970, lr: 0.01000
+#> Loss at epoch 92: training: 0.953, validation: 0.982, lr: 0.01000
+#> Loss at epoch 93: training: 0.956, validation: 0.967, lr: 0.01000
+#> Loss at epoch 94: training: 0.955, validation: 0.972, lr: 0.01000
+#> Loss at epoch 95: training: 0.954, validation: 0.984, lr: 0.01000
+#> Loss at epoch 96: training: 0.955, validation: 0.966, lr: 0.01000
+#> Loss at epoch 97: training: 0.955, validation: 0.974, lr: 0.01000
+#> Loss at epoch 98: training: 0.954, validation: 0.979, lr: 0.01000
+#> Loss at epoch 99: training: 0.954, validation: 0.974, lr: 0.01000
+#> Loss at epoch 100: training: 0.956, validation: 0.973, lr: 0.01000
+
+prediction = predict(model_cito, newdata = data.frame(survived = 0, test))
+
+
+# Take label with highest probability:
+prediction = (prediction > 0.5)*1
+
+table(prediction, labelsTest)
+#>           labelsTest
+#> prediction   0   1
+#>          0 121  76
+cat("Accuracy:\n")
+#> Accuracy:
+(accuracy = mean(prediction == labelsTest))
+#> [1] 0.6142132
+```
 
 
 :::
