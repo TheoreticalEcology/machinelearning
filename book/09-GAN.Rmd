@@ -6,6 +6,8 @@
 ```
 
 ```{r, include=FALSE}
+Sys.setenv(CUDA_VISIBLE_DEVICES=3)
+
 # example R options set globally
 options(width = 90)
 
@@ -141,8 +143,7 @@ The picture above shows the 2-dimensional encoded values of the numbers in the M
 
 ### Autoencoder - MNIST Convolutional Neural Networks
 
-We can also use convolutional neural networks instead or on the side of deep neural networks. Moreover, there is an inverse convolutional layer (layer_conv_2d_transpose; "deconvolution"):
-
+We can also use convolutional neural networks instead or on the side of deep neural networks:
 Prepare data:
 
 ```{r chunk_chapter7_10}
@@ -157,13 +158,14 @@ Then define the downsize model:
 ```{r chunk_chapter7_11__AEmnistCNN}
 down_size_model = keras_model_sequential()
 down_size_model %>% 
- layer_conv_2d(filters = 32L, activation = "relu", kernel_size = c(2L, 2L), 
-                          input_shape = c(28L, 28L, 1L),
-               strides = c(4L, 4L)) %>% 
- layer_conv_2d(filters = 16L, activation = "relu", 
-                           kernel_size = c(7L, 7L), strides = c(1L, 1L)) %>% 
- layer_flatten() %>% 
- layer_dense(units = 2L, activation = "linear")
+  layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L, 3L), input_shape = c(28L, 28L, 1L), padding = "same") %>% 
+  layer_max_pooling_2d(, padding = "same") %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_max_pooling_2d(, padding = "same") %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_max_pooling_2d(, padding = "same") %>% 
+  layer_flatten() %>% 
+  layer_dense(units = 2L, activation = "linear")
 ```
 
 Define the upsize model:
@@ -171,14 +173,15 @@ Define the upsize model:
 ```{r chunk_chapter7_12}
 up_size_model = keras_model_sequential()
 up_size_model %>% 
- layer_dense(units = 8L, activation = "relu", input_shape = c(2L)) %>% 
- layer_reshape(target_shape = c(1L, 1L, 8L)) %>% 
- layer_conv_2d_transpose(filters = 16L, kernel_size = c(7, 7),
-                         activation = "relu", strides = c(1L, 1L)) %>% 
- layer_conv_2d_transpose(filters = 32L, activation = "relu",
-                         kernel_size = c(2, 2), strides = c(4L, 4L)) %>% 
- layer_conv_2d(filters = 1, kernel_size = c(1L, 1L),
-               strides = c(1L, 1L), activation = "sigmoid")
+  layer_dense(units = 128L, activation = "relu", input_shape = c(2L)) %>% 
+  layer_reshape(target_shape = c(4L, 4L, 8L)) %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_upsampling_2d() %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_upsampling_2d() %>% 
+  layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L,3L)) %>% 
+  layer_upsampling_2d() %>% 
+  layer_conv_2d(filters = 1, activation = "sigmoid", kernel_size = c(3L,3L), padding = "same")
 ```
 
 Combine the two models and fit it:
@@ -191,11 +194,11 @@ set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 autoencoder = tf$keras$models$Model(inputs = down_size_model$input,
                                     outputs = up_size_model(down_size_model$output))
 
-autoencoder$compile(loss = loss_binary_crossentropy,
+autoencoder %>% compile(loss = loss_binary_crossentropy,
                     optimizer = optimizer_rmsprop(0.001))
 
-autoencoder$fit(x = tf$constant(train_x), y = tf$constant(train_x),
-                epochs = 10L, batch_size = 128L)
+autoencoder %>%  fit(x = tf$constant(train_x), y = tf$constant(train_x),
+                      epochs = 50L, batch_size = 64L)
 ```
 
 Test it:
@@ -249,31 +252,31 @@ Build the two networks:
 encoded = 2L
 prior = tfd_independent(tfd_normal(c(0.0, 0.0), 1.0), 1L)
 
+up_size_model = keras_model_sequential()
+up_size_model %>% 
+  layer_dense(units = 128L, activation = "relu", input_shape = c(2L)) %>% 
+  layer_reshape(target_shape = c(4L, 4L, 8L)) %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_upsampling_2d() %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_upsampling_2d() %>% 
+  layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L,3L)) %>% 
+  layer_upsampling_2d() %>% 
+  layer_conv_2d(filters = 1, activation = "sigmoid", kernel_size = c(3L,3L), padding = "same")
+
 down_size_model = keras_model_sequential()
 down_size_model %>% 
-  layer_conv_2d(filters = 32L, activation = "relu", kernel_size = c(2L, 2L),
-               input_shape = c(28L, 28L, 1L), strides = c(4L, 4L)) %>% 
-  layer_conv_2d(filters = 16L, activation = "relu",
-               kernel_size = c(7L, 7L), strides = c(1L, 1L)) %>% 
+  layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L, 3L), input_shape = c(28L, 28L, 1L), padding = "same") %>% 
+  layer_max_pooling_2d(, padding = "same") %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_max_pooling_2d(, padding = "same") %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_max_pooling_2d(, padding = "same") %>% 
   layer_flatten() %>% 
   layer_dense(units = 4L, activation = "linear") %>% 
   layer_independent_normal(2L,
                            activity_regularizer =
                              tfp$layers$KLDivergenceRegularizer(distribution_b = prior))
-
-up_size_model = keras_model_sequential()
-up_size_model %>% 
-  layer_dense(units = 8L, activation = "relu", input_shape = c(2L)) %>% 
-  layer_reshape(target_shape = c(1L, 1L, 8L)) %>% 
-  layer_conv_2d_transpose(filters = 16L, kernel_size = c(7, 7),
-                         activation = "relu", strides = c(1L, 1L),
-                         use_bias = FALSE) %>% 
-  layer_conv_2d_transpose(filters = 32L, activation = "relu",
-                         kernel_size = c(2L, 2L), strides = c(4L, 4L),
-                         use_bias = FALSE) %>% 
-  layer_conv_2d(filters = 1, kernel_size = c(1L, 1L),
-               strides = c(1L, 1L), activation = "sigmoid",
-               use_bias = FALSE)
 
 VAE = keras_model(inputs = down_size_model$inputs,
                   outputs = up_size_model(down_size_model$outputs))
@@ -289,9 +292,9 @@ set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 loss_binary = function(true, pred){
   return(loss_binary_crossentropy(true, pred) * 28.0 * 28.0)
 }
-VAE$compile(loss = loss_binary, optimizer = optimizer_adamax())
+VAE %>% compile(loss = loss_binary, optimizer = optimizer_adamax())
 
-VAE$fit(train_x, train_x, epochs = 5L)
+VAE %>% fit(train_x, train_x, epochs = 50L)
 ```
 
 And show that it works:
@@ -307,6 +310,139 @@ imgPlot(images[1,,,1]$numpy())
 plot(dist$mean()$numpy()[,1], dist$mean()$numpy()[,2], col = ownColors[train[[2]]+1L])
 par(oldpar)
 ```
+
+
+### Exercise
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
+```
+
+Read section \@ref(VAE) on variational autoencoders and try to transfer the examples with MNIST to our flower data set.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+Split the data:
+    
+```{r chunk_chapter7_task_0}
+library(keras)
+library(tensorflow)
+library(tfprobability)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = EcoData::dataset_flower()
+test = data$test/255
+train = data$train/255
+rm(data)
+```
+
+Build the variational autoencoder:
+
+```{r chunk_chapter7_task_1__VAEflower}
+encoded = 10L
+prior = tfp$distributions$Independent(
+  tfp$distributions$Normal(loc=tf$zeros(encoded), scale = 1.),
+  reinterpreted_batch_ndims = 1L
+)
+
+down_size_model = tf$keras$models$Sequential(list(
+  tf$keras$layers$InputLayer(input_shape = c(80L, 80L, 3L)),
+  tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu,
+                         kernel_size = 5L, strides = 1L),
+  tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu,
+                         kernel_size = 5L, strides = 2L),
+  tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu,
+                         kernel_size = 5L, strides = 1L),
+  tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu,
+                         kernel_size = 5L, strides = 2L),
+  tf$keras$layers$Conv2D(filters = 128L, activation = tf$nn$leaky_relu,
+                         kernel_size = 7L, strides = 1L),
+  tf$keras$layers$Flatten(),
+  tf$keras$layers$Dense(units = tfp$layers$MultivariateNormalTriL$params_size(encoded),
+                        activation = NULL),
+  tfp$layers$MultivariateNormalTriL(
+    encoded, 
+    activity_regularizer = tfp$layers$KLDivergenceRegularizer(prior, weight = 0.0002)
+  )
+))
+
+up_size_model = tf$keras$models$Sequential(list(
+  tf$keras$layers$InputLayer(input_shape = encoded),
+  tf$keras$layers$Dense(units = 8192L, activation = "relu"),
+  tf$keras$layers$Reshape(target_shape =  c(8L, 8L, 128L)),
+  tf$keras$layers$Conv2DTranspose(filters = 128L, kernel_size = 7L,
+                                  activation = tf$nn$leaky_relu, strides = 1L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L,
+                                  activation = tf$nn$leaky_relu, strides = 2L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L,
+                                  activation = tf$nn$leaky_relu, strides = 1L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L,
+                                  activation = tf$nn$leaky_relu, strides = 2L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L,
+                                  activation = tf$nn$leaky_relu, strides = 1L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 3L, kernel_size = c(4L, 4L),
+                                  activation = "sigmoid", strides = c(1L, 1L),
+                                  use_bias = FALSE)
+))
+
+VAE = tf$keras$models$Model(inputs = down_size_model$inputs, 
+                            outputs = up_size_model(down_size_model$outputs))
+summary(VAE)
+```
+
+Compile and train model:
+
+```{r chunk_chapter7_task_2__VAEflower}
+be = function(true, pred){
+  return(tf$losses$binary_crossentropy(true, pred) * 80.0 * 80.0)
+}
+
+VAE$compile(loss = be,
+            optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.0003))
+VAE$fit(x = train, y = train, epochs = 50L, shuffle = TRUE, batch_size = 20L)
+
+dist = down_size_model(train[1:10,,,])
+images = up_size_model( dist$sample()[1:5,] )
+
+oldpar = par(mfrow = c(3, 1), mar = rep(1, 4))
+scales::rescale(images[1,,,]$numpy(), to = c(0, 255)) %>% 
+  image_to_array() %>%
+  `/`(., 255) %>%
+  as.raster() %>%
+  plot()
+
+scales::rescale(images[2,,,]$numpy(), to = c(0, 255)) %>% 
+  image_to_array() %>%
+  `/`(., 255) %>%
+  as.raster() %>%
+  plot()
+
+scales::rescale(images[3,,,]$numpy(), to = c(0, 255)) %>% 
+  image_to_array() %>%
+  `/`(., 255) %>%
+  as.raster() %>%
+  plot()
+par(oldpar)
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
 
 
 ## Generative Adversarial Networks (GANs) {#GANS}
@@ -522,11 +658,11 @@ for(e in 1:epochs){
     }
   )
    
-  if(epochs %% 5 == 0){ #Print output every 5 steps.
+  if(e %% 5 == 0){ #Print output every 5 steps.
     cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
   }
   noise = tf$random$normal(c(1L, 100L))
-  if(epochs %% 10 == 0){  #Plot image every 10 steps.
+  if(e %% 10 == 0){  #Plot image every 10 steps.
     imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
   }
 }
@@ -719,7 +855,7 @@ for(e in 1:epochs){
   noise = tf$random$normal(c(1L, 100L))
   image = generator(noise)$numpy()[1,,,]
   image = scales::rescale(image, to = c(0, 255))
-  if(e %% 10 == 0){
+  if(e %% 15 == 0){
     image %>% 
       image_to_array() %>%
         `/`(., 255) %>%
@@ -727,7 +863,7 @@ for(e in 1:epochs){
         plot()
   }
    
-  cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
+  if(e %% 10 == 0) cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
 }
 ```
 
@@ -752,6 +888,33 @@ More images:
 knitr::include_graphics(c("images/flower2.png", "images/flower3.png",
                           "images/flower4.png", "images/flower5.png"))
 ```
+
+
+### Exercise
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
+```
+
+Go through the R examples on generative adversarial networks (\@ref(GANS)) and compare the flower example with the MNIST example - where are the differences - and why?
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+The MNIST example uses a "simple" deep neural network which is sufficient for a classification that easy. The flower example uses a much more expensive convolutional neural network to classify the images.
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
 
 
 ## Reinforcement learning
@@ -864,157 +1027,5 @@ for(e in 1:100){
 }
 ```
 
-## Exercises
-
-```{=html}
-  <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
-```
-
-Read section \@ref(VAE) on variational autoencoders and try to transfer the examples with MNIST to our flower data set.
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-Split the data:
-    
-```{r chunk_chapter7_task_0}
-library(keras)
-library(tensorflow)
-library(tfprobability)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-data = EcoData::dataset_flower()
-test = data$test/255
-train = data$train/255
-rm(data)
-```
-
-Build the variational autoencoder:
-
-```{r chunk_chapter7_task_1__VAEflower}
-encoded = 10L
-prior = tfp$distributions$Independent(
-  tfp$distributions$Normal(loc=tf$zeros(encoded), scale = 1.),
-  reinterpreted_batch_ndims = 1L
-)
-
-down_size_model = tf$keras$models$Sequential(list(
-  tf$keras$layers$InputLayer(input_shape = c(80L, 80L, 3L)),
-  tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu,
-                         kernel_size = 5L, strides = 1L),
-  tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu,
-                         kernel_size = 5L, strides = 2L),
-  tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu,
-                         kernel_size = 5L, strides = 1L),
-  tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu,
-                         kernel_size = 5L, strides = 2L),
-  tf$keras$layers$Conv2D(filters = 128L, activation = tf$nn$leaky_relu,
-                         kernel_size = 7L, strides = 1L),
-  tf$keras$layers$Flatten(),
-  tf$keras$layers$Dense(units = tfp$layers$MultivariateNormalTriL$params_size(encoded),
-                        activation = NULL),
-  tfp$layers$MultivariateNormalTriL(
-    encoded, 
-    activity_regularizer = tfp$layers$KLDivergenceRegularizer(prior, weight = 0.0002)
-  )
-))
-
-up_size_model = tf$keras$models$Sequential(list(
-  tf$keras$layers$InputLayer(input_shape = encoded),
-  tf$keras$layers$Dense(units = 8192L, activation = "relu"),
-  tf$keras$layers$Reshape(target_shape =  c(8L, 8L, 128L)),
-  tf$keras$layers$Conv2DTranspose(filters = 128L, kernel_size = 7L,
-                                  activation = tf$nn$leaky_relu, strides = 1L,
-                                  use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L,
-                                  activation = tf$nn$leaky_relu, strides = 2L,
-                                  use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L,
-                                  activation = tf$nn$leaky_relu, strides = 1L,
-                                  use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L,
-                                  activation = tf$nn$leaky_relu, strides = 2L,
-                                  use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L,
-                                  activation = tf$nn$leaky_relu, strides = 1L,
-                                  use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 3L, kernel_size = c(4L, 4L),
-                                  activation = "sigmoid", strides = c(1L, 1L),
-                                  use_bias = FALSE)
-))
-
-VAE = tf$keras$models$Model(inputs = down_size_model$inputs, 
-                            outputs = up_size_model(down_size_model$outputs))
-summary(VAE)
-```
-
-Compile and train model:
-
-```{r chunk_chapter7_task_2__VAEflower}
-be = function(true, pred){
-  return(tf$losses$binary_crossentropy(true, pred) * 80.0 * 80.0)
-}
-
-VAE$compile(loss = be,
-            optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.0003))
-VAE$fit(x = train, y = train, epochs = 50L, shuffle = TRUE, batch_size = 20L)
-
-dist = down_size_model(train[1:10,,,])
-images = up_size_model( dist$sample()[1:5,] )
-
-oldpar = par(mfrow = c(3, 1), mar = rep(1, 4))
-scales::rescale(images[1,,,]$numpy(), to = c(0, 255)) %>% 
-  image_to_array() %>%
-  `/`(., 255) %>%
-  as.raster() %>%
-  plot()
-
-scales::rescale(images[2,,,]$numpy(), to = c(0, 255)) %>% 
-  image_to_array() %>%
-  `/`(., 255) %>%
-  as.raster() %>%
-  plot()
-
-scales::rescale(images[3,,,]$numpy(), to = c(0, 255)) %>% 
-  image_to_array() %>%
-  `/`(., 255) %>%
-  as.raster() %>%
-  plot()
-par(oldpar)
-```
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
-
-```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
-```
-
-Go through the R examples on generative adversarial networks (\@ref(GANS)) and compare the flower example with the MNIST example - where are the differences - and why?
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-The MNIST example uses a "simple" deep neural network which is sufficient for a classification that easy. The flower example uses a much more expensive convolutional neural network to classify the images.
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
 
 

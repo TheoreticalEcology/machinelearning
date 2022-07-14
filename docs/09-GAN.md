@@ -159,8 +159,7 @@ The picture above shows the 2-dimensional encoded values of the numbers in the M
 
 ### Autoencoder - MNIST Convolutional Neural Networks
 
-We can also use convolutional neural networks instead or on the side of deep neural networks. Moreover, there is an inverse convolutional layer (layer_conv_2d_transpose; "deconvolution"):
-
+We can also use convolutional neural networks instead or on the side of deep neural networks:
 Prepare data:
 
 
@@ -177,13 +176,14 @@ Then define the downsize model:
 ```r
 down_size_model = keras_model_sequential()
 down_size_model %>% 
- layer_conv_2d(filters = 32L, activation = "relu", kernel_size = c(2L, 2L), 
-                          input_shape = c(28L, 28L, 1L),
-               strides = c(4L, 4L)) %>% 
- layer_conv_2d(filters = 16L, activation = "relu", 
-                           kernel_size = c(7L, 7L), strides = c(1L, 1L)) %>% 
- layer_flatten() %>% 
- layer_dense(units = 2L, activation = "linear")
+  layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L, 3L), input_shape = c(28L, 28L, 1L), padding = "same") %>% 
+  layer_max_pooling_2d(, padding = "same") %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_max_pooling_2d(, padding = "same") %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_max_pooling_2d(, padding = "same") %>% 
+  layer_flatten() %>% 
+  layer_dense(units = 2L, activation = "linear")
 ```
 
 Define the upsize model:
@@ -192,14 +192,15 @@ Define the upsize model:
 ```r
 up_size_model = keras_model_sequential()
 up_size_model %>% 
- layer_dense(units = 8L, activation = "relu", input_shape = c(2L)) %>% 
- layer_reshape(target_shape = c(1L, 1L, 8L)) %>% 
- layer_conv_2d_transpose(filters = 16L, kernel_size = c(7, 7),
-                         activation = "relu", strides = c(1L, 1L)) %>% 
- layer_conv_2d_transpose(filters = 32L, activation = "relu",
-                         kernel_size = c(2, 2), strides = c(4L, 4L)) %>% 
- layer_conv_2d(filters = 1, kernel_size = c(1L, 1L),
-               strides = c(1L, 1L), activation = "sigmoid")
+  layer_dense(units = 128L, activation = "relu", input_shape = c(2L)) %>% 
+  layer_reshape(target_shape = c(4L, 4L, 8L)) %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_upsampling_2d() %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_upsampling_2d() %>% 
+  layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L,3L)) %>% 
+  layer_upsampling_2d() %>% 
+  layer_conv_2d(filters = 1, activation = "sigmoid", kernel_size = c(3L,3L), padding = "same")
 ```
 
 Combine the two models and fit it:
@@ -213,12 +214,11 @@ set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 autoencoder = tf$keras$models$Model(inputs = down_size_model$input,
                                     outputs = up_size_model(down_size_model$output))
 
-autoencoder$compile(loss = loss_binary_crossentropy,
+autoencoder %>% compile(loss = loss_binary_crossentropy,
                     optimizer = optimizer_rmsprop(0.001))
 
-autoencoder$fit(x = tf$constant(train_x), y = tf$constant(train_x),
-                epochs = 10L, batch_size = 128L)
-#> <keras.callbacks.History object at 0x7fdecc353750>
+autoencoder %>%  fit(x = tf$constant(train_x), y = tf$constant(train_x),
+                      epochs = 10L, batch_size = 128L)
 ```
 
 Test it:
@@ -272,7 +272,6 @@ For building variational autoencoders, we will use TensorFlow probability, but f
 library(tfprobability)
 
 data = tf$keras$datasets$mnist$load_data()
-#> Loaded Tensorflow version 2.9.1
 train = data[[1]]
 train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L))
 ```
@@ -294,31 +293,31 @@ Build the two networks:
 encoded = 2L
 prior = tfd_independent(tfd_normal(c(0.0, 0.0), 1.0), 1L)
 
+up_size_model = keras_model_sequential()
+up_size_model %>% 
+  layer_dense(units = 128L, activation = "relu", input_shape = c(2L)) %>% 
+  layer_reshape(target_shape = c(4L, 4L, 8L)) %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_upsampling_2d() %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_upsampling_2d() %>% 
+  layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L,3L)) %>% 
+  layer_upsampling_2d() %>% 
+  layer_conv_2d(filters = 1, activation = "sigmoid", kernel_size = c(3L,3L), padding = "same")
+
 down_size_model = keras_model_sequential()
 down_size_model %>% 
-  layer_conv_2d(filters = 32L, activation = "relu", kernel_size = c(2L, 2L),
-               input_shape = c(28L, 28L, 1L), strides = c(4L, 4L)) %>% 
-  layer_conv_2d(filters = 16L, activation = "relu",
-               kernel_size = c(7L, 7L), strides = c(1L, 1L)) %>% 
+  layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L, 3L), input_shape = c(28L, 28L, 1L), padding = "same") %>% 
+  layer_max_pooling_2d(, padding = "same") %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_max_pooling_2d(, padding = "same") %>% 
+  layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>% 
+  layer_max_pooling_2d(, padding = "same") %>% 
   layer_flatten() %>% 
   layer_dense(units = 4L, activation = "linear") %>% 
   layer_independent_normal(2L,
                            activity_regularizer =
                              tfp$layers$KLDivergenceRegularizer(distribution_b = prior))
-
-up_size_model = keras_model_sequential()
-up_size_model %>% 
-  layer_dense(units = 8L, activation = "relu", input_shape = c(2L)) %>% 
-  layer_reshape(target_shape = c(1L, 1L, 8L)) %>% 
-  layer_conv_2d_transpose(filters = 16L, kernel_size = c(7, 7),
-                         activation = "relu", strides = c(1L, 1L),
-                         use_bias = FALSE) %>% 
-  layer_conv_2d_transpose(filters = 32L, activation = "relu",
-                         kernel_size = c(2L, 2L), strides = c(4L, 4L),
-                         use_bias = FALSE) %>% 
-  layer_conv_2d(filters = 1, kernel_size = c(1L, 1L),
-               strides = c(1L, 1L), activation = "sigmoid",
-               use_bias = FALSE)
 
 VAE = keras_model(inputs = down_size_model$inputs,
                   outputs = up_size_model(down_size_model$outputs))
@@ -335,10 +334,9 @@ set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 loss_binary = function(true, pred){
   return(loss_binary_crossentropy(true, pred) * 28.0 * 28.0)
 }
-VAE$compile(loss = loss_binary, optimizer = optimizer_adamax())
+VAE %>% compile(loss = loss_binary, optimizer = optimizer_adamax())
 
-VAE$fit(train_x, train_x, epochs = 5L)
-#> <keras.callbacks.History object at 0x7fe5e0554790>
+VAE %>% fit(train_x, train_x, epochs = 50L)
 ```
 
 And show that it works:
@@ -365,6 +363,168 @@ plot(dist$mean()$numpy()[,1], dist$mean()$numpy()[,2], col = ownColors[train[[2]
 ```r
 par(oldpar)
 ```
+
+
+### Exercise
+
+```{=html}
+  <hr/>
+  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
+```
+
+Read section \@ref(VAE) on variational autoencoders and try to transfer the examples with MNIST to our flower data set.
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+Split the data:
+    
+
+```r
+library(keras)
+library(tensorflow)
+library(tfprobability)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+data = EcoData::dataset_flower()
+test = data$test/255
+train = data$train/255
+rm(data)
+```
+
+Build the variational autoencoder:
+
+
+```r
+encoded = 10L
+prior = tfp$distributions$Independent(
+  tfp$distributions$Normal(loc=tf$zeros(encoded), scale = 1.),
+  reinterpreted_batch_ndims = 1L
+)
+
+down_size_model = tf$keras$models$Sequential(list(
+  tf$keras$layers$InputLayer(input_shape = c(80L, 80L, 3L)),
+  tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu,
+                         kernel_size = 5L, strides = 1L),
+  tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu,
+                         kernel_size = 5L, strides = 2L),
+  tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu,
+                         kernel_size = 5L, strides = 1L),
+  tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu,
+                         kernel_size = 5L, strides = 2L),
+  tf$keras$layers$Conv2D(filters = 128L, activation = tf$nn$leaky_relu,
+                         kernel_size = 7L, strides = 1L),
+  tf$keras$layers$Flatten(),
+  tf$keras$layers$Dense(units = tfp$layers$MultivariateNormalTriL$params_size(encoded),
+                        activation = NULL),
+  tfp$layers$MultivariateNormalTriL(
+    encoded, 
+    activity_regularizer = tfp$layers$KLDivergenceRegularizer(prior, weight = 0.0002)
+  )
+))
+
+up_size_model = tf$keras$models$Sequential(list(
+  tf$keras$layers$InputLayer(input_shape = encoded),
+  tf$keras$layers$Dense(units = 8192L, activation = "relu"),
+  tf$keras$layers$Reshape(target_shape =  c(8L, 8L, 128L)),
+  tf$keras$layers$Conv2DTranspose(filters = 128L, kernel_size = 7L,
+                                  activation = tf$nn$leaky_relu, strides = 1L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L,
+                                  activation = tf$nn$leaky_relu, strides = 2L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L,
+                                  activation = tf$nn$leaky_relu, strides = 1L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L,
+                                  activation = tf$nn$leaky_relu, strides = 2L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L,
+                                  activation = tf$nn$leaky_relu, strides = 1L,
+                                  use_bias = FALSE),
+  tf$keras$layers$Conv2DTranspose(filters = 3L, kernel_size = c(4L, 4L),
+                                  activation = "sigmoid", strides = c(1L, 1L),
+                                  use_bias = FALSE)
+))
+
+VAE = tf$keras$models$Model(inputs = down_size_model$inputs, 
+                            outputs = up_size_model(down_size_model$outputs))
+summary(VAE)
+#> Model: "model_3"
+#> __________________________________________________________________________________________
+#>  Layer (type)                           Output Shape                        Param #       
+#> ==========================================================================================
+#>  input_1 (InputLayer)                   [(None, 80, 80, 3)]                 0             
+#>  conv2d_14 (Conv2D)                     (None, 76, 76, 32)                  2432          
+#>  conv2d_15 (Conv2D)                     (None, 36, 36, 32)                  25632         
+#>  conv2d_16 (Conv2D)                     (None, 32, 32, 64)                  51264         
+#>  conv2d_17 (Conv2D)                     (None, 14, 14, 64)                  102464        
+#>  conv2d_18 (Conv2D)                     (None, 8, 8, 128)                   401536        
+#>  flatten_2 (Flatten)                    (None, 8192)                        0             
+#>  dense_10 (Dense)                       (None, 65)                          532545        
+#>  multivariate_normal_tri_l (Multivariat  ((None, 10),                       0             
+#>  eNormalTriL)                            (None, 10))                                      
+#>  sequential_7 (Sequential)              (None, 80, 80, 3)                   1278464       
+#> ==========================================================================================
+#> Total params: 2,394,337
+#> Trainable params: 2,394,337
+#> Non-trainable params: 0
+#> __________________________________________________________________________________________
+```
+
+Compile and train model:
+
+
+```r
+be = function(true, pred){
+  return(tf$losses$binary_crossentropy(true, pred) * 80.0 * 80.0)
+}
+
+VAE$compile(loss = be,
+            optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.0003))
+VAE$fit(x = train, y = train, epochs = 50L, shuffle = TRUE, batch_size = 20L)
+#> <keras.callbacks.History object at 0x7f0f23bd3ed0>
+
+dist = down_size_model(train[1:10,,,])
+images = up_size_model( dist$sample()[1:5,] )
+
+oldpar = par(mfrow = c(3, 1), mar = rep(1, 4))
+scales::rescale(images[1,,,]$numpy(), to = c(0, 255)) %>% 
+  image_to_array() %>%
+  `/`(., 255) %>%
+  as.raster() %>%
+  plot()
+
+scales::rescale(images[2,,,]$numpy(), to = c(0, 255)) %>% 
+  image_to_array() %>%
+  `/`(., 255) %>%
+  as.raster() %>%
+  plot()
+
+scales::rescale(images[3,,,]$numpy(), to = c(0, 255)) %>% 
+  image_to_array() %>%
+  `/`(., 255) %>%
+  as.raster() %>%
+  plot()
+```
+
+<img src="09-GAN_files/figure-html/chunk_chapter7_task_2__VAEflower-1.png" width="100%" style="display: block; margin: auto;" />
+
+```r
+par(oldpar)
+```
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
 
 
 ## Generative Adversarial Networks (GANs) {#GANS}
@@ -603,121 +763,121 @@ for(e in 1:epochs){
     imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
   }
 }
-#> Gen:  0.6884934  Disc:  1.085609
+#> Gen:  0.6883001  Disc:  1.086379
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-1.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.7152359  Disc:  1.162967
+#> Gen:  0.7162178  Disc:  1.16348
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-2.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.7213668  Disc:  1.175857
+#> Gen:  0.7247894  Disc:  1.172292
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-3.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.7423671  Disc:  1.166635
+#> Gen:  0.7447979  Disc:  1.159319
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-4.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.7599397  Disc:  1.165749
+#> Gen:  0.7635304  Disc:  1.162806
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-5.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.7712564  Disc:  1.181281
+#> Gen:  0.7798976  Disc:  1.159764
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-6.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.8222006  Disc:  1.106725
+#> Gen:  0.8613199  Disc:  1.069082
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-7.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.9214915  Disc:  1.115732
+#> Gen:  0.895333  Disc:  1.136898
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-8.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.9310804  Disc:  1.18354
+#> Gen:  0.9003394  Disc:  1.197259
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-9.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.9413241  Disc:  1.22591
+#> Gen:  0.9064167  Disc:  1.235476
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-10.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.952243  Disc:  1.252399
+#> Gen:  0.9132291  Disc:  1.25791
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-11.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.9622479  Disc:  1.270034
+#> Gen:  0.9143279  Disc:  1.280195
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-12.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.9704371  Disc:  1.283249
+#> Gen:  0.9174862  Disc:  1.292267
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-13.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.9778271  Disc:  1.29094
+#> Gen:  0.9200393  Disc:  1.301653
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-14.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.9859265  Disc:  1.297595
+#> Gen:  0.9239787  Disc:  1.307224
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-15.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.9939315  Disc:  1.301899
+#> Gen:  0.9283891  Disc:  1.310384
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-16.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  1.004366  Disc:  1.304773
+#> Gen:  0.930881  Disc:  1.315801
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-17.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  1.019454  Disc:  1.307742
+#> Gen:  0.9356933  Disc:  1.318705
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-18.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  1.029843  Disc:  1.310403
+#> Gen:  0.9408956  Disc:  1.322087
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-19.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  1.043565  Disc:  1.316857
+#> Gen:  0.9464162  Disc:  1.32835
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-20.png" width="100%" style="display: block; margin: auto;" />
@@ -829,28 +989,28 @@ get_discriminator = function(){
 
 discriminator = get_discriminator()
 discriminator
-#> Model: "sequential_7"
+#> Model: "sequential_13"
 #> __________________________________________________________________________________________
 #>  Layer (type)                           Output Shape                        Param #       
 #> ==========================================================================================
-#>  conv2d_5 (Conv2D)                      (None, 40, 40, 64)                  4864          
+#>  conv2d_21 (Conv2D)                     (None, 40, 40, 64)                  4864          
 #>  leaky_re_lu_14 (LeakyReLU)             (None, 40, 40, 64)                  0             
 #>  dropout_6 (Dropout)                    (None, 40, 40, 64)                  0             
-#>  conv2d_4 (Conv2D)                      (None, 20, 20, 128)                 204928        
+#>  conv2d_20 (Conv2D)                     (None, 20, 20, 128)                 204928        
 #>  leaky_re_lu_13 (LeakyReLU)             (None, 20, 20, 128)                 0             
 #>  dropout_5 (Dropout)                    (None, 20, 20, 128)                 0             
-#>  conv2d_3 (Conv2D)                      (None, 10, 10, 256)                 295168        
+#>  conv2d_19 (Conv2D)                     (None, 10, 10, 256)                 295168        
 #>  leaky_re_lu_12 (LeakyReLU)             (None, 10, 10, 256)                 0             
 #>  dropout_4 (Dropout)                    (None, 10, 10, 256)                 0             
-#>  flatten_1 (Flatten)                    (None, 25600)                       0             
-#>  dense_15 (Dense)                       (None, 1)                           25601         
+#>  flatten_3 (Flatten)                    (None, 25600)                       0             
+#>  dense_25 (Dense)                       (None, 1)                           25601         
 #> ==========================================================================================
 #> Total params: 530,561
 #> Trainable params: 530,561
 #> Non-trainable params: 0
 #> __________________________________________________________________________________________
 discriminator(generator(tf$random$normal(c(1L, 100L))))
-#> tf.Tensor([[0.4999608]], shape=(1, 1), dtype=float32)
+#> tf.Tensor([[0.49996078]], shape=(1, 1), dtype=float32)
 ```
 
 Define the loss functions:
@@ -947,7 +1107,7 @@ for(e in 1:epochs){
   noise = tf$random$normal(c(1L, 100L))
   image = generator(noise)$numpy()[1,,,]
   image = scales::rescale(image, to = c(0, 255))
-  if(e %% 10 == 0){
+  if(e %% 15 == 0){
     image %>% 
       image_to_array() %>%
         `/`(., 255) %>%
@@ -955,53 +1115,21 @@ for(e in 1:epochs){
         plot()
   }
    
-  cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
+  if(e %% 10 == 0) cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
 }
-#> Gen:  1.143774  Disc:  0.7957661  
-#> Gen:  1.497174  Disc:  0.7416704  
-#> Gen:  1.723195  Disc:  0.7223008  
-#> Gen:  1.830423  Disc:  0.73045  
-#> Gen:  1.842911  Disc:  0.753501  
-#> Gen:  1.8544  Disc:  0.7677898  
-#> Gen:  1.796528  Disc:  0.8014661  
-#> Gen:  1.728089  Disc:  0.8346844  
-#> Gen:  1.674429  Disc:  0.8570877
+#> Gen:  1.715921  Disc:  0.8511207
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_37-1.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  1.617773  Disc:  0.8798137  
-#> Gen:  1.569825  Disc:  0.8988503  
-#> Gen:  1.527545  Disc:  0.9151082  
-#> Gen:  1.493145  Disc:  0.9310999  
-#> Gen:  1.463344  Disc:  0.9436654  
-#> Gen:  1.434633  Disc:  0.9576464  
-#> Gen:  1.406997  Disc:  0.9707255  
-#> Gen:  1.382015  Disc:  0.9831676  
-#> Gen:  1.359031  Disc:  0.9945794  
-#> Gen:  1.33527  Disc:  1.007315
+#> Gen:  1.344604  Disc:  1.02202
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_37-2.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  1.312788  Disc:  1.018794  
-#> Gen:  1.292069  Disc:  1.030401  
-#> Gen:  1.275383  Disc:  1.038811  
-#> Gen:  1.259953  Disc:  1.046686  
-#> Gen:  1.245397  Disc:  1.05389  
-#> Gen:  1.232108  Disc:  1.060455  
-#> Gen:  1.22031  Disc:  1.065932  
-#> Gen:  1.209019  Disc:  1.071359  
-#> Gen:  1.198599  Disc:  1.075818  
-#> Gen:  1.189716  Disc:  1.079902
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_37-3.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  1.181944  Disc:  1.082428
+#> Gen:  1.184906  Disc:  1.097583
 ```
 
 
@@ -1025,6 +1153,33 @@ image %>%
 More images:
 
 <img src="images/flower2.png" width="150%" height="150%" style="display: block; margin: auto;" /><img src="images/flower3.png" width="150%" height="150%" style="display: block; margin: auto;" /><img src="images/flower4.png" width="150%" height="150%" style="display: block; margin: auto;" /><img src="images/flower5.png" width="150%" height="150%" style="display: block; margin: auto;" />
+
+
+### Exercise
+
+```{=html}
+  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
+```
+
+Go through the R examples on generative adversarial networks (\@ref(GANS)) and compare the flower example with the MNIST example - where are the differences - and why?
+
+```{=html}
+  <details>
+    <summary>
+      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
+    </summary>
+    <p>
+```
+
+The MNIST example uses a "simple" deep neural network which is sufficient for a classification that easy. The flower example uses a much more expensive convolutional neural network to classify the images.
+
+```{=html}
+    </p>
+  </details>
+  <br/><hr/>
+```
+
+
 
 
 ## Reinforcement learning
@@ -1138,186 +1293,5 @@ for(e in 1:100){
 }
 ```
 
-## Exercises
-
-```{=html}
-  <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
-```
-
-Read section \@ref(VAE) on variational autoencoders and try to transfer the examples with MNIST to our flower data set.
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-Split the data:
-    
-
-```r
-library(keras)
-library(tensorflow)
-library(tfprobability)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-data = EcoData::dataset_flower()
-test = data$test/255
-train = data$train/255
-rm(data)
-```
-
-Build the variational autoencoder:
-
-
-```r
-encoded = 10L
-prior = tfp$distributions$Independent(
-  tfp$distributions$Normal(loc=tf$zeros(encoded), scale = 1.),
-  reinterpreted_batch_ndims = 1L
-)
-
-down_size_model = tf$keras$models$Sequential(list(
-  tf$keras$layers$InputLayer(input_shape = c(80L, 80L, 3L)),
-  tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu,
-                         kernel_size = 5L, strides = 1L),
-  tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu,
-                         kernel_size = 5L, strides = 2L),
-  tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu,
-                         kernel_size = 5L, strides = 1L),
-  tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu,
-                         kernel_size = 5L, strides = 2L),
-  tf$keras$layers$Conv2D(filters = 128L, activation = tf$nn$leaky_relu,
-                         kernel_size = 7L, strides = 1L),
-  tf$keras$layers$Flatten(),
-  tf$keras$layers$Dense(units = tfp$layers$MultivariateNormalTriL$params_size(encoded),
-                        activation = NULL),
-  tfp$layers$MultivariateNormalTriL(
-    encoded, 
-    activity_regularizer = tfp$layers$KLDivergenceRegularizer(prior, weight = 0.0002)
-  )
-))
-
-up_size_model = tf$keras$models$Sequential(list(
-  tf$keras$layers$InputLayer(input_shape = encoded),
-  tf$keras$layers$Dense(units = 8192L, activation = "relu"),
-  tf$keras$layers$Reshape(target_shape =  c(8L, 8L, 128L)),
-  tf$keras$layers$Conv2DTranspose(filters = 128L, kernel_size = 7L,
-                                  activation = tf$nn$leaky_relu, strides = 1L,
-                                  use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L,
-                                  activation = tf$nn$leaky_relu, strides = 2L,
-                                  use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L,
-                                  activation = tf$nn$leaky_relu, strides = 1L,
-                                  use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L,
-                                  activation = tf$nn$leaky_relu, strides = 2L,
-                                  use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L,
-                                  activation = tf$nn$leaky_relu, strides = 1L,
-                                  use_bias = FALSE),
-  tf$keras$layers$Conv2DTranspose(filters = 3L, kernel_size = c(4L, 4L),
-                                  activation = "sigmoid", strides = c(1L, 1L),
-                                  use_bias = FALSE)
-))
-
-VAE = tf$keras$models$Model(inputs = down_size_model$inputs, 
-                            outputs = up_size_model(down_size_model$outputs))
-summary(VAE)
-#> Model: "model_1"
-#> __________________________________________________________________________________________
-#>  Layer (type)                           Output Shape                        Param #       
-#> ==========================================================================================
-#>  input_1 (InputLayer)                   [(None, 80, 80, 3)]                 0             
-#>  conv2d_9 (Conv2D)                      (None, 76, 76, 32)                  2432          
-#>  conv2d_10 (Conv2D)                     (None, 36, 36, 32)                  25632         
-#>  conv2d_11 (Conv2D)                     (None, 32, 32, 64)                  51264         
-#>  conv2d_12 (Conv2D)                     (None, 14, 14, 64)                  102464        
-#>  conv2d_13 (Conv2D)                     (None, 8, 8, 128)                   401536        
-#>  flatten_3 (Flatten)                    (None, 8192)                        0             
-#>  dense_18 (Dense)                       (None, 65)                          532545        
-#>  multivariate_normal_tri_l (Multivariat  ((None, 10),                       0             
-#>  eNormalTriL)                            (None, 10))                                      
-#>  sequential_11 (Sequential)             (None, 80, 80, 3)                   1278464       
-#> ==========================================================================================
-#> Total params: 2,394,337
-#> Trainable params: 2,394,337
-#> Non-trainable params: 0
-#> __________________________________________________________________________________________
-```
-
-Compile and train model:
-
-
-```r
-be = function(true, pred){
-  return(tf$losses$binary_crossentropy(true, pred) * 80.0 * 80.0)
-}
-
-VAE$compile(loss = be,
-            optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.0003))
-VAE$fit(x = train, y = train, epochs = 50L, shuffle = TRUE, batch_size = 20L)
-#> <keras.callbacks.History object at 0x7fe56aba9b90>
-
-dist = down_size_model(train[1:10,,,])
-images = up_size_model( dist$sample()[1:5,] )
-
-oldpar = par(mfrow = c(3, 1), mar = rep(1, 4))
-scales::rescale(images[1,,,]$numpy(), to = c(0, 255)) %>% 
-  image_to_array() %>%
-  `/`(., 255) %>%
-  as.raster() %>%
-  plot()
-
-scales::rescale(images[2,,,]$numpy(), to = c(0, 255)) %>% 
-  image_to_array() %>%
-  `/`(., 255) %>%
-  as.raster() %>%
-  plot()
-
-scales::rescale(images[3,,,]$numpy(), to = c(0, 255)) %>% 
-  image_to_array() %>%
-  `/`(., 255) %>%
-  as.raster() %>%
-  plot()
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_task_2__VAEflower-1.png" width="100%" style="display: block; margin: auto;" />
-
-```r
-par(oldpar)
-```
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
-
-```{=html}
-  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
-```
-
-Go through the R examples on generative adversarial networks (\@ref(GANS)) and compare the flower example with the MNIST example - where are the differences - and why?
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-The MNIST example uses a "simple" deep neural network which is sufficient for a classification that easy. The flower example uses a much more expensive convolutional neural network to classify the images.
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
 
 
