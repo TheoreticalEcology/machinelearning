@@ -218,7 +218,7 @@ autoencoder %>% compile(loss = loss_binary_crossentropy,
                     optimizer = optimizer_rmsprop(0.001))
 
 autoencoder %>%  fit(x = tf$constant(train_x), y = tf$constant(train_x),
-                      epochs = 10L, batch_size = 128L)
+                      epochs = 50L, batch_size = 64L)
 ```
 
 Test it:
@@ -488,7 +488,7 @@ be = function(true, pred){
 VAE$compile(loss = be,
             optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.0003))
 VAE$fit(x = train, y = train, epochs = 50L, shuffle = TRUE, batch_size = 20L)
-#> <keras.callbacks.History object at 0x7f0f23bd3ed0>
+#> <keras.callbacks.History object at 0x7fcefde64b90>
 
 dist = down_size_model(train[1:10,,,])
 images = up_size_model( dist$sample()[1:5,] )
@@ -755,132 +755,26 @@ for(e in 1:epochs){
     }
   )
    
-  if(epochs %% 5 == 0){ #Print output every 5 steps.
+  if(e %% 5 == 0){ #Print output every 5 steps.
     cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
   }
   noise = tf$random$normal(c(1L, 100L))
-  if(epochs %% 10 == 0){  #Plot image every 10 steps.
+  if(e %% 10 == 0){  #Plot image every 10 steps.
     imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
   }
 }
-#> Gen:  0.6883001  Disc:  1.086379
+#> Gen:  0.8095555  Disc:  1.10533  
+#> Gen:  0.8928918  Disc:  1.287504
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-1.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  0.7162178  Disc:  1.16348
+#> Gen:  0.9071119  Disc:  1.314586  
+#> Gen:  0.9514963  Disc:  1.31548
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-2.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.7247894  Disc:  1.172292
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-3.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.7447979  Disc:  1.159319
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-4.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.7635304  Disc:  1.162806
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-5.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.7798976  Disc:  1.159764
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-6.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.8613199  Disc:  1.069082
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-7.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.895333  Disc:  1.136898
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-8.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.9003394  Disc:  1.197259
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-9.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.9064167  Disc:  1.235476
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-10.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.9132291  Disc:  1.25791
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-11.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.9143279  Disc:  1.280195
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-12.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.9174862  Disc:  1.292267
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-13.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.9200393  Disc:  1.301653
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-14.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.9239787  Disc:  1.307224
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-15.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.9283891  Disc:  1.310384
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-16.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.930881  Disc:  1.315801
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-17.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.9356933  Disc:  1.318705
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-18.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.9408956  Disc:  1.322087
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-19.png" width="100%" style="display: block; margin: auto;" />
-
-```
-#> Gen:  0.9464162  Disc:  1.32835
-```
-
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-20.png" width="100%" style="display: block; margin: auto;" />
 
 
 ### Flower - GAN
@@ -1117,19 +1011,19 @@ for(e in 1:epochs){
    
   if(e %% 10 == 0) cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
 }
-#> Gen:  1.715921  Disc:  0.8511207
+#> Gen:  1.651127  Disc:  0.8720699
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_37-1.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  1.344604  Disc:  1.02202
+#> Gen:  1.303061  Disc:  1.037192
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_37-2.png" width="100%" style="display: block; margin: auto;" />
 
 ```
-#> Gen:  1.184906  Disc:  1.097583
+#> Gen:  1.168868  Disc:  1.100166
 ```
 
 
