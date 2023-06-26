@@ -1,0 +1,281 @@
+---
+output: html_document
+editor_options:
+  chunk_output_type: console
+---
+
+# Distance-based Algorithms
+
+In this chapter, we introduce support-vector machines (SVMs) and other distance-based methods
+**Hint**: Distance-based models need scaling!
+
+## K-Nearest-Neighbor
+
+K-nearest-neighbor (kNN) is a simple algorithm that stores all the available cases and classifies the new data based on a similarity measure. It is mostly used to classify a data point based on how its $k$ nearest neighbors are classified.
+
+Let us first see an example:
+
+```{r chunk_chapter4_32}
+x = scale(iris[,1:4])
+y = iris[,5]
+plot(x[-100,1], x[-100, 3], col = y)
+points(x[100,1], x[100, 3], col = "blue", pch = 18, cex = 1.3)
+```
+
+Which class would you decide for the blue point? What are the classes of the nearest points? Well, this procedure is used by the k-nearest-neighbors classifier and thus there is actually no "real" learning in a k-nearest-neighbors classification.
+
+For applying a k-nearest-neighbors classification, we first have to scale the data set, because we deal with distances and want the same influence of all predictors. Imagine one variable has values from -10.000 to 10.000 and another from -1 to 1. Then the influence of the first variable on the distance to the other points is much stronger than the influence of the second variable.
+On the iris data set, we have to split the data into training and test set on our own. Then we will follow the usual pipeline. 
+
+```{r chunk_chapter4_33}
+data = iris
+data[,1:4] = apply(data[,1:4],2, scale)
+indices = sample.int(nrow(data), 0.7*nrow(data))
+train = data[indices,]
+test = data[-indices,]
+```
+
+Fit model and create predictions:
+
+```{r chunk_chapter4_34}
+library(kknn)
+set.seed(123)
+
+knn = kknn(Species~., train = train, test = test)
+summary(knn)
+table(test$Species, fitted(knn))
+```
+
+
+## Support Vector Machines (SVMs)
+
+Support vectors machines have a different approach. They try to divide the predictor space into sectors for each class. To do so, a support-vector machine fits the parameters of a hyperplane (a $n-1$ dimensional subspace in a $n$-dimensional space) in the predictor space by optimizing the distance between the hyperplane and the nearest point from each class. 
+
+Fitting a support-vector machine:
+
+```{r chunk_chapter4_35}
+library(e1071)
+
+data = iris
+data[,1:4] = apply(data[,1:4], 2, scale)
+indices = sample.int(nrow(data), 0.7*nrow(data))
+train = data[indices,]
+test = data[-indices,]
+
+sm = svm(Species~., data = train, kernel = "linear")
+pred = predict(sm, newdata = test)
+```
+
+```{r chunk_chapter4_36}
+oldpar = par(mfrow = c(1, 2))
+plot(test$Sepal.Length, test$Petal.Length,
+     col =  pred, main = "predicted")
+plot(test$Sepal.Length, test$Petal.Length,
+     col =  test$Species, main = "observed")
+par(oldpar)
+
+mean(pred == test$Species) # Accuracy.
+```
+
+Support-vector machines can only work on linearly separable problems. (A problem is called linearly separable if there exists at least one line in the plane with all of the points of one class on one side of the hyperplane and all the points of the others classes on the other side).
+
+If this is not possible, we however, can use the so called *kernel trick*, which maps the predictor space into a (higher dimensional) space in which the problem is linear separable. After having identified the boundaries in the higher-dimensional space, we can project them back into the original dimensions.
+
+```{r chunk_chapter4_37, eval=FALSE, purl=FALSE}
+x1 = seq(-3, 3, length.out = 100)
+x2 = seq(-3, 3, length.out = 100)
+X = expand.grid(x1, x2)
+y = apply(X, 1, function(t) exp(-t[1]^2 - t[2]^2))
+y = ifelse(1/(1+exp(-y)) < 0.62, 0, 1)
+
+image(matrix(y, 100, 100))
+animation::saveGIF(
+  {
+    for(i in c("truth", "linear", "radial", "sigmoid")){
+      if(i == "truth"){
+        image(matrix(y, 100,100),
+        main = "Ground truth", axes = FALSE, las = 2)
+      }else{
+        sv = e1071::svm(x = x, y = factor(y), kernel = i)
+        image(matrix(as.numeric(as.character(predict(sv, x))), 100, 100),
+        main = paste0("Kernel: ", i), axes = FALSE, las = 2)
+        axis(1, at = seq(0,1, length.out = 10),
+        labels = round(seq(-3, 3, length.out = 10), 1))
+        axis(2, at = seq(0,1, length.out = 10),
+        labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+      }
+    }
+  },
+  movie.name = "svm.gif", autobrowse = FALSE, interval = 2
+)
+```
+
+```{r chunk_chapter4_38, message=FALSE, warning=FALSE, echo=FALSE, purl=FALSE}
+knitr::include_graphics("./images/svm.gif")
+```
+
+As you have seen, this does not work with every kernel. Hence, the problem is to find the actual correct kernel, which is again an optimization procedure and can thus be approximated.
+
+
+## Exercises
+
+
+
+::: {.callout-caution icon="false"}
+#### Question: Sonar data
+
+We will use the Sonar data set to explore support-vector machines and k-neartest-neighbor classifier.
+
+
+```{r chunk_chapter4_task_31}
+library(mlbench)
+set.seed(123)
+
+data(Sonar)
+data = Sonar
+indices = sample.int(nrow(Sonar), 0.5 * nrow(Sonar))
+```
+
+Split the Sonar data set from the mlbench library into training- and testset with 50% in each group. Is this a useful split?
+The response variable is "class". So you are trying to classify the class.
+
+`r hide("Click here to see the solution")`
+
+```{r chunk_chapter4_task_32, include=TRUE}
+library(mlbench)
+set.seed(123)
+
+data(Sonar)
+data = Sonar
+#str(data)
+
+# Do not forget scaling! This may be done implicitly by most functions.
+# Here, it's done explicitly for teaching purposes.
+data = cbind.data.frame(
+  scale(data[,-length(data)]),
+  "class" = data[,length(data)]
+)
+
+n = length(data[,1])
+indicesTrain = sample.int(n, (n+1) %/% 2) # Take (at least) 50 % of the data.
+
+train = data[indicesTrain,]
+test = data[-indicesTrain,]
+
+labelsTrain = train[,length(train)]
+labelsTest = test[,length(test)]
+```
+
+Until you have strong reasons for that, 50/50 is no really good decision. You waste data/power.
+Do not forget scaling!
+
+`r unhide()`
+
+:::
+
+
+
+
+::: {.callout-caution icon="false"}
+#### Question: kNN and SVM
+
+Fit a standard k-nearest-neighbor classifier and a support vector machine with a linear kernel (check help), and report what fitted better.
+
+
+`r hide("Click here to see the solution")`
+
+
+```{r chunk_chapter4_task_33, include=TRUE}
+library(e1071)
+library(kknn)
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "rectangular")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
+predSVM = predict(sm, newdata = test)
+```
+
+```{r chunk_chapter4_task_34, echo=FALSE, include=TRUE}
+contingency = table(predKNN, labelsTest)
+cat("K-nearest-neighbor, standard (rectangular) kernel:\n\n")
+print(contingency)
+cat("Correctly classified: ", contingency[1, 1] + contingency[2, 2],
+    " / ", sum(contingency))
+```
+
+```{r chunk_chapter4_task_35, echo=FALSE, include=TRUE}
+contingency = table(predSVM, labelsTest)
+cat("Support-vector machine, linear kernel:\n\n")
+print(contingency)
+cat("Correctly classified: ", contingency[1, 1] + contingency[2, 2],
+    " / ", sum(contingency))
+```
+
+K-nearest neighbor fitted (slightly) better.
+
+`r unhide()`
+
+:::
+
+::: {.callout-caution icon="false"}
+#### Question: Reproducibility
+
+1.  Calculate accuracies of both algorithms.
+2.  Try the fit again with a different seed for training and test set generation.
+
+`r hide("Click here to see the solution")`
+
+
+```{r chunk_chapter4_task_36, include=TRUE}
+(accKNN = mean(predKNN == labelsTest))
+(accSVM = mean(predSVM == labelsTest))
+```
+
+```{r chunk_chapter4_task_38, include=TRUE}
+set.seed(42)
+
+data = Sonar
+data = cbind.data.frame(
+  scale(data[,-length(data)]),
+  "class" = data[,length(data)]
+)
+
+n = length(data[,1])
+indicesTrain = sample.int(n, (n+1) %/% 2)
+
+train = data[indicesTrain,]
+test = data[-indicesTrain,]
+
+labelsTrain = train[,length(train)]
+labelsTest = test[,length(test)]
+
+#####
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "rectangular")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
+predSVM = predict(sm, newdata = test)
+
+(accKNN = mean(predKNN == labelsTest))
+(accSVM = mean(predSVM == labelsTest))
+
+#####
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "optimal")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "radial")
+predSVM = predict(sm, newdata = test)
+
+(accKNN = mean(predKNN == labelsTest))
+(accSVM = mean(predSVM == labelsTest))
+```
+
+`r unhide()`
+
+:::

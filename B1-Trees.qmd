@@ -1,0 +1,437 @@
+---
+output: html_document
+editor_options:
+  chunk_output_type: console
+---
+
+# Tree-based Algorithms
+
+## Classification and Regression Trees
+
+Tree-based models in general use a series of if-then rules to generate predictions from one or more decision trees. In this lecture, we will explore regression and classification trees by the example of the airquality data set. There is one important hyperparameter for regression trees: "minsplit".
+
+-   It controls the depth of tree (see the help of rpart for a description).
+-   It controls the complexity of the tree and can thus also be seen as a regularization parameter.
+
+We first prepare and visualize the data and afterwards fit a decision tree.
+
+```{r chunk_chapter4_22, results='hide', message=FALSE, warning=FALSE}
+library(rpart)
+library(rpart.plot)
+
+data = airquality[complete.cases(airquality),]
+```
+
+Fit and visualize one(!) regression tree:
+
+```{r}
+rt = rpart(Ozone~., data = data, control = rpart.control(minsplit = 10))
+rpart.plot(rt)
+```
+
+Visualize the predictions:
+
+```{r chunk_chapter4_24}
+pred = predict(rt, data)
+plot(data$Temp, data$Ozone)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+```
+
+The angular form of the prediction line is typical for regression trees and is a weakness of it.
+
+## Random Forest
+
+To overcome this weakness, a random forest uses an ensemble of regression/classification trees. Thus, the random forest is in principle nothing else than a normal regression/classification tree, but it uses the idea of the *"wisdom of the crowd"* : By asking many people (regression/classification trees) one can make a more informed decision (prediction/classification). When you want to buy a new phone for example you also wouldn't go directly into the shop, but search in the internet and ask your friends and family.
+
+There are two randomization steps with the random forest that are responsible for their success:
+
+-   Bootstrap samples for each tree (we will sample observations with replacement from the data set. For the phone this is like not everyone has experience about each phone).
+-   At each split, we will sample a subset of predictors that is then considered as potential splitting criterion (for the phone this is like that not everyone has the same decision criteria). Annotation: While building a decision tree (random forests consist of many decision trees), one splits the data at some point according to their features. For example if you have females and males, big and small people in a crowd, you con split this crowd by gender and then by size or by size and then by gender to build a decision tree.
+
+Applying the random forest follows the same principle as for the methods before: We visualize the data (we have already done this so often for the airquality data set, thus we skip it here), fit the algorithm and then plot the outcomes.
+
+Fit a random forest and visualize the predictions:
+
+```{r chunk_chapter4_25, message=FALSE, warning=FALSE}
+library(randomForest)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+
+rf = randomForest(Ozone~., data = data)
+pred = predict(rf, data)
+plot(Ozone~Temp, data = data)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+```
+
+One advantage of random forests is that we will get an importance of variables. At each split in each tree, the improvement in the split-criterion is the importance measure attributed to the splitting variable, and is accumulated over all the trees in the forest separately for each variable. Thus the variable importance shows us how important a variable is averaged over all trees.
+
+```{r chunk_chapter4_26}
+rf$importance
+```
+
+There are several important hyperparameters in a random forest that we can tune to get better results:
+
+-   Similar to the minsplit parameter in regression and classification trees, the hyperparameter "nodesize" controls for complexity $\rightarrow$ Minimum size of terminal nodes in the tree. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
+-   mtry: Number of features randomly sampled as candidates at each split.
+
+## Boosted Regression Trees
+
+Random forests fit hundreds of trees independent of each other. Here, the idea of a boosted regression tree comes in. Maybe we could learn from the errors the previous weak learners made and thus enhance the performance of the algorithm.
+
+A boosted regression tree (BRT) starts with a simple regression tree (weak learner) and then sequentially fits additional trees to improve the results. There are two different strategies to do so:
+
+-   *AdaBoost*: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.
+-   *Gradient boosting* (state of the art): Each sequential model will be fit on the residual errors of the previous model (strongly simplified, the actual algorithm is very complex).
+
+We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix.
+
+```{r chunk_chapter4_27, cache=TRUE, results='hide', message=FALSE, warning=FALSE}
+library(xgboost)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+```
+
+```{r chunk_chapter4_28__BRT1, cache=TRUE}
+data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
+brt = xgboost(data_xg, nrounds = 16L)
+```
+
+The parameter "nrounds" controls how many sequential trees we fit, in our example this was 16. When we predict on new data, we can limit the number of trees used to prevent overfitting (remember: each new tree tries to improve the predictions of the previous trees).
+
+Let us visualize the predictions for different numbers of trees:
+
+```{r chunk_chapter4_29__BRT2, cache=TRUE}
+oldpar = par(mfrow = c(2, 2))
+for(i in 1:4){
+  pred = predict(brt, newdata = data_xg, ntreelimit = i)
+  plot(data$Temp, data$Ozone, main = i)
+  lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+}
+par(oldpar)
+```
+
+There are also other ways to control for complexity of the boosted regression tree algorithm:
+
+-   max_depth: Maximum depth of each tree.
+-   shrinkage (each tree will get a weight and the weight will decrease with the number of trees).
+
+When having specified the final model, we can obtain the importance of the variables like for random forests:
+
+```{r chunk_chapter4_30__BRT3, cache=TRUE}
+xgboost::xgb.importance(model = brt)
+sqrt(mean((data$Ozone - pred)^2)) # RMSE
+data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
+```
+
+One important strength of xgboost is that we can directly do a cross-validation (which is independent of the boosted regression tree itself!) and specify its properties with the parameter "n-fold":
+
+```{r chunk_chapter4_31__BRT4, cache=TRUE}
+set.seed(123)
+
+brt = xgboost(data_xg, nrounds = 5L)
+brt_cv = xgboost::xgb.cv(data = data_xg, nfold = 3L,
+                         nrounds = 3L, nthreads = 4L)
+print(brt_cv)
+```
+
+Annotation: The original data set is randomly partitioned into $n$ equal sized subsamples. Each time, the model is trained on $n - 1$ subsets (training set) and tested on the left out set (test set) to judge the performance.
+
+If we do three-folded cross-validation, we actually fit three different boosted regression tree models (xgboost models) on $\approx 67\%$ of the data points. Afterwards, we judge the performance on the respective holdout. This now tells us how well the model performed.
+
+### Exercises
+
+::: {.callout-caution icon="false"}
+#### Question: Regression Trees
+
+We will use the following code snippet to test the effect of mincut on trees.
+
+```{r chunk_chapter4_task_21, eval=FALSE}
+library(tree)
+set.seed(123)
+
+data = airquality
+rt = tree(Ozone~., data = data,
+          control = tree.control(mincut = 1L, nobs = nrow(data)))
+
+plot(rt)
+text(rt)
+pred = predict(rt, data)
+plot(data$Temp, data$Ozone)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+sqrt(mean((data$Ozone - pred)^2)) # RMSE
+```
+
+Try different mincut parameters and see what happens. (Compare the root mean squared error for different mincut parameters and explain what you see. Compare predictions for different mincut parameters and explain what happens.) What was wrong in the snippet above?
+
+`r hide("Click here to see the solution")`
+
+```{r chunk_chapter4_task_22, include=TRUE}
+library(tree)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+
+doTask = function(mincut){
+  rt = tree(Ozone~., data = data,
+            control = tree.control(mincut = mincut, nobs = nrow(data)))
+
+  pred = predict(rt, data)
+  plot(data$Temp, data$Ozone,
+       main = paste0(
+         "mincut: ", mincut,
+         "\nRMSE: ", round(sqrt(mean((data$Ozone - pred)^2)), 2)
+      )
+  )
+  lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+}
+
+for(i in c(1, 2, 3, 5, 10, 15, 25, 50, 54, 55, 56, 57, 75, 100)){ doTask(i) }
+```
+
+Approximately at mincut = 15, prediction is the best (mind overfitting). After mincut = 56, the prediction has no information at all and the RMSE stays constant.
+
+Mind the complete cases of the airquality data set, that was the error. `r unhide()`
+:::
+
+::: {.callout-caution icon="false"}
+#### Question: Random forest
+
+We will use the following code snippet to explore a random forest:
+
+```{r chunk_chapter4_task_23, message=FALSE, warning=FALSE}
+library(randomForest)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+
+rf = randomForest(Ozone~., data = data)
+
+pred = predict(rf, data)
+importance(rf)
+cat("RMSE: ", sqrt(mean((data$Ozone - pred)^2)), "\n")
+
+plot(data$Temp, data$Ozone)
+lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+```
+
+Try different values for the nodesize and mtry and describe how the predictions depend on these parameters.
+
+`r hide("Click here to see the solution")`
+
+```{r chunk_chapter4_task_24, message=FALSE, warning=FALSE, include=TRUE}
+library(randomForest)
+set.seed(123)
+
+data = airquality[complete.cases(airquality),]
+
+
+for(nodesize in c(1, 5, 15, 50, 100)){
+  for(mtry in c(1, 3, 5)){
+    rf = randomForest(Ozone~., data = data, mtry = mtry, nodesize = nodesize)
+    
+    pred = predict(rf, data)
+    
+    plot(data$Temp, data$Ozone, main = paste0(
+        "mtry: ", mtry, "    nodesize: ", nodesize,
+        "\nRMSE: ", round(sqrt(mean((data$Ozone - pred)^2)), 2)
+      )
+    )
+    lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
+  }
+}
+```
+
+Higher numbers for mtry smooth the prediction curve and yield less overfitting. The same holds for the nodesize. In other words: The bigger the nodesize, the smaller the trees and the more bias/less variance. `r unhide()`
+:::
+
+::: {.callout-caution icon="false"}
+#### Question: Boosted regression trees
+
+```{r chunk_chapter4_task_25, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
+library(xgboost)
+library(animation)
+set.seed(123)
+
+x1 = seq(-3, 3, length.out = 100)
+x2 = seq(-3, 3, length.out = 100)
+x = expand.grid(x1, x2)
+y = apply(x, 1, function(t) exp(-t[1]^2 - t[2]^2))
+
+
+image(matrix(y, 100, 100), main = "Original image", axes = FALSE, las = 2)
+axis(1, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1))
+axis(2, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+
+
+model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
+                         nrounds = 500L, verbose = 0L)
+pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
+               ntreelimit = 10L)
+
+saveGIF(
+  {
+    for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
+      pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
+                     ntreelimit = i)
+      image(matrix(pred, 100, 100), main = paste0("Trees: ", i),
+            axes = FALSE, las = 2)
+      axis(1, at = seq(0, 1, length.out = 10),
+           labels = round(seq(-3, 3, length.out = 10), 1))
+      axis(2, at = seq(0, 1, length.out = 10),
+           labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+    }
+  },
+  movie.name = "boosting.gif", autobrowse = FALSE
+)
+```
+
+![](boosting.gif){width="370"}
+
+Run the above code and play with different parameters for xgboost (especially with parameters that control the complexity) and describe what you see!
+
+Tip: have a look at the boosting.gif.
+
+`r hide("Click here to see the solution")`
+
+```{r chunk_chapter4_task_27, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE, include=TRUE}
+library(xgboost)
+library(animation)
+set.seed(123)
+
+x1 = seq(-3, 3, length.out = 100)
+x2 = seq(-3, 3, length.out = 100)
+x = expand.grid(x1, x2)
+y = apply(x, 1, function(t) exp(-t[1]^2 - t[2]^2))
+
+image(matrix(y, 100, 100), main = "Original image", axes = FALSE, las = 2)
+axis(1, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1))
+axis(2, at = seq(0, 1, length.out = 10),
+     labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+
+for(eta in c(.1, .3, .5, .7, .9)){
+  for(max_depth in c(3, 6, 10, 20)){
+    model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
+                             max_depth = max_depth, eta = eta,
+                             nrounds = 500, verbose = 0L)
+  
+    saveGIF(
+      {
+        for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
+          pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
+                         ntreelimit = i)
+          image(matrix(pred, 100, 100),
+                main = paste0("eta: ", eta,
+                              "    max_depth: ", max_depth,
+                              "    Trees: ", i),
+                axes = FALSE, las = 2)
+          axis(1, at = seq(0, 1, length.out = 10),
+               labels = round(seq(-3, 3, length.out = 10), 1))
+          axis(2, at = seq(0, 1, length.out = 10),
+               labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+        }
+      },
+      movie.name = paste0("boosting_", max_depth, "_", eta, ".gif"),
+      autobrowse = FALSE
+    )
+  }
+}
+```
+
+As the possibilities scale extremely, you must vary some parameters on yourself. You may use for example the following parameters: "eta", "gamma", "max_depth", "min_child_weight", "subsample", "colsample_bytree", "num_parallel_tree", "monotone_constraints" or "interaction_constraints". Or you look into the documentation:
+
+```{r chunk_chapter4_task_28, eval=FALSE, purl=FALSE, include=TRUE}
+?xgboost::xgboost
+```
+
+Just some examples: 
+
+- ![](./images/boosting_3_0.1.gif){width="370"} 
+- ![](./images/boosting_6_0.7.gif){width="370"} 
+- ![](./images/boosting_20_0.9.gif){width="370"} 
+
+`r unhide()`
+:::
+
+::: {.callout-caution icon="false"}
+#### Bonus: Implement a BRT on your own!
+
+You can easily implement a BRT or boosted linear model using the rpart package or the lm function.
+
+`r hide("Click here to see the solution")`
+
+Go through the code line by line and try to understand it. Ask, if you have any questions you cannot solve.
+
+```{r, echo = FALSE}
+library(tree)
+#### Helper function for single tree fit.
+get_model_tree = function(x, y, ...){
+  control = tree.control(nobs = length(x), ...)
+  model = tree(y~., data.frame(x = x, y = y), control = control)
+  pred = predict(model, newdata = data.frame(x = x, y = y))
+  return(list(model = model, pred = pred))
+}
+
+#### Helper function for single linear model fit.
+get_model_linear = function(x, y, ...){
+  data = data.frame(x = x, y = y)
+  models = lapply(paste0("y~", colnames(data.frame(x = x))), function(f) lm(as.formula(f), data = data))
+  model = models[[which.max(abs(sapply(models, coef)[2,]))]]
+  pred = predict(model, newdata = data.frame(x = x, y = y))
+  return(list(model = model, pred = pred))
+}
+
+#### Boost function.
+get_boosting_model = function(x, y, n_trees, bootstrap = NULL, colsample = NULL, eta = 1., booster = "tree", ...){
+  pred = NULL
+  m_list = list()
+  if(booster == "tree") get_model = get_model_tree
+  else get_model = get_model_linear
+  for(i in 1:n_trees){
+    if(i == 1){
+      m = get_model(x, y, ...)
+      pred = m$pred
+    }else{
+      if(!is.null(bootstrap)) indices = sample.int(length(y), bootstrap*length(y), replace = TRUE)
+      else indices = 1:length(y)
+      if(!is.null(colsample)) indices_cols = sample.int(ncol(x), colsample*ncol(x), replace = FALSE)
+      else indices_cols = 1:ncol(x)
+      y_res = y[indices] - pred[indices]
+      m = get_model(x[indices,indices_cols,drop=FALSE], y_res, ...)
+      pred = pred + eta*predict(m$model, newdata = data.frame(x = x))
+    }
+    m_list[[i]] = m$model
+  }
+  model_list = list()
+  model_list$model = m_list 
+  model_list$eta = eta
+  class(model_list) = "naiveBRT"
+  return(model_list)
+}
+
+predict.naiveBRT = function(model, newdata) {
+    N = model$N
+    if(is.null(N)) N = length(model$model)
+    eta = model$eta
+    
+    if(N != 1 ) return(rowSums(matrix(c(1, rep(eta, N-1)), nrow(newdata), N, byrow = TRUE) * sapply(1:N, function(k) predict(model$model[[k]], newdata = data.frame(x = newdata)))))
+    else return(predict(model$model[[1]], newdata = data.frame(x = newdata)))
+  }
+```
+
+Let's try it:
+
+```{r}
+data = model.matrix(~. , data = airquality)
+
+model = get_boosting_model(x = data[,-2], y = data[,2], n_trees = 5L )
+pred = predict(model, newdata = data[,-2])
+plot(data[,2], pred, xlab = "observed", ylab = "predicted")
+```
+
+`r unhide()`
+:::
