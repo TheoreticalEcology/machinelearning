@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 /* CSS for citations */
 div.csl-bib-body { }
 div.csl-entry {
@@ -291,16 +325,13 @@ div.csl-indent {
    
   <ul>
   <li><a href="#understanding-the-bias-variance-trade-off" id="toc-understanding-the-bias-variance-trade-off" class="nav-link active" data-scroll-target="#understanding-the-bias-variance-trade-off"><span class="header-section-number">3.1</span> Understanding the bias-variance trade-off</a></li>
-  <li><a href="#validating-of-the-ml-models" id="toc-validating-of-the-ml-models" class="nav-link" data-scroll-target="#validating-of-the-ml-models"><span class="header-section-number">3.2</span> Validating of the ML models</a>
+  <li><a href="#optimizing-the-bias-variance-trade-off" id="toc-optimizing-the-bias-variance-trade-off" class="nav-link" data-scroll-target="#optimizing-the-bias-variance-trade-off"><span class="header-section-number">3.2</span> Optimizing the bias-variance trade-off</a>
   <ul class="collapse">
-  <li><a href="#error-metrics" id="toc-error-metrics" class="nav-link" data-scroll-target="#error-metrics"><span class="header-section-number">3.2.1</span> Error metrics</a></li>
-  <li><a href="#cross-validation" id="toc-cross-validation" class="nav-link" data-scroll-target="#cross-validation"><span class="header-section-number">3.2.2</span> Cross-validation</a></li>
-  </ul></li>
-  <li><a href="#optimizing-the-bias-variance-trade-off" id="toc-optimizing-the-bias-variance-trade-off" class="nav-link" data-scroll-target="#optimizing-the-bias-variance-trade-off"><span class="header-section-number">3.3</span> Optimizing the bias-variance trade-off</a>
-  <ul class="collapse">
-  <li><a href="#feature-selection" id="toc-feature-selection" class="nav-link" data-scroll-target="#feature-selection"><span class="header-section-number">3.3.1</span> Feature selection</a></li>
-  <li><a href="#hyper-parameters" id="toc-hyper-parameters" class="nav-link" data-scroll-target="#hyper-parameters"><span class="header-section-number">3.3.2</span> Hyper-parameters</a></li>
-  <li><a href="#regularization" id="toc-regularization" class="nav-link" data-scroll-target="#regularization"><span class="header-section-number">3.3.3</span> Regularization</a></li>
+  <li><a href="#feature-selection" id="toc-feature-selection" class="nav-link" data-scroll-target="#feature-selection"><span class="header-section-number">3.2.1</span> Feature selection</a></li>
+  <li><a href="#regularization" id="toc-regularization" class="nav-link" data-scroll-target="#regularization"><span class="header-section-number">3.2.2</span> Regularization</a></li>
+  <li><a href="#hyperparameters" id="toc-hyperparameters" class="nav-link" data-scroll-target="#hyperparameters"><span class="header-section-number">3.2.3</span> Hyperparameters</a></li>
+  <li><a href="#cross-validation" id="toc-cross-validation" class="nav-link" data-scroll-target="#cross-validation"><span class="header-section-number">3.2.4</span> Cross-validation</a></li>
+  <li><a href="#error-metrics" id="toc-error-metrics" class="nav-link" data-scroll-target="#error-metrics"><span class="header-section-number">3.2.5</span> Error metrics</a></li>
   </ul></li>
   </ul>
 <div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/TheoreticalEcology/MachineLearningAndDeepLearning/edit/master/A3-BiasVarianceTradeOff.qmd" class="toc-action">Edit this page</a></p></div></div></nav>
@@ -330,30 +361,18 @@ div.csl-indent {
 <div class="webex-check webex-box">
 <p><img src="images/biasVarianceTradeoff.png" class="img-fluid"></p>
 Which of the following statements about the bias-variance trade-off is correct? (see figure above)
-<div id="radio_QCTSQDKJFM" class="webex-radiogroup">
-<label><input type="radio" autocomplete="off" name="radio_QCTSQDKJFM" value="answer"> <span>The goal of considering the bias-variance trade-off is to realize that increasing complexity typically leads to more flexibility (allowing you to reduce bias) but at the cost of uncertainty (variance) in the estimated parameters.</span></label><label><input type="radio" autocomplete="off" name="radio_QCTSQDKJFM" value=""> <span>The goal of considering the bias-variance trade-off is to get the bias of the model as small as possible.</span></label>
+<div id="radio_UZPKFYNFJV" class="webex-radiogroup">
+<label><input type="radio" autocomplete="off" name="radio_UZPKFYNFJV" value="answer"> <span>The goal of considering the bias-variance trade-off is to realize that increasing complexity typically leads to more flexibility (allowing you to reduce bias) but at the cost of uncertainty (variance) in the estimated parameters.</span></label><label><input type="radio" autocomplete="off" name="radio_UZPKFYNFJV" value=""> <span>The goal of considering the bias-variance trade-off is to get the bias of the model as small as possible.</span></label>
 </div>
 </div>
 </section>
-<section id="validating-of-the-ml-models" class="level2" data-number="3.2">
-<h2 data-number="3.2" class="anchored" data-anchor-id="validating-of-the-ml-models"><span class="header-section-number">3.2</span> Validating of the ML models</h2>
-<section id="error-metrics" class="level3" data-number="3.2.1">
-<h3 data-number="3.2.1" class="anchored" data-anchor-id="error-metrics"><span class="header-section-number">3.2.1</span> Error metrics</h3>
+<section id="optimizing-the-bias-variance-trade-off" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="optimizing-the-bias-variance-trade-off"><span class="header-section-number">3.2</span> Optimizing the bias-variance trade-off</h2>
+<section id="feature-selection" class="level3" data-number="3.2.1">
+<h3 data-number="3.2.1" class="anchored" data-anchor-id="feature-selection"><span class="header-section-number">3.2.1</span> Feature selection</h3>
 </section>
-<section id="cross-validation" class="level3" data-number="3.2.2">
-<h3 data-number="3.2.2" class="anchored" data-anchor-id="cross-validation"><span class="header-section-number">3.2.2</span> Cross-validation</h3>
-</section>
-</section>
-<section id="optimizing-the-bias-variance-trade-off" class="level2" data-number="3.3">
-<h2 data-number="3.3" class="anchored" data-anchor-id="optimizing-the-bias-variance-trade-off"><span class="header-section-number">3.3</span> Optimizing the bias-variance trade-off</h2>
-<section id="feature-selection" class="level3" data-number="3.3.1">
-<h3 data-number="3.3.1" class="anchored" data-anchor-id="feature-selection"><span class="header-section-number">3.3.1</span> Feature selection</h3>
-</section>
-<section id="hyper-parameters" class="level3" data-number="3.3.2">
-<h3 data-number="3.3.2" class="anchored" data-anchor-id="hyper-parameters"><span class="header-section-number">3.3.2</span> Hyper-parameters</h3>
-</section>
-<section id="regularization" class="level3" data-number="3.3.3">
-<h3 data-number="3.3.3" class="anchored" data-anchor-id="regularization"><span class="header-section-number">3.3.3</span> Regularization</h3>
+<section id="regularization" class="level3" data-number="3.2.2">
+<h3 data-number="3.2.2" class="anchored" data-anchor-id="regularization"><span class="header-section-number">3.2.2</span> Regularization</h3>
 <p>Regularization means adding information or structure to a system in order to solve an ill-posed optimization problem or to prevent overfitting. There are many ways of regularizing a machine learning model. The most important distinction is between <em>shrinkage estimators</em> and estimators based on <em>model averaging</em>.</p>
 <p><strong>Shrikage estimators</strong> are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are <em>“shrunk”</em> to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also <em>Lasso</em> or <em>LASSO</em>, where the penalty is proportional to the sum of absolute deviations (<span class="math inline">\(L1\)</span> penalty), and the <em>Tikhonov regularization</em> aka <em>Ridge regression</em>, where the penalty is proportional to the sum of squared distances from the reference (<span class="math inline">\(L2\)</span> penalty). Thus, the loss function that we optimize is given by</p>
 <p><span class="math display">\[
@@ -362,7 +381,8 @@ loss = fit - \lambda \cdot d
 <p>where fit refers to the standard loss function, <span class="math inline">\(\lambda\)</span> is the strength of the regularization, and <span class="math inline">\(d\)</span> is the chosen metric, e.g.&nbsp;<span class="math inline">\(L1\)</span> or<span class="math inline">\(L2\)</span>:</p>
 <p><span class="math display">\[
 loss_{L1} = fit - \lambda \cdot \Vert weights \Vert_1
-\]</span> <span class="math display">\[
+\]</span></p>
+<p><span class="math display">\[
 loss_{L2} = fit - \lambda \cdot \Vert weights \Vert_2
 \]</span></p>
 <p><span class="math inline">\(\lambda\)</span> and possibly d are typically optimized under cross-validation. <span class="math inline">\(L1\)</span> and <span class="math inline">\(L2\)</span> can be also combined what is then called <em>elastic net</em> (see <span class="citation" data-cites="zou2005">Zou and Hastie (<a href="#ref-zou2005" role="doc-biblioref">2005</a>)</span>).</p>
@@ -377,6 +397,233 @@ loss_{L2} = fit - \lambda \cdot \Vert weights \Vert_2
 </div>
 <p>As you can see, the LASSO creates a very strong preference towards exactly zero, but falls off less strongly towards the tails. This means that parameters tend to be estimated either to exactly zero, or, if not, they are more free than the Ridge. For this reason, LASSO is often more interpreted as a model selection method.</p>
 <p>The Ridge, on the other hand, has a certain area around zero where it is relatively indifferent about deviations from zero, thus rarely leading to exactly zero values. However, it will create a stronger shrinkage for values that deviate significantly from zero.</p>
+<section id="ridge---example" class="level4" data-number="3.2.2.1">
+<h4 data-number="3.2.2.1" class="anchored" data-anchor-id="ridge---example"><span class="header-section-number">3.2.2.1</span> Ridge - Example</h4>
+<p>We can use the <code>glmnet</code> package for Ridge, LASSO, and elastic-net regressions.</p>
+<p>We want to predict the occurrence of the African Elephant (Classification Task), 19 bioclim (environmental variables, see help of the dataset) are our predictors and they are highly collinear:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: Matrix</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loaded glmnet 4.1-7</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> EcoData<span class="sc">::</span>elephant<span class="sc">$</span>occurenceData</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(<span class="fu">cor</span>(data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="A3-BiasVarianceTradeOff_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">=</span> <span class="fu">glmnet</span>(<span class="at">y =</span> data<span class="sc">$</span>Presence, <span class="at">x =</span> <span class="fu">scale</span>(data[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">family =</span> <span class="st">"binomial"</span>, <span class="at">alpha =</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The <code>glmnet</code> function automatically tries different values for lambda:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(<span class="fu">coef</span>(m1, <span class="at">s =</span> <span class="fl">0.001</span>), <span class="fu">coef</span>(m1, <span class="at">s =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>20 x 2 sparse Matrix of class "dgCMatrix"
+                     s1           s1
+(Intercept) -0.99488324 -0.780014853
+bio1         0.11271724 -0.055980600
+bio2         0.13314858  0.002595185
+bio3        -0.30527292 -0.026252048
+bio4        -0.39768514  0.024350194
+bio5        -0.18331069 -0.073192300
+bio6        -0.02860151 -0.044787626
+bio7        -0.08476021 -0.001723074
+bio8         0.25325588  0.010139565
+bio9        -0.32415880 -0.085263374
+bio10       -0.25068839 -0.054433012
+bio11        0.13073390 -0.057325676
+bio12       -0.78787155 -0.134876767
+bio13       -0.16752784 -0.146520805
+bio14        0.23564006  0.043352576
+bio15       -0.38701027 -0.094950092
+bio16       -0.37231958 -0.162089670
+bio17        0.04547655  0.026451709
+bio18        0.21734755 -0.003571031
+bio19       -0.30681718 -0.075885175</code></pre>
+</div>
+</div>
+</section>
+<section id="lasso---example" class="level4" data-number="3.2.2.2">
+<h4 data-number="3.2.2.2" class="anchored" data-anchor-id="lasso---example"><span class="header-section-number">3.2.2.2</span> LASSO - Example</h4>
+<p>By changing <span class="math inline">\(alpha\)</span> to 1.0 we use a LASSO instead of a Ridge regression:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>m2 <span class="ot">=</span> <span class="fu">glmnet</span>(<span class="at">y =</span> data<span class="sc">$</span>Presence, <span class="at">x =</span> <span class="fu">scale</span>(data[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">family =</span> <span class="st">"binomial"</span>, <span class="at">alpha =</span> <span class="fl">1.0</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(<span class="fu">coef</span>(m2, <span class="at">s =</span> <span class="fl">0.001</span>), <span class="fu">coef</span>(m2, <span class="at">s =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>20 x 2 sparse Matrix of class "dgCMatrix"
+                       s1         s1
+(Intercept) -1.1790698999 -0.7021879
+bio1         5.2201447390  .        
+bio2         0.4825871907  .        
+bio3        -1.2446394503  .        
+bio4        -0.8831104598  .        
+bio5        -0.0009278259  .        
+bio6         .             .        
+bio7         .             .        
+bio8         .             .        
+bio9        -2.1368721806  .        
+bio10       -3.4058093768  .        
+bio11        .             .        
+bio12       -4.3452607245  .        
+bio13        1.1177210101  .        
+bio14        0.8468788216  .        
+bio15       -1.7662333813  .        
+bio16        0.4975102865  .        
+bio17        .             .        
+bio18        0.5713151479  .        
+bio19        0.0041414946  .        </code></pre>
+</div>
+</div>
+</section>
+<section id="elastic-net---example" class="level4" data-number="3.2.2.3">
+<h4 data-number="3.2.2.3" class="anchored" data-anchor-id="elastic-net---example"><span class="header-section-number">3.2.2.3</span> Elastic-net - Example</h4>
+<p>By setting <span class="math inline">\(alpha\)</span> to a value between 0 and 1.0, we use a combination of LASSO and Rdige:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>m3 <span class="ot">=</span> <span class="fu">glmnet</span>(<span class="at">y =</span> data<span class="sc">$</span>Presence, <span class="at">x =</span> <span class="fu">scale</span>(data[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">family =</span> <span class="st">"binomial"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(<span class="fu">coef</span>(m3, <span class="at">s =</span> <span class="fl">0.001</span>), <span class="fu">coef</span>(m3, <span class="at">s =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>20 x 2 sparse Matrix of class "dgCMatrix"
+                    s1         s1
+(Intercept) -1.1283328 -0.7021879
+bio1         3.0270008  .        
+bio2         0.6036299  .        
+bio3        -1.2874038  .        
+bio4        -1.5366454  .        
+bio5        -0.2581393  .        
+bio6         .          .        
+bio7         .          .        
+bio8         0.2640327  .        
+bio9        -1.6896702  .        
+bio10       -1.7723493  .        
+bio11        .          .        
+bio12       -3.6918225  .        
+bio13        0.9367339  .        
+bio14        0.6333207  .        
+bio15       -1.4308360  .        
+bio16        0.2560483  .        
+bio17        0.1654974  .        
+bio18        0.5438264  .        
+bio19        .          .        </code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="hyperparameters" class="level3" data-number="3.2.3">
+<h3 data-number="3.2.3" class="anchored" data-anchor-id="hyperparameters"><span class="header-section-number">3.2.3</span> Hyperparameters</h3>
+<p>Generally, parameters such as <span class="math inline">\(\lambda\)</span> and <span class="math inline">\(\alpha\)</span> that, for example, control the complexity or other parameters that control their learning or the optimization are called hyperparameters. Comming back to our glmnet example:</p>
+<p>We can plot the effect of <span class="math inline">\(\lambda\)</span> on the effect estimates:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="A3-BiasVarianceTradeOff_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>So which lambda should we choose now? If we calculate the model fit for different lambdas (e.g.&nbsp;using the AUC):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>lambdas <span class="ot">=</span> <span class="fu">seq</span>(<span class="fl">0.001</span>, <span class="fl">0.5</span>, <span class="at">length.out =</span> <span class="dv">100</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>AUCs <span class="ot">=</span> </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(lambdas, <span class="cf">function</span>(l) {</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    prediction <span class="ot">=</span> <span class="fu">predict</span>(m1, <span class="at">newx =</span> <span class="fu">scale</span>(data[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">s =</span> l)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    AUC <span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(data[,<span class="dv">1</span>], prediction)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(AUC)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lambdas, AUCs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="A3-BiasVarianceTradeOff_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>We see that the lowest lambda achieved the higehst AUC - which is not surpsiring because the unconstrained model, the most complex model, has the highest fit, so no bias but probably high variance (with respect to the bias-variance tradeoff).</p>
+<p>We want a model that generalizes well to new data, which we need to “simulate” here by splitting of a holdout before the training and using the holdout then for testing our model:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> EcoData<span class="sc">::</span>elephant<span class="sc">$</span>occurenceData</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>data[,<span class="sc">-</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">scale</span>(data[,<span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Split data</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>indices <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="fu">nrow</span>(data), <span class="fl">0.8</span><span class="sc">*</span><span class="fu">nrow</span>(data))</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data[indices,]</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> data[<span class="sc">-</span>indices,]</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Train model on train data</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">=</span> <span class="fu">glmnet</span>(<span class="at">y =</span> train<span class="sc">$</span>Presence, <span class="at">x =</span> train[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">family =</span> <span class="st">"binomial"</span>, <span class="at">alpha =</span> <span class="fl">0.0</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Test model on test data</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(m1, <span class="at">newx =</span> <span class="fu">as.matrix</span>(test[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">s =</span> <span class="fl">0.01</span>)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate performance on test data</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">auc</span>(test<span class="sc">$</span>Presence, pred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8001035</code></pre>
+</div>
+</div>
+<p>Let’s do it again for different values of lambdas:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>lambdas <span class="ot">=</span> <span class="fu">seq</span>(<span class="fl">0.00001</span>, <span class="fl">0.5</span>, <span class="at">length.out =</span> <span class="dv">100</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>AUCs <span class="ot">=</span> </span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(lambdas, <span class="cf">function</span>(l) {</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    prediction <span class="ot">=</span> <span class="fu">predict</span>(m1, <span class="at">newx =</span> <span class="fu">as.matrix</span>(test[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">s =</span> l)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    AUC <span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test[,<span class="dv">1</span>], prediction)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(AUC)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lambdas, AUCs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="A3-BiasVarianceTradeOff_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Hyperparameter tuning describes the process of finding the optimal set of hyperparameters for a certain task. They are usually data specific, so they have to tuned for each dataset.</p>
+<p>If we do only one split it could happen that we only find a set of hyperparameters that are best suited for this specific split and thus we usally do several splits so that each observation is once an observation in the test dataset, cross-validation</p>
+</section>
+<section id="cross-validation" class="level3" data-number="3.2.4">
+<h3 data-number="3.2.4" class="anchored" data-anchor-id="cross-validation"><span class="header-section-number">3.2.4</span> Cross-validation</h3>
+<p>The <code>cv.glmnet</code> function does per default a 10xCV (so 10 splits) and in each split different values for <span class="math inline">\(\lambda\)</span> are tested (based on the deviance (-2xlogLik)):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">=</span> glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(<span class="at">x =</span> <span class="fu">scale</span>(data[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">y =</span> data<span class="sc">$</span>Presence, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>m1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:  glmnet::cv.glmnet(x = scale(data[, -1]), y = data$Presence, family = "binomial") 
+
+Measure: Binomial Deviance 
+
+       Lambda Index Measure       SE Nonzero
+min 0.0001448    79  0.8217 0.009043      18
+1se 0.0005845    64  0.8307 0.008226      15</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="A3-BiasVarianceTradeOff_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>So low values of <span class="math inline">\(\lambda\)</span> seem to achieve the highest (or lowest Binomial Deviance) predictive performance.</p>
+<p>If we want to tune <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\lambda\)</span> simoustanously, we need the <code>glmnetUtils</code> package:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnetUtils)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'glmnetUtils'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:glmnet':
+
+    cv.glmnet, glmnet</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>m2 <span class="ot">=</span> <span class="fu">cva.glmnet</span>(<span class="at">x =</span> <span class="fu">scale</span>(data[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">y =</span> data<span class="sc">$</span>Presence, <span class="at">family =</span> <span class="st">"binomial"</span>, <span class="at">alpha =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">1.0</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="at">lambdas =</span> <span class="fu">seq</span>(<span class="fl">0.0001</span>, <span class="fl">0.2</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="at">nfolds =</span> <span class="dv">3</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(m2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="A3-BiasVarianceTradeOff_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="error-metrics" class="level3" data-number="3.2.5">
+<h3 data-number="3.2.5" class="anchored" data-anchor-id="error-metrics"><span class="header-section-number">3.2.5</span> Error metrics</h3>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">

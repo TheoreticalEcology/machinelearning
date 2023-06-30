@@ -23,25 +23,15 @@ cat("Which of the following statements about the bias-variance trade-off is corr
 ```
 :::
 
-## Validating of the ML models
-
-### Error metrics
-
-
-### Cross-validation
-
-
 ## Optimizing the bias-variance trade-off
 
 ### Feature selection
 
-### Hyper-parameters
-
 ### Regularization
 
-Regularization means adding information or structure to a system in order to solve an ill-posed optimization problem or to prevent overfitting. There are many ways of regularizing a machine learning model. The most important distinction is between _shrinkage estimators_ and estimators based on _model averaging_. 
+Regularization means adding information or structure to a system in order to solve an ill-posed optimization problem or to prevent overfitting. There are many ways of regularizing a machine learning model. The most important distinction is between *shrinkage estimators* and estimators based on *model averaging*.
 
-**Shrikage estimators** are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are *"shrunk"* to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also _Lasso_ or _LASSO_, where the penalty is proportional to the sum of absolute deviations ($L1$ penalty), and the _Tikhonov regularization_ aka _Ridge regression_, where the penalty is proportional to the sum of squared distances from the reference ($L2$ penalty). Thus, the loss function that we optimize is given by
+**Shrikage estimators** are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are *"shrunk"* to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also *Lasso* or *LASSO*, where the penalty is proportional to the sum of absolute deviations ($L1$ penalty), and the *Tikhonov regularization* aka *Ridge regression*, where the penalty is proportional to the sum of squared distances from the reference ($L2$ penalty). Thus, the loss function that we optimize is given by
 
 $$
 loss = fit - \lambda \cdot d
@@ -52,15 +42,16 @@ where fit refers to the standard loss function, $\lambda$ is the strength of the
 $$
 loss_{L1} = fit - \lambda \cdot \Vert weights \Vert_1
 $$
+
 $$
 loss_{L2} = fit - \lambda \cdot \Vert weights \Vert_2
 $$
 
-$\lambda$ and possibly d are typically optimized under cross-validation. $L1$ and $L2$ can be also combined what is then called _elastic net_ (see @zou2005).
+$\lambda$ and possibly d are typically optimized under cross-validation. $L1$ and $L2$ can be also combined what is then called *elastic net* (see @zou2005).
 
-**Model averaging** refers to an entire set of techniques, including _boosting_, _bagging_ and other averaging techniques. The general principle is that predictions are made by combining (= averaging) several models. This is based on on the insight that it is often more efficient having many simpler models and average them, than one "super model". The reasons are complicated, and explained in more detail in @dormann2018.
+**Model averaging** refers to an entire set of techniques, including *boosting*, *bagging* and other averaging techniques. The general principle is that predictions are made by combining (= averaging) several models. This is based on on the insight that it is often more efficient having many simpler models and average them, than one "super model". The reasons are complicated, and explained in more detail in @dormann2018.
 
-A particular important application of averaging is _boosting_, where the idea is that many weak learners are combined to a model average, resulting in a strong learner. Another related method is _bootstrap aggregating_, also called _bagging_. Idea here is to _boostrap_ (use random sampling with replacement ) the data, and average the bootstrapped predictions.
+A particular important application of averaging is *boosting*, where the idea is that many weak learners are combined to a model average, resulting in a strong learner. Another related method is *bootstrap aggregating*, also called *bagging*. Idea here is to *boostrap* (use random sampling with replacement ) the data, and average the bootstrapped predictions.
 
 To see how these techniques work in practice, let's first focus on LASSO and Ridge regularization for weights in neural networks. We can imagine that the LASSO and Ridge act similar to a rubber band on the weights that pulls them to zero if the data does not strongly push them away from zero. This leads to important weights, which are supported by the data, being estimated as different from zero, whereas unimportant model structures are reduced (shrunken) to zero.
 
@@ -73,8 +64,137 @@ curve(dnorm(abs(x)), -5, 5, main = "Ridge prior")
 par(oldpar)
 ```
 
-As you can see, the LASSO creates a very strong preference towards exactly zero, but falls off less strongly towards the tails. This means that parameters tend to be estimated either to exactly zero, or, if not, they are more free than the Ridge. For this reason, LASSO is often more interpreted as a model selection method. 
+As you can see, the LASSO creates a very strong preference towards exactly zero, but falls off less strongly towards the tails. This means that parameters tend to be estimated either to exactly zero, or, if not, they are more free than the Ridge. For this reason, LASSO is often more interpreted as a model selection method.
 
 The Ridge, on the other hand, has a certain area around zero where it is relatively indifferent about deviations from zero, thus rarely leading to exactly zero values. However, it will create a stronger shrinkage for values that deviate significantly from zero.
 
+#### Ridge - Example
 
+We can use the `glmnet` package for Ridge, LASSO, and elastic-net regressions.
+
+We want to predict the occurrence of the African Elephant (Classification Task), 19 bioclim (environmental variables, see help of the dataset) are our predictors and they are highly collinear:
+
+```{r}
+library(glmnet)
+library(EcoData)
+data = EcoData::elephant$occurenceData
+hist(cor(data))
+```
+
+```{r}
+m1 = glmnet(y = data$Presence, x = scale(data[,-1]), family = "binomial", alpha = 0)
+```
+
+The `glmnet` function automatically tries different values for lambda:
+
+```{r}
+cbind(coef(m1, s = 0.001), coef(m1, s = 0.5))
+```
+
+#### LASSO - Example
+
+By changing $alpha$ to 1.0 we use a LASSO instead of a Ridge regression:
+
+```{r}
+m2 = glmnet(y = data$Presence, x = scale(data[,-1]), family = "binomial", alpha = 1.0)
+cbind(coef(m2, s = 0.001), coef(m2, s = 0.5))
+```
+
+#### Elastic-net - Example
+
+By setting $alpha$ to a value between 0 and 1.0, we use a combination of LASSO and Rdige:
+
+```{r}
+m3 = glmnet(y = data$Presence, x = scale(data[,-1]), family = "binomial", alpha = 0.5)
+cbind(coef(m3, s = 0.001), coef(m3, s = 0.5))
+```
+
+### Hyperparameters
+
+Generally, parameters such as $\lambda$ and $\alpha$ that, for example, control the complexity or other parameters that control their learning or the optimization are called hyperparameters. Comming back to our glmnet example:
+
+We can plot the effect of $\lambda$ on the effect estimates:
+
+```{r}
+plot(m1)
+```
+
+So which lambda should we choose now? If we calculate the model fit for different lambdas (e.g. using the AUC):
+
+```{r}
+lambdas = seq(0.001, 0.5, length.out = 100)
+AUCs = 
+  sapply(lambdas, function(l) {
+    prediction = predict(m1, newx = scale(data[,-1]), s = l)
+    AUC = Metrics::auc(data[,1], prediction)
+    return(AUC)
+    })
+plot(lambdas, AUCs)
+```
+
+We see that the lowest lambda achieved the higehst AUC - which is not surpsiring because the unconstrained model, the most complex model, has the highest fit, so no bias but probably high variance (with respect to the bias-variance tradeoff).
+
+We want a model that generalizes well to new data, which we need to "simulate" here by splitting of a holdout before the training and using the holdout then for testing our model:
+
+```{r}
+library(glmnet)
+library(EcoData)
+data = EcoData::elephant$occurenceData
+
+data[,-1] = scale(data[,-1])
+
+# Split data
+indices = sample.int(nrow(data), 0.8*nrow(data))
+train = data[indices,]
+test = data[-indices,]
+
+# Train model on train data
+m1 = glmnet(y = train$Presence, x = train[,-1], family = "binomial", alpha = 0.0)
+
+# Test model on test data
+pred = predict(m1, newx = as.matrix(test[,-1]), s = 0.01)
+
+# Calculate performance on test data
+Metrics::auc(test$Presence, pred)
+
+```
+
+Let's do it again for different values of lambdas:
+
+```{r}
+lambdas = seq(0.00001, 0.5, length.out = 100)
+AUCs = 
+  sapply(lambdas, function(l) {
+    prediction = predict(m1, newx = as.matrix(test[,-1]), s = l)
+    AUC = Metrics::auc(test[,1], prediction)
+    return(AUC)
+    })
+plot(lambdas, AUCs)
+```
+
+Hyperparameter tuning describes the process of finding the optimal set of hyperparameters for a certain task. They are usually data specific, so they have to tuned for each dataset.
+
+If we do only one split it could happen that we only find a set of hyperparameters that are best suited for this specific split and thus we usally do several splits so that each observation is once an observation in the test dataset, cross-validation
+
+### Cross-validation
+
+The `cv.glmnet` function does per default a 10xCV (so 10 splits) and in each split different values for $\lambda$ are tested (based on the deviance (-2xlogLik)):
+
+```{r}
+m1 = glmnet::cv.glmnet(x = scale(data[,-1]), y = data$Presence, family = "binomial")
+m1
+plot(m1)
+```
+
+So low values of $\lambda$ seem to achieve the highest (or lowest Binomial Deviance) predictive performance.
+
+If we want to tune $\alpha$ and $\lambda$ simoustanously, we need the `glmnetUtils` package:
+
+```{r}
+library(glmnetUtils)
+m2 = cva.glmnet(x = scale(data[,-1]), y = data$Presence, family = "binomial", alpha = seq(0, 1.0, length.out = 10), lambdas = seq(0.0001, 0.2, length.out = 10), nfolds = 3)
+
+plot(m2)
+```
+
+### Error metrics
