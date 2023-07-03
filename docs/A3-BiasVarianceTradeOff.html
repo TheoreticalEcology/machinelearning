@@ -360,8 +360,8 @@ div.csl-indent {
 <div class="webex-check webex-box">
 <p><img src="images/biasVarianceTradeoff.png" class="img-fluid"></p>
 Which of the following statements about the bias-variance trade-off is correct? (see figure above)
-<div id="radio_QKNJVEIUXP" class="webex-radiogroup">
-<label><input type="radio" autocomplete="off" name="radio_QKNJVEIUXP" value="answer"> <span>The goal of considering the bias-variance trade-off is to realize that increasing complexity typically leads to more flexibility (allowing you to reduce bias) but at the cost of uncertainty (variance) in the estimated parameters.</span></label><label><input type="radio" autocomplete="off" name="radio_QKNJVEIUXP" value=""> <span>The goal of considering the bias-variance trade-off is to get the bias of the model as small as possible.</span></label>
+<div id="radio_DGGRETUWBH" class="webex-radiogroup">
+<label><input type="radio" autocomplete="off" name="radio_DGGRETUWBH" value="answer"> <span>The goal of considering the bias-variance trade-off is to realize that increasing complexity typically leads to more flexibility (allowing you to reduce bias) but at the cost of uncertainty (variance) in the estimated parameters.</span></label><label><input type="radio" autocomplete="off" name="radio_DGGRETUWBH" value=""> <span>The goal of considering the bias-variance trade-off is to get the bias of the model as small as possible.</span></label>
 </div>
 </div>
 </section>
@@ -603,7 +603,7 @@ lstat       -3.79836182 -3.6136853</code></pre>
 <span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>test_Y <span class="ot">=</span> Y[<span class="sc">-</span>indices]</span>
 <span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Train model on train data</span></span>
-<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">=</span> <span class="fu">glmnet</span>(<span class="at">y =</span> train_Y, <span class="at">x =</span> train_X, <span class="at">alpha =</span> <span class="fl">0.2</span>)</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">=</span> <span class="fu">glmnet</span>(<span class="at">y =</span> train_Y, <span class="at">x =</span> train_X, <span class="at">alpha =</span> <span class="fl">0.5</span>)</span>
 <span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Test model on test data</span></span>
 <span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(m1, <span class="at">newx =</span> test_X, <span class="at">s =</span> <span class="fl">0.01</span>)</span>
@@ -611,7 +611,7 @@ lstat       -3.79836182 -3.6136853</code></pre>
 <span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate performance on test data</span></span>
 <span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">rmse</span>(test_Y, pred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 5.062992</code></pre>
+<pre><code>[1] 5.063774</code></pre>
 </div>
 </div>
 <p>Let’s do it again for different values of lambdas:</p>
@@ -619,7 +619,7 @@ lstat       -3.79836182 -3.6136853</code></pre>
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>lambdas <span class="ot">=</span> <span class="fu">seq</span>(<span class="fl">0.0000001</span>, <span class="fl">0.5</span>, <span class="at">length.out =</span> <span class="dv">100</span>)</span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="ot">=</span> </span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(lambdas, <span class="cf">function</span>(l) {</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    prediction <span class="ot">=</span> <span class="fu">predict</span>(m1, <span class="at">newx =</span> test_X, <span class="at">s =</span> l, <span class="at">alpha =</span> <span class="fl">1.0</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    prediction <span class="ot">=</span> <span class="fu">predict</span>(m1, <span class="at">newx =</span> test_X, <span class="at">s =</span> l)</span>
 <span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">rmse</span>(test_Y, prediction))</span>
 <span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    })</span>
 <span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lambdas, RMSEs, <span class="at">xlab =</span> <span class="st">"Lambda"</span>, <span class="at">ylab =</span> <span class="st">"RMSE"</span>, <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">las =</span> <span class="dv">2</span>)</span>
@@ -634,45 +634,31 @@ lstat       -3.79836182 -3.6136853</code></pre>
 </section>
 <section id="sec-cv" class="level3" data-number="3.2.4">
 <h3 data-number="3.2.4" class="anchored" data-anchor-id="sec-cv"><span class="header-section-number">3.2.4</span> Cross-validation</h3>
-<p>The <code>cv.glmnet</code> function does per default a 10xCV (so 10 splits) and in each split different values for <span class="math inline">\(\lambda\)</span> are tested (based on the deviance (-2xlogLik)):</p>
+<p>The <code>cv.glmnet</code> function does per default a 5xCV (so 5 splits) and in each split different values for <span class="math inline">\(\lambda\)</span> are tested</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">=</span> glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(<span class="at">x =</span> train_X, <span class="at">y =</span> train_Y, <span class="at">alpha =</span> <span class="fl">0.2</span>)</span>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">=</span> glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(<span class="at">x =</span> X, <span class="at">y =</span> Y, <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">nfolds =</span> <span class="dv">5</span>)</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>m1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
-Call:  glmnet::cv.glmnet(x = train_X, y = train_Y, alpha = 0.2) 
+Call:  glmnet::cv.glmnet(x = X, y = Y, nfolds = 5, alpha = 0.5) 
 
 Measure: Mean-Squared Error 
 
     Lambda Index Measure    SE Nonzero
-min  0.083    65   27.21 9.803      12
-1se  5.969    19   36.46 9.486       6</code></pre>
+min 0.0105    78   23.80 3.247      12
+1se 0.6905    33   26.88 4.014       8</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="A3-BiasVarianceTradeOff_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
 </div>
-</div>
-<p>So low values of <span class="math inline">\(\lambda\)</span> seem to achieve the lowest Error, so the higehst predictive performance.</p>
-<p>If we want to tune <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\lambda\)</span> simoustanously, we need the <code>glmnetUtils</code> package:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnetUtils)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Attaching package: 'glmnetUtils'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>The following objects are masked from 'package:glmnet':
-
-    cv.glmnet, glmnet</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>m2 <span class="ot">=</span> <span class="fu">cva.glmnet</span>(<span class="at">x =</span> X, <span class="at">y =</span> Y, <span class="at">alpha =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">1.0</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="at">lambdas =</span> <span class="fu">seq</span>(<span class="fl">0.0001</span>, <span class="fl">0.2</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="at">nfolds =</span> <span class="dv">3</span>)</span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(m2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="A3-BiasVarianceTradeOff_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>m1<span class="sc">$</span>lambda.min</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.01049538</code></pre>
 </div>
 </div>
+<p>So low values of <span class="math inline">\(\lambda\)</span> seem to achieve the lowest error, thus the higehst predictive performance.</p>
+<p>This is called hyperparameter tuning.</p>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">

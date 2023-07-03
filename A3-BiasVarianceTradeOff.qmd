@@ -186,7 +186,7 @@ train_Y = Y[indices]
 test_Y = Y[-indices]
 
 # Train model on train data
-m1 = glmnet(y = train_Y, x = train_X, alpha = 0.2)
+m1 = glmnet(y = train_Y, x = train_X, alpha = 0.5)
 
 # Test model on test data
 pred = predict(m1, newx = test_X, s = 0.01)
@@ -202,7 +202,7 @@ Let's do it again for different values of lambdas:
 lambdas = seq(0.0000001, 0.5, length.out = 100)
 RMSEs = 
   sapply(lambdas, function(l) {
-    prediction = predict(m1, newx = test_X, s = l, alpha = 1.0)
+    prediction = predict(m1, newx = test_X, s = l)
     return(Metrics::rmse(test_Y, prediction))
     })
 plot(lambdas, RMSEs, xlab = "Lambda", ylab = "RMSE", type = "l", las = 2)
@@ -215,25 +215,16 @@ If we do only one split it could happen that we only find a set of hyperparamete
 
 ### Cross-validation {#sec-cv}
 
-The `cv.glmnet` function does per default a 10xCV (so 10 splits) and in each split different values for $\lambda$ are tested (based on the deviance (-2xlogLik)):
+The `cv.glmnet` function does per default a 5xCV (so 5 splits) and in each split different values for $\lambda$ are tested 
 
 ```{r}
-m1 = glmnet::cv.glmnet(x = train_X, y = train_Y, alpha = 0.2)
+m1 = glmnet::cv.glmnet(x = X, y = Y, alpha = 0.5, nfolds = 5)
 m1
 plot(m1)
+m1$lambda.min
 ```
 
-So low values of $\lambda$ seem to achieve the lowest Error, so the higehst predictive performance.
+So low values of $\lambda$ seem to achieve the lowest error, thus the higehst predictive performance.
 
-If we want to tune $\alpha$ and $\lambda$ simoustanously, we need the `glmnetUtils` package:
-
-```{r}
-library(glmnetUtils)
-m2 = cva.glmnet(x = X, y = Y, alpha = seq(0, 1.0, length.out = 10), lambdas = seq(0.0001, 0.2, length.out = 10), nfolds = 3)
-
-plot(m2)
-```
-
-
-
+This is called hyperparameter tuning.
 
