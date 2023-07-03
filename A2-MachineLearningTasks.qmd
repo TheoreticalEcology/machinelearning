@@ -37,9 +37,9 @@ cat(
 ::: {.webex-check .webex-box}
 In ML, predictors (or the explaining variables) are often called features: `r torf(TRUE)`
 
-In supervised learning the response (y) and the predictors (x) are known: `r torf(TRUE)`
+In supervised learning the response (y) and the features (x) are known: `r torf(TRUE)`
 
-In unsupervised learning, only the predictors are known: `r torf(TRUE)`
+In unsupervised learning, only the features are known: `r torf(TRUE)`
 
 In reinforcement learning an agent (ML model) is trained by interacting with an environment: `r torf(TRUE)`
 
@@ -572,7 +572,8 @@ str(iris)
 hist(iris$Sepal.Length)
 ```
 
-The randomForest can be used similar to a linear regression model, we can specify the features using the formula syntax (~. means that all other variables should be used as features): 
+The randomForest can be used similar to a linear regression model, we can specify the features using the formula syntax (\~. means that all other variables should be used as features):
+
 ```{r chunk_chapter3_27}
 m1 = randomForest(Sepal.Length ~ ., data = iris)   # ~.: Against all others.
 print(m1)
@@ -606,6 +607,7 @@ Here, one of the regression trees is shown.
 With the random forest, we can also do classification. The steps are the same as for regression tasks, but we can additionally see how well it performed by looking at the confusion matrix. Each row of this matrix contains the instances in a predicted class and each column represents the instances in the actual class. Thus the diagonals are the correctly predicted classes and the off-diagonal elements are the falsely classified elements.
 
 Species is a factor with three levels:
+
 ```{r}
 str(iris)
 ```
@@ -622,14 +624,17 @@ varImpPlot(m1)
 ```
 
 Predictions:
+
 ```{r}
 head(predict(m1))
 ```
 
 Confusion matrix:
+
 ```{r}
 table(predict(m1), as.integer(iris$Species))
 ```
+
 Our model made a few errors.
 
 Visualizing results ecologically:
@@ -655,7 +660,6 @@ knitr::kable(table(predict(m1), iris$Species))
 
 ### Exercise
 
-
 ```{r}
 #| results: asis
 #| echo: false
@@ -667,11 +671,10 @@ opts <- c(
 cat("Using a random forest on the iris dataset, which parameter would be more important (remember there is a function to check this) to predict Petal.Width?", longmcq(opts))
 ```
 
-
 ::: {.callout-caution icon="false"}
 #### Task: First deep neural network
 
-Deep neural networks are currently the state of the art in unsupervised learning. Their ability to model different types of data (e.g. graphs, images) is one of the reasons for their rise in recent years. However, their use beyond tabular data (tabular data == features have specific meanings) requires extensive (programming) knowledge of the underlying deep learning frameworks (e.g. TensorFlow or PyTorch), which we will teach you in two days. For tabular data, we can use packages like cito, which work similarly to regression functions like lm and allow us to train deep neural networks in one line of code. 
+Deep neural networks are currently the state of the art in unsupervised learning. Their ability to model different types of data (e.g. graphs, images) is one of the reasons for their rise in recent years. However, their use beyond tabular data (tabular data == features have specific meanings) requires extensive (programming) knowledge of the underlying deep learning frameworks (e.g. TensorFlow or PyTorch), which we will teach you in two days. For tabular data, we can use packages like cito, which work similarly to regression functions like lm and allow us to train deep neural networks in one line of code.
 
 A demonstration with the iris dataset:
 
@@ -688,31 +691,34 @@ model = dnn(Species~., lr = 0.1,data = iris_scaled, loss = "softmax")
 ```
 
 DNNs are not interpretable, i.e. no coefficients (slopes) that tell us how the features affect the response, however, similar to the RF, we can calculate a 'variable importance' which is similar to an anova:
+
 ```{r}
 summary(model)
 ```
 
 Predictions
+
 ```{r}
 head(predict(model))
 ```
+
 We get three columns, one for each species, and they are probabilities.
+
 ```{r}
 plot(iris$Sepal.Length, iris$Sepal.Width, col = apply(predict(model), 1, which.max))
 ```
 
 Performance:
+
 ```{r}
 table(apply(predict(model), 1, which.max), as.integer(iris$Species))
 ```
 
-
 **Task:**
 
-- predict Sepal.Length instead of Species (classification -> regression)
-- Use the 'mse' loss function
-- Plot predicted vs observed
-
+-   predict Sepal.Length instead of Species (classification -\> regression)
+-   Use the 'mse' loss function
+-   Plot predicted vs observed
 
 `r hide("Click here to see the solution")`
 
@@ -738,8 +744,5 @@ Calculate $R^2$:
 cor(iris_scaled$Sepal.Length, predict(model))**2
 ```
 
-
 `r unhide()`
-
 :::
-
