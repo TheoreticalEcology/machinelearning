@@ -374,6 +374,27 @@ write.csv(data.frame(y = apply(prediction_ensemble, 1, mean), file = "Max_1.csv"
 
 Submit both predictions (http://rhsbio7.uni-regensburg.de:8500/), which model has a higher AUC?
 
+```{r}
+library(EcoData)
+library(dplyr)
+library(missRanger)
+data(titanic_ml)
+data = titanic_ml
+data = 
+  data %>% select(survived, sex, age, fare, pclass)
+data[,-1] = missRanger(data[,-1])
+
+data_sub =
+  data %>%
+    mutate(age = scales::rescale(age, c(0, 1)),
+           fare = scales::rescale(fare, c(0, 1))) %>%
+    mutate(sex = as.integer(sex) - 1L,
+           pclass = as.integer(pclass - 1L))
+data_new = data_sub[!is.na(data_sub$survived),] # for which we want to make predictions at the end
+data_obs = data_sub[is.na(data_sub$survived),] # data with known response
+```
+
+
 `r hide("Click here to see the solution for the single model")`
 
 ```{r}

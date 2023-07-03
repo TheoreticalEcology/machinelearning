@@ -404,10 +404,32 @@ Day          15436.47</code></pre>
 </div>
 </div>
 <p>There are several important hyperparameters in a random forest that we can tune to get better results:</p>
-<ul>
-<li>Similar to the minsplit parameter in regression and classification trees, the hyperparameter “nodesize” controls for complexity <span class="math inline">\(\rightarrow\)</span> Minimum size of terminal nodes in the tree. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).</li>
-<li>mtry: Number of features randomly sampled as candidates at each split.</li>
-</ul>
+<table class="table">
+<colgroup>
+<col style="width: 12%">
+<col style="width: 87%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Hyperparameter</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>mtry</td>
+<td>Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data).</td>
+</tr>
+<tr class="even">
+<td>minimum node size</td>
+<td>Minimal number of observations allowed in a node (before the branching is canceled)</td>
+</tr>
+<tr class="odd">
+<td>max depth</td>
+<td>Maximum number of tree depth</td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="boosted-regression-trees" class="level2" data-number="5.3">
 <h2 data-number="5.3" class="anchored" data-anchor-id="boosted-regression-trees"><span class="header-section-number">5.3</span> Boosted Regression Trees</h2>
@@ -456,16 +478,16 @@ Day          15436.47</code></pre>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(data<span class="sc">$</span>Temp[<span class="fu">order</span>(data<span class="sc">$</span>Temp)], pred[<span class="fu">order</span>(data<span class="sc">$</span>Temp)], <span class="at">col =</span> <span class="st">"red"</span>)</span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[15:02:54] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
+<pre><code>[20:06:07] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[15:02:54] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
+<pre><code>[20:06:07] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[15:02:54] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
+<pre><code>[20:06:07] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[15:02:54] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
+<pre><code>[20:06:07] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="B1-Trees_files/figure-html/chunk_chapter4_29__BRT2-1.png" class="img-fluid" width="672"></p>
@@ -524,6 +546,41 @@ Day          15436.47</code></pre>
 </div>
 <p>Annotation: The original data set is randomly partitioned into <span class="math inline">\(n\)</span> equal sized subsamples. Each time, the model is trained on <span class="math inline">\(n - 1\)</span> subsets (training set) and tested on the left out set (test set) to judge the performance.</p>
 <p>If we do three-folded cross-validation, we actually fit three different boosted regression tree models (xgboost models) on <span class="math inline">\(\approx 67\%\)</span> of the data points. Afterwards, we judge the performance on the respective holdout. This now tells us how well the model performed.</p>
+<p>Important hyperparameters:</p>
+<table class="table">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 82%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Hyperparameter</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>eta</td>
+<td>learning rate (weighting of the sequential trees)</td>
+</tr>
+<tr class="even">
+<td>max depth</td>
+<td>maximal depth in the trees (small = low complexity, large = high complexity)</td>
+</tr>
+<tr class="odd">
+<td>subsample</td>
+<td>subsample ratio of the data (bootstrap ratio)</td>
+</tr>
+<tr class="even">
+<td>lambda</td>
+<td>regularization strength of the individual trees</td>
+</tr>
+<tr class="odd">
+<td>max tree</td>
+<td>maximal number of trees in the ensemble</td>
+</tr>
+</tbody>
+</table>
 <section id="exercises" class="level3" data-number="5.3.1">
 <h3 data-number="5.3.1" class="anchored" data-anchor-id="exercises"><span class="header-section-number">5.3.1</span> Exercises</h3>
 <div class="callout callout-style-default callout-caution no-icon callout-titled">

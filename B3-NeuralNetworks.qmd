@@ -12,3 +12,277 @@ Artificial neural networks are biologically inspired, the idea is that inputs ar
 library(cito)
 ```
 
+cito allows us to fit fully-connected neural networks within one line of code. When we come to other tasks such as image recognition we have to use frameworks with higher flexibility such as keras or torch.
+
+Neural networks are harder to optimize (hey are optimized via backpropagation and gradient descent) and a few hyperparameters that control the optimization should be familiar:
+
+| Hyperparameter | Meaning                                                                                                                                                                                                       |
+|-------------|-----------------------------------------------------------|
+| learning rate  | the step size of the parameter updating in the iterative optimization routine, if too high, the optimizer will step over good local optima, if too small, the optimizer will be stuck in a bad local optima   |
+| batch size     | NNs are optimized via stochastic gradient descent, i.e. only a batch of the data is used to update the parameters at a time                                                                                   |
+| epoch          | the data is fed into the optimization in batches, once the entire data set has been used in the optimization, the epoch is complete (so e.g. n = 100, batch size = 20, it takes 5 steps to complete an epoch) |
+
+Example:
+
+```{r}
+data = airquality[complete.cases(airquality),]
+data = scale(data)
+
+model = dnn(Ozone~., 
+            hidden = c(10L, 10L), # Architecture, number of hidden layers and nodes in each layer
+            activation = c("selu", "selu"), # activation functions for the specific hidden layer
+            loss = "mse", lr = 0.01, data = data, epochs = 150L, verbose = FALSE)
+plot(model)
+summary(model)
+```
+
+The architecture of the NN can be specified by the `hidden` argument, it is a vector where the length corresponds to the number of hidden layers and value of entry to the number of hidden neurons in each layer (and the same applies for the `activation` argument that specifies the activation functions in the hidden layers). The loss function has to be adjusted to the response type:
+
+| Loss                      | Type                                  | Example                                          |
+|------------------|------------------------|------------------------------|
+| mse (mean squared error)  | Regression                            | Numeric values                                   |
+| mae (mean absolute error) | Regression                            | Numeric values, often used for skewed data       |
+| softmax                   | Classification, multi-label           | Species                                          |
+| cross-entropy             | Classification, binary or multi-class | Survived/non-survived, Multi-species/communities |
+| binomial                  | Classification, binary or multi-class | Binomial likelihood                              |
+| poisson                   | Regression                            | Count data                                       |
+
+::: callout-caution
+## Importance of the learning rate
+
+cito visualizes the training (see graphic). The reason for this is that the training can easily fail if the learning rate (lr) is poorly chosen. If the lr is too high, the optimizer "jumps" over good local optima, while it gets stuck in local optima if the lr is too small:
+
+```{r}
+model = dnn(Ozone~., 
+            hidden = c(10L, 10L), 
+            activation = c("selu", "selu"), 
+            loss = "mse", lr = 0.4, data = data, epochs = 150L, verbose = FALSE)
+```
+
+If too high, the training will either directly fail (because the loss jumps to infinity) or the loss will be very wiggly and doesn't decrease over the number of epochs.
+
+```{r}
+model = dnn(Ozone~., 
+            hidden = c(10L, 10L), 
+            activation = c("selu", "selu"), 
+            loss = "mse", lr = 0.0001, data = data, epochs = 150L, verbose = FALSE)
+```
+
+If too low, the loss will be very wiggly but doesn't decrease.
+:::
+
+::: callout-note
+## Learning rate scheduler
+
+Adjusting / reducing the learning rate during training is a common approach in neural networks. The idea is to start with a larger learning rate and then steadily decrease it during training (either systematically or based on specific properties):
+
+```{r}
+model = dnn(Ozone~., 
+            hidden = c(10L, 10L), 
+            activation = c("selu", "selu"), 
+            loss = "mse", 
+            lr = 0.1,
+            lr_scheduler = config_lr_scheduler("step", step_size = 30, gamma = 0.1),
+            # reduce learning all 30 epochs (new lr = 0.1* old lr)
+            data = data, epochs = 150L, verbose = FALSE)
+```
+:::
+
+## Regularization
+
+We can use $\lambda$ and $\alpha$ to set L1 and L2 regularization on the weights in our NN:
+
+```{r}
+model = dnn(Ozone~., 
+            hidden = c(10L, 10L), 
+            activation = c("selu", "selu"), 
+            loss = "mse", 
+            lr = 0.05,
+            lambda = 0.1,
+            alpha = 0.5,
+            lr_scheduler = config_lr_scheduler("step", step_size = 30, gamma = 0.1),
+            # reduce learning all 30 epochs (new lr = 0.1* old lr)
+            data = data, epochs = 150L, verbose = FALSE)
+summary(model)
+```
+
+Be careful that you don't accidentally set all weights to 0 because of a too high regularization. We check the weights of the first layer:
+
+```{r}
+fields::image.plot(coef(model)[[1]][[1]]) # weights of the first layer
+```
+
+## Exercise
+
+::: {.callout-caution icon="false"}
+#### Question: Regularization
+
+Change the following code to a pure L1 regularization and try different $\lambda$ values, what happens to the weights of the first layer?
+
+```{r}
+model = dnn(Ozone~., 
+            hidden = c(40L, 40L), 
+            activation = c("selu", "selu"), 
+            loss = "mse", 
+            lr = 0.05,
+            lambda = 0.0,
+            alpha = 0.5,
+            lr_scheduler = config_lr_scheduler("step", step_size = 30, gamma = 0.1),
+            # reduce learning all 30 epochs (new lr = 0.1* old lr)
+            data = data, epochs = 150L, verbose = FALSE)
+fields::image.plot(coef(model)[[1]][[1]])
+```
+
+`r hide("Click here to see the solution")`
+
+$\alpha = 0.0$ means that only L1 is used: Weak regularization
+
+```{r}
+model = dnn(Ozone~., 
+            hidden = c(40L, 40L), 
+            activation = c("selu", "selu"), 
+            loss = "mse", 
+            lr = 0.05,
+            lambda = 0.01,
+            alpha = 0.0,
+            lr_scheduler = config_lr_scheduler("step", step_size = 30, gamma = 0.1),
+            # reduce learning all 30 epochs (new lr = 0.1* old lr)
+            data = data, epochs = 150L, verbose = FALSE, plot = FALSE)
+fields::image.plot(coef(model)[[1]][[1]])
+```
+
+Strong regularization
+
+```{r}
+model = dnn(Ozone~., 
+            hidden = c(40L, 40L), 
+            activation = c("selu", "selu"), 
+            loss = "mse", 
+            lr = 0.05,
+            lambda = 0.04,
+            alpha = 0.1,
+            lr_scheduler = config_lr_scheduler("step", step_size = 30, gamma = 0.1),
+            # reduce learning all 30 epochs (new lr = 0.1* old lr)
+            data = data, epochs = 150L, verbose = FALSE, plot= FALSE)
+fields::image.plot(coef(model)[[1]][[1]])
+```
+
+The weights get sparse, i.e. many of them are zero.
+
+`r unhide()`
+:::
+
+::: {.callout-caution icon="false"}
+#### Question: Hyperparameter tuning
+
+Combing back to the titanic dataset from yesterday, we want to optimize $\lambda$ using nested CV:
+
+-   Use nested CV to optimize the $\lambda$ parameter
+-   Train model with the $\lambda$ parameter with the highest AUC
+-   Make predictions for the new observations and submit them
+
+```{r}
+library(EcoData)
+library(dplyr)
+library(missRanger)
+data(titanic_ml)
+data = titanic_ml
+data = 
+  data %>% select(survived, sex, age, fare, pclass)
+data[,-1] = missRanger(data[,-1])
+
+data_sub =
+  data %>%
+    mutate(age = scales::rescale(age, c(0, 1)),
+           fare = scales::rescale(fare, c(0, 1))) %>%
+    mutate(sex = as.integer(sex) - 1L,
+           pclass = as.integer(pclass - 1L))
+data_new = data_sub[!is.na(data_sub$survived),] # for which we want to make predictions at the end
+data_obs = data_sub[is.na(data_sub$survived),] # data with known response
+```
+
+`r hide("Click here to see the solution")`
+
+```{r}
+set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+cv = 3
+cv_inner = 3
+hyper_lambda = runif(5,0.0001, 0.02)
+
+outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+
+results = data.frame(
+  set = rep(NA, cv),
+  lambda = rep(NA, cv),
+  AUC = rep(NA, cv)
+)
+
+for(i in 1:cv) {
+  train_outer = data_obs[outer_split != i, ]
+  test_outer = data_obs[outer_split == i, ]
+  
+  # inner split
+  for(j in 1:cv_inner) {
+    inner_split = as.integer(cut(1:nrow(train_outer), breaks = cv_inner))
+    train_inner = train_outer[inner_split != j, ]
+    test_inner = train_outer[inner_split == j, ]
+    
+    tuning_results_inner = 
+      sapply(1:length(hyper_lambda), function(k) {
+        model = dnn(survived~., 
+            hidden = c(10L, 10L), 
+            activation = c("selu", "selu"), 
+            loss = "mse", 
+            lr = 0.05,
+            lambda = hyper_lambda[k],
+            alpha = 0.1,
+            lr_scheduler = config_lr_scheduler("step", step_size = 10, gamma = 0.1),
+            data = train_inner, epochs = 40L, verbose = FALSE, plot= FALSE)
+        return(Metrics::auc(test_inner$survived, predict(model, test_inner )[,1]))
+      })
+    best_lambda = hyper_lambda[which.max(tuning_results_inner)]
+  }
+  model = dnn(survived~., 
+              hidden = c(10L, 10L), 
+              activation = c("selu", "selu"), 
+              loss = "mse", 
+              lr = 0.05,
+              lambda = best_lambda,
+              alpha = 0.1,
+              lr_scheduler = config_lr_scheduler("step", step_size = 10, gamma = 0.1),
+              data = train_inner, epochs = 40L, verbose = FALSE, plot= FALSE)
+  results[i, 1] = i
+  results[i, 2] = best_lambda
+  results[i, 3] = Metrics::auc(test_outer$survived, predict(model, test_outer ))
+}
+
+print(results)
+```
+
+Make predictions:
+
+```{r, results='hide', warning=FALSE, message=FALSE}
+prediction_ensemble = 
+  sapply(1:nrow(results), function(i) {
+  model = dnn(survived~., 
+              hidden = c(10L, 10L), 
+              activation = c("selu", "selu"), 
+              loss = "mse", 
+              lr = 0.05,
+              lambda = results$lambda[i],
+              alpha = 0.1,
+              lr_scheduler = config_lr_scheduler("step", step_size = 10, gamma = 0.1),
+              data = train_inner, epochs = 40L, verbose = FALSE, plot= FALSE)
+    return(predict(model, data_obs)[,1])
+  })
+
+# Single predictions from the model with the highest AUC:
+write.csv(data.frame(y = prediction_ensemble[,which.max(results$AUC)], file = "Max_titanic_best_model.csv"))
+
+# Single predictions from the ensemble model:
+write.csv(data.frame(y = apply(prediction_ensemble, 1, mean), file = "Max_titanic_ensemble.csv"))
+```
+
+`r unhide()`
+:::
