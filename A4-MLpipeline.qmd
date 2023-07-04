@@ -199,10 +199,10 @@ head(data)
 ```
 :::
 
-
 ## Modelling
 
 ### Split data for final predictions
+
 To tune our hyperparameters and evaluate our models, we need to split the data as we learned in the CV section. Before doing so, however, we must split off the new observations in the data set :
 
 ```{r}
@@ -249,7 +249,6 @@ for(i in 1:cv) {
 print(results)
 print(mean(results$AUC))
 ```
-
 
 ### Hyperparameter optimization
 
@@ -305,7 +304,6 @@ for(i in 1:cv) {
 print(results)
 ```
 
-
 ## Predictions and Submission
 
 When we are satisfied with the performance of our model, we will create predictions for the new observations on the submission server. But first we will train now our model on the full observed dataset:
@@ -315,7 +313,6 @@ $\alpha = 0.915$ has the highest AUC, let's use it to train the model on the ful
 ```{r}
 model = glmnet(survived~.,data = data_obs, family = "binomial",alpha = 0.915)
 ```
-
 
 We cannot assess the performance for the new observations because the true survival ratio is unknown, however, we can now submit our predictions to the submission server at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a>.
 
@@ -337,19 +334,18 @@ prediction_ensemble =
 write.csv(data.frame(y = apply(prediction_ensemble, 1, mean), file = "Max_1.csv"))
 ```
 
-
 ## Exercises
 
 ::: {.callout-caution icon="false"}
 #### Task: Tuning $\alpha$ and $\lambda$
 
-1.  Extend the code from above and tune $\alpha$ and $\lambda$
+1.  Extend the code from above and tune $\alpha$ and $\lambda$ (Nested-CV or via a simple CV)
 
 2.  Train the model with best set of hyperparameters and submit your predictions
 
 3.  Compare the predictive performance from the single best model with the ensemble model
 
-Submit both predictions (http://rhsbio7.uni-regensburg.de:8500/), which model has a higher AUC?
+Submit both predictions (<http://rhsbio7.uni-regensburg.de:8500/>), which model has a higher AUC?
 
 ```{r}
 library(EcoData)
@@ -373,14 +369,52 @@ data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predi
 data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
 ```
 
-Bonus: 
+Bonus:
 
 -   Try different features
 -   Try cito
 -   Try different datasets (see @sec-datasets)
 
+Code template for a simple CV (only $\alpha$ is tuned, add the tuning for $\lambda$:
+
+```{r}
+set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+cv = 5
+hyper_alpha = runif(20,0, 1)
+
+outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+
+results = data.frame(
+  set = rep(NA, cv),
+  alpha = rep(NA, cv),
+  AUC = rep(NA, cv)
+)
+
+for(i in 1:cv) {
+  train_outer = data_obs[outer_split != i, ]
+  test_outer = data_obs[outer_split == i, ]
+  
+  tuning_results = 
+      sapply(1:length(hyper_alpha), function(k) {
+        model = glmnet(survived~.,data = train_outer, family = "binomial",alpha = hyper_alpha[k])
+        return(Metrics::auc(test_outer$survived, predict(model, test_outer, 
+                                                         alpha = hyper_alpha[k],
+                                                         s = 0.01,
+                                                         type = "response")))
+      })
+  best_alpha = hyper_alpha[which.max(tuning_results)]
+  results[i, 1] = i
+  results[i, 2] = best_alpha
+  results[i, 3] = max(tuning_results)
+}
+
+print(results)
+```
 
 `r hide("Click here to see the solution for the single model")`
+
+Nested CV:
 
 ```{r}
 set.seed(42)
@@ -431,7 +465,49 @@ print(results)
 
 ```
 
+Simple CV:
+
+```{r}
+set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+cv = 5
+hyper_alpha = runif(20,0, 1)
+hyper_lambda = runif(20, 0, 1)
+
+outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+
+results = data.frame(
+  set = rep(NA, cv),
+  alpha = rep(NA, cv),
+  lambda = rep(NA, cv),
+  AUC = rep(NA, cv)
+)
+
+for(i in 1:cv) {
+  train_outer = data_obs[outer_split != i, ]
+  test_outer = data_obs[outer_split == i, ]
+  
+  tuning_results = 
+      sapply(1:length(hyper_alpha), function(k) {
+        model = glmnet(survived~.,data = train_outer, family = "binomial",alpha = hyper_alpha[k])
+        return(Metrics::auc(test_outer$survived, predict(model, test_outer, 
+                                                         alpha = hyper_alpha[k],
+                                                         s = hyper_lambda[k],
+                                                         type = "response")))
+      })
+  best_alpha = hyper_alpha[which.max(tuning_results)]
+  best_lambda = hyper_lambda[which.max(tuning_results)]
+  results[i, 1] = i
+  results[i, 2] = best_alpha
+  results[i, 3] = best_lambda
+  results[i, 4] = max(tuning_results)
+}
+
+print(results)
+```
+
 Predictions:
+
 ```{r, results='hide', message=FALSE, warning=FALSE}
 prediction_ensemble = 
   sapply(1:nrow(results), function(i) {
@@ -446,9 +522,7 @@ write.csv(data.frame(y = prediction_ensemble[,which.max(results$AUC)], file = "M
 write.csv(data.frame(y = apply(prediction_ensemble, 1, mean), file = "Max_titanic_ensemble.csv"))
 ```
 
-
 `r unhide()`
-
 :::
 
 ## Machine learning frameworks

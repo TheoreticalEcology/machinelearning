@@ -780,11 +780,11 @@ Task: Tuning <span class="math inline">\(\alpha\)</span> and <span class="math i
 </div>
 <div class="callout-body-container callout-body">
 <ol type="1">
-<li><p>Extend the code from above and tune <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\lambda\)</span></p></li>
+<li><p>Extend the code from above and tune <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\lambda\)</span> (Nested-CV or via a simple CV)</p></li>
 <li><p>Train the model with best set of hyperparameters and submit your predictions</p></li>
 <li><p>Compare the predictive performance from the single best model with the ensemble model</p></li>
 </ol>
-<p>Submit both predictions (http://rhsbio7.uni-regensburg.de:8500/), which model has a higher AUC?</p>
+<p>Submit both predictions (<a href="http://rhsbio7.uni-regensburg.de:8500/" class="uri">http://rhsbio7.uni-regensburg.de:8500/</a>), which model has a higher AUC?</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
@@ -812,56 +812,100 @@ Task: Tuning <span class="math inline">\(\alpha\)</span> and <span class="math i
 <li>Try cito</li>
 <li>Try different datasets (see <a href="Appendix-Datasets.html"><span>Appendix&nbsp;A</span></a>)</li>
 </ul>
-<div class="webex-solution">
-<button>
-Click here to see the solution for the single model
-</button>
+<p>Code template for a simple CV (only <span class="math inline">\(\alpha\)</span> is tuned, add the tuning for <span class="math inline">\(\lambda\)</span>:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
 <span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">5</span></span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>cv_inner <span class="ot">=</span> <span class="dv">5</span></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>hyper_alpha <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">30</span>,<span class="dv">0</span>, <span class="dv">1</span>)</span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>hyper_lambda <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">30</span>,<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>hyper_alpha <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">20</span>,<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
 <span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
-<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
-<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
-<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
-<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
-<span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
-<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb40-21"><a href="#cb40-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># inner split</span></span>
-<span id="cb40-22"><a href="#cb40-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv_inner) {</span>
-<span id="cb40-23"><a href="#cb40-23" aria-hidden="true" tabindex="-1"></a>    inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(train_outer), <span class="at">breaks =</span> cv_inner))</span>
-<span id="cb40-24"><a href="#cb40-24" aria-hidden="true" tabindex="-1"></a>    train_inner <span class="ot">=</span> train_outer[inner_split <span class="sc">!=</span> j, ]</span>
-<span id="cb40-25"><a href="#cb40-25" aria-hidden="true" tabindex="-1"></a>    test_inner <span class="ot">=</span> train_outer[inner_split <span class="sc">==</span> j, ]</span>
-<span id="cb40-26"><a href="#cb40-26" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb40-27"><a href="#cb40-27" aria-hidden="true" tabindex="-1"></a>    tuning_results_inner <span class="ot">=</span> </span>
-<span id="cb40-28"><a href="#cb40-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_alpha), <span class="cf">function</span>(k) {</span>
-<span id="cb40-29"><a href="#cb40-29" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">family =</span> <span class="st">"binomial"</span>,<span class="at">alpha =</span> hyper_alpha[k])</span>
-<span id="cb40-30"><a href="#cb40-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_inner, </span>
-<span id="cb40-31"><a href="#cb40-31" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">alpha =</span> hyper_alpha[k],</span>
-<span id="cb40-32"><a href="#cb40-32" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">s =</span> hyper_lambda[k],</span>
-<span id="cb40-33"><a href="#cb40-33" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">type =</span> <span class="st">"response"</span>)))</span>
-<span id="cb40-34"><a href="#cb40-34" aria-hidden="true" tabindex="-1"></a>      })</span>
-<span id="cb40-35"><a href="#cb40-35" aria-hidden="true" tabindex="-1"></a>    best_alpha <span class="ot">=</span> hyper_alpha[<span class="fu">which.max</span>(tuning_results_inner)]</span>
-<span id="cb40-36"><a href="#cb40-36" aria-hidden="true" tabindex="-1"></a>    best_lambda <span class="ot">=</span> hyper_lambda[<span class="fu">which.max</span>(tuning_results_inner)]</span>
-<span id="cb40-37"><a href="#cb40-37" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb40-38"><a href="#cb40-38" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>., <span class="at">data =</span> train_outer, <span class="at">alpha =</span> best_alpha, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
-<span id="cb40-39"><a href="#cb40-39" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
-<span id="cb40-40"><a href="#cb40-40" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_alpha</span>
-<span id="cb40-41"><a href="#cb40-41" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> best_lambda</span>
-<span id="cb40-42"><a href="#cb40-42" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">4</span>] <span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer, <span class="at">s =</span> <span class="fl">0.01</span>, <span class="at">alpha =</span> best_alpha, <span class="at">type =</span> <span class="st">"response"</span>))</span>
-<span id="cb40-43"><a href="#cb40-43" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb40-44"><a href="#cb40-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-45"><a href="#cb40-45" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
+<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
+<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a>  tuning_results <span class="ot">=</span> </span>
+<span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_alpha), <span class="cf">function</span>(k) {</span>
+<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_outer, <span class="at">family =</span> <span class="st">"binomial"</span>,<span class="at">alpha =</span> hyper_alpha[k])</span>
+<span id="cb40-21"><a href="#cb40-21" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer, </span>
+<span id="cb40-22"><a href="#cb40-22" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">alpha =</span> hyper_alpha[k],</span>
+<span id="cb40-23"><a href="#cb40-23" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">s =</span> <span class="fl">0.01</span>,</span>
+<span id="cb40-24"><a href="#cb40-24" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">type =</span> <span class="st">"response"</span>)))</span>
+<span id="cb40-25"><a href="#cb40-25" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb40-26"><a href="#cb40-26" aria-hidden="true" tabindex="-1"></a>  best_alpha <span class="ot">=</span> hyper_alpha[<span class="fu">which.max</span>(tuning_results)]</span>
+<span id="cb40-27"><a href="#cb40-27" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
+<span id="cb40-28"><a href="#cb40-28" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_alpha</span>
+<span id="cb40-29"><a href="#cb40-29" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
+<span id="cb40-30"><a href="#cb40-30" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb40-31"><a href="#cb40-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-32"><a href="#cb40-32" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  set     alpha       AUC
+1   1 0.2861395 0.8745098
+2   2 0.8304476 0.7569686
+3   3 0.8304476 0.8206522
+4   4 0.1346666 0.8270440
+5   5 0.6569923 0.8144654</code></pre>
+</div>
+</div>
+<div class="webex-solution">
+<button>
+Click here to see the solution for the single model
+</button>
+<p>Nested CV:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">5</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>cv_inner <span class="ot">=</span> <span class="dv">5</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>hyper_alpha <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">30</span>,<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>hyper_lambda <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">30</span>,<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-17"><a href="#cb42-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
+<span id="cb42-19"><a href="#cb42-19" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
+<span id="cb42-20"><a href="#cb42-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb42-21"><a href="#cb42-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># inner split</span></span>
+<span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv_inner) {</span>
+<span id="cb42-23"><a href="#cb42-23" aria-hidden="true" tabindex="-1"></a>    inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(train_outer), <span class="at">breaks =</span> cv_inner))</span>
+<span id="cb42-24"><a href="#cb42-24" aria-hidden="true" tabindex="-1"></a>    train_inner <span class="ot">=</span> train_outer[inner_split <span class="sc">!=</span> j, ]</span>
+<span id="cb42-25"><a href="#cb42-25" aria-hidden="true" tabindex="-1"></a>    test_inner <span class="ot">=</span> train_outer[inner_split <span class="sc">==</span> j, ]</span>
+<span id="cb42-26"><a href="#cb42-26" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb42-27"><a href="#cb42-27" aria-hidden="true" tabindex="-1"></a>    tuning_results_inner <span class="ot">=</span> </span>
+<span id="cb42-28"><a href="#cb42-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_alpha), <span class="cf">function</span>(k) {</span>
+<span id="cb42-29"><a href="#cb42-29" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">family =</span> <span class="st">"binomial"</span>,<span class="at">alpha =</span> hyper_alpha[k])</span>
+<span id="cb42-30"><a href="#cb42-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_inner, </span>
+<span id="cb42-31"><a href="#cb42-31" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">alpha =</span> hyper_alpha[k],</span>
+<span id="cb42-32"><a href="#cb42-32" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">s =</span> hyper_lambda[k],</span>
+<span id="cb42-33"><a href="#cb42-33" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">type =</span> <span class="st">"response"</span>)))</span>
+<span id="cb42-34"><a href="#cb42-34" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb42-35"><a href="#cb42-35" aria-hidden="true" tabindex="-1"></a>    best_alpha <span class="ot">=</span> hyper_alpha[<span class="fu">which.max</span>(tuning_results_inner)]</span>
+<span id="cb42-36"><a href="#cb42-36" aria-hidden="true" tabindex="-1"></a>    best_lambda <span class="ot">=</span> hyper_lambda[<span class="fu">which.max</span>(tuning_results_inner)]</span>
+<span id="cb42-37"><a href="#cb42-37" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb42-38"><a href="#cb42-38" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>., <span class="at">data =</span> train_outer, <span class="at">alpha =</span> best_alpha, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
+<span id="cb42-39"><a href="#cb42-39" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
+<span id="cb42-40"><a href="#cb42-40" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_alpha</span>
+<span id="cb42-41"><a href="#cb42-41" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> best_lambda</span>
+<span id="cb42-42"><a href="#cb42-42" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">4</span>] <span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer, <span class="at">s =</span> <span class="fl">0.01</span>, <span class="at">alpha =</span> best_alpha, <span class="at">type =</span> <span class="st">"response"</span>))</span>
+<span id="cb42-43"><a href="#cb42-43" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb42-44"><a href="#cb42-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-45"><a href="#cb42-45" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  set     alpha      lambda       AUC
 1   1 0.7365883 0.007334147 0.8735294
@@ -871,19 +915,66 @@ Click here to see the solution for the single model
 5   5 0.6417455 0.003948339 0.8142235</code></pre>
 </div>
 </div>
+<p>Simple CV:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">5</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>hyper_alpha <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">20</span>,<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>hyper_lambda <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">20</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
+<span id="cb44-18"><a href="#cb44-18" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
+<span id="cb44-19"><a href="#cb44-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb44-20"><a href="#cb44-20" aria-hidden="true" tabindex="-1"></a>  tuning_results <span class="ot">=</span> </span>
+<span id="cb44-21"><a href="#cb44-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_alpha), <span class="cf">function</span>(k) {</span>
+<span id="cb44-22"><a href="#cb44-22" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_outer, <span class="at">family =</span> <span class="st">"binomial"</span>,<span class="at">alpha =</span> hyper_alpha[k])</span>
+<span id="cb44-23"><a href="#cb44-23" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer, </span>
+<span id="cb44-24"><a href="#cb44-24" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">alpha =</span> hyper_alpha[k],</span>
+<span id="cb44-25"><a href="#cb44-25" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">s =</span> hyper_lambda[k],</span>
+<span id="cb44-26"><a href="#cb44-26" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">type =</span> <span class="st">"response"</span>)))</span>
+<span id="cb44-27"><a href="#cb44-27" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb44-28"><a href="#cb44-28" aria-hidden="true" tabindex="-1"></a>  best_alpha <span class="ot">=</span> hyper_alpha[<span class="fu">which.max</span>(tuning_results)]</span>
+<span id="cb44-29"><a href="#cb44-29" aria-hidden="true" tabindex="-1"></a>  best_lambda <span class="ot">=</span> hyper_lambda[<span class="fu">which.max</span>(tuning_results)]</span>
+<span id="cb44-30"><a href="#cb44-30" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
+<span id="cb44-31"><a href="#cb44-31" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_alpha</span>
+<span id="cb44-32"><a href="#cb44-32" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> best_lambda</span>
+<span id="cb44-33"><a href="#cb44-33" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">4</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
+<span id="cb44-34"><a href="#cb44-34" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb44-35"><a href="#cb44-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-36"><a href="#cb44-36" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  set     alpha      lambda       AUC
+1   1 0.4622928 0.003948339 0.8740196
+2   2 0.4622928 0.003948339 0.7567198
+3   3 0.1174874 0.207658973 0.8237578
+4   4 0.4622928 0.003948339 0.8255926
+5   5 0.9782264 0.007334147 0.8144654</code></pre>
+</div>
+</div>
 <p>Predictions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>prediction_ensemble <span class="ot">=</span> </span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(results), <span class="cf">function</span>(i) {</span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>    model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> data_obs, <span class="at">family =</span> <span class="st">"binomial"</span>,<span class="at">alpha =</span> results<span class="sc">$</span>alpha[i])</span>
-<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">predict</span>(model, data_new, <span class="at">alpha =</span> results<span class="sc">$</span>alpha[i], <span class="at">s =</span> results<span class="sc">$</span>lambda[i], <span class="at">type =</span> <span class="st">"response"</span>)[,<span class="dv">1</span>])</span>
-<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Single predictions from the model with the highest AUC:</span></span>
-<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> prediction_ensemble[,<span class="fu">which.max</span>(results<span class="sc">$</span>AUC)], <span class="at">file =</span> <span class="st">"Max_titanic_best_model.csv"</span>))</span>
-<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Single predictions from the ensemble model:</span></span>
-<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">apply</span>(prediction_ensemble, <span class="dv">1</span>, mean), <span class="at">file =</span> <span class="st">"Max_titanic_ensemble.csv"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>prediction_ensemble <span class="ot">=</span> </span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(results), <span class="cf">function</span>(i) {</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>    model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> data_obs, <span class="at">family =</span> <span class="st">"binomial"</span>,<span class="at">alpha =</span> results<span class="sc">$</span>alpha[i])</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">predict</span>(model, data_new, <span class="at">alpha =</span> results<span class="sc">$</span>alpha[i], <span class="at">s =</span> results<span class="sc">$</span>lambda[i], <span class="at">type =</span> <span class="st">"response"</span>)[,<span class="dv">1</span>])</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Single predictions from the model with the highest AUC:</span></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> prediction_ensemble[,<span class="fu">which.max</span>(results<span class="sc">$</span>AUC)], <span class="at">file =</span> <span class="st">"Max_titanic_best_model.csv"</span>))</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Single predictions from the ensemble model:</span></span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">apply</span>(prediction_ensemble, <span class="dv">1</span>, mean), <span class="at">file =</span> <span class="st">"Max_titanic_ensemble.csv"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -913,15 +1004,15 @@ Click here to see the solution for the single model
 <h4 data-number="4.5.1.1" class="anchored" data-anchor-id="mlr3---the-basic-workflow"><span class="header-section-number">4.5.1.1</span> mlr3 - The Basic Workflow</h4>
 <p>The mlr3 package actually consists of several packages for different tasks (e.g.&nbsp;mlr3tuning for hyperparameter tuning, mlr3pipelines for data preparation pipes). But let’s start with the basic workflow:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3)</span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3learners)</span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3pipelines)</span>
-<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3tuning)</span>
-<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3measures)</span>
-<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(nasa)</span>
-<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(nasa)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3)</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3learners)</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3pipelines)</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3tuning)</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3measures)</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(nasa)</span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(nasa)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>'data.frame':   4687 obs. of  40 variables:
  $ Neo.Reference.ID            : int  3449084 3702322 3406893 NA 2363305 3017307 2438430 3653917 3519490 2066391 ...
@@ -968,25 +1059,25 @@ Click here to see the solution for the single model
 </div>
 <p>Let’s drop time, name and ID variable and create a classification task:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> nasa <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>Orbit.Determination.Date,</span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>                       <span class="sc">-</span>Close.Approach.Date, <span class="sc">-</span>Name, <span class="sc">-</span>Neo.Reference.ID)</span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>Hazardous <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>Hazardous)</span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a classification task.</span></span>
-<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>task <span class="ot">=</span> TaskClassif<span class="sc">$</span><span class="fu">new</span>(<span class="at">id =</span> <span class="st">"nasa"</span>, <span class="at">backend =</span> data,</span>
-<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>                       <span class="at">target =</span> <span class="st">"Hazardous"</span>, <span class="at">positive =</span> <span class="st">"1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> nasa <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>Orbit.Determination.Date,</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>                       <span class="sc">-</span>Close.Approach.Date, <span class="sc">-</span>Name, <span class="sc">-</span>Neo.Reference.ID)</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>Hazardous <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>Hazardous)</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a classification task.</span></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>task <span class="ot">=</span> TaskClassif<span class="sc">$</span><span class="fu">new</span>(<span class="at">id =</span> <span class="st">"nasa"</span>, <span class="at">backend =</span> data,</span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>                       <span class="at">target =</span> <span class="st">"Hazardous"</span>, <span class="at">positive =</span> <span class="st">"1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Create a generic pipeline of data transformation (imputation <span class="math inline">\(\rightarrow\)</span> scaling <span class="math inline">\(\rightarrow\)</span> encoding of categorical variables):</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Let's create the preprocessing graph.</span></span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>preprocessing <span class="ot">=</span> <span class="fu">po</span>(<span class="st">"imputeoor"</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">"scale"</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">"encode"</span>) </span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the task.</span></span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>transformed_task <span class="ot">=</span> preprocessing<span class="sc">$</span><span class="fu">train</span>(task)[[<span class="dv">1</span>]]</span>
-<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">missings</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Let's create the preprocessing graph.</span></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>preprocessing <span class="ot">=</span> <span class="fu">po</span>(<span class="st">"imputeoor"</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">"scale"</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">"encode"</span>) </span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the task.</span></span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>transformed_task <span class="ot">=</span> preprocessing<span class="sc">$</span><span class="fu">train</span>(task)[[<span class="dv">1</span>]]</span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">missings</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                   Hazardous           Absolute.Magnitude 
                         4187                            0 
@@ -1030,7 +1121,7 @@ Relative.Velocity.km.per.sec              Semi.Major.Axis
 </div>
 <p>We can even visualize the preprocessing graph:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>preprocessing<span class="sc">$</span><span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>preprocessing<span class="sc">$</span><span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="A4-MLpipeline_files/figure-html/chunk_chapter4_68-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -1042,9 +1133,9 @@ Relative.Velocity.km.per.sec              Semi.Major.Axis
 <li>Run (benchmark) our model.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">data</span>()[<span class="dv">1</span>,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">data</span>()[<span class="dv">1</span>,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   Hazardous Absolute.Magnitude Aphelion.Dist Asc.Node.Longitude Eccentricity
 1:         0         -0.8132265    -0.3804201          -1.140837    -0.315606
@@ -1067,27 +1158,27 @@ Relative.Velocity.km.per.sec              Semi.Major.Axis
    Equinox.J2000 Equinox..MISSING Orbiting.Body.Earth Orbiting.Body..MISSING
 1:             1                0                   1                      0</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">set_row_roles</span>((<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)],</span>
-<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>                               <span class="st">"holdout"</span>)</span>
-<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>cv10 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> 10L)</span>
-<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>EN <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">"classif.glmnet"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>)</span>
-<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">"classif.auc"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">set_row_roles</span>((<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)],</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>                               <span class="st">"holdout"</span>)</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>cv10 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> 10L)</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>EN <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">"classif.glmnet"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>)</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">"classif.auc"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">resample</span>(transformed_task,</span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>                        EN, <span class="at">resampling =</span> cv10, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the average AUC of the holdouts.</span></span>
-<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>(measurement)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">resample</span>(transformed_task,</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>                        EN, <span class="at">resampling =</span> cv10, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the average AUC of the holdouts.</span></span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>(measurement)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Very cool! Preprocessing + 10-fold cross-validation model evaluation in a few lines of code!</p>
 <p>Let’s create the final predictions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="cf">function</span>(i) result<span class="sc">$</span>learners[[i]]<span class="sc">$</span><span class="fu">predict</span>(transformed_task,</span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)])<span class="sc">$</span>data<span class="sc">$</span>prob[, <span class="st">"1"</span>, <span class="at">drop =</span> <span class="cn">FALSE</span>])</span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(pred)</span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">1</span>, mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="cf">function</span>(i) result<span class="sc">$</span>learners[[i]]<span class="sc">$</span><span class="fu">predict</span>(transformed_task,</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)])<span class="sc">$</span>data<span class="sc">$</span>prob[, <span class="st">"1"</span>, <span class="at">drop =</span> <span class="cn">FALSE</span>])</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(pred)</span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">1</span>, mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>You could now submit the predictions <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a>.</p>
 <p>But we are still not happy with the results, let’s do some hyperparameter tuning!</p>
@@ -1097,7 +1188,7 @@ Relative.Velocity.km.per.sec              Semi.Major.Axis
 <p>With mlr3, we can easily extend the above example to do hyperparameter tuning within nested cross-validation (the tuning has its own inner cross-validation).</p>
 <p>Print the hyperparameter space of our glmnet learner:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>EN<span class="sc">$</span>param_set</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>EN<span class="sc">$</span>param_set</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>&lt;ParamSet&gt;
                       id    class lower upper nlevels        default parents
@@ -1180,13 +1271,13 @@ Relative.Velocity.km.per.sec              Semi.Major.Axis
 </div>
 <p>Define the hyperparameter space of the random forest:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(paradox)</span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>EN_pars <span class="ot">=</span> </span>
-<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>    paradox<span class="sc">::</span>ParamSet<span class="sc">$</span><span class="fu">new</span>(</span>
-<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(paradox<span class="sc">::</span>ParamDbl<span class="sc">$</span><span class="fu">new</span>(<span class="st">"alpha"</span>, <span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> 1L),</span>
-<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamDbl<span class="sc">$</span><span class="fu">new</span>(<span class="st">"lambda"</span>, <span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> <span class="fl">0.5</span> )) )</span>
-<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(EN_pars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(paradox)</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>EN_pars <span class="ot">=</span> </span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>    paradox<span class="sc">::</span>ParamSet<span class="sc">$</span><span class="fu">new</span>(</span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(paradox<span class="sc">::</span>ParamDbl<span class="sc">$</span><span class="fu">new</span>(<span class="st">"alpha"</span>, <span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> 1L),</span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamDbl<span class="sc">$</span><span class="fu">new</span>(<span class="st">"lambda"</span>, <span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> <span class="fl">0.5</span> )) )</span>
+<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(EN_pars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>&lt;ParamSet&gt;
        id    class lower upper nlevels        default value
@@ -1202,21 +1293,21 @@ Relative.Velocity.km.per.sec              Semi.Major.Axis
 <li>Tuning terminator (When should we stop tuning? E.g. after <span class="math inline">\(n\)</span> iterations).</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>inner3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> 3L)</span>
-<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">"classif.auc"</span>)</span>
-<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>tuner <span class="ot">=</span>  mlr3tuning<span class="sc">::</span><span class="fu">tnr</span>(<span class="st">"random_search"</span>) </span>
-<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>terminator <span class="ot">=</span> mlr3tuning<span class="sc">::</span><span class="fu">trm</span>(<span class="st">"evals"</span>, <span class="at">n_evals =</span> 5L)</span>
-<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>EN <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">"classif.glmnet"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>)</span>
-<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>learner_tuner <span class="ot">=</span> AutoTuner<span class="sc">$</span><span class="fu">new</span>(<span class="at">learner =</span> EN, </span>
-<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>                              <span class="at">measure =</span> measurement, </span>
-<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>                              <span class="at">tuner =</span> tuner, </span>
-<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>                              <span class="at">terminator =</span> terminator,</span>
-<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>                              <span class="at">search_space =</span> EN_pars,</span>
-<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>                              <span class="at">resampling =</span> inner3)</span>
-<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(learner_tuner)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>inner3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> 3L)</span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">"classif.auc"</span>)</span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>tuner <span class="ot">=</span>  mlr3tuning<span class="sc">::</span><span class="fu">tnr</span>(<span class="st">"random_search"</span>) </span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>terminator <span class="ot">=</span> mlr3tuning<span class="sc">::</span><span class="fu">trm</span>(<span class="st">"evals"</span>, <span class="at">n_evals =</span> 5L)</span>
+<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>EN <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">"classif.glmnet"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>)</span>
+<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a>learner_tuner <span class="ot">=</span> AutoTuner<span class="sc">$</span><span class="fu">new</span>(<span class="at">learner =</span> EN, </span>
+<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>                              <span class="at">measure =</span> measurement, </span>
+<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a>                              <span class="at">tuner =</span> tuner, </span>
+<span id="cb62-12"><a href="#cb62-12" aria-hidden="true" tabindex="-1"></a>                              <span class="at">terminator =</span> terminator,</span>
+<span id="cb62-13"><a href="#cb62-13" aria-hidden="true" tabindex="-1"></a>                              <span class="at">search_space =</span> EN_pars,</span>
+<span id="cb62-14"><a href="#cb62-14" aria-hidden="true" tabindex="-1"></a>                              <span class="at">resampling =</span> inner3)</span>
+<span id="cb62-15"><a href="#cb62-15" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(learner_tuner)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>&lt;AutoTuner:classif.glmnet.tuned&gt;
 * Model: list
@@ -1233,8 +1324,8 @@ Relative.Velocity.km.per.sec              Semi.Major.Axis
 </div>
 <p>Now we can wrap it normally into the 10-fold cross-validated setup as done previously:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the average AUC of the holdouts.</span></span>
-<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>(measurement)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the average AUC of the holdouts.</span></span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>(measurement)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>classif.auc 
   0.6767554 </code></pre>
@@ -1242,10 +1333,10 @@ Relative.Velocity.km.per.sec              Semi.Major.Axis
 </div>
 <p>Let’s create the final predictions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="cf">function</span>(i) result<span class="sc">$</span>learners[[i]]<span class="sc">$</span><span class="fu">predict</span>(transformed_task,</span>
-<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a><span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)])<span class="sc">$</span>data<span class="sc">$</span>prob[, <span class="st">"1"</span>, <span class="at">drop =</span> <span class="cn">FALSE</span>])</span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(pred)</span>
-<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">1</span>, mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="cf">function</span>(i) result<span class="sc">$</span>learners[[i]]<span class="sc">$</span><span class="fu">predict</span>(transformed_task,</span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a><span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)])<span class="sc">$</span>data<span class="sc">$</span>prob[, <span class="st">"1"</span>, <span class="at">drop =</span> <span class="cn">FALSE</span>])</span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(pred)</span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">1</span>, mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
@@ -1273,66 +1364,66 @@ Click here to see the solution
 </button>
 <p>Prepare data</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> titanic_ml <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>name, <span class="sc">-</span>ticket, <span class="sc">-</span>name, <span class="sc">-</span>body)</span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>pclass <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>pclass)</span>
-<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>sex <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>sex)</span>
-<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>survived <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>survived)</span>
-<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Change easy things manually:</span></span>
-<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>embarked[data<span class="sc">$</span>embarked <span class="sc">==</span> <span class="st">""</span>] <span class="ot">=</span> <span class="st">"S"</span>  <span class="co"># Fill in "empty" values.</span></span>
-<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>embarked <span class="ot">=</span> <span class="fu">droplevels</span>(<span class="fu">as.factor</span>(data<span class="sc">$</span>embarked)) <span class="co"># Remove unused levels ("").</span></span>
-<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>cabin <span class="ot">=</span> (data<span class="sc">$</span>cabin <span class="sc">!=</span> <span class="st">""</span>) <span class="sc">*</span> <span class="dv">1</span> <span class="co"># Dummy code the availability of a cabin.</span></span>
-<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>fare[<span class="fu">is.na</span>(data<span class="sc">$</span>fare)] <span class="ot">=</span> <span class="fu">mean</span>(data<span class="sc">$</span>fare, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb63-11"><a href="#cb63-11" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(data<span class="sc">$</span>home.dest)[<span class="fu">levels</span>(data<span class="sc">$</span>home.dest) <span class="sc">==</span> <span class="st">""</span>] <span class="ot">=</span> <span class="st">"unknown"</span></span>
-<span id="cb63-12"><a href="#cb63-12" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(data<span class="sc">$</span>boat)[<span class="fu">levels</span>(data<span class="sc">$</span>boat) <span class="sc">==</span> <span class="st">""</span>] <span class="ot">=</span> <span class="st">"none"</span></span>
-<span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a classification task.</span></span>
-<span id="cb63-15"><a href="#cb63-15" aria-hidden="true" tabindex="-1"></a>task <span class="ot">=</span> TaskClassif<span class="sc">$</span><span class="fu">new</span>(<span class="at">id =</span> <span class="st">"titanic"</span>, <span class="at">backend =</span> data,</span>
-<span id="cb63-16"><a href="#cb63-16" aria-hidden="true" tabindex="-1"></a>                       <span class="at">target =</span> <span class="st">"survived"</span>, <span class="at">positive =</span> <span class="st">"1"</span>)</span>
-<span id="cb63-17"><a href="#cb63-17" aria-hidden="true" tabindex="-1"></a>task<span class="sc">$</span><span class="fu">missings</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> titanic_ml <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>name, <span class="sc">-</span>ticket, <span class="sc">-</span>name, <span class="sc">-</span>body)</span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>pclass <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>pclass)</span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>sex <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>sex)</span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>survived <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>survived)</span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Change easy things manually:</span></span>
+<span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>embarked[data<span class="sc">$</span>embarked <span class="sc">==</span> <span class="st">""</span>] <span class="ot">=</span> <span class="st">"S"</span>  <span class="co"># Fill in "empty" values.</span></span>
+<span id="cb67-8"><a href="#cb67-8" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>embarked <span class="ot">=</span> <span class="fu">droplevels</span>(<span class="fu">as.factor</span>(data<span class="sc">$</span>embarked)) <span class="co"># Remove unused levels ("").</span></span>
+<span id="cb67-9"><a href="#cb67-9" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>cabin <span class="ot">=</span> (data<span class="sc">$</span>cabin <span class="sc">!=</span> <span class="st">""</span>) <span class="sc">*</span> <span class="dv">1</span> <span class="co"># Dummy code the availability of a cabin.</span></span>
+<span id="cb67-10"><a href="#cb67-10" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>fare[<span class="fu">is.na</span>(data<span class="sc">$</span>fare)] <span class="ot">=</span> <span class="fu">mean</span>(data<span class="sc">$</span>fare, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb67-11"><a href="#cb67-11" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(data<span class="sc">$</span>home.dest)[<span class="fu">levels</span>(data<span class="sc">$</span>home.dest) <span class="sc">==</span> <span class="st">""</span>] <span class="ot">=</span> <span class="st">"unknown"</span></span>
+<span id="cb67-12"><a href="#cb67-12" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(data<span class="sc">$</span>boat)[<span class="fu">levels</span>(data<span class="sc">$</span>boat) <span class="sc">==</span> <span class="st">""</span>] <span class="ot">=</span> <span class="st">"none"</span></span>
+<span id="cb67-13"><a href="#cb67-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-14"><a href="#cb67-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a classification task.</span></span>
+<span id="cb67-15"><a href="#cb67-15" aria-hidden="true" tabindex="-1"></a>task <span class="ot">=</span> TaskClassif<span class="sc">$</span><span class="fu">new</span>(<span class="at">id =</span> <span class="st">"titanic"</span>, <span class="at">backend =</span> data,</span>
+<span id="cb67-16"><a href="#cb67-16" aria-hidden="true" tabindex="-1"></a>                       <span class="at">target =</span> <span class="st">"survived"</span>, <span class="at">positive =</span> <span class="st">"1"</span>)</span>
+<span id="cb67-17"><a href="#cb67-17" aria-hidden="true" tabindex="-1"></a>task<span class="sc">$</span><span class="fu">missings</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> survived       age      boat     cabin  embarked      fare home.dest     parch 
       655       263         0         0         0         0         0         0 
    pclass       sex     sibsp 
         0         0         0 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Let's create the preprocessing graph.</span></span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>preprocessing <span class="ot">=</span> <span class="fu">po</span>(<span class="st">"imputeoor"</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">"scale"</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">"encode"</span>) </span>
-<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the task.</span></span>
-<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>transformed_task <span class="ot">=</span> preprocessing<span class="sc">$</span><span class="fu">train</span>(task)[[<span class="dv">1</span>]]</span>
-<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">set_row_roles</span>((<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>survived)], <span class="st">"holdout"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Let's create the preprocessing graph.</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>preprocessing <span class="ot">=</span> <span class="fu">po</span>(<span class="st">"imputeoor"</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">"scale"</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">"encode"</span>) </span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the task.</span></span>
+<span id="cb69-5"><a href="#cb69-5" aria-hidden="true" tabindex="-1"></a>transformed_task <span class="ot">=</span> preprocessing<span class="sc">$</span><span class="fu">train</span>(task)[[<span class="dv">1</span>]]</span>
+<span id="cb69-6"><a href="#cb69-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-7"><a href="#cb69-7" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">set_row_roles</span>((<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>survived)], <span class="st">"holdout"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Hyperparameter tuning:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>cv10 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> 10L)</span>
-<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>inner3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> 3L)</span>
-<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">"classif.auc"</span>)</span>
-<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>tuner <span class="ot">=</span>  mlr3tuning<span class="sc">::</span><span class="fu">tnr</span>(<span class="st">"random_search"</span>) </span>
-<span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a>terminator <span class="ot">=</span> mlr3tuning<span class="sc">::</span><span class="fu">trm</span>(<span class="st">"evals"</span>, <span class="at">n_evals =</span> 5L)</span>
-<span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a>EN <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">"classif.glmnet"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>)</span>
-<span id="cb66-8"><a href="#cb66-8" aria-hidden="true" tabindex="-1"></a>EN_pars <span class="ot">=</span> </span>
-<span id="cb66-9"><a href="#cb66-9" aria-hidden="true" tabindex="-1"></a>    paradox<span class="sc">::</span>ParamSet<span class="sc">$</span><span class="fu">new</span>(</span>
-<span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(paradox<span class="sc">::</span>ParamDbl<span class="sc">$</span><span class="fu">new</span>(<span class="st">"alpha"</span>, <span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> 1L),</span>
-<span id="cb66-11"><a href="#cb66-11" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamDbl<span class="sc">$</span><span class="fu">new</span>(<span class="st">"lambda"</span>, <span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> <span class="fl">0.5</span> )) )</span>
-<span id="cb66-12"><a href="#cb66-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-13"><a href="#cb66-13" aria-hidden="true" tabindex="-1"></a>learner_tuner <span class="ot">=</span> AutoTuner<span class="sc">$</span><span class="fu">new</span>(<span class="at">learner =</span> EN, </span>
-<span id="cb66-14"><a href="#cb66-14" aria-hidden="true" tabindex="-1"></a>                              <span class="at">measure =</span> measurement, </span>
-<span id="cb66-15"><a href="#cb66-15" aria-hidden="true" tabindex="-1"></a>                              <span class="at">tuner =</span> tuner, </span>
-<span id="cb66-16"><a href="#cb66-16" aria-hidden="true" tabindex="-1"></a>                              <span class="at">terminator =</span> terminator,</span>
-<span id="cb66-17"><a href="#cb66-17" aria-hidden="true" tabindex="-1"></a>                              <span class="at">search_space =</span> EN_pars,</span>
-<span id="cb66-18"><a href="#cb66-18" aria-hidden="true" tabindex="-1"></a>                              <span class="at">resampling =</span> inner3)</span>
-<span id="cb66-19"><a href="#cb66-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-20"><a href="#cb66-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-21"><a href="#cb66-21" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">resample</span>(transformed_task, learner_tuner,</span>
-<span id="cb66-22"><a href="#cb66-22" aria-hidden="true" tabindex="-1"></a>                        <span class="at">resampling =</span> cv10, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>cv10 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> 10L)</span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>inner3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> 3L)</span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">"classif.auc"</span>)</span>
+<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>tuner <span class="ot">=</span>  mlr3tuning<span class="sc">::</span><span class="fu">tnr</span>(<span class="st">"random_search"</span>) </span>
+<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a>terminator <span class="ot">=</span> mlr3tuning<span class="sc">::</span><span class="fu">trm</span>(<span class="st">"evals"</span>, <span class="at">n_evals =</span> 5L)</span>
+<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a>EN <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">"classif.glmnet"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>)</span>
+<span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a>EN_pars <span class="ot">=</span> </span>
+<span id="cb70-9"><a href="#cb70-9" aria-hidden="true" tabindex="-1"></a>    paradox<span class="sc">::</span>ParamSet<span class="sc">$</span><span class="fu">new</span>(</span>
+<span id="cb70-10"><a href="#cb70-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(paradox<span class="sc">::</span>ParamDbl<span class="sc">$</span><span class="fu">new</span>(<span class="st">"alpha"</span>, <span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> 1L),</span>
+<span id="cb70-11"><a href="#cb70-11" aria-hidden="true" tabindex="-1"></a>           paradox<span class="sc">::</span>ParamDbl<span class="sc">$</span><span class="fu">new</span>(<span class="st">"lambda"</span>, <span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> <span class="fl">0.5</span> )) )</span>
+<span id="cb70-12"><a href="#cb70-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-13"><a href="#cb70-13" aria-hidden="true" tabindex="-1"></a>learner_tuner <span class="ot">=</span> AutoTuner<span class="sc">$</span><span class="fu">new</span>(<span class="at">learner =</span> EN, </span>
+<span id="cb70-14"><a href="#cb70-14" aria-hidden="true" tabindex="-1"></a>                              <span class="at">measure =</span> measurement, </span>
+<span id="cb70-15"><a href="#cb70-15" aria-hidden="true" tabindex="-1"></a>                              <span class="at">tuner =</span> tuner, </span>
+<span id="cb70-16"><a href="#cb70-16" aria-hidden="true" tabindex="-1"></a>                              <span class="at">terminator =</span> terminator,</span>
+<span id="cb70-17"><a href="#cb70-17" aria-hidden="true" tabindex="-1"></a>                              <span class="at">search_space =</span> EN_pars,</span>
+<span id="cb70-18"><a href="#cb70-18" aria-hidden="true" tabindex="-1"></a>                              <span class="at">resampling =</span> inner3)</span>
+<span id="cb70-19"><a href="#cb70-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-20"><a href="#cb70-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-21"><a href="#cb70-21" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">resample</span>(transformed_task, learner_tuner,</span>
+<span id="cb70-22"><a href="#cb70-22" aria-hidden="true" tabindex="-1"></a>                        <span class="at">resampling =</span> cv10, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Evaluation:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">"classif.auc"</span>)</span>
-<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>(measurement)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">"classif.auc"</span>)</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>(measurement)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>classif.auc 
   0.9924459 </code></pre>
@@ -1341,8 +1432,8 @@ Click here to see the solution
 <p>Predictions:</p>
 <p>We can extract a learner with optimized hyperparameters:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> result<span class="sc">$</span>learners[[<span class="dv">1</span>]]<span class="sc">$</span>learner<span class="sc">$</span><span class="fu">clone</span>()</span>
-<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span>param_set<span class="sc">$</span>values</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> result<span class="sc">$</span>learners[[<span class="dv">1</span>]]<span class="sc">$</span>learner<span class="sc">$</span><span class="fu">clone</span>()</span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span>param_set<span class="sc">$</span>values</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$alpha
 [1] 0.2353052
@@ -1353,17 +1444,17 @@ $lambda
 </div>
 <p>And we can fit it then on the full data set:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span><span class="fu">train</span>(transformed_task)</span>
-<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> model<span class="sc">$</span><span class="fu">predict</span>(transformed_task, <span class="at">row_ids =</span> transformed_task<span class="sc">$</span>row_roles<span class="sc">$</span>holdout)</span>
-<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> predictions<span class="sc">$</span>prob[,<span class="dv">1</span>]</span>
-<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(predictions)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span><span class="fu">train</span>(transformed_task)</span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> model<span class="sc">$</span><span class="fu">predict</span>(transformed_task, <span class="at">row_ids =</span> transformed_task<span class="sc">$</span>row_roles<span class="sc">$</span>holdout)</span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> predictions<span class="sc">$</span>prob[,<span class="dv">1</span>]</span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(predictions)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.94428932 0.07481128 0.21730284 0.86504280 0.94653467 0.95414457</code></pre>
 </div>
 </div>
 <p>And submit to http://rhsbio7.uni-regensburg.de:8500</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> predictions), <span class="at">file =</span> <span class="st">"glmnet.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> predictions), <span class="at">file =</span> <span class="st">"glmnet.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
