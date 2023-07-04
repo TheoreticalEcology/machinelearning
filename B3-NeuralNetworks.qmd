@@ -177,7 +177,7 @@ The weights get sparse, i.e. many of them are zero.
 
 Combing back to the titanic dataset from yesterday, we want to optimize $\lambda$ using nested CV:
 
--   Use nested CV to optimize the $\lambda$ parameter
+-   Use CV to optimize the $\lambda$ parameter
 -   Train model with the $\lambda$ parameter with the highest AUC
 -   Make predictions for the new observations and submit them
 
@@ -189,7 +189,7 @@ data(titanic_ml)
 data = titanic_ml
 data = 
   data %>% select(survived, sex, age, fare, pclass)
-data[,-1] = missRanger(data[,-1])
+data[,-1] = missRanger(data[,-1], verbose = 0)
 
 data_sub =
   data %>%
@@ -204,10 +204,10 @@ data_obs = data_sub[is.na(data_sub$survived),] # data with known response
 `r hide("Click here to see the solution")`
 
 ```{r}
+library(cito)
 set.seed(42)
 data_obs = data_sub[!is.na(data_sub$survived),] 
 cv = 3
-cv_inner = 3
 hyper_lambda = runif(5,0.0001, 0.02)
 
 outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
@@ -222,13 +222,7 @@ for(i in 1:cv) {
   train_outer = data_obs[outer_split != i, ]
   test_outer = data_obs[outer_split == i, ]
   
-  # inner split
-  for(j in 1:cv_inner) {
-    inner_split = as.integer(cut(1:nrow(train_outer), breaks = cv_inner))
-    train_inner = train_outer[inner_split != j, ]
-    test_inner = train_outer[inner_split == j, ]
-    
-    tuning_results_inner = 
+  tuning_results = 
       sapply(1:length(hyper_lambda), function(k) {
         model = dnn(survived~., 
             hidden = c(10L, 10L), 
@@ -238,23 +232,14 @@ for(i in 1:cv) {
             lambda = hyper_lambda[k],
             alpha = 0.1,
             lr_scheduler = config_lr_scheduler("step", step_size = 10, gamma = 0.1),
-            data = train_inner, epochs = 40L, verbose = FALSE, plot= FALSE)
-        return(Metrics::auc(test_inner$survived, predict(model, test_inner )[,1]))
+            data = train_outer, epochs = 40L, verbose = FALSE, plot= FALSE)
+        return(Metrics::auc(test_outer$survived, predict(model, test_outer )[,1]))
       })
-    best_lambda = hyper_lambda[which.max(tuning_results_inner)]
-  }
-  model = dnn(survived~., 
-              hidden = c(10L, 10L), 
-              activation = c("selu", "selu"), 
-              loss = "mse", 
-              lr = 0.05,
-              lambda = best_lambda,
-              alpha = 0.1,
-              lr_scheduler = config_lr_scheduler("step", step_size = 10, gamma = 0.1),
-              data = train_inner, epochs = 40L, verbose = FALSE, plot= FALSE)
+  best_lambda = hyper_lambda[which.max(tuning_results)]
+  
   results[i, 1] = i
   results[i, 2] = best_lambda
-  results[i, 3] = Metrics::auc(test_outer$survived, predict(model, test_outer ))
+  results[i, 3] = max(tuning_results)
 }
 
 print(results)
@@ -273,7 +258,7 @@ prediction_ensemble =
               lambda = results$lambda[i],
               alpha = 0.1,
               lr_scheduler = config_lr_scheduler("step", step_size = 10, gamma = 0.1),
-              data = train_inner, epochs = 40L, verbose = FALSE, plot= FALSE)
+              data = data_sub[is.na(data_sub$survived),] , epochs = 40L, verbose = FALSE, plot= FALSE)
     return(predict(model, data_obs)[,1])
   })
 

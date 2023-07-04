@@ -261,6 +261,8 @@ Why is it important to tune hyperparameters? Hyperparameters (configuration para
 Let's implement manually a nested CV to tune the $\alpha$. Let's start with a 5CVx5CV and 20x different alpha values:
 
 ```{r}
+library(glmnet)
+library(glmnetUtils)
 set.seed(42)
 data_obs = data_sub[!is.na(data_sub$survived),] 
 cv = 5
@@ -351,6 +353,8 @@ Submit both predictions (<http://rhsbio7.uni-regensburg.de:8500/>), which model 
 library(EcoData)
 library(dplyr)
 library(missRanger)
+library(glmnet)
+library(glmnetUtils)
 data(titanic_ml)
 data = titanic_ml
 data = 
@@ -378,6 +382,8 @@ Bonus:
 Code template for a simple CV (only $\alpha$ is tuned, add the tuning for $\lambda$:
 
 ```{r}
+library(glmnet)
+library(glmnetUtils)
 set.seed(42)
 data_obs = data_sub[!is.na(data_sub$survived),] 
 cv = 5
@@ -458,7 +464,7 @@ for(i in 1:cv) {
   results[i, 1] = i
   results[i, 2] = best_alpha
   results[i, 3] = best_lambda
-  results[i, 4] = Metrics::auc(test_outer$survived, predict(model, test_outer, s = 0.01, alpha = best_alpha, type = "response"))
+  results[i, 4] = Metrics::auc(test_outer$survived, predict(model, test_outer, s = best_lambda, alpha = best_alpha, type = "response"))
 }
 
 print(results)
@@ -753,6 +759,7 @@ transformed_task$set_row_roles((1:nrow(data))[is.na(data$survived)], "holdout")
 Hyperparameter tuning:
 
 ```{r, results='hide'}
+
 cv10 = mlr3::rsmp("cv", folds = 10L)
 
 inner3 = mlr3::rsmp("cv", folds = 3L)
