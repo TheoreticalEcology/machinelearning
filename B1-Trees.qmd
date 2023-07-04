@@ -153,7 +153,7 @@ Important hyperparameters:
 | lambda         | regularization strength of the individual trees                              |
 | max tree       | maximal number of trees in the ensemble                                      |
 
-### Exercises
+## Exercises
 
 ::: {.callout-caution icon="false"}
 #### Question: Regression Trees
@@ -393,8 +393,8 @@ data_sub =
            fare = scales::rescale(fare, c(0, 1))) %>%
     mutate(sex = as.integer(sex) - 1L,
            pclass = as.integer(pclass - 1L))
-data_new = data_sub[!is.na(data_sub$survived),] # for which we want to make predictions at the end
-data_obs = data_sub[is.na(data_sub$survived),] # data with known response
+data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
+data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
 ```
 
 
@@ -502,6 +502,151 @@ write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titan
 
 `r unhide()`
 :::
+
+
+
+::: {.callout-caution icon="false"}
+#### Question: Hyperparameter tuning of boosted regression trees
+
+Combing back to the titanic dataset from the morning, we want to optimize max depth and the eta parameter in xgboost.
+
+Prepare the data:
+
+```{r}
+library(EcoData)
+library(dplyr)
+library(missRanger)
+data(titanic_ml)
+data = titanic_ml
+data = 
+  data %>% select(survived, sex, age, fare, pclass)
+data[,-1] = missRanger(data[,-1], verbose = 0)
+
+data_sub =
+  data %>%
+    mutate(age = scales::rescale(age, c(0, 1)),
+           fare = scales::rescale(fare, c(0, 1))) %>%
+    mutate(sex = as.integer(sex) - 1L,
+           pclass = as.integer(pclass - 1L))
+data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
+data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
+```
+
+
+
+
+::: {.callout-tip collapse="true" appearance="minimal"}
+## Code template
+
+```{r, eval=FALSE}
+library(xgboost)
+set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+cv = 3
+
+outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+
+# sample minnodesize values (must be integers)
+hyper_depth = ...
+hyper_eta = ...
+
+results = data.frame(
+  set = rep(NA, cv),
+  depth = rep(NA, cv),
+  eta = rep(NA, cv),
+  AUC = rep(NA, cv)
+)
+
+for(i in 1:cv) {
+  train_outer = data_obs[outer_split != i, ]
+  test_outer = data_obs[outer_split == i, ]
+  
+  tuning_results = 
+      sapply(1:length(hyper_depth), function(k) {
+        
+        # Cast data to xgboost data types
+        data_xg = xgb.DMatrix(data = as.matrix(train_outer[,-1]), label = train_outer$survived)
+        model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k])
+        predictions = predict(model, newdata = as.matrix(test_outer)[,-1])
+        
+        return(Metrics::auc(test_outer$survived, predictions)))
+      })
+  
+  results[i, 1] = i
+  results[i, 2] = hyper_depth[which.max(tuning_results)]
+  results[i, 3] = hyper_eta[which.max(tuning_results)]  
+  results[i, 4] = max(tuning_results)
+}
+
+print(results)
+```
+:::
+
+`r hide("Click here to see the solution")`
+
+```{r}
+library(xgboost)
+set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+cv = 3
+
+outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+
+# sample minnodesize values (must be integers)
+hyper_depth = sample(200, 20)
+hyper_eta = runif(20, 0, 1)
+
+results = data.frame(
+  set = rep(NA, cv),
+  depth = rep(NA, cv),
+  eta = rep(NA, cv),
+  AUC = rep(NA, cv)
+)
+
+for(i in 1:cv) {
+  train_outer = data_obs[outer_split != i, ]
+  test_outer = data_obs[outer_split == i, ]
+  
+  tuning_results = 
+      sapply(1:length(hyper_depth), function(k) {
+        
+        # Cast data to xgboost data types
+        data_xg = xgb.DMatrix(data = as.matrix(train_outer[,-1]), label = train_outer$survived)
+        model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k])
+        predictions = predict(model, newdata = as.matrix(test_outer)[,-1])
+        
+        return(Metrics::auc(test_outer$survived, predictions))
+      })
+  
+  results[i, 1] = i
+  results[i, 2] = hyper_depth[which.max(tuning_results)]
+  results[i, 3] = hyper_eta[which.max(tuning_results)]  
+  results[i, 4] = max(tuning_results)
+}
+
+print(results)
+```
+
+Make predictions:
+
+```{r, results='hide', warning=FALSE, message=FALSE}
+prediction_ensemble = 
+  sapply(1:nrow(results), function(i) {
+
+      data_xg = xgb.DMatrix(data = as.matrix(data_obs[,-1]), label = data_obs$survived)
+      model = xgboost(data_xg, nrounds = 16L, eta = results$eta[i], max_depth = results$depth[i])
+      predictions = predict(model, newdata = as.matrix(data_new)[,-1])
+    return(predictions)
+  })
+
+# Single predictions from the ensemble model:
+write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titanic_ensemble.csv")
+```
+
+`r unhide()`
+:::
+
+
 
 ::: {.callout-caution icon="false"}
 #### Bonus: Implement a BRT on your own!
