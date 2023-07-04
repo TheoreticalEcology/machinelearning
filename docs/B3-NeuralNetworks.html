@@ -338,27 +338,33 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Neural networks are harder to optimize (hey are optimized via backpropagation and gradient descent) and a few hyperparameters that control the optimization should be familiar:</p>
 <table class="table">
 <colgroup>
-<col style="width: 18%">
+<col style="width: 6%">
 <col style="width: 81%">
+<col style="width: 11%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Hyperparameter</th>
 <th>Meaning</th>
+<th>Range</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>learning rate</td>
 <td>the step size of the parameter updating in the iterative optimization routine, if too high, the optimizer will step over good local optima, if too small, the optimizer will be stuck in a bad local optima</td>
+<td>[0.00001, 0.5]</td>
 </tr>
 <tr class="even">
 <td>batch size</td>
 <td>NNs are optimized via stochastic gradient descent, i.e.&nbsp;only a batch of the data is used to update the parameters at a time</td>
+<td><p>Depends on the data:</p>
+<p>10-250</p></td>
 </tr>
 <tr class="odd">
 <td>epoch</td>
 <td>the data is fed into the optimization in batches, once the entire data set has been used in the optimization, the epoch is complete (so e.g.&nbsp;n = 100, batch size = 20, it takes 5 steps to complete an epoch)</td>
+<td>100+ (use early stopping)</td>
 </tr>
 </tbody>
 </table>
@@ -384,19 +390,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 Model generated on basis of: 
 Feature Importance:
   variable importance
-1  Solar.R   1.248471
-2     Wind   2.137180
-3     Temp   3.127250
-4    Month   1.076265
-5      Day   1.054336</code></pre>
+1  Solar.R   1.229600
+2     Wind   2.199183
+3     Temp   3.204551
+4    Month   1.050996
+5      Day   1.080136</code></pre>
 </div>
 </div>
-<p>The architecture of the NN can be specified by the <code>hidden</code> argument, it is a vector where the length corresponds to the number of hidden layers and value of entry to the number of hidden neurons in each layer (and the same applies for the <code>activation</code> argument that specifies the activation functions in the hidden layers). The loss function has to be adjusted to the response type:</p>
+<p>The architecture of the NN can be specified by the <code>hidden</code> argument, it is a vector where the length corresponds to the number of hidden layers and value of entry to the number of hidden neurons in each layer (and the same applies for the <code>activation</code> argument that specifies the activation functions in the hidden layers). It is hard to make recommendations about the architecture, a kind of general rule is that the width of the hidden layers is more important than the depth of the NN.</p>
+<p>The loss function has to be adjusted to the response type:</p>
 <table class="table">
 <colgroup>
-<col style="width: 25%">
+<col style="width: 23%">
 <col style="width: 33%">
-<col style="width: 41%">
+<col style="width: 42%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -439,16 +446,14 @@ Feature Importance:
 </tbody>
 </table>
 <div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
 Importance of the learning rate
 </div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>cito visualizes the training (see graphic). The reason for this is that the training can easily fail if the learning rate (lr) is poorly chosen. If the lr is too high, the optimizer “jumps” over good local optima, while it gets stuck in local optima if the lr is too small:</p>
 <div class="cell">
@@ -471,7 +476,6 @@ Importance of the learning rate
 </div>
 </div>
 <p>If too low, the loss will be very wiggly but doesn’t decrease.</p>
-</div>
 </div>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -523,11 +527,11 @@ Learning rate scheduler
 Model generated on basis of: 
 Feature Importance:
   variable importance
-1  Solar.R   1.183311
-2     Wind   1.910857
-3     Temp   2.669013
-4    Month   1.009501
-5      Day   1.010931</code></pre>
+1  Solar.R   1.152163
+2     Wind   1.776469
+3     Temp   2.533999
+4    Month   1.012814
+5      Day   1.018752</code></pre>
 </div>
 </div>
 <p>Be careful that you don’t accidentally set all weights to 0 because of a too high regularization. We check the weights of the first layer:</p>
@@ -761,10 +765,10 @@ Click here to see the solution
 <span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  set      lambda       AUC
-1   1 0.005794177 0.8321784
-2   2 0.005794177 0.8041162
-3   3 0.018304640 0.8181343</code></pre>
+<pre><code>  set     lambda       AUC
+1   1 0.01287074 0.8310235
+2   2 0.01874780 0.8041162
+3   3 0.01830464 0.8150858</code></pre>
 </div>
 </div>
 <p>Make predictions:</p>
@@ -876,9 +880,9 @@ Click here to see the solution
 <span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  set     lambda     alpha hidden nodes       AUC
-1   1 0.01475811 0.9782264      7    34 0.8315565
-2   2 0.01043001 0.9400145      5    28 0.8029323
-3   3 0.01413079 0.5603327      2    26 0.8172633</code></pre>
+1   1 0.01043001 0.9400145      5    28 0.8302239
+2   2 0.01287074 0.4622928      4    46 0.8038430
+3   3 0.01317415 0.4749971      6    19 0.8169149</code></pre>
 </div>
 </div>
 <p>Make predictions:</p>

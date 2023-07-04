@@ -16,11 +16,17 @@ cito allows us to fit fully-connected neural networks within one line of code. W
 
 Neural networks are harder to optimize (hey are optimized via backpropagation and gradient descent) and a few hyperparameters that control the optimization should be familiar:
 
-| Hyperparameter | Meaning                                                                                                                                                                                                       |
-|-------------|-----------------------------------------------------------|
-| learning rate  | the step size of the parameter updating in the iterative optimization routine, if too high, the optimizer will step over good local optima, if too small, the optimizer will be stuck in a bad local optima   |
-| batch size     | NNs are optimized via stochastic gradient descent, i.e. only a batch of the data is used to update the parameters at a time                                                                                   |
-| epoch          | the data is fed into the optimization in batches, once the entire data set has been used in the optimization, the epoch is complete (so e.g. n = 100, batch size = 20, it takes 5 steps to complete an epoch) |
++----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+| Hyperparameter | Meaning                                                                                                                                                                                                       | Range                     |
++================+===============================================================================================================================================================================================================+===========================+
+| learning rate  | the step size of the parameter updating in the iterative optimization routine, if too high, the optimizer will step over good local optima, if too small, the optimizer will be stuck in a bad local optima   | \[0.00001, 0.5\]          |
++----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+| batch size     | NNs are optimized via stochastic gradient descent, i.e. only a batch of the data is used to update the parameters at a time                                                                                   | Depends on the data:      |
+|                |                                                                                                                                                                                                               |                           |
+|                |                                                                                                                                                                                                               | 10-250                    |
++----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+| epoch          | the data is fed into the optimization in batches, once the entire data set has been used in the optimization, the epoch is complete (so e.g. n = 100, batch size = 20, it takes 5 steps to complete an epoch) | 100+ (use early stopping) |
++----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 
 Example:
 
@@ -36,18 +42,27 @@ plot(model)
 summary(model)
 ```
 
-The architecture of the NN can be specified by the `hidden` argument, it is a vector where the length corresponds to the number of hidden layers and value of entry to the number of hidden neurons in each layer (and the same applies for the `activation` argument that specifies the activation functions in the hidden layers). The loss function has to be adjusted to the response type:
+The architecture of the NN can be specified by the `hidden` argument, it is a vector where the length corresponds to the number of hidden layers and value of entry to the number of hidden neurons in each layer (and the same applies for the `activation` argument that specifies the activation functions in the hidden layers). It is hard to make recommendations about the architecture, a kind of general rule is that the width of the hidden layers is more important than the depth of the NN.
 
+The loss function has to be adjusted to the response type:
+
++---------------------------+---------------------------------------+--------------------------------------------------+
 | Loss                      | Type                                  | Example                                          |
-|------------------|------------------------|------------------------------|
++===========================+=======================================+==================================================+
 | mse (mean squared error)  | Regression                            | Numeric values                                   |
++---------------------------+---------------------------------------+--------------------------------------------------+
 | mae (mean absolute error) | Regression                            | Numeric values, often used for skewed data       |
++---------------------------+---------------------------------------+--------------------------------------------------+
 | softmax                   | Classification, multi-label           | Species                                          |
++---------------------------+---------------------------------------+--------------------------------------------------+
 | cross-entropy             | Classification, binary or multi-class | Survived/non-survived, Multi-species/communities |
++---------------------------+---------------------------------------+--------------------------------------------------+
 | binomial                  | Classification, binary or multi-class | Binomial likelihood                              |
++---------------------------+---------------------------------------+--------------------------------------------------+
 | poisson                   | Regression                            | Count data                                       |
++---------------------------+---------------------------------------+--------------------------------------------------+
 
-::: {.callout-caution collapse="true"}
+::: callout-caution
 ## Importance of the learning rate
 
 cito visualizes the training (see graphic). The reason for this is that the training can easily fail if the learning rate (lr) is poorly chosen. If the lr is too high, the optimizer "jumps" over good local optima, while it gets stuck in local optima if the lr is too small:
@@ -87,6 +102,7 @@ model = dnn(Ozone~.,
             data = data, epochs = 150L, verbose = FALSE)
 ```
 :::
+
 
 ## Regularization
 

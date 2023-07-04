@@ -116,79 +116,6 @@ As you have seen, this does not work with every kernel. Hence, the problem is to
 ## Exercises
 
 ::: {.callout-caution icon="false"}
-#### Question: kNN and SVM
-
-Fit a standard k-nearest-neighbor classifier and a support vector machine with a linear kernel (check help) on the Sonar dataset, and report what fitted better.
-
-Prepare dataset:
-
-```{r}
-library(mlbench)
-set.seed(123)
-
-data(Sonar)
-data = Sonar
-#str(data)
-
-# Do not forget scaling! This may be done implicitly by most functions.
-# Here, it's done explicitly for teaching purposes.
-data = cbind.data.frame(
-  scale(data[,-length(data)]),
-  "class" = data[,length(data)]
-)
-
-n = length(data[,1])
-indicesTrain = sample.int(n, (n+1) %/% 2) # Take (at least) 50 % of the data.
-
-train = data[indicesTrain,]
-test = data[-indicesTrain,]
-```
-
-**Tasks:**
-
--   Fit a svm (from the e1071 package) on the train dataset and make predictions for the test dataset
--   Fit a kNN (from the kknn package) on the train dataset and make predictions for the test dataset
--   Calculate confusion matrices to compare the performance
-
-`r hide("Click here to see the solution")`
-
-```{r chunk_chapter4_task_33, include=TRUE}
-library(e1071)
-library(kknn)
-
-knn = kknn(class~., train = train, test = test, scale = FALSE,
-           kernel = "rectangular")
-predKNN = predict(knn, newdata = test)
-
-sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
-predSVM = predict(sm, newdata = test)
-```
-
-```{r chunk_chapter4_task_34, echo=FALSE, include=TRUE}
-labelsTrain = train[,length(train)]
-labelsTest = test[,length(test)]
-
-contingency = table(predKNN, labelsTest)
-cat("K-nearest-neighbor, standard (rectangular) kernel:\n\n")
-print(contingency)
-cat("Correctly classified: ", contingency[1, 1] + contingency[2, 2],
-    " / ", sum(contingency))
-```
-
-```{r chunk_chapter4_task_35, echo=FALSE, include=TRUE}
-contingency = table(predSVM, labelsTest)
-cat("Support-vector machine, linear kernel:\n\n")
-print(contingency)
-cat("Correctly classified: ", contingency[1, 1] + contingency[2, 2],
-    " / ", sum(contingency))
-```
-
-K-nearest neighbor fitted (slightly) better.
-
-`r unhide()`
-:::
-
-::: {.callout-caution icon="false"}
 #### Question: Hyperparameter tuning of kNN
 
 Combing back to the titanic dataset from the morning, we want to optimize the number of neighbors (k) and the kernel of the kNN:
@@ -315,3 +242,78 @@ write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titan
 
 `r unhide()`
 :::
+
+
+::: {.callout-caution icon="false"}
+#### Question: kNN and SVM
+
+Fit a standard k-nearest-neighbor classifier and a support vector machine with a linear kernel (check help) on the Sonar dataset, and report what fitted better.
+
+Prepare dataset:
+
+```{r}
+library(mlbench)
+set.seed(123)
+
+data(Sonar)
+data = Sonar
+#str(data)
+
+# Do not forget scaling! This may be done implicitly by most functions.
+# Here, it's done explicitly for teaching purposes.
+data = cbind.data.frame(
+  scale(data[,-length(data)]),
+  "class" = data[,length(data)]
+)
+
+n = length(data[,1])
+indicesTrain = sample.int(n, (n+1) %/% 2) # Take (at least) 50 % of the data.
+
+train = data[indicesTrain,]
+test = data[-indicesTrain,]
+```
+
+**Tasks:**
+
+-   Fit a svm (from the e1071 package) on the train dataset and make predictions for the test dataset
+-   Fit a kNN (from the kknn package) on the train dataset and make predictions for the test dataset
+-   Calculate confusion matrices to compare the performance
+
+`r hide("Click here to see the solution")`
+
+```{r chunk_chapter4_task_33, include=TRUE}
+library(e1071)
+library(kknn)
+
+knn = kknn(class~., train = train, test = test, scale = FALSE,
+           kernel = "rectangular")
+predKNN = predict(knn, newdata = test)
+
+sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
+predSVM = predict(sm, newdata = test)
+```
+
+```{r chunk_chapter4_task_34, echo=FALSE, include=TRUE}
+labelsTrain = train[,length(train)]
+labelsTest = test[,length(test)]
+
+contingency = table(predKNN, labelsTest)
+cat("K-nearest-neighbor, standard (rectangular) kernel:\n\n")
+print(contingency)
+cat("Correctly classified: ", contingency[1, 1] + contingency[2, 2],
+    " / ", sum(contingency))
+```
+
+```{r chunk_chapter4_task_35, echo=FALSE, include=TRUE}
+contingency = table(predSVM, labelsTest)
+cat("Support-vector machine, linear kernel:\n\n")
+print(contingency)
+cat("Correctly classified: ", contingency[1, 1] + contingency[2, 2],
+    " / ", sum(contingency))
+```
+
+K-nearest neighbor fitted (slightly) better.
+
+`r unhide()`
+:::
+

@@ -14,15 +14,14 @@ tf
 tf$abs(3.)
 ```
 
-
 # Introduction to TensorFlow and Keras {#tensorflowintro}
 
 ## Introduction to TensorFlow
 
-One of the most commonly used frameworks for machine learning is **TensorFlow**. TensorFlow is an open source <a href="https://en.wikipedia.org/wiki/Linear_algebra" target="_blank" rel="noopener">linear algebra</a> library with focus on neural networks, published by Google in 2015. TensorFlow supports several interesting features, in particular automatic differentiation, several gradient optimizers and CPU and GPU parallelization. 
+One of the most commonly used frameworks for machine learning is **TensorFlow**. TensorFlow is an open source <a href="https://en.wikipedia.org/wiki/Linear_algebra" target="_blank" rel="noopener">linear algebra</a> library with focus on neural networks, published by Google in 2015. TensorFlow supports several interesting features, in particular automatic differentiation, several gradient optimizers and CPU and GPU parallelization.
 
-These advantages are nicely explained in the following video: 
-  
+These advantages are nicely explained in the following video:
+
 ```{r chunk_chapter3_43, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
   '<iframe width="560" height="315"
@@ -33,40 +32,38 @@ cat(
 )
 ```
 
-To sum up the most important points of the video: 
-  
-* TensorFlow is a math library which is highly optimized for neural networks.
-* If a GPU is available, computations can be easily run on the GPU but even on a CPU TensorFlow is still very fast.
-* The "backend" (i.e. all the functions and all computations) are written in C++ and CUDA (CUDA is a programming language for NVIDIA GPUs).
-* The interface (the part of TensorFlow we use) is written in Python and is also available in R, which means, we can write the code in R/Python but it will be executed by the (compiled) C++ backend.
+To sum up the most important points of the video:
 
-All operations in TensorFlow are written in C++ and are highly optimized. But don't worry, we don’t have to use C++ to use TensorFlow because there are several bindings for other languages. TensorFlow officially supports a Python API, but meanwhile there are several community carried APIs for other languages:
-  
-* R
-* Go
-* Rust
-* Swift
-* JavaScript
+-   TensorFlow is a math library which is highly optimized for neural networks.
+-   If a GPU is available, computations can be easily run on the GPU but even on a CPU TensorFlow is still very fast.
+-   The "backend" (i.e. all the functions and all computations) are written in C++ and CUDA (CUDA is a programming language for NVIDIA GPUs).
+-   The interface (the part of TensorFlow we use) is written in Python and is also available in R, which means, we can write the code in R/Python but it will be executed by the (compiled) C++ backend.
+
+All operations in TensorFlow are written in C++ and are highly optimized. But don't worry, we don't have to use C++ to use TensorFlow because there are several bindings for other languages. TensorFlow officially supports a Python API, but meanwhile there are several community carried APIs for other languages:
+
+-   R
+-   Go
+-   Rust
+-   Swift
+-   JavaScript
 
 In this course we will use TensorFlow with the <a href="https://tensorflow.rstudio.com/" target="_blank" rel="noopener">https://tensorflow.rstudio.com/</a> binding, that was developed and published 2017 by the RStudio team. First, they developed an R package (reticulate) for calling Python in R. Actually, we are using the Python TensorFlow module in R (more about this later).
 
-TensorFlow offers different levels of API. We could implement a neural network completely by ourselves or we could use Keras which is provided as a submodule by TensorFlow. Keras is a powerful module for building and training neural networks. It allows us building and training neural networks in a few lines of codes. Since the end of 2018, Keras and TensorFlow are completly interoperable, allowing us to utilize the best of both. In this course, we will show how we can use Keras for neural networks but also how we can use the TensorFlow’s automatic differenation for using complex objective functions.
-
+TensorFlow offers different levels of API. We could implement a neural network completely by ourselves or we could use Keras which is provided as a submodule by TensorFlow. Keras is a powerful module for building and training neural networks. It allows us building and training neural networks in a few lines of codes. Since the end of 2018, Keras and TensorFlow are completly interoperable, allowing us to utilize the best of both. In this course, we will show how we can use Keras for neural networks but also how we can use the TensorFlow's automatic differenation for using complex objective functions.
 
 Useful links:
 
-* <a href="https://www.tensorflow.org/api_docs/python/tf" target="_blank" rel="noopener">TensorFlow documentation</a> (This is for the Python API, but just replace the "." with "$".)
-* <a href="https://tensorflow.rstudio.com/" target="_blank" rel="noopener">Rstudio TensorFlow website</a>
-
+-   <a href="https://www.tensorflow.org/api_docs/python/tf" target="_blank" rel="noopener">TensorFlow documentation</a> (This is for the Python API, but just replace the "." with "\$".)
+-   <a href="https://tensorflow.rstudio.com/" target="_blank" rel="noopener">Rstudio TensorFlow website</a>
 
 ### Data Containers
 
 TensorFlow has two data containers (structures):
-  
-* constant (tf$constant): Creates a constant (immutable) value in the computation graph.
-* variable (tf$Variable): Creates a mutable value in the computation graph (used as parameter/weight in models).
 
-To get started with TensorFlow, we have to load the library and check if the installation worked. 
+-   constant (tf\$constant): Creates a constant (immutable) value in the computation graph.
+-   variable (tf\$Variable): Creates a mutable value in the computation graph (used as parameter/weight in models).
+
+To get started with TensorFlow, we have to load the library and check if the installation worked.
 
 ```{r chunk_chapter3_44}
 library(tensorflow)
@@ -80,7 +77,6 @@ mutable = tf$constant(5.0)
 ```
 
 Don't worry about weird messages (they will only appear once at the start of the session).
-
 
 ### Basic Operations
 
@@ -97,7 +93,7 @@ tf$print(c) # Prints to stderr. For stdout, use k_print_tensor(..., message).
 k_print_tensor(c) # Comes out of Keras!
 ```
 
-Normal R methods such as print() are provided by the R package "tensorflow". 
+Normal R methods such as print() are provided by the R package "tensorflow".
 
 The TensorFlow library (created by the RStudio team) built R methods for all common operations:
 
@@ -114,19 +110,16 @@ d = c + 5  # 5 is automatically converted to a tensor.
 print(d)
 ```
 
-TensorFlow containers are objects, what means that they are not just simple variables of type numeric (class(5)), but they instead have so called methods. Methods are changing the state of a class (which for most of our purposes here is the values of the object).
-For instance, there is a method to transform the tensor object back to an R object:
+TensorFlow containers are objects, what means that they are not just simple variables of type numeric (class(5)), but they instead have so called methods. Methods are changing the state of a class (which for most of our purposes here is the values of the object). For instance, there is a method to transform the tensor object back to an R object:
 
 ```{r chunk_chapter3_48}
 class(d)
 class(d$numpy())
 ```
 
-
 ### Data Types
 
-R uses dynamic typing, what means you can assign a number, character, function or whatever to a variable and the the type is automatically inferred.
-In other languages you have to state the type explicitly, e.g. in C:
+R uses dynamic typing, what means you can assign a number, character, function or whatever to a variable and the the type is automatically inferred. In other languages you have to state the type explicitly, e.g. in C:
 
 ```{C, eval=F}
 int a = 5;
@@ -134,12 +127,11 @@ float a = 5.0;
 char a = "a";
 ```
 
-While TensorFlow tries to infer the type dynamically, you must often state it explicitly.
-Common important types: 
+While TensorFlow tries to infer the type dynamically, you must often state it explicitly. Common important types:
 
-* float32 (floating point number with 32 bits, "single precision")
-* float64 (floating point number with 64 bits, "double precision")
-* int8 (integer with 8 bits)
+-   float32 (floating point number with 32 bits, "single precision")
+-   float64 (floating point number with 64 bits, "double precision")
+-   int8 (integer with 8 bits)
 
 The reason why TensorFlow is so explicit about types is that many GPUs (e.g. the NVIDIA GeForces) can handle only up to 32 bit numbers! (you do not need high precision in graphical modeling)
 
@@ -161,17 +153,15 @@ b = tf$constant(2.0, dtype = "float64")
 c = m / b # Now it works.
 ```
 
-We can also specify the type of the object by providing an object e.g. tf$float64.
+We can also specify the type of the object by providing an object e.g. tf\$float64.
 
 ```{r chunk_chapter3_51}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = tf$float64)
 ```
 
-In TensorFlow, arguments often require exact/explicit data types:
-TensorFlow often expects integers as arguments. In R however an integer is normally saved as float. 
-Thus, we have to use an "L" after an integer to tell the R interpreter that it should be treated as an integer:
-  
+In TensorFlow, arguments often require exact/explicit data types: TensorFlow often expects integers as arguments. In R however an integer is normally saved as float. Thus, we have to use an "L" after an integer to tell the R interpreter that it should be treated as an integer:
+
 ```{r chunk_chapter3_52, eval=FALSE}
 is.integer(5)
 is.integer(5L)
@@ -184,12 +174,10 @@ Skipping the "L" is one of the most common errors when using R-TensorFlow!
 
 ### Exercises
 
-
 ::: {.callout-caution icon="false"}
 #### Question: TensorFlow Operations
 
-To run TensorFlow from R, note that you can access the different mathematical operations in TensorFlow via tf\$..., e.g. there is a tf\$math\$... for all common math operations or the tf\$linalg\$... for different linear algebra operations.
-Tip: type tf\$ and then hit the tab key to list all available options (sometimes you have to do this directly in the console).
+To run TensorFlow from R, note that you can access the different mathematical operations in TensorFlow via tf\$..., e.g. there is a tf\$math\$... for all common math operations or the tf\$linalg\$... for different linear algebra operations. Tip: type tf\$ and then hit the tab key to list all available options (sometimes you have to do this directly in the console).
 
 An example: How to get the maximum value of a vector?
 
@@ -245,9 +233,7 @@ mean_R = function(y){
 mean_R(y) == mean(y)	# Test for equality.
 ```
 
-
 `r hide("Click here to see the solution")`
-
 
 ```{r chunk_chapter3_task_7, eval=TRUE, include=TRUE}
 library(tensorflow)
@@ -297,16 +283,12 @@ mean_TF(y) == mean(y)
 ```
 
 `r unhide()`
-
 :::
-
-
 
 ::: {.callout-caution icon="false"}
 #### Question: Runtime
 
-This exercise compares the speed of R to TensorFlow.
-The first exercise is to rewrite the following function in TensorFlow:
+This exercise compares the speed of R to TensorFlow. The first exercise is to rewrite the following function in TensorFlow:
 
 ```{r chunk_chapter3_task_8, eval=TRUE}
 do_something_R = function(x = matrix(0.0, 10L, 10L)){
@@ -339,8 +321,8 @@ Tip: Have a look at the the tf.reduce_mean documentation and the "axis" argument
 
 Compare the following with different matrix sizes:
 
-* test = matrix(0.0, 1000L, 500L)
-* testTF = tf\$constant(test)
+-   test = matrix(0.0, 1000L, 500L)
+-   testTF = tf\$constant(test)
 
 Also try the following:
 
@@ -350,7 +332,6 @@ microbenchmark::microbenchmark(
    test %*% t(test)  # R style.
 )
 ```
-
 
 `r hide("Click here to see the solution")`
 
@@ -373,8 +354,13 @@ microbenchmark::microbenchmark(do_something_R(test), do_something_TF(test))
 
 Why is R faster (the first time)?
 
-* a) The R functions we used (apply, mean, "-") are also implemented in C.
-* b) The problem is not large enough and TensorFlow has an overhead.
+-   
+
+    a)  The R functions we used (apply, mean, "-") are also implemented in C.
+
+-   
+
+    b)  The problem is not large enough and TensorFlow has an overhead.
 
 <br/>
 
@@ -389,13 +375,10 @@ microbenchmark::microbenchmark(
 ```
 
 `r unhide()`
-
 :::
-
 
 ::: {.callout-caution icon="false"}
 #### Question: Linear Algebra
-
 
 Google to find out how to write the following expressions in TensorFlow:
 
@@ -444,17 +427,12 @@ tf$linalg$det(A)
 ```
 
 `r unhide()`
-
 :::
-
 
 ::: {.callout-caution icon="false"}
 #### Question: Automatic differentation
 
-
-TensorFlow supports automatic differentiation (analytical and not numerical!). 
-Let's have a look at the function $f(x) = 5 x^2 + 3$ with derivative $f'(x) = 10x$.
-So for $f'(5)$ we will get $10$.
+TensorFlow supports automatic differentiation (analytical and not numerical!). Let's have a look at the function $f(x) = 5 x^2 + 3$ with derivative $f'(x) = 10x$. So for $f'(5)$ we will get $10$.
 
 Let's do this in TensorFlow. Define the function:
 
@@ -506,10 +484,9 @@ with(tf$GradientTape() %as% first,
 
 What is happening here? Think about and discuss it.
 
-
 A more advanced example: *Linear regression*
 
-In this case we first simulate data following $\boldsymbol{y} = \boldsymbol{X} \boldsymbol{w} + \boldsymbol{\epsilon}$  ($\boldsymbol{\epsilon}$ follows a normal distribution == error).
+In this case we first simulate data following $\boldsymbol{y} = \boldsymbol{X} \boldsymbol{w} + \boldsymbol{\epsilon}$ ($\boldsymbol{\epsilon}$ follows a normal distribution == error).
 
 ```{r chunk_chapter3_task_22, eval=TRUE}
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
@@ -525,8 +502,7 @@ In R we would do the following to fit a linear regression model:
 summary(lm(y~x))
 ```
 
-Let's build our own model in TensorFlow.
-Here, we use now the variable data container type (remember they are mutable and we need this type for the weights ($\boldsymbol{w}$) of the regression model). We want our model to learn these weights.
+Let's build our own model in TensorFlow. Here, we use now the variable data container type (remember they are mutable and we need this type for the weights ($\boldsymbol{w}$) of the regression model). We want our model to learn these weights.
 
 The input (predictors, independent variables or features, $\boldsymbol{X}$) and the observed (response, $\boldsymbol{y}$) are constant and will not be learned/optimized.
 
@@ -618,27 +594,22 @@ cat("Original intercept: ", intercept, "\n")
 ```
 
 `r unhide()`
-
 :::
 
-
-
 ## Introduction to PyTorch
-  
-PyTorch is another famous library for deep learning. Like TensorFlow, Torch itself is written in C++ with an API for Python. In 2020, the RStudio team released R-Torch, and while R-TensorFlow calls the Python API in the background, the R-Torch API is built directly on the C++ Torch library! 
-  
+
+PyTorch is another famous library for deep learning. Like TensorFlow, Torch itself is written in C++ with an API for Python. In 2020, the RStudio team released R-Torch, and while R-TensorFlow calls the Python API in the background, the R-Torch API is built directly on the C++ Torch library!
+
 Useful links:
 
-* <a href="https://pytorch.org/docs/stable/index.html" target="_blank" rel="noopener">PyTorch documentation</a> (This is for the Python API, bust just replace the "." with "$".)
-* <a href="https://torch.mlverse.org/" target="_blank" rel="noopener">R-Torch website</a>
+-   <a href="https://pytorch.org/docs/stable/index.html" target="_blank" rel="noopener">PyTorch documentation</a> (This is for the Python API, bust just replace the "." with "\$".)
+-   <a href="https://torch.mlverse.org/" target="_blank" rel="noopener">R-Torch website</a>
 
-
-To get started with Torch, we have to load the library and check if the installation worked. 
+To get started with Torch, we have to load the library and check if the installation worked.
 
 ```{r chunk_chapter3_53}
 library(torch)
 ```
-
 
 ### Data Containers
 
@@ -654,7 +625,6 @@ To mark variables as mutable (and to track their operations for automatic differ
 mutable = torch_tensor(5, requires_grad = TRUE) # tf$Variable(...)
 immutable = torch_tensor(5, requires_grad = FALSE) # tf$constant(...)
 ```
-
 
 ### Basic Operations
 
@@ -693,7 +663,6 @@ class(d)
 class(as.numeric(d))
 ```
 
-
 ### Data Types
 
 Similar to TensorFlow:
@@ -706,14 +675,13 @@ c = m / b
 ```
 
 But here's a difference! With TensorFlow we would get an error, but with R-Torch, m is automatically casted to a double (float64). However, this is still bad practice!
-  
+
 During the course we will try to provide the corresponding PyTorch code snippets for all Keras/TensorFlow examples.
 
 ### Exercises
 
 ::: {.callout-caution icon="false"}
 #### Question: Torch Operations
-
 
 Rewrite the following expressions (a to g) in torch:
 
@@ -751,9 +719,7 @@ mean_R = function(y){
 mean_R(y) == mean(y)	# Test for equality.
 ```
 
-
 `r hide("Click here to see the solution")`
-
 
 ```{r chunk_chapter3_task_torch_7, eval=TRUE, include=TRUE}
 library(torch)
@@ -805,10 +771,9 @@ mean_Torch = function(y){
 }
 mean_Torch(y) == mean(y)
 ```
+
 `r unhide()`
-
 :::
-
 
 ::: {.callout-caution icon="false"}
 #### Question: Runtime
@@ -816,10 +781,7 @@ mean_Torch(y) == mean(y)
 1.  What is the meaning of "An effect is not significant"?
 2.  Is an effect with three \*\*\* more significant / certain than an effect with one \*?
 
-
-`r hide("Click here to see the solution")`
-This exercise compares the speed of R to torch
-The first exercise is to rewrite the following function in torch:
+`r hide("Click here to see the solution")` This exercise compares the speed of R to torch The first exercise is to rewrite the following function in torch:
 
 ```{r chunk_chapter3_task_torch_8, eval=TRUE}
 do_something_R = function(x = matrix(0.0, 10L, 10L)){
@@ -852,8 +814,8 @@ Tip: Have a look at the the torch_mean documentation and the "dim" argument.
 
 Compare the following with different matrix sizes:
 
-* test = matrix(0.0, 1000L, 500L)
-* testTorch = torch_tensor(test)
+-   test = matrix(0.0, 1000L, 500L)
+-   testTorch = torch_tensor(test)
 
 Also try the following:
 
@@ -865,7 +827,6 @@ microbenchmark::microbenchmark(
 ```
 
 `r hide("Click here to see the solution")`
-
 
 ```{r chunk_chapter3_task_torch_12, eval=TRUE, include=TRUE}
 do_something_torch = function(x = matrix(0.0, 10L, 10L)){
@@ -886,8 +847,13 @@ microbenchmark::microbenchmark(do_something_R(test), do_something_torch(test))
 
 Why is R faster (the first time)?
 
-* a) The R functions we used (apply, mean, "-") are also implemented in C.
-* b) The problem is not large enough and torch has an overhead.
+-   
+
+    a)  The R functions we used (apply, mean, "-") are also implemented in C.
+
+-   
+
+    b)  The problem is not large enough and torch has an overhead.
 
 <br/>
 
@@ -902,9 +868,7 @@ microbenchmark::microbenchmark(
 ```
 
 `r unhide()`
-
 :::
-
 
 ::: {.callout-caution icon="false"}
 #### Question: Linear Algebra
@@ -955,16 +919,12 @@ linalg_det(A)
 ```
 
 `r unhide()`
-
 :::
-
 
 ::: {.callout-caution icon="false"}
 #### Question: Automatic differentation
 
-Torch supports automatic differentiation (analytical and not numerical!). 
-Let's have a look at the function $f(x) = 5 x^2 + 3$ with derivative $f'(x) = 10x$.
-So for $f'(5)$ we will get $10$.
+Torch supports automatic differentiation (analytical and not numerical!). Let's have a look at the function $f(x) = 5 x^2 + 3$ with derivative $f'(x) = 10x$. So for $f'(5)$ we will get $10$.
 
 Let's do this in torch Define the function:
 
@@ -1004,10 +964,9 @@ grad = torch::autograd_grad(y, x, retain_graph = TRUE, create_graph = TRUE)[[1]]
 
 What is happening here? Think about and discuss it.
 
-
 A more advanced example: *Linear regression*
 
-In this case we first simulate data following $\boldsymbol{y} = \boldsymbol{X} \boldsymbol{w} + \boldsymbol{\epsilon}$  ($\boldsymbol{\epsilon}$ follows a normal distribution == error).
+In this case we first simulate data following $\boldsymbol{y} = \boldsymbol{X} \boldsymbol{w} + \boldsymbol{\epsilon}$ ($\boldsymbol{\epsilon}$ follows a normal distribution == error).
 
 ```{r chunk_chapter3_task_torch_22, eval=TRUE}
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
@@ -1023,8 +982,7 @@ In R we would do the following to fit a linear regression model:
 summary(lm(y~x))
 ```
 
-Let's build our own model in TensorFlow.
-Here, we use now the variable data container type (remember they are mutable and we need this type for the weights ($\boldsymbol{w}$) of the regression model). We want our model to learn these weights.
+Let's build our own model in TensorFlow. Here, we use now the variable data container type (remember they are mutable and we need this type for the weights ($\boldsymbol{w}$) of the regression model). We want our model to learn these weights.
 
 The input (predictors, independent variables or features, $\boldsymbol{X}$) and the observed (response, $\boldsymbol{y}$) are constant and will not be learned/optimized.
 
@@ -1068,7 +1026,6 @@ Play around with the simulation, increase/decrease the number of weights, add an
 
 `r hide("Click here to see the solution")`
 
-
 ```{r chunk_chapter3_task_torch_25, eval=TRUE, include=TRUE}
 library(torch)
 torch::torch_manual_seed(42L)
@@ -1109,1512 +1066,5 @@ cat("Original intercept: ", intercept, "\n")
 ```
 
 `r unhide()`
-
 :::
-
-
-
-
-## Keras/Torch Framework
-
-We have seen that we can use TensorFlow directly out of R, and we could use this knowledge to implement a neural network in TensorFlow directly in R. However, this can be quite cumbersome. For simple problems, it is usually faster to use a higher-level API that helps us with implementing the machine learning models in TensorFlow. The most common of those is Keras.
-
-Keras is a powerful framework for building and training neural networks with a few lines of codes. Since the end of 2018, Keras and TensorFlow are completely interoperable, allowing us to utilize the best of both. 
-
-The objective of this lesson is to familiarize yourself with Keras. If you have installed TensorFlow, Keras can be found within TensorFlow: tf.keras. However, the RStudio team has built an R package on top of tf.keras, and it is more convenient to use this. To load the Keras package, type
-
-```{r chunk_chapter3_61}
-library(keras)
-# or library(torch)
-```
-
-
-### Example workflow in Keras / Torch
-
-To show how Keras works, we will now build a small classifier to predict the three species of the iris data set. Load the necessary packages and data sets:
-
-```{r chunk_chapter3_62}
-library(keras)
-library(tensorflow)
-library(torch)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-data(iris)
-head(iris)
-```
-
-For neural networks, it is beneficial to scale the predictors (scaling = centering and standardization, see ?scale).
-We also split our data into predictors (X) and response (Y = the three species).
-
-```{r chunk_chapter3_63, cache=TRUE}
-X = scale(iris[,1:4])
-Y = iris[,5]
-```
-
-Additionally, Keras/TensorFlow cannot handle factors and we have to create contrasts (one-hot encoding).
-To do so, we have to specify the number of categories. This can be tricky for a beginner, because in other programming languages like Python and C++, arrays start at zero. Thus, when we would specify 3 as number of classes for our three species, we would have the classes 0,1,2,3. Keep this in mind.
-
-```{r chunk_chapter3_64, cache=TRUE}
-Y = to_categorical(as.integer(Y) - 1L, 3)
-head(Y) # 3 columns, one for each level of the response.
-```
-
-After having prepared the data, we will now see a typical workflow to specify a model in Keras/Torch. 
-
-**1. Initialize a sequential model in Keras:**
-
-
-::: {.panel-tabset}
-
-## Keras
-
-```{r chunk_chapter3_65, cache=TRUE}
-model = keras_model_sequential()
-```
-
-## Torch
-
-Torch users can skip this step.
-
-:::
-
-A sequential Keras model is a higher order type of model within Keras and consists of one input and one output model. 
-
-**2. Add hidden layers to the model (we will learn more about hidden layers during the next days).**
-
-When specifying the hidden layers, we also have to specify the shape and a so called _activation function_. 
-You can think of the activation function as decision for what is forwarded to the next neuron (but we will learn more about it later).
-If you want to know this topic in even more depth, consider watching the videos presented in section \@ref(basicMath).
-
-The shape of the input is the number of predictors (here 4) and the shape of the output is the number of classes (here 3).
-
-::: {.panel-tabset}
-
-## Keras
-
-```{r chunk_chapter3_66, cache=TRUE}
-model %>%
-  layer_dense(units = 20L, activation = "relu", input_shape = list(4L)) %>%
-  layer_dense(units = 20L) %>%
-  layer_dense(units = 20L) %>%
-  layer_dense(units = 3L, activation = "softmax") 
-```
-
-## Torch
-  
-The Torch syntax is very similar, we will give a list of layers to the "nn_sequential" function. Here, we have to specify the softmax activation function as an extra layer:
-    
-```{r chunk_chapter3_67}
-model_torch = 
-  nn_sequential(
-    nn_linear(4L, 20L),
-    nn_linear(20L, 20L),
-    nn_linear(20L, 20L),
-    nn_linear(20L, 3L),
-    nn_softmax(2)
-  )
-```
-
-:::
-
-* softmax scales a potential multidimensional vector to the interval $(0, 1]$ for each component. The sum of all components equals 1. This might be very useful for example for handling probabilities. **Ensure ther the labels start at 0! Otherwise the softmax function does not work well!**
-
-
-
-**3. Compile the model with a loss function (here: cross entropy) and an optimizer (here: Adamax).**
-    
-We will learn about other options later, so for now, do not worry about the "**learning_rate**" ("**lr**" in Torch or earlier in TensorFlow) argument, cross entropy or the optimizer.
-
-::: {.panel-tabset}
-
-## Keras
-
-```{r chunk_chapter3_68, cache=TRUE}
-model %>%
-  compile(loss = loss_categorical_crossentropy,
-          keras::optimizer_adamax(learning_rate = 0.001))
-summary(model)
-```
-
-## Torch
-
-Specify optimizer and the parameters which will be trained (in our case the parameters of the network):
-    
-```{r chunk_chapter3_69}
-optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
-```
-
-:::
-
-
-
-
-**4. Fit model in 30 iterations (epochs)**
-
-::: {.panel-tabset}
-
-## Keras
-    
-```{r chunk_chapter3_70, cache=TRUE}
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-model_history =
-  model %>%
-    fit(x = X, y = apply(Y, 2, as.integer), epochs = 30L,
-        batch_size = 20L, shuffle = TRUE)
-```
-  
-## Torch
-
-In Torch, we jump directly to the training loop, however, here we have to write our own training loop:
-
-1. Get a batch of data.
-2. Predict on batch.
-3. Ccalculate loss between predictions and true labels.
-4. Backpropagate error.
-5. Update weights.
-6. Go to step 1 and repeat.
-    
-```{r chunk_chapter3_71}
-library(torch)
-torch_manual_seed(321L)
-set.seed(123)
-
-# Calculate number of training steps.
-epochs = 30
-batch_size = 20
-steps = round(nrow(X)/batch_size * epochs)
-
-X_torch = torch_tensor(X)
-Y_torch = torch_tensor(apply(Y, 1, which.max)) 
-
-# Set model into training status.
-model_torch$train()
-
-log_losses = NULL
-
-# Training loop.
-for(i in 1:steps){
-  # Get batch.
-  indices = sample.int(nrow(X), batch_size)
-  
-  # Reset backpropagation.
-  optimizer_torch$zero_grad()
-  
-  # Predict and calculate loss.
-  pred = model_torch(X_torch[indices, ])
-  loss = nnf_cross_entropy(pred, Y_torch[indices])
-  
-  # Backpropagation and weight update.
-  loss$backward()
-  optimizer_torch$step()
-  
-  log_losses[i] = as.numeric(loss)
-}
-```
-
-:::
-
-
-
-**5. Plot training history:**
-
-::: {.panel-tabset}
-
-## Keras
- 
-```{r chunk_chapter3_72, cache=TRUE, message=FALSE, warning=FALSE}
-plot(model_history)
-```
-
-## Torch
-
-```{r chunk_chapter3_73}
-plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
-```
-
-:::
-
-
-**6. Create predictions:**
-
-::: {.panel-tabset}
-
-## Keras
-
-```{r chunk_chapter3_74, cache=TRUE}
-predictions = predict(model, X) # Probabilities for each class.
-```
-  
-Get probabilities:
-
-```{r chunk_chapter3_75, cache=TRUE}
-head(predictions) # Quasi-probabilities for each species.
-```
-  
-For each plant, we want to know for which species we got the highest probability:
-
-```{r chunk_chapter3_76, cache=TRUE}
-preds = apply(predictions, 1, which.max) 
-print(preds)
-```
-
-## Torch
-
-```{r chunk_chapter3_77, cache=TRUE}
-model_torch$eval()
-preds_torch = model_torch(torch_tensor(X))
-preds_torch = apply(preds_torch, 1, which.max) 
-print(preds_torch)
-```
-    
-:::
-
-
-**7. Calculate Accuracy (how often we have been correct):**
-
-::: {.panel-tabset}
-
-## Keras
-
-```{r chunk_chapter3_78, cache=TRUE}
-mean(preds == as.integer(iris$Species))
-```
-
-## Torch
-
-```{r chunk_chapter3_78_torch, cache=TRUE}
-mean(preds_torch == as.integer(iris$Species))
-```
-
-:::
-
-**8. Plot predictions, to see if we have done a good job:**
-
-```{r chunk_chapter3_79, cache=TRUE}
-oldpar = par(mfrow = c(1, 2))
-plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species,
-     main = "Observed")
-plot(iris$Sepal.Length, iris$Petal.Length, col = preds,
-     main = "Predicted")
-par(oldpar)   # Reset par.
-```
-
-So you see, building a neural network is very easy with Keras or Torch and you can already do it on your own.
-
-### Exercises
-
-```{=html}
-  <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
-```
-
-
-We will now build a regression for the airquality data set with Keras/Torch. We want to predict the variable "Ozone". 
-
-Tasks:
-1. Complete the steps and the code chunk so that the model is successfully trained! 
-2. Try different learning rates and neural network sizes (increase/decrease number of hidden layers and neurons (units) in each layer). What happes?
-
-
-::::: {.panelset}
-
-::: {.panel}
-[Keras]{.panel-name}
-
-0. Load and prepare the data set:
-
-
-
-```{r chunk_chapter3_task_26, eval=TRUE}
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-data = airquality
-```
-
-Explore the data with summary() and plot():
-
-```{r chunk_chapter3_task_27, eval=TRUE}
-summary(data)
-plot(data)
-```
-
-1. There are NAs in the data, which we have to remove because Keras cannot handle NAs.
-If you don't know how to remove NAs from a data.frame, use Google (e.g. with the query: "remove-rows-with-all-or-some-nas-missing-values-in-data-frame").
-
-2. Split the data in predictors ($\boldsymbol{X}$) and response ($\boldsymbol{y}$, Ozone) and scale the $\boldsymbol{X}$ matrix.
-
-3. Build a sequential Keras model.
-
-4. Add hidden layers (input and output layer are already specified, you have to add hidden layers between them):
-
-```{r chunk_chapter3_task_28, eval=FALSE, purl=FALSE}
-model %>%
-  layer_dense(units = 20L, activation = "relu", input_shape = list(5L)) %>%
-   ....
-  layer_dense(units = 1L, activation = "linear")
-```
-
-* Why do we use 5L as input shape?
-* Why only one output node and "linear" activation layer?
-
-5. Compile model.
-
-```{r chunk_chapter3_task_29, eval=FALSE, purl=FALSE}
-model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.05))
-```
-
-What is the "mean_squared_error" loss?
-
-6. Fit model:
-
-Tip: Only matrices are accepted for $\boldsymbol{X}$ and $\boldsymbol{y}$ by Keras. R often drops a one column matrix into a vector (change it back to a matrix!)
-
-7. Plot training history.
-
-8. Create predictions.
-
-9. Compare your Keras model with a linear model:
-
-```{r chunk_chapter3_task_30, eval=FALSE, purl=FALSE}
-fit = lm(Ozone ~ ., data = data)
-pred_lm = predict(fit, data)
-rmse_lm = mean(sqrt((y - pred_lm)^2))
-rmse_keras = mean(sqrt((y - pred_keras)^2))
-print(rmse_lm)
-print(rmse_keras)
-```
-
-:::
-
-::: {.panel}
-[Torch]{.panel-name}
-
-0. Load and prepare the data set:
-
-
-```{r chunk_chapter3_task_26_torch, eval=TRUE}
-library(torch)
-
-data = airquality
-```
-
-Explore the data with summary() and plot():
-
-```{r chunk_chapter3_task_27_torch, eval=TRUE}
-summary(data)
-plot(data)
-```
-
-1. There are NAs in the data, which we have to remove because Keras cannot handle NAs.
-If you don't know how to remove NAs from a data.frame, use Google (e.g. with the query: "remove-rows-with-all-or-some-nas-missing-values-in-data-frame").
-
-2. Split the data in predictors ($\boldsymbol{X}$) and response ($\boldsymbol{y}$, Ozone) and scale the $\boldsymbol{X}$ matrix.
-
-3. Pass a list of layer objects to a sequential network class of torch (input and output layer are already specified, you have to add hidden layers between them):
-
-
-```{r chunk_chapter3_task_28_torch, eval=FALSE, purl=FALSE}
-
-model_torch = 
-  nn_sequential(
-    nn_linear(5L, 20L),
-    ...
-    nn_linear(20L, 1L),
-  )
-```
-
-* Why do we use 5L as input shape?
-* Why only one output node and no activation layer?
-
-4. Create optimizer
-
-We have to pass the network's parameters to the optimizer (how is this different to keras?)
-
-```{r chunk_chapter3_task_29_torch, eval=FALSE, purl=FALSE}
-optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.05)
-```
-
-5. Fit model
-
-In torch we have to write the trainings loop on our own. Complete the trainings loop:
-
-Tips: 
-
-- Number of training $ steps = Number of rows / batchsize * Epochs $
-- Search torch::nnf_... for the correct loss function (mse...)
-- Make sure that X_torch and Y_torch have the same data type! (you can set the dtype via torch_tensor(..., dtype = ...))
-_ Check the dimension of Y_torch, we need a matrix!
-
-
-```{r chunk_chapter3_task_300_torch, eval=FALSE, purl=FALSE}
-# Calculate number of training steps.
-epochs = ...
-batch_size = 32
-steps = ...
-
-X_torch = torch_tensor(x)
-Y_torch = torch_tensor(y, ...) 
-
-# Set model into training status.
-model_torch$train()
-
-log_losses = NULL
-
-# Training loop.
-for(i in 1:steps){
-  # Get batch indices.
-  indices = sample.int(nrow(x), batch_size)
-  X_batch = ...
-  Y_batch = ...
-  
-  # Reset backpropagation.
-  optimizer_torch$zero_grad()
-  
-  # Predict and calculate loss.
-  pred = model_torch(X_batch)
-  loss = ...
-  
-  # Backpropagation and weight update.
-  loss$backward()
-  optimizer_torch$step()
-  
-  log_losses[i] = as.numeric(loss)
-}
-```
-
-6. Plot training history.
-
-7. Create predictions.
-
-8. Compare your Torch model with a linear model:
-
-```{r chunk_chapter3_task_311_torch, eval=FALSE, purl=FALSE}
-fit = lm(Ozone ~ ., data = data)
-pred_lm = predict(fit, data)
-rmse_lm = mean(sqrt((y - pred_lm)^2))
-rmse_torch = mean(sqrt((y - pred_torch)^2))
-print(rmse_lm)
-print(rmse_torch)
-```
-
-:::
-
-:::::
-
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-```{r chunk_chapter3_task_31, eval=TRUE, include=TRUE}
-data = airquality
-```
-
-**1. There are NAs in the data, which we have to remove because Keras and Torch cannot handle NAs!**
-
-```{r chunk_chapter3_task_32, eval=TRUE, include=TRUE}
-data = data[complete.cases(data),]  # Remove NAs.
-summary(data)
-```
-
-**2. Split the data in predictors and response and scale the matrix.**
-
-```{r chunk_chapter3_task_33, eval=TRUE, include=TRUE}
-x = scale(data[,2:6])
-y = data[,1]
-```
-
-::::: {.panelset}
-
-::: {.panel}
-[Keras]{.panel-name}
-
-
-**3. Build sequential Keras model.**
-
-```{r chunk_chapter3_task_34, eval=TRUE, include=TRUE}
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-model = keras_model_sequential()
-```
-
-**4. Add hidden layers (input and output layer are already specified, you have to add hidden layers between them).**
-
-```{r chunk_chapter3_task_35, eval=TRUE, include=TRUE}
-model %>%
-  layer_dense(units = 20L, activation = "relu", input_shape = list(5L)) %>%
-  layer_dense(units = 20L) %>%
-  layer_dense(units = 20L) %>%
-  layer_dense(units = 1L, activation = "linear")
-```
-
-We use 5L as input shape, because we have 5 predictors. Analogously, we use 1L for our 1d response.
-Because we do not want any compression, dilation or other nonlinear effects, we use the simple linear layer (equal to no activation function at all). For more about activation functions, look for example <a href="https://en.wikipedia.org/wiki/Activation_function" target="_blank" rel="noopener">here</a>. Or wait for the next days.
-You may also have seen the previously shown link <a href="https://mlfromscratch.com/activation-functions-explained/#/" target="_blank" rel="noopener">about activation functions in more detail</a>.
-
-**5. Compile model.**
-
-```{r chunk_chapter3_task_36, eval=TRUE, include=TRUE}
-model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.05))
-```
-
-The mean_squared_error is the ordinary least squares approach in regression analysis.
-
-**6. Fit model.**
-
-```{r chunk_chapter3_task_37, eval=TRUE, include=TRUE}
-model_history =
-  model %>%
-  fit(x = x, y = matrix(y, ncol = 1L), epochs = 100L,
-      batch_size = 20L, shuffle = TRUE)
-```
-
-**7. Plot training history.**
-
-```{r chunk_chapter3_task_38, eval=TRUE, message=FALSE, warning=FALSE, include=TRUE}
-plot(model_history)
-
-model %>%
-  evaluate(x, y)
-```
-
-**8. Create predictions.**
-
-```{r chunk_chapter3_task_39, eval=TRUE, include=TRUE}
-pred_keras = predict(model, x)
-```
-
-**9. Compare Keras model with a linear model.**
-
-```{r chunk_chapter3_task_40, eval=TRUE, include=TRUE}
-fit = lm(Ozone ~ ., data = data)
-pred_lm = predict(fit, data)
-rmse_lm = mean(sqrt((y - pred_lm)^2))
-
-rmse_keras = mean(sqrt((y - pred_keras)^2))
-
-print(rmse_lm)
-print(rmse_keras)
-```
-
-:::
-
-::: {.panel}
-[Torch]{.panel-name}
-
-**3. Pass a list of layer objects to a sequential network class of torch (input and output layer are already specified, you have to add hidden layers between them):**
-
-
-```{r chunk_chapter3_task_36_torch, eval=FALSE, purl=FALSE, include=TRUE}
-library(torch)
-
-model_torch = 
-  nn_sequential(
-    nn_linear(5L, 20L),
-    nn_relu(),
-    nn_linear(20L, 20L),
-    nn_relu(),
-    nn_linear(20L, 20L),
-    nn_relu(),
-    nn_linear(20L, 1L),
-  )
-```
-
-We use 5L as input shape, because we have 5 predictors. Analogously, we use 1L for our 1d response.
-Because we do not want any compression, dilation or other nonlinear effects, we use the simple linear layer (equal to no activation function at all). For more about activation functions, look for example <a href="https://en.wikipedia.org/wiki/Activation_function" target="_blank" rel="noopener">here</a>. Or wait for the next days.
-You may also have seen the previously shown link <a href="https://mlfromscratch.com/activation-functions-explained/#/" target="_blank" rel="noopener">about activation functions in more detail</a>.
-
-**4. Create optimizer**
-
-We have to pass the network's parameters to the optimizer (how is this different to keras?)
-
-```{r chunk_chapter3_task_37_torch, eval=FALSE, purl=FALSE, include=TRUE}
-optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
-```
-
-In keras we use the compile function to pass a optimizer and a loss function to the model whereas in torch we have to pass the network's parameters to the optimizer.
-
-**5. Fit model**
-
-In torch we have to write the trainings loop on our own. Complete the trainings loop:
-
-
-```{r chunk_chapter3_task_38_torch, eval=FALSE, purl=FALSE, include=TRUE}
-# Calculate number of training steps.
-epochs = 100
-batch_size = 32
-steps = round(nrow(x)/batch_size*epochs)
-
-X_torch = torch_tensor(x)
-Y_torch = torch_tensor(y, dtype = torch_float32())$view(list(-1, 1)) 
-
-# Set model into training status.
-model_torch$train()
-
-log_losses = NULL
-
-# Training loop.
-for(i in 1:steps){
-  # Get batch indices.
-  indices = sample.int(nrow(x), batch_size)
-  X_batch = X_torch[indices,]
-  Y_batch = Y_torch[indices,]
-  
-  # Reset backpropagation.
-  optimizer_torch$zero_grad()
-  
-  # Predict and calculate loss.
-  pred = model_torch(X_batch)
-  loss = nnf_mse_loss(pred, Y_batch)
-  
-  # Backpropagation and weight update.
-  loss$backward()
-  optimizer_torch$step()
-  
-  log_losses[i] = as.numeric(loss)
-}
-```
-
-**6. Plot training history.**
-
-```{r chunk_chapter3_task_381_torch, eval=FALSE, purl=FALSE, include=TRUE}
-plot(y = log_losses, x = 1:steps, xlab = "Epoch", ylab = "MSE")
-```
-
-**7. Create predictions.**
-
-```{r chunk_chapter3_task_382_torch, eval=FALSE, purl=FALSE, include=TRUE}
-pred_torch = model_torch(X_torch)
-pred_torch = as.numeric(pred_torch) # cast torch to R object 
-```
-
-
-**8. Compare your Torch model with a linear model:**
-
-```{r chunk_chapter3_task_39_torch, eval=FALSE, purl=FALSE, include=TRUE}
-fit = lm(Ozone ~ ., data = data)
-pred_lm = predict(fit, data)
-rmse_lm = mean(sqrt((y - pred_lm)^2))
-rmse_torch = mean(sqrt((y - pred_torch)^2))
-print(rmse_lm)
-print(rmse_torch)
-```
-
-
-:::
-
-:::::
-
-**Look at this slightly more complex model and compare the loss plot and the accuracy in contrast to the former.**
-
-::::: {.panelset}
-
-::: {.panel}
-[Keras]{.panel-name}
-
-```{r chunk_chapter3_task_41, eval=TRUE, message=FALSE, warning=FALSE, include=TRUE}
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-model = keras_model_sequential()
-
-model %>%
-  layer_dense(units = 20L, activation = "relu", input_shape = list(5L)) %>%
-  layer_dense(units = 20L, activation = "relu") %>%
-  layer_dense(units = 30L, activation = "relu") %>%
-  layer_dense(units = 20L, activation = "relu") %>%
-  layer_dense(units = 1L, activation = "linear")
-
-model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.05))
-
-model_history =
-  model %>%
-  fit(x = x, y = matrix(y, ncol = 1L), epochs = 100L,
-      batch_size = 20L, shuffle = TRUE)
-
-plot(model_history)
-
-model %>%
-  evaluate(x, y)
-
-pred_keras = predict(model, x)
-
-fit = lm(Ozone ~ ., data = data)
-pred_lm = predict(fit, data)
-rmse_lm = mean(sqrt((y - pred_lm)^2))
-
-rmse_keras = mean(sqrt((y - pred_keras)^2))
-
-print(rmse_lm)
-print(rmse_keras)
-```
-
-:::
-
-::: {.panel}
-[Torch]{.panel-name}
-
-```{r chunk_chapter3_task_41_torch, eval=TRUE, message=FALSE, warning=FALSE, include=TRUE}
-library(torch)
-
-model_torch = 
-  nn_sequential(
-    nn_linear(5L, 20L),
-    nn_relu(),
-    nn_linear(20L, 20L),
-    nn_relu(),
-    nn_linear(20L, 30L),
-    nn_relu(),
-    nn_linear(30L, 20L),
-    nn_relu(),
-    nn_linear(20L, 1L),
-  )
-
-optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.05)
-
-epochs = 100
-batch_size = 32
-steps = round(nrow(x)/batch_size*epochs)
-
-X_torch = torch_tensor(x)
-Y_torch = torch_tensor(y, dtype = torch_float32())$view(list(-1, 1)) 
-
-model_torch$train()
-log_losses = NULL
-for(i in 1:steps){
-  indices = sample.int(nrow(x), batch_size)
-  X_batch = X_torch[indices,]
-  Y_batch = Y_torch[indices,]
-  # Reset backpropagation.
-  optimizer_torch$zero_grad()
-  # Predict and calculate loss.
-  pred = model_torch(X_batch)
-  loss = nnf_mse_loss(pred, Y_batch)
-  # Backpropagation and weight update.
-  loss$backward()
-  optimizer_torch$step()
-  log_losses[i] = as.numeric(loss)
-}
-
-plot(y = log_losses, x = 1:steps, xlab = "Epoch", ylab = "MSE")
-
-pred_torch = model_torch(X_torch)
-pred_torch = as.numeric(pred_torch) # cast torch to R object 
-
-fit = lm(Ozone ~ ., data = data)
-pred_lm = predict(fit, data)
-rmse_lm = mean(sqrt((y - pred_lm)^2))
-rmse_torch = mean(sqrt((y - pred_torch)^2))
-print(rmse_lm)
-print(rmse_torch)
-```
-
-
-:::
-:::::
-
-
-You see, the more complex model works better, because it can learn the functional form between the features and the response better (if necessary).
-But keep the overfitting problem in mind!
-
-**Look at the little change in learning rates for the next 2 models and compare the loss plot and the accuracy in contrast to the former.**
-
-
-::::: {.panelset}
-
-::: {.panel}
-[Keras]{.panel-name}
-
-
-```{r chunk_chapter3_task_42, eval=TRUE, message=FALSE, warning=FALSE, include=TRUE}
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-model = keras_model_sequential()
-
-model %>%
-  layer_dense(units = 20L, activation = "relu", input_shape = list(5L)) %>%
-  layer_dense(units = 20L, activation = "relu") %>%
-  layer_dense(units = 30L, activation = "relu") %>%
-  layer_dense(units = 20L, activation = "relu") %>%
-  layer_dense(units = 1L, activation = "linear")
-
-model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.1))
-
-model_history =
-  model %>%
-  fit(x = x, y = matrix(y, ncol = 1L), epochs = 100L,
-      batch_size = 20L, shuffle = TRUE)
-
-plot(model_history)
-
-model %>%
-  evaluate(x, y)
-
-pred_keras = predict(model, x)
-
-fit = lm(Ozone ~ ., data = data)
-pred_lm = predict(fit, data)
-rmse_lm = mean(sqrt((y - pred_lm)^2))
-
-rmse_keras = mean(sqrt((y - pred_keras)^2))
-
-print(rmse_lm)
-print(rmse_keras)
-```
-
-
-:::
-
-::: {.panel}
-[Torch]{.panel-name}
-
-```{r chunk_chapter3_task_43_torch, eval=TRUE, message=FALSE, warning=FALSE, include=TRUE}
-library(torch)
-
-model_torch = 
-  nn_sequential(
-    nn_linear(5L, 20L),
-    nn_relu(),
-    nn_linear(20L, 20L),
-    nn_relu(),
-    nn_linear(20L, 30L),
-    nn_relu(),
-    nn_linear(30L, 20L),
-    nn_relu(),
-    nn_linear(20L, 1L),
-  )
-
-optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.1)
-
-epochs = 100
-batch_size = 32
-steps = round(nrow(x)/batch_size*epochs)
-
-X_torch = torch_tensor(x)
-Y_torch = torch_tensor(y, dtype = torch_float32())$view(list(-1, 1)) 
-
-model_torch$train()
-log_losses = NULL
-for(i in 1:steps){
-  indices = sample.int(nrow(x), batch_size)
-  X_batch = X_torch[indices,]
-  Y_batch = Y_torch[indices,]
-  # Reset backpropagation.
-  optimizer_torch$zero_grad()
-  # Predict and calculate loss.
-  pred = model_torch(X_batch)
-  loss = nnf_mse_loss(pred, Y_batch)
-  # Backpropagation and weight update.
-  loss$backward()
-  optimizer_torch$step()
-  log_losses[i] = as.numeric(loss)
-}
-
-plot(y = log_losses, x = 1:steps, xlab = "Epoch", ylab = "MSE")
-
-pred_torch = model_torch(X_torch)
-pred_torch = as.numeric(pred_torch) # cast torch to R object 
-
-fit = lm(Ozone ~ ., data = data)
-pred_lm = predict(fit, data)
-rmse_lm = mean(sqrt((y - pred_lm)^2))
-rmse_torch = mean(sqrt((y - pred_torch)^2))
-print(rmse_lm)
-print(rmse_torch)
-```
-
-
-
-:::
-:::::
-
-
-You can see, the higher learning rate yields a little bit worse results. The optimum is jumped over.
-
-::::: {.panelset}
-
-::: {.panel}
-[Keras]{.panel-name}
-
-
-```{r chunk_chapter3_task_43, eval=TRUE, message=FALSE, warning=FALSE, include=TRUE}
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-model = keras_model_sequential()
-
-model %>%
-  layer_dense(units = 20L, activation = "relu", input_shape = list(5L)) %>%
-  layer_dense(units = 20L, activation = "relu") %>%
-  layer_dense(units = 30L, activation = "relu") %>%
-  layer_dense(units = 20L, activation = "relu") %>%
-  layer_dense(units = 1L, activation = "linear")
-
-model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.001))
-
-model_history =
-  model %>%
-  fit(x = x, y = matrix(y, ncol = 1L), epochs = 100L,
-      batch_size = 20L, shuffle = TRUE)
-
-plot(model_history)
-
-model %>%
-  evaluate(x, y)
-
-pred_keras = predict(model, x)
-
-fit = lm(Ozone ~ ., data = data)
-pred_lm = predict(fit, data)
-rmse_lm = mean(sqrt((y - pred_lm)^2))
-
-rmse_keras = mean(sqrt((y - pred_keras)^2))
-
-print(rmse_lm)
-print(rmse_keras)
-```
-
-:::
-
-::: {.panel}
-[Torch]{.panel-name}
-
-```{r chunk_chapter3_task_442_torch, eval=TRUE, message=FALSE, warning=FALSE, include=TRUE}
-library(torch)
-
-model_torch = 
-  nn_sequential(
-    nn_linear(5L, 20L),
-    nn_relu(),
-    nn_linear(20L, 20L),
-    nn_relu(),
-    nn_linear(20L, 30L),
-    nn_relu(),
-    nn_linear(30L, 20L),
-    nn_relu(),
-    nn_linear(20L, 1L),
-  )
-
-optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
-
-epochs = 100
-batch_size = 32
-steps = round(nrow(x)/batch_size*epochs)
-
-X_torch = torch_tensor(x)
-Y_torch = torch_tensor(y, dtype = torch_float32())$view(list(-1, 1)) 
-
-model_torch$train()
-log_losses = NULL
-for(i in 1:steps){
-  indices = sample.int(nrow(x), batch_size)
-  X_batch = X_torch[indices,]
-  Y_batch = Y_torch[indices,]
-  # Reset backpropagation.
-  optimizer_torch$zero_grad()
-  # Predict and calculate loss.
-  pred = model_torch(X_batch)
-  loss = nnf_mse_loss(pred, Y_batch)
-  # Backpropagation and weight update.
-  loss$backward()
-  optimizer_torch$step()
-  log_losses[i] = as.numeric(loss)
-}
-
-plot(y = log_losses, x = 1:steps, xlab = "Epoch", ylab = "MSE")
-
-pred_torch = model_torch(X_torch)
-pred_torch = as.numeric(pred_torch) # cast torch to R object 
-
-fit = lm(Ozone ~ ., data = data)
-pred_lm = predict(fit, data)
-rmse_lm = mean(sqrt((y - pred_lm)^2))
-rmse_torch = mean(sqrt((y - pred_torch)^2))
-print(rmse_lm)
-print(rmse_torch)
-```
-
-
-:::
-
-:::::
-
-You can see, that for the lower learning rate, the optimum (compared to the run with learning rate 0.05) is not yet reached (to few epochs have gone by).
-But also here, mind the overfitting problem. For too many epochs, things might get worse!
-
-```{=html}
-    </p>
-  </details>
-  <br/>
-```
-
-
-```{=html}
-  <hr/>
-  <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
-```
-
-
-The next task differs for Torch and Keras users. Keras users will learn more about the inner working of training while Torch users will learn how to simplify and generalize the training loop.
-
-::::: {.panelset}
-
-::: {.panel}
-[Keras]{.panel-name}
-
-Similar to Torch, here we will write the training loop ourselves in the following. The training loop consists of several steps:
-
-1. Sample batches of X and Y data
-2. Open the gradientTape to create a computational graph (autodiff)
-3. Make predictions and calculate loss
-4. Update parameters based on the gradients at the loss (go back to 1. and repeat)
-
-```{r chunk_chapter3_task_44, eval=TRUE}
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-data = airquality
-data = data[complete.cases(data),]  # Remove NAs.
-x = scale(data[,2:6])
-y = data[,1]
-
-layers = tf$keras$layers
-model = tf$keras$models$Sequential(
-  c(
-    layers$InputLayer(input_shape = list(5L)),
-    layers$Dense(units = 20L, activation = tf$nn$relu),
-    layers$Dense(units = 20L, activation = tf$nn$relu),
-    layers$Dense(units = 20L, activation = tf$nn$relu),
-    layers$Dense(units = 1L, activation = NULL) # No activation == "linear".
-  )
-)
-
-epochs = 200L
-optimizer = tf$keras$optimizers$Adamax(0.01)
-
-# Stochastic gradient optimization is more efficient
-# in each optimization step, we use a random subset of the data.
-get_batch = function(batch_size = 32L){
-  indices = sample.int(nrow(x), size = batch_size)
-  return(list(bX = x[indices,], bY = y[indices]))
-}
-get_batch() # Try out this function.
-
-
-steps = floor(nrow(x)/32) * epochs  # We need nrow(x)/32 steps for each epoch.
-for(i in 1:steps){
-  # Get data.
-  batch = get_batch()
-
-  # Transform it into tensors.
-  bX = tf$constant(batch$bX)
-  bY = tf$constant(matrix(batch$bY, ncol = 1L))
-  
-  # Automatic differentiation:
-  # Record computations with respect to our model variables.
-  with(tf$GradientTape() %as% tape,
-    {
-      pred = model(bX) # We record the operation for our model weights.
-      loss = tf$reduce_mean(tf$keras$losses$mean_squared_error(bY, pred))
-    }
-  )
-  
-  # Calculate the gradients for our model$weights at the loss / backpropagation.
-  gradients = tape$gradient(loss, model$weights) 
-
-  # Update our model weights with the learning rate specified above.
-  optimizer$apply_gradients(purrr::transpose(list(gradients, model$weights))) 
-  if(! i%%30){
-    cat("Loss: ", loss$numpy(), "\n") # Print loss every 30 steps (not epochs!).
-  }
-}
-```
-
-:::
-
-::: {.panel}
-[Torch]{.panel-name}
-
-Keras and Torch use dataloaders to generate the data batches. Dataloaders are objects that return batches of data infinetly. Keras create the dataloader object automatically in the fit function, in Torch we have to write them ourselves:
-
-1. Define a dataset object. This object informs the dataloader function about the inputs, outputs, length (nrow), and how to sample from it. 
-2. Create an instance of the dataset object by calling it and passing the actual data to it
-3. Pass the initiated dataset to the dataloader function 
-
-```{r chunk_chapter3_task_44_torch, eval=TRUE}
-library(torch)
-
-data = airquality
-data = data[complete.cases(data),]  # Remove NAs.
-x = scale(data[,2:6])
-y = matrix(data[,1], ncol = 1L)
-
-
-torch_dataset = torch::dataset(
-    name = "airquality",
-    initialize = function(X,Y) {
-      self$X = torch::torch_tensor(as.matrix(X), dtype = torch_float32())
-      self$Y = torch::torch_tensor(as.matrix(Y), dtype = torch_float32())
-    },
-    .getitem = function(index) {
-      x = self$X[index,]
-      y = self$Y[index,]
-      list(x, y)
-    },
-    .length = function() {
-      self$Y$size()[[1]]
-    }
-  )
-dataset = torch_dataset(x,y)
-dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
-
-```
-
-Our dataloader is again an object which has to be initiated. The initiated object returns a list of two elements, batch x and batch y. The initated object stops returning batches when the dataset was completly transversed (no worries, we don't have to all of this ourselves).
-
-Our training has also changed now:
-
-```{r chunk_chapter3_task_45_torch, eval=TRUE}
-model_torch = nn_sequential(
-  nn_linear(5L, 50L),
-  nn_relu(),
-  nn_linear(50L, 50L),
-  nn_relu(), 
-  nn_linear(50L, 50L),
-  nn_relu(), 
-  nn_linear(50L, 1L)
-)
-epochs = 50L
-opt = optim_adam(model_torch$parameters, 0.01)
-train_losses = c()
-for(epoch in 1:epochs){
-  train_loss = c()
-  coro::loop(
-    for(batch in dataloader) { 
-      opt$zero_grad()
-      pred = model_torch(batch[[1]])
-      loss = nnf_mse_loss(pred, batch[[2]])
-      loss$backward()
-      opt$step()
-      train_loss = c(train_loss, loss$item())
-    }
-  )
-  train_losses = c(train_losses, mean(train_loss))
-  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
-}
-
-plot(train_losses, type = "o", pch = 15,
-        col = "darkblue", lty = 1, xlab = "Epoch",
-        ylab = "Loss", las = 1)
-
-```
-
-The previous sampling wasn't ideal, why?
-
-:::
-
-:::::
-
-
-Now change the code from above for the iris data set.
-Tip: In tf\$keras\$losses\$... you can find various loss functions.
-
-```{=html}
-  <details>
-    <summary>
-      <strong><span style="color: #0011AA; font-size:18px;">Solution</span></strong>
-    </summary>
-    <p>
-```
-
-::::: {.panelset}
-
-::: {.panel}
-[Keras]{.panel-name}
-
-```{r chunk_chapter3_task_45, eval=TRUE, include=TRUE}
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
-x = scale(iris[,1:4])
-y = iris[,5]
-y = keras::to_categorical(as.integer(Y)-1L, 3)
-
-layers = tf$keras$layers
-model = tf$keras$models$Sequential(
-  c(
-    layers$InputLayer(input_shape = list(4L)),
-    layers$Dense(units = 20L, activation = tf$nn$relu),
-    layers$Dense(units = 20L, activation = tf$nn$relu),
-    layers$Dense(units = 20L, activation = tf$nn$relu),
-    layers$Dense(units = 3L, activation = tf$nn$softmax)
-  )
-)
-
-epochs = 200L
-optimizer = tf$keras$optimizers$Adamax(0.01)
-
-# Stochastic gradient optimization is more efficient.
-get_batch = function(batch_size = 32L){
-  indices = sample.int(nrow(x), size = batch_size)
-  return(list(bX = x[indices,], bY = y[indices,]))
-}
-
-steps = floor(nrow(x)/32) * epochs # We need nrow(x)/32 steps for each epoch.
-
-for(i in 1:steps){
-  batch = get_batch()
-  bX = tf$constant(batch$bX)
-  bY = tf$constant(batch$bY)
-  
-  # Automatic differentiation.
-  with(tf$GradientTape() %as% tape,
-    {
-      pred = model(bX) # we record the operation for our model weights
-      loss = tf$reduce_mean(tf$keras$losses$categorical_crossentropy(bY, pred))
-    }
-  )
-  
-  # Calculate the gradients for the loss at our model$weights / backpropagation.
-  gradients = tape$gradient(loss, model$weights)
-  
-  # Update our model weights with the learning rate specified above.
-  optimizer$apply_gradients(purrr::transpose(list(gradients, model$weights)))
-  
-  if(! i%%30){
-    cat("Loss: ", loss$numpy(), "\n") # Print loss every 30 steps (not epochs!).
-  }
-}
-```
-
-
-:::
-
-::: {.panel}
-[Torch]{.panel-name}
-
-```{r chunk_chapter3_task_47_torch, eval=TRUE, include=TRUE}
-library(torch)
-
-x = scale(iris[,1:4])
-y = iris[,5]
-y = as.integer(iris$Species)
-
-
-torch_dataset = torch::dataset(
-    name = "iris",
-    initialize = function(X,Y) {
-      self$X = torch::torch_tensor(as.matrix(X), dtype = torch_float32())
-      self$Y = torch::torch_tensor(Y, dtype = torch_long())
-    },
-    .getitem = function(index) {
-      x = self$X[index,]
-      y = self$Y[index]
-      list(x, y)
-    },
-    .length = function() {
-      self$Y$size()[[1]]
-    }
-  )
-dataset = torch_dataset(x,y)
-dataloader = torch::dataloader(dataset, batch_size = 30L, shuffle = TRUE)
-
-
-model_torch = nn_sequential(
-  nn_linear(4L, 50L),
-  nn_relu(),
-  nn_linear(50L, 50L),
-  nn_relu(), 
-  nn_linear(50L, 50L),
-  nn_relu(), 
-  nn_linear(50L, 3L)
-)
-epochs = 50L
-opt = optim_adam(model_torch$parameters, 0.01)
-train_losses = c()
-for(epoch in 1:epochs){
-  train_loss
-  coro::loop(
-    for(batch in dataloader) { 
-      opt$zero_grad()
-      pred = model_torch(batch[[1]])
-      loss = nnf_cross_entropy(pred, batch[[2]])
-      loss$backward()
-      opt$step()
-      train_loss = c(train_loss, loss$item())
-    }
-  )
-  train_losses = c(train_losses, mean(train_loss))
-  if(!epoch%%10) cat(sprintf("Loss at epoch %d: %3f\n", epoch, mean(train_loss)))
-}
-
-plot(train_losses, type = "o", pch = 15,
-        col = "darkblue", lty = 1, xlab = "Epoch",
-        ylab = "Loss", las = 1)
-
-```
-
-
-:::
-
-:::::
-
-
-Remarks:
-
-* Mind the different input and output layer numbers.
-* The loss function increases randomly, because different subsets of the data were drawn.
-This is a downside of stochastic gradient descent.
-* A positive thing about stochastic gradient descent is, that local valleys or hills may be left and global ones can be found instead.
-
-
-```{=html}
-    </p>
-  </details>
-  <br/><hr/>
-```
-
-
-
-## Underlying mathematical concepts - optional {#basicMath}
-
-If are not yet familiar with the underlying concepts of neural networks and want to know more about that, it is suggested to read / view the following videos / sites. Consider the Links and videos with descriptions in parentheses as optional bonus.
-
-_**This might be useful to understand the further concepts in more depth.**_
-
-* (<a href="https://en.wikipedia.org/wiki/Newton%27s_method#Description" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Newton%27s_method#Description</a> (Especially the animated graphic is interesting).)
-
-* <a href="https://en.wikipedia.org/wiki/Gradient_descent#Description" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Gradient_descent#Description</a>
-
-* <a href="https://mlfromscratch.com/neural-networks-explained/#/" target="_blank" rel="noopener">Neural networks (Backpropagation, etc.)</a>.
-
-* <a href="https://mlfromscratch.com/activation-functions-explained/#/" target="_blank" rel="noopener">Activation functions in detail</a> (requires the above as prerequisite).
-
-_**Videos about the topic**_:
-
-* **Gradient descent explained**
-
-```{r chunk_chapter3_35, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-  '<iframe width="560" height="315"
-  src="https://www.youtube.com/embed/sDv4f4s2SB8"
-  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
-  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
-
-* (Stochastic gradient descent explained)
-
-```{r chunk_chapter3_36, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-  '<iframe width="560" height="315"
-  src="https://www.youtube.com/embed/vMh0zPT0tLI"
-  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
-  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
-
-* (Entropy explained)
-
-```{r chunk_chapter3_37, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-  '<iframe width="560" height="315"
-  src="https://www.youtube.com/embed/YtebGVx-Fxw"
-  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
-  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
-
-* **Short explanation of entropy, cross entropy and Kullback–Leibler divergence**
-
-```{r chunk_chapter3_38, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-  '<iframe width="560" height="315"
-  src="https://www.youtube.com/embed/ErfnhcEV1O8"
-  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
-  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
-
-* **Deep Learning (chapter 1)**
-
-```{r chunk_chapter3_39, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-  '<iframe width="560" height="315"
-  src="https://www.youtube.com/embed/aircAruvnKk"
-  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
-  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
-
-* **How neural networks learn - Deep Learning (chapter 2)**
-
-```{r chunk_chapter3_40, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-  '<iframe width="560" height="315"
-  src="https://www.youtube.com/embed/IHZwWFHWa-w"
-  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
-  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
-
-* **Backpropagation - Deep Learning (chapter 3)**
-
-```{r chunk_chapter3_41, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-  '<iframe width="560" height="315"
-  src="https://www.youtube.com/embed/Ilg3gGewQ5U"
-  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
-  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
-
-* **Another video about backpropagation (extends the previous one) - Deep Learning (chapter 4)**
-
-```{r chunk_chapter3_42, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-  '<iframe width="560" height="315"
-  src="https://www.youtube.com/embed/tIeHLnjs5U8"
-  frameborder="0" allow="accelerometer; autoplay; clipboard-write;
-  encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
-
-### Caveats of neural network optimization
-
-Depending on activation functions, it might occur that the network won't get updated, even with high learning rates (called *vanishing gradient*, especially for "sigmoid" functions).
-Furthermore, updates might overshoot (called *exploding gradients*) or activation functions will result in many zeros (especially for "relu", *dying relu*).
-
-In general, the first layers of a network tend to learn (much) more slowly than subsequent ones.
-
 
