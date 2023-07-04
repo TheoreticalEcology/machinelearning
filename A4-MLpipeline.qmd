@@ -150,7 +150,8 @@ Either we remove all observations with NAs, or we impute (fill) the missing valu
 ```{r chunk_chapter4_52}
 data =
   data %>%
-    group_by(sex, pclass, title) %>%
+    select(survived, sex, age, fare, pclass) %>% 
+    group_by(sex, pclass) %>%
     mutate(age2 = ifelse(is.na(age), median(age, na.rm = TRUE), age)) %>%
     mutate(fare2 = ifelse(is.na(fare), median(fare, na.rm = TRUE), fare)) %>%
     ungroup()
@@ -177,7 +178,7 @@ data_sub =
 
 Factors with more than two levels should be **one hot encoded** (Make columns for every different factor level and write 1 in the respective column for every taken feature value and 0 else. For example: $\{red, green, green, blue, red\} \rightarrow \{(0,0,1), (0,1,0), (0,1,0), (1,0,0), (0,0,1)\}$):
 
-```{r chunk_chapter4_54}
+```{r chunk_chapter4_54, eval = FALSE}
 one_title = model.matrix(~0+as.factor(title), data = data)
 colnames(one_title) = levels(data$title)
 
@@ -190,7 +191,7 @@ colnames(one_pclass) = paste0("pclass", 1:length(unique(data$pclass)))
 
 And we have to add the dummy encoded variables to the data set:
 
-```{r chunk_chapter4_55}
+```{r chunk_chapter4_55, eval = FALSE}
 data = cbind(data.frame(survived= data$survived),
                  one_title, one_sex, age = data$age2,
                  fare = data$fare2, one_pclass)
@@ -198,8 +199,10 @@ head(data)
 ```
 :::
 
-### Split data
 
+## Modelling
+
+### Split data for final predictions
 To tune our hyperparameters and evaluate our models, we need to split the data as we learned in the CV section. Before doing so, however, we must split off the new observations in the data set :
 
 ```{r}
@@ -212,8 +215,6 @@ summary(data_sub$survived)
 data_new = data_sub[!is.na(data_sub$survived),]
 data_obs = data_sub[is.na(data_sub$survived),]
 ```
-
-## Modelling
 
 ### Training and evaluation
 
@@ -250,41 +251,7 @@ print(mean(results$AUC))
 ```
 
 
-## Predictions and Submission
-
-When we are satisfied with the performance of our model, we will create predictions for the new observations on the submission server. But first we will train now our model on the full observed dataset:
-
-```{r}
-model = glmnet(survived~.,data = data_obs, family = "binomial",alpha = 0.2)
-```
-
-And make the predictions for the new observations:
-
-```{r chunk_chapter4_62}
-pred = model %>% 
-  predict(as.matrix(data_new), s = 0.01,alpha = 0.2, type = "response")
-head(pred, n = 3)
-```
-
-We cannot assess the performance on the test split because the true survival ratio is unknown, however, we can now submit our predictions to the submission server at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a>.
-
-For the submission it is critical to change the predictions into a data.frame, select the second column (the probability to survive), and save it with the write.csv function:
-
-```{r chunk_chapter4_64, eval=FALSE}
-write.csv(data.frame(y = pred[,1] ), file = "Max_1.csv")
-```
-
-The file name is used as the ID on the submission server, so change it to whatever you want as long as you can identify yourself.
-
-### Exercises
-
-::: {.callout-caution icon="false"}
-##### Task: Improve predictions
-
-Play around with the feature engineering and the hyperparameters ($\lambda$ and $\alpha$). Try to improve the AUC for the new observations on the submission server.
-:::
-
-## Hyperparameter optimization
+### Hyperparameter optimization
 
 We did a simple 10xCV to evaluate our model but we didn't tune our hyperparameters ($\lambda$ and $\alpha$). If we want to tune them, we need do another CV within each split of the model evaulation CV, which is called nested CV.
 
@@ -338,13 +305,21 @@ for(i in 1:cv) {
 print(results)
 ```
 
+
+## Predictions and Submission
+
+When we are satisfied with the performance of our model, we will create predictions for the new observations on the submission server. But first we will train now our model on the full observed dataset:
+
 $\alpha = 0.915$ has the highest AUC, let's use it to train the model on the full dataset:
 
 ```{r}
 model = glmnet(survived~.,data = data_obs, family = "binomial",alpha = 0.915)
 ```
 
-And again, make predictions and submit:
+
+We cannot assess the performance for the new observations because the true survival ratio is unknown, however, we can now submit our predictions to the submission server at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a>.
+
+For the submission it is critical to change the predictions into a data.frame, select the second column (the probability to survive), and save it with the write.csv function:
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
 data_new = data_sub[is.na(data_sub$survived),]
@@ -363,8 +338,10 @@ write.csv(data.frame(y = apply(prediction_ensemble, 1, mean), file = "Max_1.csv"
 ```
 
 
+## Exercises
+
 ::: {.callout-caution icon="false"}
-#### Exercise: Tuning $\alpha$ and $\lambda$
+#### Task: Tuning $\alpha$ and $\lambda$
 
 1.  Extend the code from above and tune $\alpha$ and $\lambda$
 
@@ -382,7 +359,9 @@ data(titanic_ml)
 data = titanic_ml
 data = 
   data %>% select(survived, sex, age, fare, pclass)
-data[,-1] = missRanger(data[,-1])
+
+# missRanger uses a random forest to impute NAs (RF is trained on the data to predict values for the NAs)
+data[,-1] = missRanger(data[,-1], verbose = 0)
 
 data_sub =
   data %>%
@@ -393,6 +372,12 @@ data_sub =
 data_new = data_sub[!is.na(data_sub$survived),] # for which we want to make predictions at the end
 data_obs = data_sub[is.na(data_sub$survived),] # data with known response
 ```
+
+Bonus: 
+
+-   Try different features
+-   Try cito
+-   Try different datasets (see @sec-datasets)
 
 
 `r hide("Click here to see the solution for the single model")`
@@ -545,7 +530,7 @@ To test our model (glmnet) with 10-fold cross-validated, we will do:
 ```{r chunk_chapter4_69__mlr1}
 set.seed(123)
 
-transformed_task$data()
+transformed_task$data()[1,]
 transformed_task$set_row_roles((1:nrow(data))[is.na(data$Hazardous)],
                                "holdout")
 
