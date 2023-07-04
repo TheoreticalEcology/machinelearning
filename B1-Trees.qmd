@@ -66,15 +66,6 @@ lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 
 One advantage of random forests is that we will get an importance of variables. At each split in each tree, the improvement in the split-criterion is the importance measure attributed to the splitting variable, and is accumulated over all the trees in the forest separately for each variable. Thus the variable importance shows us how important a variable is averaged over all trees.
 
-```{python, eval =FALSE, echo = FALSE}
-import pybaobabdt
-import pandas as pd
-from scipy.io import arff
-from sklearn.tree import DecisionTreeClassifier
-
-data = r.data
-```
-
 ```{r chunk_chapter4_26}
 rf$importance
 ```
@@ -82,7 +73,7 @@ rf$importance
 There are several important hyperparameters in a random forest that we can tune to get better results:
 
 | Hyperparameter    | Explanation                                                                                                                              |
-|--------------|----------------------------------------------------------|
+|------------------|------------------------------------------------------|
 | mtry              | Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data). |
 | minimum node size | Minimal number of observations allowed in a node (before the branching is canceled)                                                      |
 | max depth         | Maximum number of tree depth                                                                                                             |
@@ -96,7 +87,7 @@ A boosted regression tree (BRT) starts with a simple regression tree (weak learn
 -   *AdaBoost*: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.
 -   *Gradient boosting* (state of the art): Each sequential model will be fit on the residual errors of the previous model (strongly simplified, the actual algorithm is very complex).
 
-We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix.
+We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix (which is a xgboost specific data type, the package sadly doesn't support R matrices or data.frames).
 
 ```{r chunk_chapter4_27, cache=TRUE, results='hide', message=FALSE, warning=FALSE}
 library(xgboost)
@@ -155,7 +146,7 @@ If we do three-folded cross-validation, we actually fit three different boosted 
 Important hyperparameters:
 
 | Hyperparameter | Explanation                                                                  |
-|----------------|--------------------------------------------------------|
+|-------------------|-----------------------------------------------------|
 | eta            | learning rate (weighting of the sequential trees)                            |
 | max depth      | maximal depth in the trees (small = low complexity, large = high complexity) |
 | subsample      | subsample ratio of the data (bootstrap ratio)                                |
@@ -167,7 +158,7 @@ Important hyperparameters:
 ::: {.callout-caution icon="false"}
 #### Question: Regression Trees
 
-We will use the following code snippet to test the effect of mincut on trees.
+We will use the following code snippet to understand the effect of mincut and thus the predictive performance.
 
 ```{r chunk_chapter4_task_21, eval=FALSE}
 library(tree)
@@ -238,7 +229,7 @@ plot(data$Temp, data$Ozone)
 lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 ```
 
-Try different values for the nodesize and mtry and describe how the predictions depend on these parameters.
+Try different values for the nodesize describe how the predictions depend on this parameter.
 
 `r hide("Click here to see the solution")`
 
@@ -249,14 +240,14 @@ set.seed(123)
 data = airquality[complete.cases(airquality),]
 
 
-for(nodesize in c(1, 5, 15, 50, 100)){
+for(nodesize in c(1, 15, 50, 100)){
   for(mtry in c(1, 3, 5)){
-    rf = randomForest(Ozone~., data = data, mtry = mtry, nodesize = nodesize)
+    rf = randomForest(Ozone~., data = data, nodesize = nodesize)
     
     pred = predict(rf, data)
     
     plot(data$Temp, data$Ozone, main = paste0(
-        "mtry: ", mtry, "    nodesize: ", nodesize,
+        "    nodesize: ", nodesize,
         "\nRMSE: ", round(sqrt(mean((data$Ozone - pred)^2)), 2)
       )
     )
@@ -265,7 +256,9 @@ for(nodesize in c(1, 5, 15, 50, 100)){
 }
 ```
 
-Higher numbers for mtry smooth the prediction curve and yield less overfitting. The same holds for the nodesize. In other words: The bigger the nodesize, the smaller the trees and the more bias/less variance. `r unhide()`
+Nodesize affects the complexity. In other words: The bigger the nodesize, the smaller the trees and the more bias/less variance.
+
+`r unhide()`
 :::
 
 ::: {.callout-caution icon="false"}
@@ -313,7 +306,7 @@ saveGIF(
 
 ![](boosting.gif){width="370"}
 
-Run the above code and play with different parameters for xgboost (especially with parameters that control the complexity) and describe what you see!
+Run the above code and play with different values for **max_depth** and describe what you see!
 
 Tip: have a look at the boosting.gif.
 
@@ -335,36 +328,34 @@ axis(1, at = seq(0, 1, length.out = 10),
 axis(2, at = seq(0, 1, length.out = 10),
      labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
 
-for(eta in c(.1, .3, .5, .7, .9)){
-  for(max_depth in c(3, 6, 10, 20)){
-    model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
-                             max_depth = max_depth, eta = eta,
-                             nrounds = 500, verbose = 0L)
-  
-    saveGIF(
-      {
-        for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
-          pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
-                         ntreelimit = i)
-          image(matrix(pred, 100, 100),
-                main = paste0("eta: ", eta,
-                              "    max_depth: ", max_depth,
-                              "    Trees: ", i),
-                axes = FALSE, las = 2)
-          axis(1, at = seq(0, 1, length.out = 10),
-               labels = round(seq(-3, 3, length.out = 10), 1))
-          axis(2, at = seq(0, 1, length.out = 10),
-               labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
-        }
-      },
-      movie.name = paste0("boosting_", max_depth, "_", eta, ".gif"),
-      autobrowse = FALSE
-    )
-  }
+for(max_depth in c(3, 6, 10, 20)){
+  model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
+                           max_depth = max_depth,
+                           nrounds = 500, verbose = 0L)
+
+  saveGIF(
+    {
+      for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
+        pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
+                       ntreelimit = i)
+        image(matrix(pred, 100, 100),
+              main = paste0("eta: ", eta,
+                            "    max_depth: ", max_depth,
+                            "    Trees: ", i),
+              axes = FALSE, las = 2)
+        axis(1, at = seq(0, 1, length.out = 10),
+             labels = round(seq(-3, 3, length.out = 10), 1))
+        axis(2, at = seq(0, 1, length.out = 10),
+             labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
+      }
+    },
+    movie.name = paste0("boosting_", max_depth, "_", eta, ".gif"),
+    autobrowse = FALSE
+  )
 }
 ```
 
-As the possibilities scale extremely, you must vary some parameters on yourself. You may use for example the following parameters: "eta", "gamma", "max_depth", "min_child_weight", "subsample", "colsample_bytree", "num_parallel_tree", "monotone_constraints" or "interaction_constraints". Or you look into the documentation:
+We see that for high values of max_depth, the predictions "smooth out" faster. On the other hand, with a low max_depth (low complexity of the individual trees), more trees are required in the ensemble to achieve a smooth prediction surface.
 
 ```{r chunk_chapter4_task_28, eval=FALSE, purl=FALSE, include=TRUE}
 ?xgboost::xgboost
@@ -375,6 +366,139 @@ Just some examples:
 -   ![](./images/boosting_3_0.1.gif){width="370"}
 -   ![](./images/boosting_6_0.7.gif){width="370"}
 -   ![](./images/boosting_20_0.9.gif){width="370"}
+
+`r unhide()`
+:::
+
+::: {.callout-caution icon="false"}
+#### Question: Hyperparameter tuning of random forest
+
+Combing back to the titanic dataset from the morning, we want to optimize min node size in our RF using a simple CV.
+
+Prepare the data:
+
+```{r}
+library(EcoData)
+library(dplyr)
+library(missRanger)
+data(titanic_ml)
+data = titanic_ml
+data = 
+  data %>% select(survived, sex, age, fare, pclass)
+data[,-1] = missRanger(data[,-1], verbose = 0)
+
+data_sub =
+  data %>%
+    mutate(age = scales::rescale(age, c(0, 1)),
+           fare = scales::rescale(fare, c(0, 1))) %>%
+    mutate(sex = as.integer(sex) - 1L,
+           pclass = as.integer(pclass - 1L))
+data_new = data_sub[!is.na(data_sub$survived),] # for which we want to make predictions at the end
+data_obs = data_sub[is.na(data_sub$survived),] # data with known response
+```
+
+
+**Hints:**
+
+-   adjust the '`type`' argument in the `predict(…)` method (the default is to predict classes)
+-   when predicting probabilities, the randomForest will return a matrix, a column for each class, we are interested in the probability of surviving (so the second column)
+
+**Bonus:**
+
+-   tune also mtry
+-   use more features
+
+
+::: {.callout-tip collapse="true" appearance="minimal"}
+## Code template
+
+```{r, eval=FALSE}
+library(randomForest)
+set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+cv = 3
+
+outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+
+# sample minnodesize values (must be integers)
+hyper_minnodesize = ...
+
+results = data.frame(
+  set = rep(NA, cv),
+  minnodesize = rep(NA, cv),
+  AUC = rep(NA, cv)
+)
+
+for(i in 1:cv) {
+  train_outer = data_obs[outer_split != i, ]
+  test_outer = data_obs[outer_split == i, ]
+  
+  tuning_results = 
+      sapply(1:length(hyper_minnodesize), function(k) {
+        model = randomForest(as.factor(survived)~., data = train_outer, nodesize = ... )
+        return(Metrics::auc(test_outer$survived, predict(model, newdata = test_outer, type = "prob")[,2]))
+      })
+  best_minnodesize = hyper_minnodesize[which.max(tuning_results)]
+  
+  results[i, 1] = i
+  results[i, 2] = best_minnodesize
+  results[i, 3] = max(tuning_results)
+}
+
+print(results)
+```
+:::
+
+`r hide("Click here to see the solution")`
+
+```{r}
+library(randomForest)
+set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+cv = 3
+
+outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+
+# sample minnodesize values (must be integers)
+hyper_minnodesize = sample(300, 20)
+
+results = data.frame(
+  set = rep(NA, cv),
+  minnodesize = rep(NA, cv),
+  AUC = rep(NA, cv)
+)
+
+for(i in 1:cv) {
+  train_outer = data_obs[outer_split != i, ]
+  test_outer = data_obs[outer_split == i, ]
+  
+  tuning_results = 
+      sapply(1:length(hyper_minnodesize), function(k) {
+        model = randomForest(as.factor(survived)~., data = train_outer, nodesize = hyper_minnodesize[k] )
+        return(Metrics::auc(test_outer$survived, predict(model, newdata = test_outer, type = "prob")[,2]))
+      })
+  best_minnodesize = hyper_minnodesize[which.max(tuning_results)]
+  
+  results[i, 1] = i
+  results[i, 2] = best_minnodesize
+  results[i, 3] = max(tuning_results)
+}
+
+print(results)
+```
+
+Make predictions:
+
+```{r, results='hide', warning=FALSE, message=FALSE}
+prediction_ensemble = 
+  sapply(1:nrow(results), function(i) {
+  model = randomForest(as.factor(survived)~., data = data_obs, nodesize = results$minnodesize[i] )
+    return(predict(model, data_obs, type = "prob")[,2])
+  })
+
+# Single predictions from the ensemble model:
+write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titanic_ensemble.csv")
+```
 
 `r unhide()`
 :::

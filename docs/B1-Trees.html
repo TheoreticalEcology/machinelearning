@@ -406,8 +406,8 @@ Day          15436.47</code></pre>
 <p>There are several important hyperparameters in a random forest that we can tune to get better results:</p>
 <table class="table">
 <colgroup>
-<col style="width: 19%">
-<col style="width: 80%">
+<col style="width: 25%">
+<col style="width: 75%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -439,7 +439,7 @@ Day          15436.47</code></pre>
 <li><em>AdaBoost</em>: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.</li>
 <li><em>Gradient boosting</em> (state of the art): Each sequential model will be fit on the residual errors of the previous model (strongly simplified, the actual algorithm is very complex).</li>
 </ul>
-<p>We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix.</p>
+<p>We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix (which is a xgboost specific data type, the package sadly doesn’t support R matrices or data.frames).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
@@ -478,16 +478,16 @@ Day          15436.47</code></pre>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(data<span class="sc">$</span>Temp[<span class="fu">order</span>(data<span class="sc">$</span>Temp)], pred[<span class="fu">order</span>(data<span class="sc">$</span>Temp)], <span class="at">col =</span> <span class="st">"red"</span>)</span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[08:58:20] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
+<pre><code>[13:49:42] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[08:58:20] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
+<pre><code>[13:49:42] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[08:58:20] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
+<pre><code>[13:49:42] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[08:58:20] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
+<pre><code>[13:49:42] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="B1-Trees_files/figure-html/chunk_chapter4_29__BRT2-1.png" class="img-fluid" width="672"></p>
@@ -549,8 +549,8 @@ Day          15436.47</code></pre>
 <p>Important hyperparameters:</p>
 <table class="table">
 <colgroup>
-<col style="width: 22%">
-<col style="width: 77%">
+<col style="width: 26%">
+<col style="width: 73%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -593,7 +593,7 @@ Question: Regression Trees
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>We will use the following code snippet to test the effect of mincut on trees.</p>
+<p>We will use the following code snippet to understand the effect of mincut and thus the predictive performance.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tree)</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
@@ -722,7 +722,7 @@ Day          15436.47</code></pre>
 <p><img src="B1-Trees_files/figure-html/chunk_chapter4_task_23-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Try different values for the nodesize and mtry and describe how the predictions depend on these parameters.</p>
+<p>Try different values for the nodesize describe how the predictions depend on this parameter.</p>
 <div class="webex-solution">
 <button>
 Click here to see the solution
@@ -734,14 +734,14 @@ Click here to see the solution
 <span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> airquality[<span class="fu">complete.cases</span>(airquality),]</span>
 <span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(nodesize <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">5</span>, <span class="dv">15</span>, <span class="dv">50</span>, <span class="dv">100</span>)){</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(nodesize <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">15</span>, <span class="dv">50</span>, <span class="dv">100</span>)){</span>
 <span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(mtry <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">5</span>)){</span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>    rf <span class="ot">=</span> <span class="fu">randomForest</span>(Ozone<span class="sc">~</span>., <span class="at">data =</span> data, <span class="at">mtry =</span> mtry, <span class="at">nodesize =</span> nodesize)</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>    rf <span class="ot">=</span> <span class="fu">randomForest</span>(Ozone<span class="sc">~</span>., <span class="at">data =</span> data, <span class="at">nodesize =</span> nodesize)</span>
 <span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>    pred <span class="ot">=</span> <span class="fu">predict</span>(rf, data)</span>
 <span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot</span>(data<span class="sc">$</span>Temp, data<span class="sc">$</span>Ozone, <span class="at">main =</span> <span class="fu">paste0</span>(</span>
-<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">"mtry: "</span>, mtry, <span class="st">"    nodesize: "</span>, nodesize,</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">"    nodesize: "</span>, nodesize,</span>
 <span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">"</span><span class="sc">\n</span><span class="st">RMSE: "</span>, <span class="fu">round</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((data<span class="sc">$</span>Ozone <span class="sc">-</span> pred)<span class="sc">^</span><span class="dv">2</span>)), <span class="dv">2</span>)</span>
 <span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>      )</span>
 <span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>    )</span>
@@ -784,17 +784,8 @@ Click here to see the solution
 <div class="cell-output-display">
 <p><img src="B1-Trees_files/figure-html/chunk_chapter4_task_24-12.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<p><img src="B1-Trees_files/figure-html/chunk_chapter4_task_24-13.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<p><img src="B1-Trees_files/figure-html/chunk_chapter4_task_24-14.png" class="img-fluid" width="672"></p>
-</div>
-<div class="cell-output-display">
-<p><img src="B1-Trees_files/figure-html/chunk_chapter4_task_24-15.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>Higher numbers for mtry smooth the prediction curve and yield less overfitting. The same holds for the nodesize. In other words: The bigger the nodesize, the smaller the trees and the more bias/less variance.</p>
+<p>Nodesize affects the complexity. In other words: The bigger the nodesize, the smaller the trees and the more bias/less variance.</p>
 </div>
 </div>
 </div>
@@ -848,7 +839,7 @@ Question: Boosted regression trees
 <span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><img src="boosting.gif" class="img-fluid" width="370"></p>
-<p>Run the above code and play with different parameters for xgboost (especially with parameters that control the complexity) and describe what you see!</p>
+<p>Run the above code and play with different values for <strong>max_depth</strong> and describe what you see!</p>
 <p>Tip: have a look at the boosting.gif.</p>
 <div class="webex-solution">
 <button>
@@ -870,35 +861,33 @@ Click here to see the solution
 <span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a><span class="fu">axis</span>(<span class="dv">2</span>, <span class="at">at =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>),</span>
 <span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>     <span class="at">labels =</span> <span class="fu">round</span>(<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="dv">1</span>), <span class="at">las =</span> <span class="dv">2</span>)</span>
 <span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(eta <span class="cf">in</span> <span class="fu">c</span>(.<span class="dv">1</span>, .<span class="dv">3</span>, .<span class="dv">5</span>, .<span class="dv">7</span>, .<span class="dv">9</span>)){</span>
-<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(max_depth <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">6</span>, <span class="dv">10</span>, <span class="dv">20</span>)){</span>
-<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>    model <span class="ot">=</span> xgboost<span class="sc">::</span><span class="fu">xgboost</span>(<span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> <span class="fu">as.matrix</span>(x), <span class="at">label =</span> y),</span>
-<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a>                             <span class="at">max_depth =</span> max_depth, <span class="at">eta =</span> eta,</span>
-<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nrounds =</span> <span class="dv">500</span>, <span class="at">verbose =</span> 0L)</span>
-<span id="cb36-21"><a href="#cb36-21" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb36-22"><a href="#cb36-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">saveGIF</span>(</span>
-<span id="cb36-23"><a href="#cb36-23" aria-hidden="true" tabindex="-1"></a>      {</span>
-<span id="cb36-24"><a href="#cb36-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span>(i <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">8</span>, <span class="dv">12</span>, <span class="dv">20</span>, <span class="dv">40</span>, <span class="dv">80</span>, <span class="dv">200</span>)){</span>
-<span id="cb36-25"><a href="#cb36-25" aria-hidden="true" tabindex="-1"></a>          pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> <span class="fu">as.matrix</span>(x)),</span>
-<span id="cb36-26"><a href="#cb36-26" aria-hidden="true" tabindex="-1"></a>                         <span class="at">ntreelimit =</span> i)</span>
-<span id="cb36-27"><a href="#cb36-27" aria-hidden="true" tabindex="-1"></a>          <span class="fu">image</span>(<span class="fu">matrix</span>(pred, <span class="dv">100</span>, <span class="dv">100</span>),</span>
-<span id="cb36-28"><a href="#cb36-28" aria-hidden="true" tabindex="-1"></a>                <span class="at">main =</span> <span class="fu">paste0</span>(<span class="st">"eta: "</span>, eta,</span>
-<span id="cb36-29"><a href="#cb36-29" aria-hidden="true" tabindex="-1"></a>                              <span class="st">"    max_depth: "</span>, max_depth,</span>
-<span id="cb36-30"><a href="#cb36-30" aria-hidden="true" tabindex="-1"></a>                              <span class="st">"    Trees: "</span>, i),</span>
-<span id="cb36-31"><a href="#cb36-31" aria-hidden="true" tabindex="-1"></a>                <span class="at">axes =</span> <span class="cn">FALSE</span>, <span class="at">las =</span> <span class="dv">2</span>)</span>
-<span id="cb36-32"><a href="#cb36-32" aria-hidden="true" tabindex="-1"></a>          <span class="fu">axis</span>(<span class="dv">1</span>, <span class="at">at =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>),</span>
-<span id="cb36-33"><a href="#cb36-33" aria-hidden="true" tabindex="-1"></a>               <span class="at">labels =</span> <span class="fu">round</span>(<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="dv">1</span>))</span>
-<span id="cb36-34"><a href="#cb36-34" aria-hidden="true" tabindex="-1"></a>          <span class="fu">axis</span>(<span class="dv">2</span>, <span class="at">at =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>),</span>
-<span id="cb36-35"><a href="#cb36-35" aria-hidden="true" tabindex="-1"></a>               <span class="at">labels =</span> <span class="fu">round</span>(<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="dv">1</span>), <span class="at">las =</span> <span class="dv">2</span>)</span>
-<span id="cb36-36"><a href="#cb36-36" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb36-37"><a href="#cb36-37" aria-hidden="true" tabindex="-1"></a>      },</span>
-<span id="cb36-38"><a href="#cb36-38" aria-hidden="true" tabindex="-1"></a>      <span class="at">movie.name =</span> <span class="fu">paste0</span>(<span class="st">"boosting_"</span>, max_depth, <span class="st">"_"</span>, eta, <span class="st">".gif"</span>),</span>
-<span id="cb36-39"><a href="#cb36-39" aria-hidden="true" tabindex="-1"></a>      <span class="at">autobrowse =</span> <span class="cn">FALSE</span></span>
-<span id="cb36-40"><a href="#cb36-40" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb36-41"><a href="#cb36-41" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb36-42"><a href="#cb36-42" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(max_depth <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">6</span>, <span class="dv">10</span>, <span class="dv">20</span>)){</span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">=</span> xgboost<span class="sc">::</span><span class="fu">xgboost</span>(<span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> <span class="fu">as.matrix</span>(x), <span class="at">label =</span> y),</span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>                           <span class="at">max_depth =</span> max_depth,</span>
+<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a>                           <span class="at">nrounds =</span> <span class="dv">500</span>, <span class="at">verbose =</span> 0L)</span>
+<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-21"><a href="#cb36-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">saveGIF</span>(</span>
+<span id="cb36-22"><a href="#cb36-22" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb36-23"><a href="#cb36-23" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span>(i <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">8</span>, <span class="dv">12</span>, <span class="dv">20</span>, <span class="dv">40</span>, <span class="dv">80</span>, <span class="dv">200</span>)){</span>
+<span id="cb36-24"><a href="#cb36-24" aria-hidden="true" tabindex="-1"></a>        pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> <span class="fu">as.matrix</span>(x)),</span>
+<span id="cb36-25"><a href="#cb36-25" aria-hidden="true" tabindex="-1"></a>                       <span class="at">ntreelimit =</span> i)</span>
+<span id="cb36-26"><a href="#cb36-26" aria-hidden="true" tabindex="-1"></a>        <span class="fu">image</span>(<span class="fu">matrix</span>(pred, <span class="dv">100</span>, <span class="dv">100</span>),</span>
+<span id="cb36-27"><a href="#cb36-27" aria-hidden="true" tabindex="-1"></a>              <span class="at">main =</span> <span class="fu">paste0</span>(<span class="st">"eta: "</span>, eta,</span>
+<span id="cb36-28"><a href="#cb36-28" aria-hidden="true" tabindex="-1"></a>                            <span class="st">"    max_depth: "</span>, max_depth,</span>
+<span id="cb36-29"><a href="#cb36-29" aria-hidden="true" tabindex="-1"></a>                            <span class="st">"    Trees: "</span>, i),</span>
+<span id="cb36-30"><a href="#cb36-30" aria-hidden="true" tabindex="-1"></a>              <span class="at">axes =</span> <span class="cn">FALSE</span>, <span class="at">las =</span> <span class="dv">2</span>)</span>
+<span id="cb36-31"><a href="#cb36-31" aria-hidden="true" tabindex="-1"></a>        <span class="fu">axis</span>(<span class="dv">1</span>, <span class="at">at =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>),</span>
+<span id="cb36-32"><a href="#cb36-32" aria-hidden="true" tabindex="-1"></a>             <span class="at">labels =</span> <span class="fu">round</span>(<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="dv">1</span>))</span>
+<span id="cb36-33"><a href="#cb36-33" aria-hidden="true" tabindex="-1"></a>        <span class="fu">axis</span>(<span class="dv">2</span>, <span class="at">at =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>),</span>
+<span id="cb36-34"><a href="#cb36-34" aria-hidden="true" tabindex="-1"></a>             <span class="at">labels =</span> <span class="fu">round</span>(<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="dv">1</span>), <span class="at">las =</span> <span class="dv">2</span>)</span>
+<span id="cb36-35"><a href="#cb36-35" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb36-36"><a href="#cb36-36" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb36-37"><a href="#cb36-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">movie.name =</span> <span class="fu">paste0</span>(<span class="st">"boosting_"</span>, max_depth, <span class="st">"_"</span>, eta, <span class="st">".gif"</span>),</span>
+<span id="cb36-38"><a href="#cb36-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">autobrowse =</span> <span class="cn">FALSE</span></span>
+<span id="cb36-39"><a href="#cb36-39" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb36-40"><a href="#cb36-40" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>As the possibilities scale extremely, you must vary some parameters on yourself. You may use for example the following parameters: “eta”, “gamma”, “max_depth”, “min_child_weight”, “subsample”, “colsample_bytree”, “num_parallel_tree”, “monotone_constraints” or “interaction_constraints”. Or you look into the documentation:</p>
+<p>We see that for high values of max_depth, the predictions “smooth out” faster. On the other hand, with a low max_depth (low complexity of the individual trees), more trees are required in the ensemble to achieve a smooth prediction surface.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>?xgboost<span class="sc">::</span>xgboost</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -908,6 +897,180 @@ Click here to see the solution
 <li><img src="./images/boosting_6_0.7.gif" class="img-fluid" width="370"></li>
 <li><img src="./images/boosting_20_0.9.gif" class="img-fluid" width="370"></li>
 </ul>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-caution no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Question: Hyperparameter tuning of random forest
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Combing back to the titanic dataset from the morning, we want to optimize min node size in our RF using a simple CV.</p>
+<p>Prepare the data:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:xgboost':
+
+    slice</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:randomForest':
+
+    combine</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(titanic_ml)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> titanic_ml</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> </span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span> <span class="fu">select</span>(survived, sex, age, fare, pclass)</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>data[,<span class="sc">-</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">missRanger</span>(data[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">verbose =</span> <span class="dv">0</span>)</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>data_sub <span class="ot">=</span></span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">age =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(age, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>           <span class="at">fare =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(fare, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">sex =</span> <span class="fu">as.integer</span>(sex) <span class="sc">-</span> 1L,</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">pclass =</span> <span class="fu">as.integer</span>(pclass <span class="sc">-</span> 1L))</span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>data_new <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># for which we want to make predictions at the end</span></span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># data with known response</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Hints:</strong></p>
+<ul>
+<li>adjust the ‘<code>type</code>’ argument in the <code>predict(…)</code> method (the default is to predict classes)</li>
+<li>when predicting probabilities, the randomForest will return a matrix, a column for each class, we are interested in the probability of surviving (so the second column)</li>
+</ul>
+<p><strong>Bonus:</strong></p>
+<ul>
+<li>tune also mtry</li>
+<li>use more features</li>
+</ul>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Code template
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a><span class="co"># sample minnodesize values (must be integers)</span></span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>hyper_minnodesize <span class="ot">=</span> ...</span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">minnodesize =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
+<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
+<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a>  tuning_results <span class="ot">=</span> </span>
+<span id="cb45-22"><a href="#cb45-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
+<span id="cb45-23"><a href="#cb45-23" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">randomForest</span>(<span class="fu">as.factor</span>(survived)<span class="sc">~</span>., <span class="at">data =</span> train_outer, <span class="at">nodesize =</span> ... )</span>
+<span id="cb45-24"><a href="#cb45-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, <span class="at">newdata =</span> test_outer, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]))</span>
+<span id="cb45-25"><a href="#cb45-25" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb45-26"><a href="#cb45-26" aria-hidden="true" tabindex="-1"></a>  best_minnodesize <span class="ot">=</span> hyper_minnodesize[<span class="fu">which.max</span>(tuning_results)]</span>
+<span id="cb45-27"><a href="#cb45-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-28"><a href="#cb45-28" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
+<span id="cb45-29"><a href="#cb45-29" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_minnodesize</span>
+<span id="cb45-30"><a href="#cb45-30" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
+<span id="cb45-31"><a href="#cb45-31" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb45-32"><a href="#cb45-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-33"><a href="#cb45-33" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="webex-solution">
+<button>
+Click here to see the solution
+</button>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a><span class="co"># sample minnodesize values (must be integers)</span></span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>hyper_minnodesize <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">300</span>, <span class="dv">20</span>)</span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">minnodesize =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
+<span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb46-16"><a href="#cb46-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-17"><a href="#cb46-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb46-18"><a href="#cb46-18" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
+<span id="cb46-19"><a href="#cb46-19" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
+<span id="cb46-20"><a href="#cb46-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb46-21"><a href="#cb46-21" aria-hidden="true" tabindex="-1"></a>  tuning_results <span class="ot">=</span> </span>
+<span id="cb46-22"><a href="#cb46-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
+<span id="cb46-23"><a href="#cb46-23" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">randomForest</span>(<span class="fu">as.factor</span>(survived)<span class="sc">~</span>., <span class="at">data =</span> train_outer, <span class="at">nodesize =</span> hyper_minnodesize[k] )</span>
+<span id="cb46-24"><a href="#cb46-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, <span class="at">newdata =</span> test_outer, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]))</span>
+<span id="cb46-25"><a href="#cb46-25" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb46-26"><a href="#cb46-26" aria-hidden="true" tabindex="-1"></a>  best_minnodesize <span class="ot">=</span> hyper_minnodesize[<span class="fu">which.max</span>(tuning_results)]</span>
+<span id="cb46-27"><a href="#cb46-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb46-28"><a href="#cb46-28" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
+<span id="cb46-29"><a href="#cb46-29" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_minnodesize</span>
+<span id="cb46-30"><a href="#cb46-30" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
+<span id="cb46-31"><a href="#cb46-31" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb46-32"><a href="#cb46-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-33"><a href="#cb46-33" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  set minnodesize       AUC
+1   1          74 0.8116560
+2   2          20 0.8409981
+3   3          20 0.8513631</code></pre>
+</div>
+</div>
+<p>Make predictions:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>prediction_ensemble <span class="ot">=</span> </span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(results), <span class="cf">function</span>(i) {</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">=</span> <span class="fu">randomForest</span>(<span class="fu">as.factor</span>(survived)<span class="sc">~</span>., <span class="at">data =</span> data_obs, <span class="at">nodesize =</span> results<span class="sc">$</span>minnodesize[i] )</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">predict</span>(model, data_obs, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>])</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Single predictions from the ensemble model:</span></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">apply</span>(prediction_ensemble, <span class="dv">1</span>, mean)), <span class="at">file =</span> <span class="st">"Max_titanic_ensemble.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -929,13 +1092,13 @@ Click here to see the solution
 <p>Go through the code line by line and try to understand it. Ask, if you have any questions you cannot solve.</p>
 <p>Let’s try it:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">model.matrix</span>(<span class="sc">~</span>. , <span class="at">data =</span> airquality)</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">get_boosting_model</span>(<span class="at">x =</span> data[,<span class="sc">-</span><span class="dv">2</span>], <span class="at">y =</span> data[,<span class="dv">2</span>], <span class="at">n_trees =</span> 5L )</span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> data[,<span class="sc">-</span><span class="dv">2</span>])</span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(data[,<span class="dv">2</span>], pred, <span class="at">xlab =</span> <span class="st">"observed"</span>, <span class="at">ylab =</span> <span class="st">"predicted"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">model.matrix</span>(<span class="sc">~</span>. , <span class="at">data =</span> airquality)</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">get_boosting_model</span>(<span class="at">x =</span> data[,<span class="sc">-</span><span class="dv">2</span>], <span class="at">y =</span> data[,<span class="dv">2</span>], <span class="at">n_trees =</span> 5L )</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> data[,<span class="sc">-</span><span class="dv">2</span>])</span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(data[,<span class="dv">2</span>], pred, <span class="at">xlab =</span> <span class="st">"observed"</span>, <span class="at">ylab =</span> <span class="st">"predicted"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="B1-Trees_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+<p><img src="B1-Trees_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </div>
