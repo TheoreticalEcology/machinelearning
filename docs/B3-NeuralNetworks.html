@@ -261,13 +261,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C2-DeepNeuralNetworks.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Deep Neural Networks</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Deep Neural Networks (DNN)</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C3-ConvolutionalNeuralNetworks.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Convolutional Neural Networks</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Convolutional Neural Networks (CNN)</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -390,11 +390,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 Model generated on basis of: 
 Feature Importance:
   variable importance
-1  Solar.R   1.229600
-2     Wind   2.199183
-3     Temp   3.204551
-4    Month   1.050996
-5      Day   1.080136</code></pre>
+1  Solar.R   1.211966
+2     Wind   2.090089
+3     Temp   2.980428
+4    Month   1.094125
+5      Day   1.058092</code></pre>
 </div>
 </div>
 <p>The architecture of the NN can be specified by the <code>hidden</code> argument, it is a vector where the length corresponds to the number of hidden layers and value of entry to the number of hidden neurons in each layer (and the same applies for the <code>activation</code> argument that specifies the activation functions in the hidden layers). It is hard to make recommendations about the architecture, a kind of general rule is that the width of the hidden layers is more important than the depth of the NN.</p>
@@ -527,11 +527,11 @@ Learning rate scheduler
 Model generated on basis of: 
 Feature Importance:
   variable importance
-1  Solar.R   1.152163
-2     Wind   1.776469
-3     Temp   2.533999
-4    Month   1.012814
-5      Day   1.018752</code></pre>
+1  Solar.R   1.175315
+2     Wind   1.857567
+3     Temp   2.641816
+4    Month   1.014699
+5      Day   1.007481</code></pre>
 </div>
 </div>
 <p>Be careful that you don’t accidentally set all weights to 0 because of a too high regularization. We check the weights of the first layer:</p>
@@ -622,7 +622,7 @@ Click here to see the solution
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Question: Hyperparameter tuning
+Question: Hyperparameter tuning - Titanic dataset
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -631,6 +631,10 @@ Question: Hyperparameter tuning
 <li>Use CV to optimize the <span class="math inline">\(\lambda\)</span> parameter</li>
 <li>Train model with the <span class="math inline">\(\lambda\)</span> parameter with the highest AUC</li>
 <li>Make predictions for the new observations and submit them</li>
+</ul>
+<p>Bonus:</p>
+<ul>
+<li>Tune the architecture! (depth and width of the NN via the hidden argument)</li>
 </ul>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
@@ -667,13 +671,13 @@ Code template
 <span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">dnn</span>(survived<span class="sc">~</span>., </span>
 <span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(10L, 10L), </span>
 <span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">activation =</span> <span class="fu">c</span>(<span class="st">"selu"</span>, <span class="st">"selu"</span>), </span>
-<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"mse"</span>, </span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"binomial"</span>, </span>
 <span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr =</span> <span class="fl">0.05</span>,</span>
 <span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">lambda =</span> ..., <span class="co"># change this line</span></span>
 <span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>            <span class="at">alpha =</span> <span class="fl">0.1</span>,</span>
 <span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr_scheduler =</span> <span class="fu">config_lr_scheduler</span>(<span class="st">"step"</span>, <span class="at">step_size =</span> <span class="dv">10</span>, <span class="at">gamma =</span> <span class="fl">0.1</span>),</span>
 <span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> train_outer, <span class="at">epochs =</span> 40L, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">plot=</span> <span class="cn">FALSE</span>)</span>
-<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer )[,<span class="dv">1</span>]))</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer )[,<span class="dv">2</span>]))</span>
 <span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>      })</span>
 <span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>  best_lambda <span class="ot">=</span> hyper_lambda[<span class="fu">which.max</span>(tuning_results)]</span>
 <span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>  </span>
@@ -727,48 +731,47 @@ Click here to see the solution
 <div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cito)</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>hyper_lambda <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">5</span>,<span class="fl">0.0001</span>, <span class="fl">0.02</span>)</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>  tuning_results <span class="ot">=</span> </span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_lambda), <span class="cf">function</span>(k) {</span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">dnn</span>(survived<span class="sc">~</span>., </span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(10L, 10L), </span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>            <span class="at">activation =</span> <span class="fu">c</span>(<span class="st">"selu"</span>, <span class="st">"selu"</span>), </span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"mse"</span>, </span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr =</span> <span class="fl">0.05</span>,</span>
-<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>            <span class="at">lambda =</span> hyper_lambda[k],</span>
-<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>            <span class="at">alpha =</span> <span class="fl">0.1</span>,</span>
-<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr_scheduler =</span> <span class="fu">config_lr_scheduler</span>(<span class="st">"step"</span>, <span class="at">step_size =</span> <span class="dv">10</span>, <span class="at">gamma =</span> <span class="fl">0.1</span>),</span>
-<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> train_outer, <span class="at">epochs =</span> 40L, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">plot=</span> <span class="cn">FALSE</span>)</span>
-<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer )[,<span class="dv">1</span>]))</span>
-<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>      })</span>
-<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>  best_lambda <span class="ot">=</span> hyper_lambda[<span class="fu">which.max</span>(tuning_results)]</span>
-<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
-<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_lambda</span>
-<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
-<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>hyper_lambda <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">5</span>,<span class="fl">0.0001</span>, <span class="fl">0.02</span>)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>  tuning_results <span class="ot">=</span> </span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_lambda), <span class="cf">function</span>(k) {</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">dnn</span>(survived<span class="sc">~</span>., </span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(10L, 10L), </span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">activation =</span> <span class="fu">c</span>(<span class="st">"selu"</span>, <span class="st">"selu"</span>), </span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"binomial"</span>, </span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr =</span> <span class="fl">0.05</span>,</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">lambda =</span> hyper_lambda[k],</span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>            <span class="at">alpha =</span> <span class="fl">0.1</span>,</span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr_scheduler =</span> <span class="fu">config_lr_scheduler</span>(<span class="st">"step"</span>, <span class="at">step_size =</span> <span class="dv">10</span>, <span class="at">gamma =</span> <span class="fl">0.1</span>),</span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> train_outer, <span class="at">epochs =</span> 40L, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">plot=</span> <span class="cn">FALSE</span>)</span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer )[,<span class="dv">1</span>]))</span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>  best_lambda <span class="ot">=</span> hyper_lambda[<span class="fu">which.max</span>(tuning_results)]</span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_lambda</span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
+<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  set     lambda       AUC
-1   1 0.01287074 0.8310235
-2   2 0.01874780 0.8041162
-3   3 0.01830464 0.8150858</code></pre>
+<pre><code>  set      lambda       AUC
+1   1 0.012870736 0.8249822
+2   2 0.012870736 0.7867225
+3   3 0.005794177 0.8168278</code></pre>
 </div>
 </div>
 <p>Make predictions:</p>
@@ -778,7 +781,7 @@ Click here to see the solution
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">=</span> <span class="fu">dnn</span>(survived<span class="sc">~</span>., </span>
 <span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">hidden =</span> <span class="fu">c</span>(10L, 10L), </span>
 <span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">activation =</span> <span class="fu">c</span>(<span class="st">"selu"</span>, <span class="st">"selu"</span>), </span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">loss =</span> <span class="st">"mse"</span>, </span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">loss =</span> <span class="st">"binomial"</span>, </span>
 <span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">lr =</span> <span class="fl">0.05</span>,</span>
 <span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>              <span class="at">lambda =</span> results<span class="sc">$</span>lambda[i],</span>
 <span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha =</span> <span class="fl">0.1</span>,</span>
@@ -794,6 +797,87 @@ Click here to see the solution
 <span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">apply</span>(prediction_ensemble, <span class="dv">1</span>, mean)), <span class="at">file =</span> <span class="st">"Max_titanic_ensemble.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
+<div class="webex-solution">
+<button>
+Click here to see the solution for architecture tuning
+</button>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cito)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>hyper_lambda <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">10</span>,<span class="fl">0.0001</span>, <span class="fl">0.02</span>)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>hyper_alpha <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">10</span>,<span class="dv">0</span>, <span class="fl">1.0</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>hyper_hidden <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="dv">10</span>, <span class="dv">10</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>hyper_nodes <span class="ot">=</span> <span class="fu">sample</span>(<span class="fu">seq</span>(<span class="dv">5</span>, <span class="dv">100</span>), <span class="at">size =</span> <span class="dv">10</span>)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">hidden =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">nodes =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>  tuning_results <span class="ot">=</span> </span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_lambda), <span class="cf">function</span>(k) {</span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">dnn</span>(survived<span class="sc">~</span>., </span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">rep</span>(hyper_nodes[k], hyper_hidden[k]), </span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>            <span class="at">activation =</span> <span class="fu">rep</span>(<span class="st">"selu"</span>, hyper_hidden[k]), </span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"binomial"</span>, </span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr =</span> <span class="fl">0.05</span>,</span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>            <span class="at">lambda =</span> hyper_lambda[k],</span>
+<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>            <span class="at">alpha =</span> hyper_alpha[k],</span>
+<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr_scheduler =</span> <span class="fu">config_lr_scheduler</span>(<span class="st">"step"</span>, <span class="at">step_size =</span> <span class="dv">10</span>, <span class="at">gamma =</span> <span class="fl">0.1</span>),</span>
+<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> train_outer, <span class="at">epochs =</span> 40L, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">plot=</span> <span class="cn">FALSE</span>)</span>
+<span id="cb25-36"><a href="#cb25-36" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer )[,<span class="dv">1</span>]))</span>
+<span id="cb25-37"><a href="#cb25-37" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb25-38"><a href="#cb25-38" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
+<span id="cb25-39"><a href="#cb25-39" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span>  hyper_lambda[<span class="fu">which.max</span>(tuning_results)]</span>
+<span id="cb25-40"><a href="#cb25-40" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span>  hyper_alpha[<span class="fu">which.max</span>(tuning_results)]</span>
+<span id="cb25-41"><a href="#cb25-41" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">4</span>] <span class="ot">=</span>  hyper_hidden[<span class="fu">which.max</span>(tuning_results)]</span>
+<span id="cb25-42"><a href="#cb25-42" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">5</span>] <span class="ot">=</span>  hyper_nodes[<span class="fu">which.max</span>(tuning_results)]  </span>
+<span id="cb25-43"><a href="#cb25-43" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">6</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
+<span id="cb25-44"><a href="#cb25-44" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb25-45"><a href="#cb25-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-46"><a href="#cb25-46" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  set     lambda     alpha hidden nodes       AUC
+1   1 0.01043001 0.9400145      5    28 0.8321340
+2   2 0.01287074 0.4622928      4    46 0.8036609
+3   3 0.01287074 0.4622928      4    46 0.8178730</code></pre>
+</div>
+</div>
+<p>Make predictions:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>prediction_ensemble <span class="ot">=</span> </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(results), <span class="cf">function</span>(i) {</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">=</span> <span class="fu">dnn</span>(survived<span class="sc">~</span>., </span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">hidden =</span> <span class="fu">rep</span>(results<span class="sc">$</span>nodes[i], results<span class="sc">$</span>hidden[i]), </span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">activation =</span> <span class="fu">rep</span>(<span class="st">"selu"</span>, results<span class="sc">$</span>hidden[i]), </span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">loss =</span> <span class="st">"binomial"</span>, </span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">lr =</span> <span class="fl">0.05</span>,</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>              <span class="at">lambda =</span> results<span class="sc">$</span>lambda[i],</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha =</span> results<span class="sc">$</span>alpha[i],</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">lr_scheduler =</span> <span class="fu">config_lr_scheduler</span>(<span class="st">"step"</span>, <span class="at">step_size =</span> <span class="dv">10</span>, <span class="at">gamma =</span> <span class="fl">0.1</span>),</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>              <span class="at">data =</span> data_sub[<span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] , <span class="at">epochs =</span> 40L, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">plot=</span> <span class="cn">FALSE</span>)</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">predict</span>(model, data_obs)[,<span class="dv">1</span>])</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Single predictions from the model with the highest AUC:</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> prediction_ensemble[,<span class="fu">which.max</span>(results<span class="sc">$</span>AUC)]), <span class="at">file =</span> <span class="st">"Max_titanic_best_model.csv"</span>)</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Single predictions from the ensemble model:</span></span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">apply</span>(prediction_ensemble, <span class="dv">1</span>, mean)), <span class="at">file =</span> <span class="st">"Max_titanic_ensemble.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
 </div>
 </div>
 <div class="callout callout-style-default callout-caution no-icon callout-titled">
@@ -802,110 +886,144 @@ Click here to see the solution
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Question (bonus): Extensive hyperparameter tuning
+Question: Hyperparameter tuning - Plant-pollinator dataset
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Combing back to the titanic dataset from yesterday, we want to optimize <span class="math inline">\(\lambda\)</span> using nested CV:</p>
-<p>Tune regularization + architecture (number of hidden layers and nodes in each layer):</p>
+<p>see <a href="Appendix-Datasets.html#sec-plantpoll"><span>Section&nbsp;A.2</span></a> for more information about the dataset.</p>
+<p>Prepare the data:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(titanic_ml)</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> titanic_ml</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> </span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span> <span class="fu">select</span>(survived, sex, age, fare, pclass)</span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>data[,<span class="sc">-</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">missRanger</span>(data[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">verbose =</span> <span class="dv">0</span>)</span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>data_sub <span class="ot">=</span></span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">age =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(age, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">fare =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(fare, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">sex =</span> <span class="fu">as.integer</span>(sex) <span class="sc">-</span> 1L,</span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">pclass =</span> <span class="fu">as.integer</span>(pclass <span class="sc">-</span> 1L))</span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>data_new <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># for which we want to make predictions at the end</span></span>
-<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># data with known response</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(plantPollinator_df)</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>plant_poll <span class="ot">=</span> plantPollinator_df</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed <span class="ot">=</span> plant_poll <span class="sc">%&gt;%</span> <span class="fu">select</span>(diameter,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>                                           corolla,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>                                           tongue,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>                                           body,</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>                                           interaction,</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>                                           colour, </span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>                                           nectar,</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>                                           feeding,</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>                                           season)</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove response variable interaction</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(<span class="at">data =</span> plant_poll_imputed <span class="sc">%&gt;%</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>                                              <span class="fu">select</span>(<span class="sc">-</span>interaction), <span class="at">verbose =</span> <span class="dv">0</span>)</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a><span class="co"># scale numeric variables</span></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed[,<span class="fu">sapply</span>(plant_poll_imputed, is.numeric)] <span class="ot">=</span> <span class="fu">scale</span>(plant_poll_imputed[,<span class="fu">sapply</span>(plant_poll_imputed, is.numeric)])</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Add response back to the dataset after the imputatiob</span></span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed<span class="sc">$</span>interaction <span class="ot">=</span> plant_poll<span class="sc">$</span>interaction</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed<span class="sc">$</span>colour <span class="ot">=</span> <span class="fu">as.factor</span>(plant_poll_imputed<span class="sc">$</span>colour)</span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed<span class="sc">$</span>nectar <span class="ot">=</span> <span class="fu">as.factor</span>(plant_poll_imputed<span class="sc">$</span>nectar)</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed<span class="sc">$</span>feeding <span class="ot">=</span> <span class="fu">as.factor</span>(plant_poll_imputed<span class="sc">$</span>feeding)</span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a>plant_poll_imputed<span class="sc">$</span>season <span class="ot">=</span> <span class="fu">as.factor</span>(plant_poll_imputed<span class="sc">$</span>season)</span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a>data_new <span class="ot">=</span> plant_poll_imputed[<span class="fu">is.na</span>(plant_poll_imputed<span class="sc">$</span>interaction), ] <span class="co"># for which we want to make predictions at the end</span></span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> plant_poll_imputed[<span class="sc">!</span><span class="fu">is.na</span>(plant_poll_imputed<span class="sc">$</span>interaction), ]<span class="co"># data with known response</span></span>
+<span id="cb28-33"><a href="#cb28-33" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(data_obs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 14690     9</code></pre>
+</div>
+</div>
+<p>The dataset is large! More than 10,000 observations. For now, let’s switch to a simple holdout strategy for validating our model (e.g.&nbsp;use 80% of the data to train the model and 20% of the data to validate your model.</p>
+<p>Moreover:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data_obs<span class="sc">$</span>interaction)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    0     1 
+14095   595 </code></pre>
+</div>
+</div>
+<p>The data is strongly imbalanced, i.e.&nbsp;many 0s but only a few 1. There are different strategies how to deal with that, for example oversampling the 1s or undersampling the 0s.</p>
+<p>Undersampling the 0s:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_obs[<span class="fu">c</span>(<span class="fu">sample</span>(<span class="fu">which</span>(data_obs<span class="sc">$</span>interaction <span class="sc">==</span> <span class="dv">0</span>), <span class="dv">2000</span>), <span class="fu">which</span>(data_obs<span class="sc">$</span>interaction <span class="sc">==</span> <span class="dv">1</span>)),]</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data_obs<span class="sc">$</span>interaction)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+   0    1 
+2000  595 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>data_obs<span class="sc">$</span>interaction <span class="ot">=</span> <span class="fu">as.integer</span>(data_obs<span class="sc">$</span>interaction)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="webex-solution">
 <button>
 Click here to see the solution
 </button>
+<p>Minimal example:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cito)</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>hyper_lambda <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">10</span>,<span class="fl">0.0001</span>, <span class="fl">0.02</span>)</span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>hyper_alpha <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">10</span>,<span class="dv">0</span>, <span class="fl">1.0</span>)</span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>hyper_hidden <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="dv">10</span>, <span class="dv">10</span>)</span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>hyper_nodes <span class="ot">=</span> <span class="fu">sample</span>(<span class="fu">seq</span>(<span class="dv">5</span>, <span class="dv">100</span>), <span class="at">size =</span> <span class="dv">10</span>)</span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
-<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">hidden =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">nodes =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
-<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
-<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
-<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
-<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>  tuning_results <span class="ot">=</span> </span>
-<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_lambda), <span class="cf">function</span>(k) {</span>
-<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">dnn</span>(survived<span class="sc">~</span>., </span>
-<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">rep</span>(hyper_nodes[k], hyper_hidden[k]), </span>
-<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>            <span class="at">activation =</span> <span class="fu">rep</span>(<span class="st">"selu"</span>, hyper_hidden[k]), </span>
-<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"binomial"</span>, </span>
-<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr =</span> <span class="fl">0.05</span>,</span>
-<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a>            <span class="at">lambda =</span> hyper_lambda[k],</span>
-<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>            <span class="at">alpha =</span> hyper_alpha[k],</span>
-<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr_scheduler =</span> <span class="fu">config_lr_scheduler</span>(<span class="st">"step"</span>, <span class="at">step_size =</span> <span class="dv">10</span>, <span class="at">gamma =</span> <span class="fl">0.1</span>),</span>
-<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> train_outer, <span class="at">epochs =</span> 40L, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">plot=</span> <span class="cn">FALSE</span>)</span>
-<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer )[,<span class="dv">1</span>]))</span>
-<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>      })</span>
-<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
-<span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span>  hyper_lambda[<span class="fu">which.max</span>(tuning_results)]</span>
-<span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span>  hyper_alpha[<span class="fu">which.max</span>(tuning_results)]</span>
-<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">4</span>] <span class="ot">=</span>  hyper_hidden[<span class="fu">which.max</span>(tuning_results)]</span>
-<span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">5</span>] <span class="ot">=</span>  hyper_nodes[<span class="fu">which.max</span>(tuning_results)]  </span>
-<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">6</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
-<span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cito)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>tuning_steps <span class="ot">=</span> <span class="dv">2</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>hyper_lambda <span class="ot">=</span> <span class="fu">runif</span>(tuning_steps,<span class="fl">0.0001</span>, <span class="fl">0.02</span>)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>hyper_alpha <span class="ot">=</span> <span class="fu">runif</span>(tuning_steps,<span class="dv">0</span>, <span class="fl">1.0</span>)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>hyper_hidden <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="dv">10</span>, tuning_steps)</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>hyper_nodes <span class="ot">=</span> <span class="fu">sample</span>(<span class="fu">seq</span>(<span class="dv">5</span>, <span class="dv">100</span>), <span class="at">size =</span> tuning_steps)</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(data_obs), <span class="fl">0.2</span><span class="sc">*</span><span class="fu">nrow</span>(data_obs))</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="dv">1</span>,</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, <span class="dv">1</span>),</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, <span class="dv">1</span>),</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">hidden =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, <span class="dv">1</span>),</span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">nodes =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, <span class="dv">1</span>),</span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, <span class="dv">1</span>)</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>train_outer <span class="ot">=</span> data_obs[<span class="sc">-</span>outer_split, ]</span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>test_outer <span class="ot">=</span> data_obs[outer_split, ]</span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a>tuning_results <span class="ot">=</span> </span>
+<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_lambda), <span class="cf">function</span>(k) {</span>
+<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a>      model <span class="ot">=</span> <span class="fu">dnn</span>(interaction<span class="sc">~</span>., </span>
+<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a>          <span class="at">hidden =</span> <span class="fu">rep</span>(hyper_nodes[k], hyper_hidden[k]), </span>
+<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>          <span class="at">activation =</span> <span class="fu">rep</span>(<span class="st">"selu"</span>, hyper_hidden[k]), </span>
+<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>          <span class="at">loss =</span> <span class="st">"binomial"</span>, </span>
+<span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a>          <span class="at">lr =</span> <span class="fl">0.05</span>,</span>
+<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a>          <span class="at">lambda =</span> hyper_lambda[k],</span>
+<span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a>          <span class="at">alpha =</span> hyper_alpha[k],</span>
+<span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a>          <span class="at">batchsize =</span> 100L, <span class="co"># increasing the batch size will reduce the runtime</span></span>
+<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>          <span class="at">lr_scheduler =</span> <span class="fu">config_lr_scheduler</span>(<span class="st">"reduce_on_plateau"</span>, <span class="at">patience =</span> <span class="dv">10</span>, <span class="at">factor =</span> <span class="fl">0.9</span>),</span>
+<span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> train_outer, <span class="at">epochs =</span> 50L, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">plot=</span> <span class="cn">FALSE</span>)</span>
+<span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>interaction, <span class="fu">predict</span>(model, test_outer )[,<span class="dv">1</span>]))</span>
+<span id="cb35-36"><a href="#cb35-36" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a>results[<span class="dv">1</span>, <span class="dv">1</span>] <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a>results[<span class="dv">1</span>, <span class="dv">2</span>] <span class="ot">=</span>  hyper_lambda[<span class="fu">which.max</span>(tuning_results)]</span>
+<span id="cb35-39"><a href="#cb35-39" aria-hidden="true" tabindex="-1"></a>results[<span class="dv">1</span>, <span class="dv">3</span>] <span class="ot">=</span>  hyper_alpha[<span class="fu">which.max</span>(tuning_results)]</span>
+<span id="cb35-40"><a href="#cb35-40" aria-hidden="true" tabindex="-1"></a>results[<span class="dv">1</span>, <span class="dv">4</span>] <span class="ot">=</span>  hyper_hidden[<span class="fu">which.max</span>(tuning_results)]</span>
+<span id="cb35-41"><a href="#cb35-41" aria-hidden="true" tabindex="-1"></a>results[<span class="dv">1</span>, <span class="dv">5</span>] <span class="ot">=</span>  hyper_nodes[<span class="fu">which.max</span>(tuning_results)]  </span>
+<span id="cb35-42"><a href="#cb35-42" aria-hidden="true" tabindex="-1"></a>results[<span class="dv">1</span>, <span class="dv">6</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
+<span id="cb35-43"><a href="#cb35-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-44"><a href="#cb35-44" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  set     lambda     alpha hidden nodes       AUC
-1   1 0.01043001 0.9400145      5    28 0.8302239
-2   2 0.01287074 0.4622928      4    46 0.8038430
-3   3 0.01317415 0.4749971      6    19 0.8169149</code></pre>
+<pre><code>  set     lambda     alpha hidden nodes AUC
+1   1 0.01830464 0.2861395     10    22 0.5</code></pre>
 </div>
 </div>
 <p>Make predictions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>prediction_ensemble <span class="ot">=</span> </span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(results), <span class="cf">function</span>(i) {</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">=</span> <span class="fu">dnn</span>(survived<span class="sc">~</span>., </span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">hidden =</span> <span class="fu">rep</span>(results<span class="sc">$</span>nodes[i], results<span class="sc">$</span>hidden[i]), </span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">activation =</span> <span class="fu">rep</span>(<span class="st">"selu"</span>, results<span class="sc">$</span>hidden[i]), </span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">loss =</span> <span class="st">"binomial"</span>, </span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">lr =</span> <span class="fl">0.05</span>,</span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>              <span class="at">lambda =</span> results<span class="sc">$</span>lambda[i],</span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha =</span> results<span class="sc">$</span>alpha[i],</span>
-<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">lr_scheduler =</span> <span class="fu">config_lr_scheduler</span>(<span class="st">"step"</span>, <span class="at">step_size =</span> <span class="dv">10</span>, <span class="at">gamma =</span> <span class="fl">0.1</span>),</span>
-<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>              <span class="at">data =</span> data_sub[<span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] , <span class="at">epochs =</span> 40L, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">plot=</span> <span class="cn">FALSE</span>)</span>
-<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">predict</span>(model, data_obs)[,<span class="dv">1</span>])</span>
-<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Single predictions from the model with the highest AUC:</span></span>
-<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> prediction_ensemble[,<span class="fu">which.max</span>(results<span class="sc">$</span>AUC)]), <span class="at">file =</span> <span class="st">"Max_titanic_best_model.csv"</span>)</span>
-<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Single predictions from the ensemble model:</span></span>
-<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">apply</span>(prediction_ensemble, <span class="dv">1</span>, mean)), <span class="at">file =</span> <span class="st">"Max_titanic_ensemble.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>k <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">dnn</span>(interaction<span class="sc">~</span>., </span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">hidden =</span> <span class="fu">rep</span>(results<span class="sc">$</span>nodes[k], results<span class="sc">$</span>hidden[k]), </span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">activation =</span> <span class="fu">rep</span>(<span class="st">"selu"</span>, hyper_hidden[k]), </span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">loss =</span> <span class="st">"binomial"</span>, </span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">lr =</span> <span class="fl">0.05</span>,</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">lambda =</span> results<span class="sc">$</span>lambda[k],</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> results<span class="sc">$</span>alpha[k],</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">batchsize =</span> 100L, <span class="co"># increasing the batch size will reduce the runtime</span></span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">lr_scheduler =</span> <span class="fu">config_lr_scheduler</span>(<span class="st">"reduce_on_plateau"</span>, <span class="at">patience =</span> <span class="dv">10</span>, <span class="at">factor =</span> <span class="fl">0.9</span>),</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> train_outer, <span class="at">epochs =</span> 50L, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">plot=</span> <span class="cn">FALSE</span>)</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> data_new)[,<span class="dv">1</span>]</span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">apply</span>(prediction_ensemble, <span class="dv">1</span>, mean)), <span class="at">file =</span> <span class="st">"Max_plant_poll_ensemble.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>

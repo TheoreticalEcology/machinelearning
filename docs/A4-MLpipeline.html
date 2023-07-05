@@ -261,13 +261,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C2-DeepNeuralNetworks.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Deep Neural Networks</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Deep Neural Networks (DNN)</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./C3-ConvolutionalNeuralNetworks.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Convolutional Neural Networks</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Convolutional Neural Networks (CNN)</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -712,36 +712,41 @@ Transforming factors with more than two levels
 <span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
 <span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
 <span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># inner split</span></span>
-<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv_inner) {</span>
-<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a>    inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(train_outer), <span class="at">breaks =</span> cv_inner))</span>
-<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a>    train_inner <span class="ot">=</span> train_outer[inner_split <span class="sc">!=</span> j, ]</span>
-<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a>    test_inner <span class="ot">=</span> train_outer[inner_split <span class="sc">==</span> j, ]</span>
-<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a>    tuning_results_inner <span class="ot">=</span> </span>
-<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_alpha), <span class="cf">function</span>(k) {</span>
-<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">family =</span> <span class="st">"binomial"</span>,<span class="at">alpha =</span> hyper_alpha[k])</span>
-<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_inner, </span>
-<span id="cb34-31"><a href="#cb34-31" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">alpha =</span> hyper_alpha[k],</span>
-<span id="cb34-32"><a href="#cb34-32" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">s =</span> <span class="fl">0.01</span>,</span>
-<span id="cb34-33"><a href="#cb34-33" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">type =</span> <span class="st">"response"</span>)))</span>
-<span id="cb34-34"><a href="#cb34-34" aria-hidden="true" tabindex="-1"></a>      })</span>
-<span id="cb34-35"><a href="#cb34-35" aria-hidden="true" tabindex="-1"></a>    best_alpha <span class="ot">=</span> hyper_alpha[<span class="fu">which.max</span>(tuning_results_inner)]</span>
-<span id="cb34-36"><a href="#cb34-36" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb34-37"><a href="#cb34-37" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>., <span class="at">data =</span> train_outer, <span class="at">alpha =</span> best_alpha, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
-<span id="cb34-38"><a href="#cb34-38" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
-<span id="cb34-39"><a href="#cb34-39" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_alpha</span>
-<span id="cb34-40"><a href="#cb34-40" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer, <span class="at">s =</span> <span class="fl">0.01</span>, <span class="at">alpha =</span> best_alpha, <span class="at">type =</span> <span class="st">"response"</span>))</span>
-<span id="cb34-41"><a href="#cb34-41" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb34-42"><a href="#cb34-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-43"><a href="#cb34-43" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>  best_alpha <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a>  best_auc <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a>  <span class="co"># inner split</span></span>
+<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv_inner) {</span>
+<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a>    inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(train_outer), <span class="at">breaks =</span> cv_inner))</span>
+<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a>    train_inner <span class="ot">=</span> train_outer[inner_split <span class="sc">!=</span> j, ]</span>
+<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a>    test_inner <span class="ot">=</span> train_outer[inner_split <span class="sc">==</span> j, ]</span>
+<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a>    tuning_results_inner <span class="ot">=</span> </span>
+<span id="cb34-31"><a href="#cb34-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_alpha), <span class="cf">function</span>(k) {</span>
+<span id="cb34-32"><a href="#cb34-32" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">family =</span> <span class="st">"binomial"</span>,<span class="at">alpha =</span> hyper_alpha[k])</span>
+<span id="cb34-33"><a href="#cb34-33" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_inner, </span>
+<span id="cb34-34"><a href="#cb34-34" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">alpha =</span> hyper_alpha[k],</span>
+<span id="cb34-35"><a href="#cb34-35" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">s =</span> <span class="fl">0.01</span>,</span>
+<span id="cb34-36"><a href="#cb34-36" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">type =</span> <span class="st">"response"</span>)))</span>
+<span id="cb34-37"><a href="#cb34-37" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb34-38"><a href="#cb34-38" aria-hidden="true" tabindex="-1"></a>    best_alpha[j] <span class="ot">=</span> hyper_alpha[<span class="fu">which.max</span>(tuning_results_inner)]</span>
+<span id="cb34-39"><a href="#cb34-39" aria-hidden="true" tabindex="-1"></a>    best_auc[j] <span class="ot">=</span> <span class="fu">max</span>(tuning_results_inner)</span>
+<span id="cb34-40"><a href="#cb34-40" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb34-41"><a href="#cb34-41" aria-hidden="true" tabindex="-1"></a>  best_alpha <span class="ot">=</span> best_alpha[<span class="fu">which.max</span>(best_auc)]</span>
+<span id="cb34-42"><a href="#cb34-42" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>., <span class="at">data =</span> train_outer, <span class="at">alpha =</span> best_alpha, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
+<span id="cb34-43"><a href="#cb34-43" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
+<span id="cb34-44"><a href="#cb34-44" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_alpha</span>
+<span id="cb34-45"><a href="#cb34-45" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer, <span class="at">s =</span> <span class="fl">0.01</span>, <span class="at">alpha =</span> best_alpha, <span class="at">type =</span> <span class="st">"response"</span>))</span>
+<span id="cb34-46"><a href="#cb34-46" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb34-47"><a href="#cb34-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-48"><a href="#cb34-48" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  set     alpha       AUC
-1   1 0.9148060 0.8715686
-2   2 0.1346666 0.7532354
-3   3 0.1346666 0.8175466
-4   4 0.6417455 0.8243832
-5   5 0.1174874 0.8171263</code></pre>
+1   1 0.1346666 0.8720588
+2   2 0.4577418 0.7554754
+3   3 0.9148060 0.8178054
+4   4 0.2861395 0.8238994
+5   5 0.9148060 0.8156749</code></pre>
 </div>
 </div>
 </section>
@@ -887,36 +892,43 @@ Click here to see the solution for the single model
 <span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
 <span id="cb42-19"><a href="#cb42-19" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
 <span id="cb42-20"><a href="#cb42-20" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb42-21"><a href="#cb42-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># inner split</span></span>
-<span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv_inner) {</span>
-<span id="cb42-23"><a href="#cb42-23" aria-hidden="true" tabindex="-1"></a>    inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(train_outer), <span class="at">breaks =</span> cv_inner))</span>
-<span id="cb42-24"><a href="#cb42-24" aria-hidden="true" tabindex="-1"></a>    train_inner <span class="ot">=</span> train_outer[inner_split <span class="sc">!=</span> j, ]</span>
-<span id="cb42-25"><a href="#cb42-25" aria-hidden="true" tabindex="-1"></a>    test_inner <span class="ot">=</span> train_outer[inner_split <span class="sc">==</span> j, ]</span>
-<span id="cb42-26"><a href="#cb42-26" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb42-27"><a href="#cb42-27" aria-hidden="true" tabindex="-1"></a>    tuning_results_inner <span class="ot">=</span> </span>
-<span id="cb42-28"><a href="#cb42-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_alpha), <span class="cf">function</span>(k) {</span>
-<span id="cb42-29"><a href="#cb42-29" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">family =</span> <span class="st">"binomial"</span>,<span class="at">alpha =</span> hyper_alpha[k])</span>
-<span id="cb42-30"><a href="#cb42-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_inner, </span>
-<span id="cb42-31"><a href="#cb42-31" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">alpha =</span> hyper_alpha[k],</span>
-<span id="cb42-32"><a href="#cb42-32" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">s =</span> hyper_lambda[k],</span>
-<span id="cb42-33"><a href="#cb42-33" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">type =</span> <span class="st">"response"</span>)))</span>
-<span id="cb42-34"><a href="#cb42-34" aria-hidden="true" tabindex="-1"></a>      })</span>
-<span id="cb42-35"><a href="#cb42-35" aria-hidden="true" tabindex="-1"></a>    best_alpha <span class="ot">=</span> hyper_alpha[<span class="fu">which.max</span>(tuning_results_inner)]</span>
-<span id="cb42-36"><a href="#cb42-36" aria-hidden="true" tabindex="-1"></a>    best_lambda <span class="ot">=</span> hyper_lambda[<span class="fu">which.max</span>(tuning_results_inner)]</span>
-<span id="cb42-37"><a href="#cb42-37" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb42-38"><a href="#cb42-38" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>., <span class="at">data =</span> train_outer, <span class="at">alpha =</span> best_alpha, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
-<span id="cb42-39"><a href="#cb42-39" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
-<span id="cb42-40"><a href="#cb42-40" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_alpha</span>
-<span id="cb42-41"><a href="#cb42-41" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> best_lambda</span>
-<span id="cb42-42"><a href="#cb42-42" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">4</span>] <span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer, <span class="at">s =</span> best_lambda, <span class="at">alpha =</span> best_alpha, <span class="at">type =</span> <span class="st">"response"</span>))</span>
-<span id="cb42-43"><a href="#cb42-43" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb42-44"><a href="#cb42-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-45"><a href="#cb42-45" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb42-21"><a href="#cb42-21" aria-hidden="true" tabindex="-1"></a>  best_alpha <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a>  best_lambda <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb42-23"><a href="#cb42-23" aria-hidden="true" tabindex="-1"></a>  best_auc <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb42-24"><a href="#cb42-24" aria-hidden="true" tabindex="-1"></a>  <span class="co"># inner split</span></span>
+<span id="cb42-25"><a href="#cb42-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv_inner) {</span>
+<span id="cb42-26"><a href="#cb42-26" aria-hidden="true" tabindex="-1"></a>    inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(train_outer), <span class="at">breaks =</span> cv_inner))</span>
+<span id="cb42-27"><a href="#cb42-27" aria-hidden="true" tabindex="-1"></a>    train_inner <span class="ot">=</span> train_outer[inner_split <span class="sc">!=</span> j, ]</span>
+<span id="cb42-28"><a href="#cb42-28" aria-hidden="true" tabindex="-1"></a>    test_inner <span class="ot">=</span> train_outer[inner_split <span class="sc">==</span> j, ]</span>
+<span id="cb42-29"><a href="#cb42-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb42-30"><a href="#cb42-30" aria-hidden="true" tabindex="-1"></a>    tuning_results_inner <span class="ot">=</span> </span>
+<span id="cb42-31"><a href="#cb42-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_alpha), <span class="cf">function</span>(k) {</span>
+<span id="cb42-32"><a href="#cb42-32" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">family =</span> <span class="st">"binomial"</span>,<span class="at">alpha =</span> hyper_alpha[k])</span>
+<span id="cb42-33"><a href="#cb42-33" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_inner, </span>
+<span id="cb42-34"><a href="#cb42-34" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">alpha =</span> hyper_alpha[k],</span>
+<span id="cb42-35"><a href="#cb42-35" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">s =</span> hyper_lambda[k],</span>
+<span id="cb42-36"><a href="#cb42-36" aria-hidden="true" tabindex="-1"></a>                                                         <span class="at">type =</span> <span class="st">"response"</span>)))</span>
+<span id="cb42-37"><a href="#cb42-37" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb42-38"><a href="#cb42-38" aria-hidden="true" tabindex="-1"></a>    best_alpha[j] <span class="ot">=</span> hyper_alpha[<span class="fu">which.max</span>(tuning_results_inner)]</span>
+<span id="cb42-39"><a href="#cb42-39" aria-hidden="true" tabindex="-1"></a>    best_lambda[j] <span class="ot">=</span> hyper_lambda[<span class="fu">which.max</span>(tuning_results_inner)]</span>
+<span id="cb42-40"><a href="#cb42-40" aria-hidden="true" tabindex="-1"></a>    best_auc[j] <span class="ot">=</span> <span class="fu">max</span>(tuning_results_inner)</span>
+<span id="cb42-41"><a href="#cb42-41" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb42-42"><a href="#cb42-42" aria-hidden="true" tabindex="-1"></a>  best_alpha <span class="ot">=</span> best_alpha[<span class="fu">which.max</span>(best_auc)]</span>
+<span id="cb42-43"><a href="#cb42-43" aria-hidden="true" tabindex="-1"></a>  best_lambda <span class="ot">=</span> best_lambda[<span class="fu">which.max</span>(best_auc)]</span>
+<span id="cb42-44"><a href="#cb42-44" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb42-45"><a href="#cb42-45" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>., <span class="at">data =</span> train_outer, <span class="at">alpha =</span> best_alpha, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
+<span id="cb42-46"><a href="#cb42-46" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
+<span id="cb42-47"><a href="#cb42-47" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_alpha</span>
+<span id="cb42-48"><a href="#cb42-48" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> best_lambda</span>
+<span id="cb42-49"><a href="#cb42-49" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">4</span>] <span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_outer, <span class="at">s =</span> best_lambda, <span class="at">alpha =</span> best_alpha, <span class="at">type =</span> <span class="st">"response"</span>))</span>
+<span id="cb42-50"><a href="#cb42-50" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb42-51"><a href="#cb42-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-52"><a href="#cb42-52" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  set     alpha      lambda       AUC
-1   1 0.7365883 0.007334147 0.8745098
-2   2 0.6417455 0.003948339 0.7564709
-3   3 0.6417455 0.003948339 0.8185818
+1   1 0.6417455 0.003948339 0.8745098
+2   2 0.7365883 0.007334147 0.7557242
+3   3 0.7365883 0.007334147 0.8193582
 4   4 0.6417455 0.003948339 0.8253507
 5   5 0.6417455 0.003948339 0.8132559</code></pre>
 </div>

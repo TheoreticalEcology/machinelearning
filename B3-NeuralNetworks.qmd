@@ -189,13 +189,17 @@ The weights get sparse, i.e. many of them are zero.
 :::
 
 ::: {.callout-caution icon="false"}
-#### Question: Hyperparameter tuning
+#### Question: Hyperparameter tuning - Titanic dataset
 
 Combing back to the titanic dataset from yesterday, we want to optimize $\lambda$ using nested CV:
 
 -   Use CV to optimize the $\lambda$ parameter
 -   Train model with the $\lambda$ parameter with the highest AUC
 -   Make predictions for the new observations and submit them
+
+Bonus:
+
+-   Tune the architecture! (depth and width of the NN via the hidden argument)
 
 ::: {.callout-tip collapse="true"}
 ## Code template
@@ -223,13 +227,13 @@ for(i in 1:cv) {
         model = dnn(survived~., 
             hidden = c(10L, 10L), 
             activation = c("selu", "selu"), 
-            loss = "mse", 
+            loss = "binomial", 
             lr = 0.05,
             lambda = ..., # change this line
             alpha = 0.1,
             lr_scheduler = config_lr_scheduler("step", step_size = 10, gamma = 0.1),
             data = train_outer, epochs = 40L, verbose = FALSE, plot= FALSE)
-        return(Metrics::auc(test_outer$survived, predict(model, test_outer )[,1]))
+        return(Metrics::auc(test_outer$survived, predict(model, test_outer )[,2]))
       })
   best_lambda = hyper_lambda[which.max(tuning_results)]
   
@@ -267,7 +271,6 @@ data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
 ```{r}
 library(cito)
 set.seed(42)
-data_obs = data_sub[!is.na(data_sub$survived),] 
 cv = 3
 hyper_lambda = runif(5,0.0001, 0.02)
 
@@ -288,7 +291,7 @@ for(i in 1:cv) {
         model = dnn(survived~., 
             hidden = c(10L, 10L), 
             activation = c("selu", "selu"), 
-            loss = "mse", 
+            loss = "binomial", 
             lr = 0.05,
             lambda = hyper_lambda[k],
             alpha = 0.1,
@@ -314,7 +317,7 @@ prediction_ensemble =
   model = dnn(survived~., 
               hidden = c(10L, 10L), 
               activation = c("selu", "selu"), 
-              loss = "mse", 
+              loss = "binomial", 
               lr = 0.05,
               lambda = results$lambda[i],
               alpha = 0.1,
@@ -331,36 +334,8 @@ write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titan
 ```
 
 `r unhide()`
-:::
 
-::: {.callout-caution icon="false"}
-#### Question (bonus): Extensive hyperparameter tuning
-
-Combing back to the titanic dataset from yesterday, we want to optimize $\lambda$ using nested CV:
-
-Tune regularization + architecture (number of hidden layers and nodes in each layer):
-
-```{r}
-library(EcoData)
-library(dplyr)
-library(missRanger)
-data(titanic_ml)
-data = titanic_ml
-data = 
-  data %>% select(survived, sex, age, fare, pclass)
-data[,-1] = missRanger(data[,-1], verbose = 0)
-
-data_sub =
-  data %>%
-    mutate(age = scales::rescale(age, c(0, 1)),
-           fare = scales::rescale(fare, c(0, 1))) %>%
-    mutate(sex = as.integer(sex) - 1L,
-           pclass = as.integer(pclass - 1L))
-data_new = data_sub[!is.na(data_sub$survived),] # for which we want to make predictions at the end
-data_obs = data_sub[is.na(data_sub$survived),] # data with known response
-```
-
-`r hide("Click here to see the solution")`
+`r hide("Click here to see the solution for architecture tuning")`
 
 ```{r}
 library(cito)
@@ -436,4 +411,144 @@ write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titan
 ```
 
 `r unhide()`
+
+:::
+
+
+
+
+::: {.callout-caution icon="false"}
+#### Question: Hyperparameter tuning - Plant-pollinator dataset
+
+see @sec-plantpoll for more information about the dataset.
+
+Prepare the data:
+
+```{r}
+library(EcoData)
+library(missRanger)
+library(dplyr)
+data(plantPollinator_df)
+plant_poll = plantPollinator_df
+
+plant_poll_imputed = plant_poll %>% select(diameter,
+                                           corolla,
+                                           tongue,
+                                           body,
+                                           interaction,
+                                           colour, 
+                                           nectar,
+                                           feeding,
+                                           season)
+# Remove response variable interaction
+plant_poll_imputed = missRanger::missRanger(data = plant_poll_imputed %>%
+                                              select(-interaction), verbose = 0)
+
+# scale numeric variables
+plant_poll_imputed[,sapply(plant_poll_imputed, is.numeric)] = scale(plant_poll_imputed[,sapply(plant_poll_imputed, is.numeric)])
+
+# Add response back to the dataset after the imputatiob
+plant_poll_imputed$interaction = plant_poll$interaction
+plant_poll_imputed$colour = as.factor(plant_poll_imputed$colour)
+plant_poll_imputed$nectar = as.factor(plant_poll_imputed$nectar)
+plant_poll_imputed$feeding = as.factor(plant_poll_imputed$feeding)
+plant_poll_imputed$season = as.factor(plant_poll_imputed$season)
+
+
+data_new = plant_poll_imputed[is.na(plant_poll_imputed$interaction), ] # for which we want to make predictions at the end
+data_obs = plant_poll_imputed[!is.na(plant_poll_imputed$interaction), ]# data with known response
+dim(data_obs)
+```
+
+The dataset is large! More than 10,000 observations. For now, let's switch to a simple holdout strategy for validating our model (e.g. use 80% of the data to train the model and 20% of the data to validate your model.
+
+Moreover:
+```{r}
+table(data_obs$interaction)
+```
+The data is strongly imbalanced, i.e. many 0s but only a few 1. There are different strategies how to deal with that, for example oversampling the 1s or undersampling the 0s. 
+
+Undersampling the 0s:
+```{r}
+data_obs = data_obs[c(sample(which(data_obs$interaction == 0), 2000), which(data_obs$interaction == 1)),]
+table(data_obs$interaction)
+data_obs$interaction = as.integer(data_obs$interaction)
+```
+
+
+
+`r hide("Click here to see the solution")`
+
+Minimal example:
+
+```{r}
+library(cito)
+set.seed(42)
+tuning_steps = 2
+hyper_lambda = runif(tuning_steps,0.0001, 0.02)
+hyper_alpha = runif(tuning_steps,0, 1.0)
+hyper_hidden = sample.int(10, tuning_steps)
+hyper_nodes = sample(seq(5, 100), size = tuning_steps)
+
+outer_split = sample(nrow(data_obs), 0.2*nrow(data_obs))
+
+results = data.frame(
+  set = 1,
+  lambda = rep(NA, 1),
+  alpha = rep(NA, 1),
+  hidden = rep(NA, 1),
+  nodes = rep(NA, 1),
+  AUC = rep(NA, 1)
+)
+
+train_outer = data_obs[-outer_split, ]
+test_outer = data_obs[outer_split, ]
+
+tuning_results = 
+    sapply(1:length(hyper_lambda), function(k) {
+      model = dnn(interaction~., 
+          hidden = rep(hyper_nodes[k], hyper_hidden[k]), 
+          activation = rep("selu", hyper_hidden[k]), 
+          loss = "binomial", 
+          lr = 0.05,
+          lambda = hyper_lambda[k],
+          alpha = hyper_alpha[k],
+          batchsize = 100L, # increasing the batch size will reduce the runtime
+          lr_scheduler = config_lr_scheduler("reduce_on_plateau", patience = 10, factor = 0.9),
+          data = train_outer, epochs = 50L, verbose = FALSE, plot= FALSE)
+      return(Metrics::auc(test_outer$interaction, predict(model, test_outer )[,1]))
+    })
+results[1, 1] = 1
+results[1, 2] =  hyper_lambda[which.max(tuning_results)]
+results[1, 3] =  hyper_alpha[which.max(tuning_results)]
+results[1, 4] =  hyper_hidden[which.max(tuning_results)]
+results[1, 5] =  hyper_nodes[which.max(tuning_results)]  
+results[1, 6] = max(tuning_results)
+
+print(results)
+```
+
+Make predictions:
+
+```{r, results='hide', warning=FALSE, message=FALSE}
+k = 1
+model = dnn(interaction~., 
+    hidden = rep(results$nodes[k], results$hidden[k]), 
+    activation = rep("selu", hyper_hidden[k]), 
+    loss = "binomial", 
+    lr = 0.05,
+    lambda = results$lambda[k],
+    alpha = results$alpha[k],
+    batchsize = 100L, # increasing the batch size will reduce the runtime
+    lr_scheduler = config_lr_scheduler("reduce_on_plateau", patience = 10, factor = 0.9),
+    data = train_outer, epochs = 50L, verbose = FALSE, plot= FALSE)
+
+predictions = predict(model, newdata = data_new)[,1]
+
+write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_plant_poll_ensemble.csv")
+```
+
+
+`r unhide()`
+
 :::
