@@ -4,18 +4,13 @@
 <!-- Put this here (right after the first markdown headline) and only here for each document! -->
 <script src="./scripts/multipleChoice.js"></script>
 ```
-
-
-
 We will explore more machine learning ideas today.
-
 
 ## Autoencoder
 
 An autoencoder (AE) is a type of artificial neural network for unsupervised learning. The idea is similar to data compression: The first part of the network compresses (encodes) the data to a low dimensional space (e.g. 2-4 dimensions) and the second part of the network decompresses (reverses the encoding) and learns to reconstruct the data (think of a hourglass).
 
-Why is this useful? The method is similar to a dimension reduction technique (e.g. PCA) but with the advantage that we don't have to make any distributional assumptions (but see PCA). For instance, we could first train an autoencoder on genomic expression data with thousands of features, compress them into 2-4 dimensions, and then use them for clustering. 
-
+Why is this useful? The method is similar to a dimension reduction technique (e.g. PCA) but with the advantage that we don't have to make any distributional assumptions (but see PCA). For instance, we could first train an autoencoder on genomic expression data with thousands of features, compress them into 2-4 dimensions, and then use them for clustering.
 
 ### Autoencoder - Deep Neural Network MNIST
 
@@ -23,13 +18,10 @@ We now will write an autoencoder for the MNIST data set.
 
 Let's start with the (usual) MNIST example:
 
-
-
-
-```r
+``` r
 library(keras)
 library(tensorflow)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 #> Loaded Tensorflow version 2.9.1
 
 data = keras::dataset_mnist()
@@ -37,8 +29,7 @@ data = keras::dataset_mnist()
 
 We don't need the labels here, our images will be the inputs and at the same time the outputs of our final autoencoder.
 
-
-```r
+``` r
 rotate = function(x){ t(apply(x, 2, rev)) }
 
 imgPlot = function(img, title = ""){
@@ -56,8 +47,7 @@ test_x = array(test[[1]]/255, c(dim(test[[1]])[1], 784L))
 
 Our encoder: image (784 dimensions) $\rightarrow$ 2 dimensions
 
-
-```r
+``` r
 down_size_model = keras_model_sequential()
 down_size_model %>% 
   layer_dense(units = 100L, input_shape = c(784L), activation = "relu") %>% 
@@ -67,8 +57,7 @@ down_size_model %>%
 
 Our decoder: 2 dimensions $\rightarrow$ 784 dimensions (our image)
 
-
-```r
+``` r
 up_size_model = keras_model_sequential()
 up_size_model %>% 
   layer_dense(units = 20L, input_shape = c(2L), activation = "relu") %>% 
@@ -78,8 +67,7 @@ up_size_model %>%
 
 We can use the non-sequential model type to connect the two models. (We did the same in the transfer learning chapter.)
 
-
-```r
+``` r
 autoencoder = keras_model(inputs = down_size_model$input, 
                           outputs = up_size_model(down_size_model$output))
 autoencoder$compile(loss = loss_binary_crossentropy,
@@ -103,27 +91,25 @@ summary(autoencoder)
 
 We will now show an example of an image before and after the unfitted autoencoder, so we see that we have to train the autoencoder.
 
-
-```r
+``` r
 image = autoencoder(train_x[1,,drop = FALSE])
 oldpar = par(mfrow = c(1, 2))
 imgPlot(array(train_x[1,,drop = FALSE], c(28, 28)), title = "Before")
 imgPlot(array(image$numpy(), c(28, 28)), title = "After")
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_6__AEmnistoutput-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_6__AEmnistoutput-1.png" width="100%" style="display: block; margin: auto;"/>
 
-```r
+``` r
 par(oldpar)
 ```
 
 Fit the autoencoder (inputs == outputs!):
 
-
-```r
+``` r
 library(tensorflow)
 library(keras)
-set_random_seed(123L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(123L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 autoencoder %>% 
   fit(x = train_x, y = train_x, epochs = 5L, batch_size = 128L)
@@ -131,39 +117,34 @@ autoencoder %>%
 
 Visualization of the latent variables:
 
-
-```r
+``` r
 pred_dim = down_size_model(test_x)
 reconstr_pred = up_size_model(pred_dim)
 imgPlot(array(reconstr_pred[10,]$numpy(), dim = c(28L, 28L)), title = "")
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_8__AEvisualization-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_8__AEvisualization-1.png" width="100%" style="display: block; margin: auto;"/>
 
-
-```r
+``` r
 ownColors = c("limegreen", "purple", "yellow", "grey", "orange",
               "black", "red", "navy", "sienna", "springgreen")
 oldpar = par(mfrow = c(1, 1))
 plot(pred_dim$numpy()[,1], pred_dim$numpy()[,2], col = ownColors[test[[2]]+1L])
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_9__AEvisualizationContinuation-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_9__AEvisualizationContinuation-1.png" width="100%" style="display: block; margin: auto;"/>
 
-```r
+``` r
 par(oldpar)
 ```
 
 The picture above shows the 2-dimensional encoded values of the numbers in the MNIST data set and the number they are depicting via the respective color.
 
-
 ### Autoencoder - MNIST Convolutional Neural Networks
 
-We can also use convolutional neural networks instead or on the side of deep neural networks:
-Prepare data:
+We can also use convolutional neural networks instead or on the side of deep neural networks: Prepare data:
 
-
-```r
+``` r
 data = tf$keras$datasets$mnist$load_data()
 train = data[[1]]
 train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L))
@@ -172,8 +153,7 @@ test_x = array(data[[2]][[1]]/255, c(dim(data[[2]][[1]]/255), 1L))
 
 Then define the downsize model:
 
-
-```r
+``` r
 down_size_model = keras_model_sequential()
 down_size_model %>% 
   layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L, 3L), input_shape = c(28L, 28L, 1L), padding = "same") %>% 
@@ -188,8 +168,7 @@ down_size_model %>%
 
 Define the upsize model:
 
-
-```r
+``` r
 up_size_model = keras_model_sequential()
 up_size_model %>% 
   layer_dense(units = 128L, activation = "relu", input_shape = c(2L)) %>% 
@@ -205,11 +184,10 @@ up_size_model %>%
 
 Combine the two models and fit it:
 
-
-```r
+``` r
 library(tensorflow)
 library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 autoencoder = tf$keras$models$Model(inputs = down_size_model$input,
                                     outputs = up_size_model(down_size_model$output))
@@ -223,52 +201,47 @@ autoencoder %>%  fit(x = tf$constant(train_x), y = tf$constant(train_x),
 
 Test it:
 
-
-```r
+``` r
 pred_dim = down_size_model(tf$constant(test_x, "float32"))
 reconstr_pred = autoencoder(tf$constant(test_x, "float32"))
 imgPlot(reconstr_pred[10,,,]$numpy()[,,1])
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_14-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_14-1.png" width="100%" style="display: block; margin: auto;"/>
 
-```r
+``` r
 
 ownColors = c("limegreen", "purple", "yellow", "grey", "orange",
               "black", "red", "navy", "sienna", "springgreen")
 plot(pred_dim[,1]$numpy(), pred_dim[,2]$numpy(), col = ownColors[test[[2]]+1L])
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_14-2.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_14-2.png" width="100%" style="display: block; margin: auto;"/>
 
-```r
+``` r
 
 ## Generate new images!
 new = matrix(c(10, 10), 1, 2)
 imgPlot(array(up_size_model(new)$numpy(), c(28L, 28L)))
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_14-3.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_14-3.png" width="100%" style="display: block; margin: auto;"/>
 
-```r
+``` r
 
 new = matrix(c(5, 5), 1, 2)
 imgPlot(array(up_size_model(new)$numpy(), c(28L, 28L)))
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_14-4.png" width="100%" style="display: block; margin: auto;" />
-
+<img src="09-GAN_files/figure-html/chunk_chapter7_14-4.png" width="100%" style="display: block; margin: auto;"/>
 
 ### Variational Autoencoder (VAE) {#VAE}
 
-The difference between a variational and a normal autoencoder is that a variational autoencoder assumes a distribution for the latent variables (latent variables cannot be observed and are composed of other variables) and the parameters of this distribution are learned. Thus new objects can be generated by inserting valid (!) (with regard to the assumed distribution) "seeds" to the decoder.
-To achieve the property that more or less randomly chosen points in the low dimensional latent space are meaningful and yield suitable results after decoding, the latent space/training process must be regularized.
-In this process, the input to the VAE is encoded to a distribution in the latent space rather than a single point.
+The difference between a variational and a normal autoencoder is that a variational autoencoder assumes a distribution for the latent variables (latent variables cannot be observed and are composed of other variables) and the parameters of this distribution are learned. Thus new objects can be generated by inserting valid (!) (with regard to the assumed distribution) "seeds" to the decoder. To achieve the property that more or less randomly chosen points in the low dimensional latent space are meaningful and yield suitable results after decoding, the latent space/training process must be regularized. In this process, the input to the VAE is encoded to a distribution in the latent space rather than a single point.
 
 For building variational autoencoders, we will use TensorFlow probability, but first, we need to split the data again.
 
-
-```r
+``` r
 library(tfprobability)
 
 data = tf$keras$datasets$mnist$load_data()
@@ -278,18 +251,16 @@ train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L))
 
 We will use TensorFlow probability to define priors for our latent variables.
 
-
-```r
+``` r
 library(tfprobability)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 tfp = reticulate::import("tensorflow_probability")
 ```
 
-Build the two networks: 
+Build the two networks:
 
-
-```r
+``` r
 encoded = 2L
 prior = tfd_independent(tfd_normal(c(0.0, 0.0), 1.0), 1L)
 
@@ -325,11 +296,10 @@ VAE = keras_model(inputs = down_size_model$inputs,
 
 Compile and fit model:
 
-
-```r
+``` r
 library(tensorflow)
 library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 loss_binary = function(true, pred){
   return(loss_binary_crossentropy(true, pred) * 28.0 * 28.0)
@@ -341,8 +311,7 @@ VAE %>% fit(train_x, train_x, epochs = 50L)
 
 And show that it works:
 
-
-```r
+``` r
 dist = down_size_model(train_x[1:2000,,,,drop = FALSE])
 images = up_size_model(dist$sample()[1:5,])
 
@@ -352,18 +321,17 @@ oldpar = par(mfrow = c(1, 1))
 imgPlot(images[1,,,1]$numpy())
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-1.png" width="100%" style="display: block; margin: auto;"/>
 
-```r
+``` r
 plot(dist$mean()$numpy()[,1], dist$mean()$numpy()[,2], col = ownColors[train[[2]]+1L])
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-2.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-2.png" width="100%" style="display: block; margin: auto;"/>
 
-```r
+``` r
 par(oldpar)
 ```
-
 
 ### Exercise
 
@@ -371,7 +339,6 @@ par(oldpar)
   <hr/>
   <strong><span style="color: #0011AA; font-size:18px;">1. Task</span></strong><br/>
 ```
-
 Read section \@ref(VAE) on variational autoencoders and try to transfer the examples with MNIST to our flower data set.
 
 ```{=html}
@@ -381,15 +348,13 @@ Read section \@ref(VAE) on variational autoencoders and try to transfer the exam
     </summary>
     <p>
 ```
-
 Split the data:
-    
 
-```r
+``` r
 library(keras)
 library(tensorflow)
 library(tfprobability)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 data = EcoData::dataset_flower()
 test = data$test/255
@@ -399,8 +364,7 @@ rm(data)
 
 Build the variational autoencoder:
 
-
-```r
+``` r
 encoded = 10L
 prior = tfp$distributions$Independent(
   tfp$distributions$Normal(loc=tf$zeros(encoded), scale = 1.),
@@ -479,8 +443,7 @@ summary(VAE)
 
 Compile and train model:
 
-
-```r
+``` r
 be = function(true, pred){
   return(tf$losses$binary_crossentropy(true, pred) * 80.0 * 80.0)
 }
@@ -513,9 +476,9 @@ scales::rescale(images[3,,,]$numpy(), to = c(0, 255)) %>%
   plot()
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_task_2__VAEflower-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_task_2__VAEflower-1.png" width="100%" style="display: block; margin: auto;"/>
 
-```r
+``` r
 par(oldpar)
 ```
 
@@ -524,50 +487,37 @@ par(oldpar)
   </details>
   <br/><hr/>
 ```
-
-
-
 ## Generative Adversarial Networks (GANs) {#GANS}
 
-The idea of a generative adversarial network (GAN) is that two neural networks contest against each other in a "game". One network is creating data and is trying to "trick" the other network into deciding the generated data is real. The _generator_ (similar to the decoder in autoencoders) creates new images from noise. The _discriminator_ is getting a mix of true (from the data set) and artificially generated images from the generator. Thereby, the loss of the generator rises when fakes are identified as fakes by the discriminator (simple binary cross entropy loss, 0/1...). The loss of the discriminator rises when fakes are identified as real images (class 0) or real images as fakes (class 1), again with binary cross entropy.
+The idea of a generative adversarial network (GAN) is that two neural networks contest against each other in a "game". One network is creating data and is trying to "trick" the other network into deciding the generated data is real. The *generator* (similar to the decoder in autoencoders) creates new images from noise. The *discriminator* is getting a mix of true (from the data set) and artificially generated images from the generator. Thereby, the loss of the generator rises when fakes are identified as fakes by the discriminator (simple binary cross entropy loss, 0/1...). The loss of the discriminator rises when fakes are identified as real images (class 0) or real images as fakes (class 1), again with binary cross entropy.
 
-**Binary cross entropy:**
-Entropy or _Shannon entropy_ (named after Claude Shannon) $\mathbf{H}$ (uppercase "eta") in context of information theory is the expected value of information content or the mean/average information content of an "event" compared to all possible outcomes.
-Encountering an event with low probability holds more information than encountering an event with high probability.
+**Binary cross entropy:** Entropy or *Shannon entropy* (named after Claude Shannon) $\mathbf{H}$ (uppercase "eta") in context of information theory is the expected value of information content or the mean/average information content of an "event" compared to all possible outcomes. Encountering an event with low probability holds more information than encountering an event with high probability.
 
-_Binary cross entropy_ is a measure to determine the similarity of two (discrete) probability distributions $A~(\mathrm{true~distribution}), B~(\mathrm{predicted~distribution})$ according to the inherent information.
+*Binary cross entropy* is a measure to determine the similarity of two (discrete) probability distributions $A~(\mathrm{true~distribution}), B~(\mathrm{predicted~distribution})$ according to the inherent information.
 
-It is not (!) symmetric, in general: $\textbf{H}_{A}(B) \neq \textbf{H}_{B}(A)$.
-The minimum value depends on the distribution of $A$ and is the entropy of $A$:
-$$\mathrm{min}~\textbf{H}_{A}(B) = \underset{B}{\mathrm{min}}~\textbf{H}_{A}(B) = \textbf{H}_{A}(B = A) = \textbf{H}_{A}(A) = \textbf{H}(A)$$
+It is not (!) symmetric, in general: $\textbf{H}_{A}(B) \neq \textbf{H}_{B}(A)$. The minimum value depends on the distribution of $A$ and is the entropy of $A$: $$\mathrm{min}~\textbf{H}_{A}(B) = \underset{B}{\mathrm{min}}~\textbf{H}_{A}(B) = \textbf{H}_{A}(B = A) = \textbf{H}_{A}(A) = \textbf{H}(A)$$
 
 The setup:
 
-* Outcomes $y_{i} \in \{0, 1\}$ (labels).
-* Predictions $\hat{y}_{i} \in[0, 1]$ (probabilities).
+-   Outcomes $y_{i} \in \{0, 1\}$ (labels).
+-   Predictions $\hat{y}_{i} \in[0, 1]$ (probabilities).
 
-The binary cross entropy or log loss of a system of outcomes/predictions is then defined as follows:
-$$
+The binary cross entropy or log loss of a system of outcomes/predictions is then defined as follows: $$
   \textbf{H}_{A}(B) =
   -\frac{1}{N} \sum_{i = 1}^{N} y_{i} \cdot \mathrm{log} \left( p(y_{i}) \right) + (1 -y_{i}) \cdot \mathrm{log} \left( 1-p(y_{i}) \right) =\\
   = -\frac{1}{N} \sum_{i = 1}^{N} y_{i} \cdot \mathrm{log} (\hat{y}_{i}) + (1 -y_{i}) \cdot \mathrm{log} \left( 1- \hat{y}_{i} \right)
-$$
-High predicted probabilities of having the label for originally labeled data (1) yield a low loss as well as predicting a low probability of having the label for originally unlabeled data (0). Mind the properties of probabilities and the logarithm.
+$$ High predicted probabilities of having the label for originally labeled data (1) yield a low loss as well as predicting a low probability of having the label for originally unlabeled data (0). Mind the properties of probabilities and the logarithm.
 
-
-A possible application of generative adversarial networks is to create pictures that look like real photographs e.g. **<a href="https://thispersondoesnotexist.com/" target="_blank" rel="noopener">https://thispersondoesnotexist.com/</a>**. Visit that site (several times)!.
-However, the application of generative adversarial networks today is much wider than just the creation of data. For example, generative adversarial networks can also be used to "augment" data, i.e. to create new data and thereby improve the fitted model.
-
+A possible application of generative adversarial networks is to create pictures that look like real photographs e.g. <a href="https://thispersondoesnotexist.com/" target="_blank" rel="noopener">https://thispersondoesnotexist.com/</a>. Visit that site (several times)!. However, the application of generative adversarial networks today is much wider than just the creation of data. For example, generative adversarial networks can also be used to "augment" data, i.e. to create new data and thereby improve the fitted model.
 
 ### MNIST - Generative Adversarial Networks Based on Deep Neural Networks
 
-We will now explore this on the MNIST data set. 
+We will now explore this on the MNIST data set.
 
-
-```r
+``` r
 library(keras)
 library(tensorflow)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 rotate = function(x){ t(apply(x, 2, rev)) }
 imgPlot = function(img, title = ""){
@@ -579,8 +529,7 @@ imgPlot = function(img, title = ""){
 
 We don't need the test set here.
 
-
-```r
+``` r
 data = dataset_mnist()
 train = data$train
 train_x = array((train$x-127.5)/127.5, c(dim(train$x)[1], 784L))
@@ -588,8 +537,7 @@ train_x = array((train$x-127.5)/127.5, c(dim(train$x)[1], 784L))
 
 We need a function to sample images for the discriminator.
 
-
-```r
+``` r
 batch_size = 32L
 dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
 dataset$batch(batch_size)
@@ -598,8 +546,7 @@ dataset$batch(batch_size)
 
 Define generator model:
 
-
-```r
+``` r
 get_generator = function(){
   generator = keras_model_sequential()
   generator %>% 
@@ -615,19 +562,17 @@ get_generator = function(){
 
 And we also test the generator model:
 
-
-```r
+``` r
 generator = get_generator()
 sample = tf$random$normal(c(1L, 100L))
 imgPlot(array(generator(sample)$numpy(), c(28L, 28L)))
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_24-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_24-1.png" width="100%" style="display: block; margin: auto;"/>
 
 In the discriminator, noise (random vector with 100 values) is passed through the network such that the output corresponds to the number of pixels of one MNIST image (784). We therefore define the discriminator function now.
 
-
-```r
+``` r
 get_discriminator = function(){
   discriminator = keras_model_sequential()
   discriminator %>% 
@@ -643,8 +588,7 @@ get_discriminator = function(){
 
 And we also test the discriminator function.
 
-
-```r
+``` r
 discriminator = get_discriminator()
 discriminator(generator(tf$random$normal(c(1L, 100L))))
 #> tf.Tensor([[0.5089391]], shape=(1, 1), dtype=float32)
@@ -656,8 +600,7 @@ The discriminator will get two losses - one for identifying fake images as fake,
 
 The generator will just get one loss - was it able to deceive the discriminator?
 
-
-```r
+``` r
 ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE)
 
 loss_discriminator = function(real, fake){
@@ -673,27 +616,24 @@ loss_generator = function(fake){
 
 Each network will get its own optimizer (in a GAN the networks are treated independently):
 
-
-```r
+``` r
 gen_opt = tf$keras$optimizers$RMSprop(1e-4)
 disc_opt = tf$keras$optimizers$RMSprop(1e-4)
 ```
 
-We have to write our own training loop here (we cannot use the fit function). 
-In each iteration (for each batch) we will do the following (the GradientTape records computations to do automatic differentiation):
+We have to write our own training loop here (we cannot use the fit function). In each iteration (for each batch) we will do the following (the GradientTape records computations to do automatic differentiation):
 
-1. Sample noise.
-2. Generator creates images from the noise.
-3. Discriminator makes predictions for fake images and real images (response is a probability between [0,1]).
-4. Calculate loss for generator.
-5. Calculate loss for discriminator.
-6. Calculate gradients for weights and the loss.
-7. Update weights of generator.
-8. Update weights of discriminator.
-9. Return losses.
+1.  Sample noise.
+2.  Generator creates images from the noise.
+3.  Discriminator makes predictions for fake images and real images (response is a probability between \[0,1\]).
+4.  Calculate loss for generator.
+5.  Calculate loss for discriminator.
+6.  Calculate gradients for weights and the loss.
+7.  Update weights of generator.
+8.  Update weights of discriminator.
+9.  Return losses.
 
-
-```r
+``` r
 generator = get_generator()
 discriminator = get_discriminator()
 
@@ -723,17 +663,16 @@ train_step = tf$`function`(reticulate::py_func(train_step))
 
 Now we can finally train our networks in a training loop:
 
-1. Create networks.
-2. Get batch of images.
-3. Run train_step function.
-4. Print losses.
-5. Repeat step 2-4 for number of epochs.
+1.  Create networks.
+2.  Get batch of images.
+3.  Run train_step function.
+4.  Print losses.
+5.  Repeat step 2-4 for number of epochs.
 
-
-```r
+``` r
 library(tensorflow)
 library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 batch_size = 128L
 epochs = 20L
@@ -767,22 +706,20 @@ for(e in 1:epochs){
 #> Gen:  0.8928918  Disc:  1.287504
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_30-1.png" width="100%" style="display: block; margin: auto;"/>
 
-```
+```         
 #> Gen:  0.9071119  Disc:  1.314586  
 #> Gen:  0.9514963  Disc:  1.31548
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_30-2.png" width="100%" style="display: block; margin: auto;" />
-
+<img src="09-GAN_files/figure-html/chunk_chapter7_30-2.png" width="100%" style="display: block; margin: auto;"/>
 
 ### Flower - GAN
 
 We can now also do the same for the flower data set. We will write this completely on our own following the steps also done for the MNIST data set.
 
-
-```r
+``` r
 library(keras)
 library(tidyverse)
 #> ── Attaching packages ───────────────────────────────────────────────── tidyverse 1.3.1 ──
@@ -805,11 +742,10 @@ dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
 
 Define the generator model and test it:
 
-
-```r
+``` r
 library(tensorflow)
 library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 get_generator = function(){
   generator = keras_model_sequential()
@@ -850,15 +786,14 @@ image %>%
   plot()
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_32-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_32-1.png" width="100%" style="display: block; margin: auto;"/>
 
 Define the discriminator and test it:
 
-
-```r
+``` r
 library(tensorflow)
 library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 get_discriminator = function(){
   discriminator = keras_model_sequential()
@@ -909,8 +844,7 @@ discriminator(generator(tf$random$normal(c(1L, 100L))))
 
 Define the loss functions:
 
-
-```r
+``` r
 ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE,
                                         label_smoothing = 0.1)
 
@@ -927,16 +861,14 @@ loss_generator = function(fake){
 
 Define the optimizers and the batch function:
 
-
-```r
+``` r
 gen_opt = tf$keras$optimizers$RMSprop(1e-4)
 disc_opt = tf$keras$optimizers$RMSprop(1e-4)
 ```
 
 Define functions for the generator and discriminator:
 
-
-```r
+``` r
 generator = get_generator()
 discriminator = get_discriminator()
 
@@ -972,11 +904,10 @@ train_step = tf$`function`(reticulate::py_func(train_step))
 
 Do the training:
 
-
-```r
+``` r
 library(tensorflow)
 library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 batch_size = 32L
 epochs = 30L
@@ -1014,23 +945,22 @@ for(e in 1:epochs){
 #> Gen:  1.651127  Disc:  0.8720699
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_37-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_37-1.png" width="100%" style="display: block; margin: auto;"/>
 
-```
+```         
 #> Gen:  1.303061  Disc:  1.037192
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_37-2.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_37-2.png" width="100%" style="display: block; margin: auto;"/>
 
-```
+```         
 #> Gen:  1.168868  Disc:  1.100166
 ```
 
-
-```r
+``` r
 library(tensorflow)
 library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 noise = tf$random$normal(c(1L, 100L))
 image = generator(noise)$numpy()[1,,,]
@@ -1042,19 +972,17 @@ image %>%
   plot()
 ```
 
-<img src="09-GAN_files/figure-html/chunk_chapter7_38-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="09-GAN_files/figure-html/chunk_chapter7_38-1.png" width="100%" style="display: block; margin: auto;"/>
 
 More images:
 
-<img src="images/flower2.png" width="150%" height="150%" style="display: block; margin: auto;" /><img src="images/flower3.png" width="150%" height="150%" style="display: block; margin: auto;" /><img src="images/flower4.png" width="150%" height="150%" style="display: block; margin: auto;" /><img src="images/flower5.png" width="150%" height="150%" style="display: block; margin: auto;" />
-
+<img src="images/flower2.png" width="150%" height="150%" style="display: block; margin: auto;"/><img src="images/flower3.png" width="150%" height="150%" style="display: block; margin: auto;"/><img src="images/flower4.png" width="150%" height="150%" style="display: block; margin: auto;"/><img src="images/flower5.png" width="150%" height="150%" style="display: block; margin: auto;"/>
 
 ### Exercise
 
 ```{=html}
   <strong><span style="color: #0011AA; font-size:18px;">2. Task</span></strong><br/>
 ```
-
 Go through the R examples on generative adversarial networks (\@ref(GANS)) and compare the flower example with the MNIST example - where are the differences - and why?
 
 ```{=html}
@@ -1064,7 +992,6 @@ Go through the R examples on generative adversarial networks (\@ref(GANS)) and c
     </summary>
     <p>
 ```
-
 The MNIST example uses a "simple" deep neural network which is sufficient for a classification that easy. The flower example uses a much more expensive convolutional neural network to classify the images.
 
 ```{=html}
@@ -1072,10 +999,6 @@ The MNIST example uses a "simple" deep neural network which is sufficient for a 
   </details>
   <br/><hr/>
 ```
-
-
-
-
 ## Reinforcement learning
 
 This is just a teaser, run/adapt it if you like.
@@ -1086,12 +1009,11 @@ The environment is run on a local server, please install <a href="https://github
 
 Or go through this <a href="https://colab.research.google.com/github/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb" target="_blank" rel="noopener">colab book</a>.
 
-
-```r
+``` r
 library(keras)
 library(tensorflow)
 library(gym)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 remote_base =´ "http://127.0.0.1:5000"
 client = create_GymClient(remote_base)
@@ -1186,6 +1108,3 @@ for(e in 1:100){
   }
 }
 ```
-
-
-
