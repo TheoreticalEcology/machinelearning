@@ -367,58 +367,174 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The goal of explainable AI (xAI, aka interpretable machine learning) is to explain <strong>why</strong> a fitted machine learning model makes certain predictions. A typical example is to understand how important different variables are for predictions. The incentives for doing so range from a better technical understanding of the models over understanding which data is important for improving predictions to questions of fairness and discrimination (e.g.&nbsp;to understand if an algorithm uses skin color to make a decision).</p>
 <section id="a-practical-example" class="level2" data-number="14.1">
 <h2 data-number="14.1" class="anchored" data-anchor-id="a-practical-example"><span class="header-section-number">14.1</span> A Practical Example</h2>
-<p>In this lecture we will work with another famous data set, the <em>Boston housing</em> data set:</p>
+<p>In this lecture we will work with an African Elephant occurrence dataset.</p>
 <p>We will fit a random forest and use the iml package for xAI, see <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(iml)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>randomForest 4.7-1.1</code></pre>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger) <span class="co"># different random Forest package!</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> EcoData<span class="sc">::</span>elephant<span class="sc">$</span>occurenceData</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      Presence       bio1       bio2       bio3       bio4        bio5
+3364         0 -0.4981747 -0.2738045  0.5368968 -0.5409999 -0.36843571
+6268         0  0.6085908 -0.5568352  1.0340686 -1.2492050 -0.11835651
+10285        0 -0.7973005  1.4648130 -1.0540532  2.0759423  0.07614953
+2247         0  0.6385034  1.3435141 -0.1591439 -0.5107148  1.10425291
+9821         0  0.6684160 -0.6781341  0.6363311 -0.9906170  0.15950927
+1351         0  0.9675418 -0.6781341 -0.3580126 -0.3748202  0.77081398
+            bio6       bio7       bio8       bio9       bio10       bio11
+3364   0.2947850 -0.5260099 -1.2253960  0.2494100 -0.64527314 -0.06267842
+6268   0.8221087 -0.8938475  0.4233787  0.7746249  0.09168503  0.94419518
+10285 -1.5860029  1.6284678  0.2768209 -1.5153122 -0.03648161 -1.44165748
+2247  -0.1622288  0.8577603  0.4600181  0.5855475  0.54026827  0.68153250
+9821   0.9099960 -0.8062671  0.3867393  0.8586593  0.31597665  0.94419518
+1351   0.8748411 -0.3858812  0.3134604  1.0477367  0.98885151  0.94419518
+           bio12      bio13       bio14        bio15      bio16      bio17
+3364   0.6285371  0.6807958 -0.29703736 -0.008455252  0.7124535 -0.2949994
+6268   1.1121516  0.5918442  0.01619202 -0.884507980  0.5607328  0.3506918
+10285 -1.2351482 -1.3396742 -0.50585695  0.201797403 -1.3499999 -0.5616980
+2247   0.5951165  0.8714061 -0.55806185  0.236839512  1.1012378 -0.5616980
+9821   1.1003561  0.5537222  0.59044589 -1.024676416  0.6413344  0.7437213
+1351   0.7287986  1.1255533 -0.50585695  0.236839512  1.2956300 -0.4494038
+            bio18       bio19
+3364  -1.06812752  1.96201807
+6268   1.22589281 -0.36205814
+10285 -0.42763181 -0.62895735
+2247  -0.20541902 -0.58378979
+9821   0.06254347 -0.05409751
+1351  -0.90473576  2.47939193</code></pre>
 </div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>?EcoData<span class="sc">::</span>elephant</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"Boston"</span>, <span class="at">package =</span> <span class="st">"MASS"</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">randomForest</span>(medv <span class="sc">~</span> ., <span class="at">data =</span> Boston, <span class="at">ntree =</span> <span class="dv">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>xAI packages are written generic, i.e.&nbsp;they can handle almost all machine learning models. When we want to use them, we first have to create a predictor object, that holds the model and the data. The iml package uses R6 classes, that means new objects can be created by calling Predictor$new(). (Do not worry if you do not know what R6 classes are, just use the command.)</p>
+<p>Meaning of the bioclim variables:</p>
+<table class="table">
+<colgroup>
+<col style="width: 52%">
+<col style="width: 47%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Bioclim variable</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>bio1</td>
+<td>Annual Mean Temperature</td>
+</tr>
+<tr class="even">
+<td>bio2</td>
+<td>Mean Diurnal Range (Mean of monthly (max temp - min temp))</td>
+</tr>
+<tr class="odd">
+<td>bio3</td>
+<td>Isothermality (BIO2/BIO7) (×100)</td>
+</tr>
+<tr class="even">
+<td>bio4</td>
+<td>Temperature Seasonality (standard deviation ×100)</td>
+</tr>
+<tr class="odd">
+<td>bio5</td>
+<td>Max Temperature of Warmest Month</td>
+</tr>
+<tr class="even">
+<td>bio6</td>
+<td>Min Temperature of Coldest Month</td>
+</tr>
+<tr class="odd">
+<td>bio7</td>
+<td>Temperature Annual Range (BIO5-BIO6)</td>
+</tr>
+<tr class="even">
+<td>bio8</td>
+<td>Mean Temperature of Wettest Quarter</td>
+</tr>
+<tr class="odd">
+<td>bio9</td>
+<td>Mean Temperature of Driest Quarter</td>
+</tr>
+<tr class="even">
+<td>bio10</td>
+<td>Mean Temperature of Warmest Quarter</td>
+</tr>
+<tr class="odd">
+<td>bio11</td>
+<td>Mean Temperature of Coldest Quarter</td>
+</tr>
+<tr class="even">
+<td>bio12</td>
+<td>Annual Precipitation</td>
+</tr>
+<tr class="odd">
+<td>bio13</td>
+<td>Precipitation of Wettest Month</td>
+</tr>
+<tr class="even">
+<td>bio14</td>
+<td>Precipitation of Driest Month</td>
+</tr>
+<tr class="odd">
+<td>bio15</td>
+<td>Precipitation Seasonality (Coefficient of Variation)</td>
+</tr>
+<tr class="even">
+<td>bio16</td>
+<td>Precipitation of Wettest Quarter</td>
+</tr>
+<tr class="odd">
+<td>bio17</td>
+<td>Precipitation of Driest Quarter</td>
+</tr>
+<tr class="even">
+<td>bio18</td>
+<td>Precipitation of Warmest Quarter</td>
+</tr>
+<tr class="odd">
+<td>bio19</td>
+<td>Precipitation of Coldest Quarter</td>
+</tr>
+</tbody>
+</table>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>X <span class="ot">=</span> Boston[<span class="fu">which</span>(<span class="fu">names</span>(Boston) <span class="sc">!=</span> <span class="st">"medv"</span>)]</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>predictor <span class="ot">=</span> Predictor<span class="sc">$</span><span class="fu">new</span>(rf, <span class="at">data =</span> X, <span class="at">y =</span> Boston<span class="sc">$</span>medv)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># "Predictor" is an object generator.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">ranger</span>(<span class="fu">as.factor</span>(Presence) <span class="sc">~</span> ., <span class="at">data =</span> data, <span class="at">probability =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>xAI packages are written generic, i.e.&nbsp;they can handle almost all machine learning models. When we want to use them, we first have to create a predictor object, that holds the model and the data. The <code>iml</code> package uses R6 classes, that means new objects can be created by calling <code>Predictor$new()</code>. (Do not worry if you do not know what R6 classes are, just use the command.)</p>
+<p>We often have to warp our predict function inside a so called wrapper function so that the output of the predict function fits to iml (iml expects that the predict function returns a vector of predictions:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>predict_wrapper <span class="ot">=</span> <span class="cf">function</span>(model, newdata) <span class="fu">predict</span>(model, <span class="at">data=</span>newdata)<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>predictor <span class="ot">=</span> Predictor<span class="sc">$</span><span class="fu">new</span>(rf, <span class="at">data =</span> data[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">y =</span> data[,<span class="dv">1</span>], <span class="at">predict.function =</span> predict_wrapper)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>predictor<span class="sc">$</span>task <span class="ot">=</span> <span class="st">"classif"</span> <span class="co"># set task to classification</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># "Predictor" is an object generator.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="feature-importance" class="level2" data-number="14.2">
 <h2 data-number="14.2" class="anchored" data-anchor-id="feature-importance"><span class="header-section-number">14.2</span> Feature Importance</h2>
 <p>Feature importance should not be mistaken with the random forest variable importance though they are related. It tells us how important the individual variables are for predictions, can be calculated for all machine learning models and is based on a permutation approach (have a look at the book):</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>imp <span class="ot">=</span> FeatureImp<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">loss =</span> <span class="st">"mae"</span>)</span>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>imp <span class="ot">=</span> FeatureImp<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">loss =</span> <span class="st">"ce"</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(imp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="D2-explainableAI_files/figure-html/chunk_chapter6_2-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
+<p>bio9 (Precipitation of the wettest Quarter) is the most important variable.</p>
 </section>
 <section id="partial-dependencies" class="level2" data-number="14.3">
 <h2 data-number="14.3" class="anchored" data-anchor-id="partial-dependencies"><span class="header-section-number">14.3</span> Partial Dependencies</h2>
 <p>Partial dependencies are similar to allEffects plots for normal regressions. The idea is to visualize “marginal effects” of predictors (with the “feature” argument we specify the variable we want to visualize):</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>eff <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">"rm"</span>, <span class="at">method =</span> <span class="st">"pdp"</span>,</span>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>eff <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">"bio9"</span>, <span class="at">method =</span> <span class="st">"pdp"</span>,</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">grid.size =</span> <span class="dv">30</span>)</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="D2-explainableAI_files/figure-html/chunk_chapter6_3-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>Partial dependencies can also be plotted for single observations:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>eff <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">"rm"</span>, <span class="at">method =</span> <span class="st">"pdp+ice"</span>,</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">grid.size =</span> <span class="dv">30</span>)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="D2-explainableAI_files/figure-html/chunk_chapter6_4-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>One disadvantage of partial dependencies is that they are sensitive to correlated predictors. Accumulated local effects can be used for accounting for correlation of predictors.</p>
@@ -427,8 +543,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 data-number="14.4" class="anchored" data-anchor-id="accumulated-local-effects"><span class="header-section-number">14.4</span> Accumulated Local Effects</h2>
 <p>Accumulated local effects (ALE) are basically partial dependencies plots but try to correct for correlations between predictors.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>ale <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">"rm"</span>, <span class="at">method =</span> <span class="st">"ale"</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>ale<span class="sc">$</span><span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ale <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">"bio9"</span>, <span class="at">method =</span> <span class="st">"ale"</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>ale<span class="sc">$</span><span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="D2-explainableAI_files/figure-html/chunk_chapter6_5-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -439,8 +555,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 data-number="14.5" class="anchored" data-anchor-id="friedmans-h-statistic"><span class="header-section-number">14.5</span> Friedman’s H-statistic</h2>
 <p>The H-statistic can be used to find interactions between predictors. However, again, keep in mind that the H-statistic is sensible to correlation between predictors:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>interact <span class="ot">=</span> Interaction<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="st">"lstat"</span>)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(interact)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>interact <span class="ot">=</span> Interaction<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="st">"bio9"</span>,<span class="at">grid.size =</span> 5L)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(interact)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="D2-explainableAI_files/figure-html/chunk_chapter6_6-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -450,10 +566,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 data-number="14.6" class="anchored" data-anchor-id="global-explainer---simplifying-the-machine-learning-model"><span class="header-section-number">14.6</span> Global Explainer - Simplifying the Machine Learning Model</h2>
 <p>Another idea is simplifying the machine learning model with another simpler model such as a decision tree. We create predictions with the machine learning model for a lot of different input values and then we fit a decision tree on these predictions. We can then interpret the easier model.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(partykit)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>tree <span class="ot">=</span> TreeSurrogate<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">maxdepth =</span> <span class="dv">2</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tree<span class="sc">$</span>tree)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(partykit)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>tree <span class="ot">=</span> TreeSurrogate<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">maxdepth =</span> <span class="dv">2</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tree<span class="sc">$</span>tree)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="D2-explainableAI_files/figure-html/chunk_chapter6_7-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -464,15 +580,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The global approach is to simplify the entire machine learning-black-box model via a simpler model, which is then interpretable.</p>
 <p>However, sometimes we are only interested in understanding how single predictions are generated. The LIME (Local interpretable model-agnostic explanations) approach explores the feature space around one observation and based on this locally fits a simpler model (e.g.&nbsp;a linear model):</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>lime.explain <span class="ot">=</span> LocalModel<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">x.interest =</span> X[<span class="dv">1</span>,])</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>lime.explain<span class="sc">$</span>results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>lime.explain <span class="ot">=</span> LocalModel<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">x.interest =</span> data[<span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>lime.explain<span class="sc">$</span>results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>              beta x.recoded    effect x.original feature feature.value
-rm       4.1893817     6.575 27.545185      6.575      rm      rm=6.575
-ptratio -0.5307031    15.300 -8.119758       15.3 ptratio  ptratio=15.3
-lstat   -0.4398104     4.980 -2.190256       4.98   lstat    lstat=4.98</code></pre>
+<pre><code>             beta x.recoded       effect        x.original feature
+bio9  -0.03972318 0.2494100 -0.009907356 0.249409955204759    bio9
+bio16 -0.12035200 0.7124535 -0.085745198 0.712453479144842   bio16
+                feature.value
+bio9   bio9=0.249409955204759
+bio16 bio16=0.712453479144842</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lime.explain)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lime.explain)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="D2-explainableAI_files/figure-html/chunk_chapter6_8-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -482,8 +600,8 @@ lstat   -0.4398104     4.980 -2.190256       4.98   lstat    lstat=4.98</code></
 <h2 data-number="14.8" class="anchored" data-anchor-id="local-explainer---shapley"><span class="header-section-number">14.8</span> Local Explainer - Shapley</h2>
 <p>The Shapley method computes the so called Shapley value, feature contributions for single predictions, and is based on an approach from cooperative game theory. The idea is that each feature value of the instance is a “player” in a game, where the prediction is the reward. The Shapley value tells us how to fairly distribute the reward among the features.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>shapley <span class="ot">=</span> Shapley<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">x.interest =</span> X[<span class="dv">1</span>,])</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>shapley<span class="sc">$</span><span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>shapley <span class="ot">=</span> Shapley<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">x.interest =</span> data[<span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>shapley<span class="sc">$</span><span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="D2-explainableAI_files/figure-html/chunk_chapter6_9-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -501,121 +619,105 @@ Question
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Use one of the non-image based data sets (preferably Wine, which is also described in the data sets section <a href="Appendix-Datasets.html"><span>Appendix&nbsp;A</span></a> but wasn’t used yet, but you can also use Nasa or Titanic) and fit a random forest. Explore / interpret the fitted model using <code>iml</code> (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>).</p>
+<p>Use one of the non-image based data sets (preferably Wine, which is also described in the data sets section <a href="Appendix-Datasets.html"><span>Appendix&nbsp;A</span></a> but wasn’t used yet, but you can also use Nasa or Titanic) and fit a random forest or a BRT using xgboost. Explore / interpret the fitted model using <code>iml</code> (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>).</p>
 <div class="webex-solution">
 <button>
-Click here to see the solution
+Click here to see the solution for RF
 </button>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"iml"</span>)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">as.data.frame</span>(EcoData<span class="sc">::</span>wine)</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>submission <span class="ot">=</span> data[<span class="fu">which</span>(<span class="fu">is.na</span>(data<span class="sc">$</span>quality)), <span class="sc">-</span><span class="fu">which</span>(<span class="fu">colnames</span>(data) <span class="sc">==</span> <span class="st">"quality"</span>)]</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> data[<span class="fu">complete.cases</span>(data), ] <span class="co"># Removes sumbmission data as well.</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Remark: Features don't need to be scaled for regression trees.</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">randomForest</span>(quality <span class="sc">~</span> ., <span class="at">data =</span> data)</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">predict</span>(rf, data))</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred, data<span class="sc">$</span>quality)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"iml"</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">as.data.frame</span>(EcoData<span class="sc">::</span>wine)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>submission <span class="ot">=</span> data[<span class="fu">which</span>(<span class="fu">is.na</span>(data<span class="sc">$</span>quality)), <span class="sc">-</span><span class="fu">which</span>(<span class="fu">colnames</span>(data) <span class="sc">==</span> <span class="st">"quality"</span>)]</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> data[<span class="fu">complete.cases</span>(data), ] <span class="co"># Removes sumbmission data as well.</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Remark: Features don't need to be scaled for regression trees.</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">ranger</span>(quality <span class="sc">~</span> ., <span class="at">data =</span> data, <span class="at">importance =</span> <span class="st">"impurity"</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">predict</span>(rf, data)<span class="sc">$</span>predictions)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred, data<span class="sc">$</span>quality)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    
 pred   3   4   5   6   7   8
-   4   2   4   0   0   0   0
-   5   0   6 133   0   0   0
-   6   0   0   3 113  10   0
-   7   0   0   0   0  25   3</code></pre>
+   4   2   6   0   0   0   0
+   5   0   4 133   1   0   0
+   6   0   0   3 112   9   0
+   7   0   0   0   0  26   3</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>(<span class="at">accuracy =</span> <span class="fu">mean</span>(pred <span class="sc">==</span> data<span class="sc">$</span>quality)) <span class="co"># Fits pretty well (on the training data...)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>(<span class="at">accuracy =</span> <span class="fu">mean</span>(pred <span class="sc">==</span> data<span class="sc">$</span>quality)) <span class="co"># Fits pretty well (on the training data...)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.9197324</code></pre>
+<pre><code>[1] 0.9264214</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For submission:</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co">#write.csv(round(predict(rf, submission)), file = "wine_RF.csv")</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard depiction of importance:</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>rf<span class="sc">$</span>importance</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For submission:</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co">#write.csv(round(predict(rf, submission)), file = "wine_RF.csv")</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard depiction of importance:</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>rf<span class="sc">$</span>importance</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                     IncNodePurity
-fixed.acidity            12.279077
-volatile.acidity         21.997368
-citric.acid              13.751476
-residual.sugar           10.787817
-chlorides                11.587301
-free.sulfur.dioxide       9.966824
-total.sulfur.dioxide     13.977669
-density                  17.068801
-pH                       10.302109
-sulphates                20.273156
-alcohol                  37.316264</code></pre>
+<pre><code>[1] "impurity"</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># IML:</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>predictor <span class="ot">=</span> Predictor<span class="sc">$</span><span class="fu">new</span>(</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    rf, <span class="at">data =</span> data[,<span class="fu">which</span>(<span class="fu">names</span>(data) <span class="sc">!=</span> <span class="st">"quality"</span>)], <span class="at">y =</span> data<span class="sc">$</span>quality)</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Mind: This is stochastical!</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>importance <span class="ot">=</span> FeatureImp<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">loss =</span> <span class="st">"mae"</span>)</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(importance)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Setup wrapper</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>predict_wrapper <span class="ot">=</span> <span class="cf">function</span>(model, newdata) <span class="fu">predict</span>(model, <span class="at">data=</span>newdata)<span class="sc">$</span>predictions</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="co"># IML:</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>predictor <span class="ot">=</span> Predictor<span class="sc">$</span><span class="fu">new</span>(</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    rf, <span class="at">data =</span> data[,<span class="fu">which</span>(<span class="fu">names</span>(data) <span class="sc">!=</span> <span class="st">"quality"</span>)], <span class="at">y =</span> data<span class="sc">$</span>quality,</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">predict.function =</span> predict_wrapper</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Mind: This is stochastical!</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>importance <span class="ot">=</span> FeatureImp<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">loss =</span> <span class="st">"mae"</span>)</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(importance)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="D2-explainableAI_files/figure-html/chunk_chapter6_task_0-1.png" class="img-fluid" width="672"></p>
+<p><img src="D2-explainableAI_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparison between standard importance and IML importance:</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>importanceRf <span class="ot">=</span> <span class="fu">rownames</span>(rf<span class="sc">$</span>importance)[<span class="fu">order</span>(rf<span class="sc">$</span>importance, <span class="at">decreasing =</span> <span class="cn">TRUE</span>)]</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>importanceIML <span class="ot">=</span> importance<span class="sc">$</span>results[<span class="dv">1</span>]</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>comparison <span class="ot">=</span> <span class="fu">cbind</span>(importanceIML, importanceRf)</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(comparison) <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"IML"</span>, <span class="st">"RF"</span>)</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="fu">as.matrix</span>(comparison)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparison between standard importance and IML importance:</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>importanceRf <span class="ot">=</span> <span class="fu">names</span>(rf<span class="sc">$</span>variable.importance)[<span class="fu">order</span>(rf<span class="sc">$</span>variable.importance, <span class="at">decreasing =</span> <span class="cn">TRUE</span>)]</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>importanceIML <span class="ot">=</span> importance<span class="sc">$</span>results[<span class="dv">1</span>]</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>comparison <span class="ot">=</span> <span class="fu">cbind</span>(importanceIML, importanceRf)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(comparison) <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"IML"</span>, <span class="st">"RF"</span>)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="fu">as.matrix</span>(comparison)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>      IML                    RF                    
  [1,] "alcohol"              "alcohol"             
  [2,] "sulphates"            "volatile.acidity"    
  [3,] "volatile.acidity"     "sulphates"           
- [4,] "density"              "density"             
- [5,] "citric.acid"          "total.sulfur.dioxide"
- [6,] "total.sulfur.dioxide" "citric.acid"         
+ [4,] "citric.acid"          "density"             
+ [5,] "total.sulfur.dioxide" "total.sulfur.dioxide"
+ [6,] "density"              "citric.acid"         
  [7,] "fixed.acidity"        "fixed.acidity"       
- [8,] "chlorides"            "chlorides"           
- [9,] "pH"                   "residual.sugar"      
-[10,] "free.sulfur.dioxide"  "pH"                  
+ [8,] "pH"                   "chlorides"           
+ [9,] "free.sulfur.dioxide"  "pH"                  
+[10,] "chlorides"            "residual.sugar"      
 [11,] "residual.sugar"       "free.sulfur.dioxide" </code></pre>
 </div>
 </div>
 <p>Mind that feature importance, and the random forest’s variable importance are related but not equal! Variable importance is a measure for determining importance while creating the forest (i.e.&nbsp;for fitting). Feature importance is a measure for how important a variable is for prediction.</p>
 <p>Maybe you want to see other explanation methods as well. Surely you can use the other techniques of this section on your own.</p>
 </div>
-</div>
-</div>
-<div class="callout callout-style-default callout-caution no-icon callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Question
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>As we show in Section 13 of this chapter, a random forest will partition the importance of variables across collinear predictors, while a linear regression model (<code>lm()</code>) can identify which predictor is causally affecting the response (at least in theory, if all confounders are controlled). What about a boosted regression tree or an artificial neural network? Take the random forest example and add a boosted regression tree (easier, you can use e.g.&nbsp;<a href="https://rdrr.io/cran/xgboost/man/xgb.importance.html" class="uri">https://rdrr.io/cran/xgboost/man/xgb.importance.html</a>) or an artificial neural network and see if they are better than the random forest at identifying causal predictors.</p>
 <div class="webex-solution">
 <button>
-Click here to see the solution
+Click here to see the solution for xgboost
 </button>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">as.data.frame</span>(EcoData<span class="sc">::</span>wine)</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>submission <span class="ot">=</span> data[<span class="fu">which</span>(<span class="fu">is.na</span>(data<span class="sc">$</span>quality)), <span class="sc">-</span><span class="fu">which</span>(<span class="fu">colnames</span>(data) <span class="sc">==</span> <span class="st">"quality"</span>)]</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> data[<span class="fu">complete.cases</span>(data), ] <span class="co"># Removes sumbmission data as well.</span></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>data_xg <span class="ot">=</span> <span class="fu">xgb.DMatrix</span>(</span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">as.matrix</span>(data[,<span class="fu">which</span>(<span class="fu">names</span>(data) <span class="sc">!=</span> <span class="st">"quality"</span>)]),</span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">label =</span> data<span class="sc">$</span>quality</span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>brt <span class="ot">=</span> <span class="fu">xgboost</span>(data_xg, <span class="at">nrounds =</span> <span class="dv">24</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"iml"</span>)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">as.data.frame</span>(EcoData<span class="sc">::</span>wine)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>submission <span class="ot">=</span> data[<span class="fu">which</span>(<span class="fu">is.na</span>(data<span class="sc">$</span>quality)), <span class="sc">-</span><span class="fu">which</span>(<span class="fu">colnames</span>(data) <span class="sc">==</span> <span class="st">"quality"</span>)]</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> data[<span class="fu">complete.cases</span>(data), ] <span class="co"># Removes sumbmission data as well.</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>data_xg <span class="ot">=</span> <span class="fu">xgb.DMatrix</span>(</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">as.matrix</span>(data[,<span class="fu">which</span>(<span class="fu">names</span>(data) <span class="sc">!=</span> <span class="st">"quality"</span>)]),</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">label =</span> data<span class="sc">$</span>quality</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>brt <span class="ot">=</span> <span class="fu">xgboost</span>(data_xg, <span class="at">nrounds =</span> <span class="dv">24</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] train-rmse:3.656523 
 [2] train-rmse:2.609494 
@@ -642,8 +744,9 @@ Click here to see the solution
 [23]    train-rmse:0.110689 
 [24]    train-rmse:0.097798 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">predict</span>(brt, <span class="at">newdata =</span> data_xg)) <span class="co"># Only integers are allowed.</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred, data<span class="sc">$</span>quality)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">predict</span>(brt, <span class="at">newdata =</span> data_xg)) <span class="co"># On</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred, data<span class="sc">$</span>quality)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    
 pred   3   4   5   6   7   8
@@ -654,15 +757,125 @@ pred   3   4   5   6   7   8
    7   0   0   0   0  34   0
    8   0   0   0   0   0   3</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>(<span class="at">accuracy =</span> <span class="fu">mean</span>(pred <span class="sc">==</span> data<span class="sc">$</span>quality)) <span class="co"># Fits very well (on the training data...)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>(<span class="at">accuracy =</span> <span class="fu">mean</span>(pred <span class="sc">==</span> data<span class="sc">$</span>quality)) <span class="co"># Fits pretty well (on the training data...)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.9966555</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For submission:</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co">#write.csv(round(predict(rf, submission)), file = "wine_RF.csv")</span></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Look at variable importance:</span></span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>xgboost<span class="sc">::</span><span class="fu">xgb.importance</span>(<span class="at">model =</span> brt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For submission:</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co">#write.csv(round(predict(rf, submission)), file = "wine_RF.csv")</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard depiction of importance:</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>xgboost<span class="sc">::</span><span class="fu">xgb.importance</span>(<span class="at">model =</span> brt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                 Feature       Gain      Cover  Frequency
+ 1:              alcohol 0.28363854 0.13667721 0.07073509
+ 2:            sulphates 0.11331809 0.07015405 0.06657420
+ 3:        fixed.acidity 0.09844424 0.11359510 0.19278779
+ 4:     volatile.acidity 0.09582787 0.07098397 0.12760055
+ 5: total.sulfur.dioxide 0.09207959 0.09147259 0.07212205
+ 6:              density 0.07374571 0.14910006 0.08321775
+ 7:            chlorides 0.06025507 0.07972405 0.08876560
+ 8:       residual.sugar 0.05307941 0.07202137 0.08044383
+ 9:  free.sulfur.dioxide 0.04602735 0.04743503 0.06518724
+10:                   pH 0.04477571 0.12562892 0.07489598
+11:          citric.acid 0.03880842 0.04320764 0.07766990</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Setup wrapper</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>predict_wrapper <span class="ot">=</span> <span class="cf">function</span>(model, newdata) <span class="fu">predict</span>(model, <span class="fu">as.matrix</span>(newdata))</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co"># IML:</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>predictor <span class="ot">=</span> Predictor<span class="sc">$</span><span class="fu">new</span>(</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    brt, <span class="at">data =</span> data[,<span class="fu">which</span>(<span class="fu">names</span>(data) <span class="sc">!=</span> <span class="st">"quality"</span>)], <span class="at">y =</span> data<span class="sc">$</span>quality,</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">predict.function =</span> predict_wrapper</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Mind: This is stochastical!</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>importance <span class="ot">=</span> FeatureImp<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">loss =</span> <span class="st">"mae"</span>)</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(importance)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="D2-explainableAI_files/figure-html/chunk_chapter6_task_0-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-caution no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Question
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>As we show in Section 13 of this chapter, a random forest will partition the importance of variables across collinear predictors, while a linear regression model (<code>lm()</code>) can identify which predictor is causally affecting the response (at least in theory, if all confounders are controlled). What about a boosted regression tree or an artificial neural network? Take the random forest example and add a boosted regression tree (easier, you can use e.g.&nbsp;<a href="https://rdrr.io/cran/xgboost/man/xgb.importance.html" class="uri">https://rdrr.io/cran/xgboost/man/xgb.importance.html</a>) or an artificial neural network and see if they are better than the random forest at identifying causal predictors.</p>
+<div class="webex-solution">
+<button>
+Click here to see the solution
+</button>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">as.data.frame</span>(EcoData<span class="sc">::</span>wine)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>submission <span class="ot">=</span> data[<span class="fu">which</span>(<span class="fu">is.na</span>(data<span class="sc">$</span>quality)), <span class="sc">-</span><span class="fu">which</span>(<span class="fu">colnames</span>(data) <span class="sc">==</span> <span class="st">"quality"</span>)]</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> data[<span class="fu">complete.cases</span>(data), ] <span class="co"># Removes sumbmission data as well.</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>data_xg <span class="ot">=</span> <span class="fu">xgb.DMatrix</span>(</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">as.matrix</span>(data[,<span class="fu">which</span>(<span class="fu">names</span>(data) <span class="sc">!=</span> <span class="st">"quality"</span>)]),</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">label =</span> data<span class="sc">$</span>quality</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>brt <span class="ot">=</span> <span class="fu">xgboost</span>(data_xg, <span class="at">nrounds =</span> <span class="dv">24</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] train-rmse:3.656523 
+[2] train-rmse:2.609494 
+[3] train-rmse:1.884807 
+[4] train-rmse:1.384918 
+[5] train-rmse:1.037362 
+[6] train-rmse:0.800110 
+[7] train-rmse:0.629324 
+[8] train-rmse:0.508917 
+[9] train-rmse:0.426155 
+[10]    train-rmse:0.369580 
+[11]    train-rmse:0.313017 
+[12]    train-rmse:0.274227 
+[13]    train-rmse:0.236959 
+[14]    train-rmse:0.207364 
+[15]    train-rmse:0.195811 
+[16]    train-rmse:0.182500 
+[17]    train-rmse:0.173310 
+[18]    train-rmse:0.154747 
+[19]    train-rmse:0.144045 
+[20]    train-rmse:0.139083 
+[21]    train-rmse:0.129605 
+[22]    train-rmse:0.118541 
+[23]    train-rmse:0.110689 
+[24]    train-rmse:0.097798 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">predict</span>(brt, <span class="at">newdata =</span> data_xg)) <span class="co"># Only integers are allowed.</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred, data<span class="sc">$</span>quality)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    
+pred   3   4   5   6   7   8
+   3   2   0   0   0   0   0
+   4   0  10   0   0   0   0
+   5   0   0 136   0   0   0
+   6   0   0   0 113   1   0
+   7   0   0   0   0  34   0
+   8   0   0   0   0   0   3</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>(<span class="at">accuracy =</span> <span class="fu">mean</span>(pred <span class="sc">==</span> data<span class="sc">$</span>quality)) <span class="co"># Fits very well (on the training data...)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.9966555</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For submission:</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co">#write.csv(round(predict(rf, submission)), file = "wine_RF.csv")</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Look at variable importance:</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>xgboost<span class="sc">::</span><span class="fu">xgb.importance</span>(<span class="at">model =</span> brt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                 Feature       Gain      Cover  Frequency
  1:              alcohol 0.28363854 0.13667721 0.07073509
@@ -704,190 +917,190 @@ Bonus Task
 Click here to see the solution
 </button>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set_random_seed</span>(123L, <span class="at">disable_gpu =</span> <span class="cn">FALSE</span>)  <span class="co"># Already sets R's random seed.</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>readin <span class="ot">=</span> <span class="cf">function</span>(<span class="at">percentageTest =</span> <span class="fl">0.2</span>, <span class="at">aggregate =</span> <span class="dv">0</span>){</span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Parameter "aggregate" packs the classes with very low abundances into one.</span></span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># If "aggregate" equals to NA, NaN, Null, 0 or FALSE, no aggregation is performed.</span></span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Else, the given number is the boundary.</span></span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Every class with less elements than the boundary is aggregated into one.</span></span>
-<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># </span><span class="al">WARNING</span><span class="co">: These classes cannot be distinguished from then on!</span></span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Using the predictions for submission needs further processing!</span></span>
-<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Just for random selection of features, independent of the amount of function calls.</span></span>
-<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">set.seed</span>(<span class="dv">12345</span>)</span>
-<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>    train <span class="ot">=</span> <span class="fu">as.data.frame</span>(EcoData<span class="sc">::</span>wine)</span>
-<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>    indicesTrain <span class="ot">=</span> <span class="fu">which</span>(<span class="sc">!</span><span class="fu">is.na</span>(train<span class="sc">$</span>quality))</span>
-<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>    labelsTrain <span class="ot">=</span> train<span class="sc">$</span>quality[indicesTrain]</span>
-<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>    labelsTrain <span class="ot">=</span> labelsTrain <span class="sc">-</span> <span class="fu">min</span>(labelsTrain)  <span class="co"># Start at 0 (for softmax).</span></span>
-<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a>    train <span class="ot">=</span> train[, <span class="sc">-</span><span class="fu">which</span>(<span class="fu">colnames</span>(train) <span class="sc">==</span> <span class="st">"quality"</span>)]</span>
-<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(<span class="sc">!</span><span class="fu">is.na</span>(aggregate) <span class="sc">&amp;</span> aggregate){</span>
-<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a>        indices <span class="ot">=</span> <span class="fu">names</span>(<span class="fu">table</span>(labelsTrain)[</span>
-<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a>            <span class="fu">table</span>(labelsTrain) <span class="sc">&lt;</span> aggregate <span class="sc">&amp;</span> <span class="fu">table</span>(labelsTrain) <span class="sc">&gt;</span> <span class="dv">0</span></span>
-<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a>        ])</span>
-<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span>(<span class="fu">length</span>(indices)){</span>
-<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a>            labelsTrain[labelsTrain <span class="sc">%in%</span> indices] <span class="ot">=</span> <span class="sc">-</span><span class="dv">1</span></span>
-<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a>            labelsTrain <span class="ot">=</span> <span class="fu">as.factor</span>(labelsTrain)</span>
-<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a>            <span class="fu">levels</span>(labelsTrain) <span class="ot">=</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(<span class="fu">levels</span>(labelsTrain)) <span class="sc">-</span> <span class="dv">1</span></span>
-<span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a>            labelsTrain <span class="ot">=</span> <span class="fu">as.integer</span>(labelsTrain)</span>
-<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb33-34"><a href="#cb33-34" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Impute missing values (before any splitting, to get the highest power):</span></span>
-<span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a>    train <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(</span>
-<span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> train,</span>
-<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a>        <span class="at">maxiter =</span> 10L,</span>
-<span id="cb33-39"><a href="#cb33-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">seed =</span> <span class="dv">123</span>,</span>
-<span id="cb33-40"><a href="#cb33-40" aria-hidden="true" tabindex="-1"></a>        <span class="at">num.trees =</span> 200L</span>
-<span id="cb33-41"><a href="#cb33-41" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb33-42"><a href="#cb33-42" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb33-43"><a href="#cb33-43" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Separate submission data (mind scaling!):</span></span>
-<span id="cb33-44"><a href="#cb33-44" aria-hidden="true" tabindex="-1"></a>    submission <span class="ot">=</span> <span class="fu">scale</span>(train[<span class="sc">-</span>indicesTrain,])</span>
-<span id="cb33-45"><a href="#cb33-45" aria-hidden="true" tabindex="-1"></a>    train <span class="ot">=</span> <span class="fu">scale</span>(train[indicesTrain,])</span>
-<span id="cb33-46"><a href="#cb33-46" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb33-47"><a href="#cb33-47" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Very asymmetric training data:</span></span>
-<span id="cb33-48"><a href="#cb33-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="fu">paste0</span>(<span class="st">"Size of training set: "</span>, <span class="fu">length</span>(labelsTrain), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>))</span>
-<span id="cb33-49"><a href="#cb33-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="fu">table</span>(labelsTrain))</span>
-<span id="cb33-50"><a href="#cb33-50" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb33-51"><a href="#cb33-51" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(percentageTest <span class="sc">==</span> <span class="dv">0</span>){</span>
-<span id="cb33-52"><a href="#cb33-52" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">list</span>(</span>
-<span id="cb33-53"><a href="#cb33-53" aria-hidden="true" tabindex="-1"></a>        <span class="st">"labelsTrain"</span> <span class="ot">=</span> labelsTrain,</span>
-<span id="cb33-54"><a href="#cb33-54" aria-hidden="true" tabindex="-1"></a>        <span class="st">"labelsTest"</span> <span class="ot">=</span> <span class="fu">list</span>(),</span>
-<span id="cb33-55"><a href="#cb33-55" aria-hidden="true" tabindex="-1"></a>        <span class="st">"train"</span> <span class="ot">=</span> train,</span>
-<span id="cb33-56"><a href="#cb33-56" aria-hidden="true" tabindex="-1"></a>        <span class="st">"test"</span> <span class="ot">=</span> <span class="fu">list</span>(),</span>
-<span id="cb33-57"><a href="#cb33-57" aria-hidden="true" tabindex="-1"></a>        <span class="st">"submission"</span> <span class="ot">=</span> submission</span>
-<span id="cb33-58"><a href="#cb33-58" aria-hidden="true" tabindex="-1"></a>      ))</span>
-<span id="cb33-59"><a href="#cb33-59" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb33-60"><a href="#cb33-60" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb33-61"><a href="#cb33-61" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Split into training and test set:</span></span>
-<span id="cb33-62"><a href="#cb33-62" aria-hidden="true" tabindex="-1"></a>    len <span class="ot">=</span> <span class="fu">nrow</span>(train)</span>
-<span id="cb33-63"><a href="#cb33-63" aria-hidden="true" tabindex="-1"></a>    indicesTest <span class="ot">=</span> <span class="fu">sample</span>(<span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span>len, <span class="at">size =</span> percentageTest <span class="sc">*</span> len, <span class="at">replace =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb33-64"><a href="#cb33-64" aria-hidden="true" tabindex="-1"></a>    test <span class="ot">=</span> <span class="fu">as.data.frame</span>(train[indicesTest,])</span>
-<span id="cb33-65"><a href="#cb33-65" aria-hidden="true" tabindex="-1"></a>    labelsTest <span class="ot">=</span> labelsTrain[indicesTest]</span>
-<span id="cb33-66"><a href="#cb33-66" aria-hidden="true" tabindex="-1"></a>    train <span class="ot">=</span> <span class="fu">as.data.frame</span>(train[<span class="sc">-</span>indicesTest,])</span>
-<span id="cb33-67"><a href="#cb33-67" aria-hidden="true" tabindex="-1"></a>    labelsTrain <span class="ot">=</span> labelsTrain[<span class="sc">-</span>indicesTest]</span>
-<span id="cb33-68"><a href="#cb33-68" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb33-69"><a href="#cb33-69" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(</span>
-<span id="cb33-70"><a href="#cb33-70" aria-hidden="true" tabindex="-1"></a>        <span class="st">"labelsTrain"</span> <span class="ot">=</span> labelsTrain,</span>
-<span id="cb33-71"><a href="#cb33-71" aria-hidden="true" tabindex="-1"></a>        <span class="st">"labelsTest"</span> <span class="ot">=</span> labelsTest,</span>
-<span id="cb33-72"><a href="#cb33-72" aria-hidden="true" tabindex="-1"></a>        <span class="st">"train"</span> <span class="ot">=</span> train,</span>
-<span id="cb33-73"><a href="#cb33-73" aria-hidden="true" tabindex="-1"></a>        <span class="st">"test"</span> <span class="ot">=</span> test,</span>
-<span id="cb33-74"><a href="#cb33-74" aria-hidden="true" tabindex="-1"></a>        <span class="st">"submission"</span> <span class="ot">=</span> submission</span>
-<span id="cb33-75"><a href="#cb33-75" aria-hidden="true" tabindex="-1"></a>    ))</span>
-<span id="cb33-76"><a href="#cb33-76" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb33-77"><a href="#cb33-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-78"><a href="#cb33-78" aria-hidden="true" tabindex="-1"></a>retVal <span class="ot">=</span> <span class="fu">readin</span>(<span class="at">aggregate =</span> <span class="dv">0</span>)</span>
-<span id="cb33-79"><a href="#cb33-79" aria-hidden="true" tabindex="-1"></a>labelsTrain <span class="ot">=</span> retVal[[<span class="st">"labelsTrain"</span>]]</span>
-<span id="cb33-80"><a href="#cb33-80" aria-hidden="true" tabindex="-1"></a>labelsTest <span class="ot">=</span> retVal[[<span class="st">"labelsTest"</span>]]</span>
-<span id="cb33-81"><a href="#cb33-81" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> retVal[[<span class="st">"train"</span>]]</span>
-<span id="cb33-82"><a href="#cb33-82" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> retVal[[<span class="st">"test"</span>]]</span>
-<span id="cb33-83"><a href="#cb33-83" aria-hidden="true" tabindex="-1"></a>submission <span class="ot">=</span> retVal[[<span class="st">"submission"</span>]]</span>
-<span id="cb33-84"><a href="#cb33-84" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(retVal)</span>
-<span id="cb33-85"><a href="#cb33-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-86"><a href="#cb33-86" aria-hidden="true" tabindex="-1"></a>classNumber <span class="ot">=</span> <span class="fu">length</span>(<span class="fu">table</span>(labelsTrain))</span>
-<span id="cb33-87"><a href="#cb33-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-88"><a href="#cb33-88" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb33-89"><a href="#cb33-89" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
-<span id="cb33-90"><a href="#cb33-90" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 200L, <span class="at">activation =</span> <span class="st">"leaky_relu"</span>,</span>
-<span id="cb33-91"><a href="#cb33-91" aria-hidden="true" tabindex="-1"></a>    <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l2</span>(<span class="fl">0.00035</span>),</span>
-<span id="cb33-92"><a href="#cb33-92" aria-hidden="true" tabindex="-1"></a>    <span class="at">input_shape =</span> <span class="fu">ncol</span>(train)) <span class="sc">%&gt;%</span></span>
-<span id="cb33-93"><a href="#cb33-93" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.45</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-94"><a href="#cb33-94" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 100L, <span class="at">activation =</span> <span class="st">"relu"</span>,</span>
-<span id="cb33-95"><a href="#cb33-95" aria-hidden="true" tabindex="-1"></a>    <span class="at">bias_regularizer =</span> <span class="fu">regularizer_l1_l2</span>(<span class="fl">0.5</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb33-96"><a href="#cb33-96" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.2</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-97"><a href="#cb33-97" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 100L, <span class="at">activation =</span> <span class="st">"leaky_relu"</span>,</span>
-<span id="cb33-98"><a href="#cb33-98" aria-hidden="true" tabindex="-1"></a>    <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l2</span>(<span class="fl">0.00035</span>),</span>
-<span id="cb33-99"><a href="#cb33-99" aria-hidden="true" tabindex="-1"></a>    <span class="at">bias_regularizer =</span> <span class="fu">regularizer_l1_l2</span>(<span class="fl">0.1</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb33-100"><a href="#cb33-100" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.25</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-101"><a href="#cb33-101" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 50L, <span class="at">activation =</span> <span class="st">"gelu"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-102"><a href="#cb33-102" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 25L, <span class="at">activation =</span> <span class="st">"elu"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-103"><a href="#cb33-103" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.35</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-104"><a href="#cb33-104" aria-hidden="true" tabindex="-1"></a>    <span class="co"># We need probabilities. So we use the softmax function.</span></span>
-<span id="cb33-105"><a href="#cb33-105" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Remember, the labels MUST start at 0!</span></span>
-<span id="cb33-106"><a href="#cb33-106" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> classNumber, <span class="at">activation =</span> <span class="st">"softmax"</span>)</span>
-<span id="cb33-107"><a href="#cb33-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-108"><a href="#cb33-108" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
-<span id="cb33-109"><a href="#cb33-109" aria-hidden="true" tabindex="-1"></a>    keras<span class="sc">::</span><span class="fu">compile</span>(<span class="at">loss =</span> loss_binary_crossentropy,</span>
-<span id="cb33-110"><a href="#cb33-110" aria-hidden="true" tabindex="-1"></a>                   <span class="at">optimizer =</span> <span class="fu">optimizer_adamax</span>(<span class="at">learning_rate =</span> <span class="fl">0.015</span>))</span>
-<span id="cb33-111"><a href="#cb33-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-112"><a href="#cb33-112" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span> </span>
-<span id="cb33-113"><a href="#cb33-113" aria-hidden="true" tabindex="-1"></a>    model <span class="sc">%&gt;%</span> <span class="co"># Mind the matrix property (no data.frame)!</span></span>
-<span id="cb33-114"><a href="#cb33-114" aria-hidden="true" tabindex="-1"></a>        <span class="fu">fit</span>(<span class="at">x =</span> <span class="fu">as.matrix</span>(train), <span class="at">y =</span> <span class="fu">k_one_hot</span>(labelsTrain, classNumber),</span>
-<span id="cb33-115"><a href="#cb33-115" aria-hidden="true" tabindex="-1"></a>            <span class="at">epochs =</span> 80L, <span class="at">batch =</span> 12L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb33-116"><a href="#cb33-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-117"><a href="#cb33-117" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model_history)</span>
-<span id="cb33-118"><a href="#cb33-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-119"><a href="#cb33-119" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy on training set (!)</span></span>
-<span id="cb33-120"><a href="#cb33-120" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">as.matrix</span>(train)) <span class="sc">%&gt;%</span> <span class="fu">apply</span>(<span class="dv">1</span>, which.max) <span class="sc">-</span> <span class="dv">1</span></span>
-<span id="cb33-121"><a href="#cb33-121" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">accuracy</span>(pred, labelsTrain)</span>
-<span id="cb33-122"><a href="#cb33-122" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred, labelsTrain)</span>
-<span id="cb33-123"><a href="#cb33-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-124"><a href="#cb33-124" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy on test set</span></span>
-<span id="cb33-125"><a href="#cb33-125" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">as.matrix</span>(test)) <span class="sc">%&gt;%</span> <span class="fu">apply</span>(<span class="dv">1</span>, which.max) <span class="sc">-</span> <span class="dv">1</span></span>
-<span id="cb33-126"><a href="#cb33-126" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">accuracy</span>(pred, labelsTest)</span>
-<span id="cb33-127"><a href="#cb33-127" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred, labelsTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set_random_seed</span>(123L, <span class="at">disable_gpu =</span> <span class="cn">FALSE</span>)  <span class="co"># Already sets R's random seed.</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>readin <span class="ot">=</span> <span class="cf">function</span>(<span class="at">percentageTest =</span> <span class="fl">0.2</span>, <span class="at">aggregate =</span> <span class="dv">0</span>){</span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Parameter "aggregate" packs the classes with very low abundances into one.</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># If "aggregate" equals to NA, NaN, Null, 0 or FALSE, no aggregation is performed.</span></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Else, the given number is the boundary.</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Every class with less elements than the boundary is aggregated into one.</span></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># </span><span class="al">WARNING</span><span class="co">: These classes cannot be distinguished from then on!</span></span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Using the predictions for submission needs further processing!</span></span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Just for random selection of features, independent of the amount of function calls.</span></span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">set.seed</span>(<span class="dv">12345</span>)</span>
+<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb41-17"><a href="#cb41-17" aria-hidden="true" tabindex="-1"></a>    train <span class="ot">=</span> <span class="fu">as.data.frame</span>(EcoData<span class="sc">::</span>wine)</span>
+<span id="cb41-18"><a href="#cb41-18" aria-hidden="true" tabindex="-1"></a>    indicesTrain <span class="ot">=</span> <span class="fu">which</span>(<span class="sc">!</span><span class="fu">is.na</span>(train<span class="sc">$</span>quality))</span>
+<span id="cb41-19"><a href="#cb41-19" aria-hidden="true" tabindex="-1"></a>    labelsTrain <span class="ot">=</span> train<span class="sc">$</span>quality[indicesTrain]</span>
+<span id="cb41-20"><a href="#cb41-20" aria-hidden="true" tabindex="-1"></a>    labelsTrain <span class="ot">=</span> labelsTrain <span class="sc">-</span> <span class="fu">min</span>(labelsTrain)  <span class="co"># Start at 0 (for softmax).</span></span>
+<span id="cb41-21"><a href="#cb41-21" aria-hidden="true" tabindex="-1"></a>    train <span class="ot">=</span> train[, <span class="sc">-</span><span class="fu">which</span>(<span class="fu">colnames</span>(train) <span class="sc">==</span> <span class="st">"quality"</span>)]</span>
+<span id="cb41-22"><a href="#cb41-22" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb41-23"><a href="#cb41-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(<span class="sc">!</span><span class="fu">is.na</span>(aggregate) <span class="sc">&amp;</span> aggregate){</span>
+<span id="cb41-24"><a href="#cb41-24" aria-hidden="true" tabindex="-1"></a>        indices <span class="ot">=</span> <span class="fu">names</span>(<span class="fu">table</span>(labelsTrain)[</span>
+<span id="cb41-25"><a href="#cb41-25" aria-hidden="true" tabindex="-1"></a>            <span class="fu">table</span>(labelsTrain) <span class="sc">&lt;</span> aggregate <span class="sc">&amp;</span> <span class="fu">table</span>(labelsTrain) <span class="sc">&gt;</span> <span class="dv">0</span></span>
+<span id="cb41-26"><a href="#cb41-26" aria-hidden="true" tabindex="-1"></a>        ])</span>
+<span id="cb41-27"><a href="#cb41-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span>(<span class="fu">length</span>(indices)){</span>
+<span id="cb41-28"><a href="#cb41-28" aria-hidden="true" tabindex="-1"></a>            labelsTrain[labelsTrain <span class="sc">%in%</span> indices] <span class="ot">=</span> <span class="sc">-</span><span class="dv">1</span></span>
+<span id="cb41-29"><a href="#cb41-29" aria-hidden="true" tabindex="-1"></a>            labelsTrain <span class="ot">=</span> <span class="fu">as.factor</span>(labelsTrain)</span>
+<span id="cb41-30"><a href="#cb41-30" aria-hidden="true" tabindex="-1"></a>            <span class="fu">levels</span>(labelsTrain) <span class="ot">=</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(<span class="fu">levels</span>(labelsTrain)) <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb41-31"><a href="#cb41-31" aria-hidden="true" tabindex="-1"></a>            labelsTrain <span class="ot">=</span> <span class="fu">as.integer</span>(labelsTrain)</span>
+<span id="cb41-32"><a href="#cb41-32" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb41-33"><a href="#cb41-33" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb41-34"><a href="#cb41-34" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb41-35"><a href="#cb41-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Impute missing values (before any splitting, to get the highest power):</span></span>
+<span id="cb41-36"><a href="#cb41-36" aria-hidden="true" tabindex="-1"></a>    train <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(</span>
+<span id="cb41-37"><a href="#cb41-37" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> train,</span>
+<span id="cb41-38"><a href="#cb41-38" aria-hidden="true" tabindex="-1"></a>        <span class="at">maxiter =</span> 10L,</span>
+<span id="cb41-39"><a href="#cb41-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">seed =</span> <span class="dv">123</span>,</span>
+<span id="cb41-40"><a href="#cb41-40" aria-hidden="true" tabindex="-1"></a>        <span class="at">num.trees =</span> 200L</span>
+<span id="cb41-41"><a href="#cb41-41" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb41-42"><a href="#cb41-42" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb41-43"><a href="#cb41-43" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Separate submission data (mind scaling!):</span></span>
+<span id="cb41-44"><a href="#cb41-44" aria-hidden="true" tabindex="-1"></a>    submission <span class="ot">=</span> <span class="fu">scale</span>(train[<span class="sc">-</span>indicesTrain,])</span>
+<span id="cb41-45"><a href="#cb41-45" aria-hidden="true" tabindex="-1"></a>    train <span class="ot">=</span> <span class="fu">scale</span>(train[indicesTrain,])</span>
+<span id="cb41-46"><a href="#cb41-46" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb41-47"><a href="#cb41-47" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Very asymmetric training data:</span></span>
+<span id="cb41-48"><a href="#cb41-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="fu">paste0</span>(<span class="st">"Size of training set: "</span>, <span class="fu">length</span>(labelsTrain), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>))</span>
+<span id="cb41-49"><a href="#cb41-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="fu">table</span>(labelsTrain))</span>
+<span id="cb41-50"><a href="#cb41-50" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb41-51"><a href="#cb41-51" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(percentageTest <span class="sc">==</span> <span class="dv">0</span>){</span>
+<span id="cb41-52"><a href="#cb41-52" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="cb41-53"><a href="#cb41-53" aria-hidden="true" tabindex="-1"></a>        <span class="st">"labelsTrain"</span> <span class="ot">=</span> labelsTrain,</span>
+<span id="cb41-54"><a href="#cb41-54" aria-hidden="true" tabindex="-1"></a>        <span class="st">"labelsTest"</span> <span class="ot">=</span> <span class="fu">list</span>(),</span>
+<span id="cb41-55"><a href="#cb41-55" aria-hidden="true" tabindex="-1"></a>        <span class="st">"train"</span> <span class="ot">=</span> train,</span>
+<span id="cb41-56"><a href="#cb41-56" aria-hidden="true" tabindex="-1"></a>        <span class="st">"test"</span> <span class="ot">=</span> <span class="fu">list</span>(),</span>
+<span id="cb41-57"><a href="#cb41-57" aria-hidden="true" tabindex="-1"></a>        <span class="st">"submission"</span> <span class="ot">=</span> submission</span>
+<span id="cb41-58"><a href="#cb41-58" aria-hidden="true" tabindex="-1"></a>      ))</span>
+<span id="cb41-59"><a href="#cb41-59" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb41-60"><a href="#cb41-60" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb41-61"><a href="#cb41-61" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Split into training and test set:</span></span>
+<span id="cb41-62"><a href="#cb41-62" aria-hidden="true" tabindex="-1"></a>    len <span class="ot">=</span> <span class="fu">nrow</span>(train)</span>
+<span id="cb41-63"><a href="#cb41-63" aria-hidden="true" tabindex="-1"></a>    indicesTest <span class="ot">=</span> <span class="fu">sample</span>(<span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span>len, <span class="at">size =</span> percentageTest <span class="sc">*</span> len, <span class="at">replace =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb41-64"><a href="#cb41-64" aria-hidden="true" tabindex="-1"></a>    test <span class="ot">=</span> <span class="fu">as.data.frame</span>(train[indicesTest,])</span>
+<span id="cb41-65"><a href="#cb41-65" aria-hidden="true" tabindex="-1"></a>    labelsTest <span class="ot">=</span> labelsTrain[indicesTest]</span>
+<span id="cb41-66"><a href="#cb41-66" aria-hidden="true" tabindex="-1"></a>    train <span class="ot">=</span> <span class="fu">as.data.frame</span>(train[<span class="sc">-</span>indicesTest,])</span>
+<span id="cb41-67"><a href="#cb41-67" aria-hidden="true" tabindex="-1"></a>    labelsTrain <span class="ot">=</span> labelsTrain[<span class="sc">-</span>indicesTest]</span>
+<span id="cb41-68"><a href="#cb41-68" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb41-69"><a href="#cb41-69" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="cb41-70"><a href="#cb41-70" aria-hidden="true" tabindex="-1"></a>        <span class="st">"labelsTrain"</span> <span class="ot">=</span> labelsTrain,</span>
+<span id="cb41-71"><a href="#cb41-71" aria-hidden="true" tabindex="-1"></a>        <span class="st">"labelsTest"</span> <span class="ot">=</span> labelsTest,</span>
+<span id="cb41-72"><a href="#cb41-72" aria-hidden="true" tabindex="-1"></a>        <span class="st">"train"</span> <span class="ot">=</span> train,</span>
+<span id="cb41-73"><a href="#cb41-73" aria-hidden="true" tabindex="-1"></a>        <span class="st">"test"</span> <span class="ot">=</span> test,</span>
+<span id="cb41-74"><a href="#cb41-74" aria-hidden="true" tabindex="-1"></a>        <span class="st">"submission"</span> <span class="ot">=</span> submission</span>
+<span id="cb41-75"><a href="#cb41-75" aria-hidden="true" tabindex="-1"></a>    ))</span>
+<span id="cb41-76"><a href="#cb41-76" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb41-77"><a href="#cb41-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-78"><a href="#cb41-78" aria-hidden="true" tabindex="-1"></a>retVal <span class="ot">=</span> <span class="fu">readin</span>(<span class="at">aggregate =</span> <span class="dv">0</span>)</span>
+<span id="cb41-79"><a href="#cb41-79" aria-hidden="true" tabindex="-1"></a>labelsTrain <span class="ot">=</span> retVal[[<span class="st">"labelsTrain"</span>]]</span>
+<span id="cb41-80"><a href="#cb41-80" aria-hidden="true" tabindex="-1"></a>labelsTest <span class="ot">=</span> retVal[[<span class="st">"labelsTest"</span>]]</span>
+<span id="cb41-81"><a href="#cb41-81" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> retVal[[<span class="st">"train"</span>]]</span>
+<span id="cb41-82"><a href="#cb41-82" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> retVal[[<span class="st">"test"</span>]]</span>
+<span id="cb41-83"><a href="#cb41-83" aria-hidden="true" tabindex="-1"></a>submission <span class="ot">=</span> retVal[[<span class="st">"submission"</span>]]</span>
+<span id="cb41-84"><a href="#cb41-84" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(retVal)</span>
+<span id="cb41-85"><a href="#cb41-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-86"><a href="#cb41-86" aria-hidden="true" tabindex="-1"></a>classNumber <span class="ot">=</span> <span class="fu">length</span>(<span class="fu">table</span>(labelsTrain))</span>
+<span id="cb41-87"><a href="#cb41-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-88"><a href="#cb41-88" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
+<span id="cb41-89"><a href="#cb41-89" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
+<span id="cb41-90"><a href="#cb41-90" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 200L, <span class="at">activation =</span> <span class="st">"leaky_relu"</span>,</span>
+<span id="cb41-91"><a href="#cb41-91" aria-hidden="true" tabindex="-1"></a>    <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l2</span>(<span class="fl">0.00035</span>),</span>
+<span id="cb41-92"><a href="#cb41-92" aria-hidden="true" tabindex="-1"></a>    <span class="at">input_shape =</span> <span class="fu">ncol</span>(train)) <span class="sc">%&gt;%</span></span>
+<span id="cb41-93"><a href="#cb41-93" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.45</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb41-94"><a href="#cb41-94" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 100L, <span class="at">activation =</span> <span class="st">"relu"</span>,</span>
+<span id="cb41-95"><a href="#cb41-95" aria-hidden="true" tabindex="-1"></a>    <span class="at">bias_regularizer =</span> <span class="fu">regularizer_l1_l2</span>(<span class="fl">0.5</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb41-96"><a href="#cb41-96" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.2</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb41-97"><a href="#cb41-97" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 100L, <span class="at">activation =</span> <span class="st">"leaky_relu"</span>,</span>
+<span id="cb41-98"><a href="#cb41-98" aria-hidden="true" tabindex="-1"></a>    <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l2</span>(<span class="fl">0.00035</span>),</span>
+<span id="cb41-99"><a href="#cb41-99" aria-hidden="true" tabindex="-1"></a>    <span class="at">bias_regularizer =</span> <span class="fu">regularizer_l1_l2</span>(<span class="fl">0.1</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb41-100"><a href="#cb41-100" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.25</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb41-101"><a href="#cb41-101" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 50L, <span class="at">activation =</span> <span class="st">"gelu"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb41-102"><a href="#cb41-102" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 25L, <span class="at">activation =</span> <span class="st">"elu"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb41-103"><a href="#cb41-103" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.35</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb41-104"><a href="#cb41-104" aria-hidden="true" tabindex="-1"></a>    <span class="co"># We need probabilities. So we use the softmax function.</span></span>
+<span id="cb41-105"><a href="#cb41-105" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Remember, the labels MUST start at 0!</span></span>
+<span id="cb41-106"><a href="#cb41-106" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> classNumber, <span class="at">activation =</span> <span class="st">"softmax"</span>)</span>
+<span id="cb41-107"><a href="#cb41-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-108"><a href="#cb41-108" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
+<span id="cb41-109"><a href="#cb41-109" aria-hidden="true" tabindex="-1"></a>    keras<span class="sc">::</span><span class="fu">compile</span>(<span class="at">loss =</span> loss_binary_crossentropy,</span>
+<span id="cb41-110"><a href="#cb41-110" aria-hidden="true" tabindex="-1"></a>                   <span class="at">optimizer =</span> <span class="fu">optimizer_adamax</span>(<span class="at">learning_rate =</span> <span class="fl">0.015</span>))</span>
+<span id="cb41-111"><a href="#cb41-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-112"><a href="#cb41-112" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span> </span>
+<span id="cb41-113"><a href="#cb41-113" aria-hidden="true" tabindex="-1"></a>    model <span class="sc">%&gt;%</span> <span class="co"># Mind the matrix property (no data.frame)!</span></span>
+<span id="cb41-114"><a href="#cb41-114" aria-hidden="true" tabindex="-1"></a>        <span class="fu">fit</span>(<span class="at">x =</span> <span class="fu">as.matrix</span>(train), <span class="at">y =</span> <span class="fu">k_one_hot</span>(labelsTrain, classNumber),</span>
+<span id="cb41-115"><a href="#cb41-115" aria-hidden="true" tabindex="-1"></a>            <span class="at">epochs =</span> 80L, <span class="at">batch =</span> 12L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb41-116"><a href="#cb41-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-117"><a href="#cb41-117" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model_history)</span>
+<span id="cb41-118"><a href="#cb41-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-119"><a href="#cb41-119" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy on training set (!)</span></span>
+<span id="cb41-120"><a href="#cb41-120" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">as.matrix</span>(train)) <span class="sc">%&gt;%</span> <span class="fu">apply</span>(<span class="dv">1</span>, which.max) <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb41-121"><a href="#cb41-121" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">accuracy</span>(pred, labelsTrain)</span>
+<span id="cb41-122"><a href="#cb41-122" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred, labelsTrain)</span>
+<span id="cb41-123"><a href="#cb41-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-124"><a href="#cb41-124" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy on test set</span></span>
+<span id="cb41-125"><a href="#cb41-125" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">as.matrix</span>(test)) <span class="sc">%&gt;%</span> <span class="fu">apply</span>(<span class="dv">1</span>, which.max) <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb41-126"><a href="#cb41-126" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">accuracy</span>(pred, labelsTest)</span>
+<span id="cb41-127"><a href="#cb41-127" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred, labelsTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Recognize overfitting of your model selection strategy by changing the seed few times (while keeping the model constant) and increase the percentage of test data. Furthermore, consider fitting a random forest for good quality as well.</p>
 <p>For the final predictions, we use the whole data set without holdouts:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set_random_seed</span>(321L, <span class="at">disable_gpu =</span> <span class="cn">FALSE</span>)  <span class="co"># Already sets R's random seed.</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>retVal <span class="ot">=</span> <span class="fu">readin</span>(<span class="at">percentageTest =</span> <span class="dv">0</span>, <span class="at">aggregate =</span> <span class="dv">0</span>)</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>labelsTrain <span class="ot">=</span> retVal[[<span class="st">"labelsTrain"</span>]]</span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>labelsTest <span class="ot">=</span> retVal[[<span class="st">"labelsTest"</span>]]</span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> retVal[[<span class="st">"train"</span>]]</span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> retVal[[<span class="st">"test"</span>]]</span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>submission <span class="ot">=</span> retVal[[<span class="st">"submission"</span>]]</span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(retVal)</span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>classNumber <span class="ot">=</span> <span class="fu">length</span>(<span class="fu">table</span>(labelsTrain))</span>
-<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
-<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 200L, <span class="at">activation =</span> <span class="st">"leaky_relu"</span>,</span>
-<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l2</span>(<span class="fl">0.00035</span>),</span>
-<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">input_shape =</span> <span class="fu">ncol</span>(train)) <span class="sc">%&gt;%</span></span>
-<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.45</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 100L, <span class="at">activation =</span> <span class="st">"relu"</span>,</span>
-<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">bias_regularizer =</span> <span class="fu">regularizer_l1_l2</span>(<span class="fl">0.5</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.2</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 100L, <span class="at">activation =</span> <span class="st">"leaky_relu"</span>,</span>
-<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l2</span>(<span class="fl">0.00035</span>),</span>
-<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">bias_regularizer =</span> <span class="fu">regularizer_l1_l2</span>(<span class="fl">0.1</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.25</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 50L, <span class="at">activation =</span> <span class="st">"gelu"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 25L, <span class="at">activation =</span> <span class="st">"elu"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.35</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb34-31"><a href="#cb34-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># We need probabilities. So we use the softmax function.</span></span>
-<span id="cb34-32"><a href="#cb34-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Remember, the labels MUST start at 0!</span></span>
-<span id="cb34-33"><a href="#cb34-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> classNumber, <span class="at">activation =</span> <span class="st">"softmax"</span>)</span>
-<span id="cb34-34"><a href="#cb34-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-35"><a href="#cb34-35" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
-<span id="cb34-36"><a href="#cb34-36" aria-hidden="true" tabindex="-1"></a>    keras<span class="sc">::</span><span class="fu">compile</span>(<span class="at">loss =</span> loss_binary_crossentropy,</span>
-<span id="cb34-37"><a href="#cb34-37" aria-hidden="true" tabindex="-1"></a>                   <span class="at">optimizer =</span> <span class="fu">optimizer_adamax</span>(<span class="at">learning_rate =</span> <span class="fl">0.015</span>))</span>
-<span id="cb34-38"><a href="#cb34-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-39"><a href="#cb34-39" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span> </span>
-<span id="cb34-40"><a href="#cb34-40" aria-hidden="true" tabindex="-1"></a>    model <span class="sc">%&gt;%</span> <span class="co"># Mind the matrix property (no data.frame)!</span></span>
-<span id="cb34-41"><a href="#cb34-41" aria-hidden="true" tabindex="-1"></a>        <span class="fu">fit</span>(<span class="at">x =</span> <span class="fu">as.matrix</span>(train), <span class="at">y =</span> <span class="fu">k_one_hot</span>(labelsTrain, classNumber),</span>
-<span id="cb34-42"><a href="#cb34-42" aria-hidden="true" tabindex="-1"></a>            <span class="at">epochs =</span> 80L, <span class="at">batch =</span> 12L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb34-43"><a href="#cb34-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-44"><a href="#cb34-44" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model_history)</span>
-<span id="cb34-45"><a href="#cb34-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-46"><a href="#cb34-46" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy on training set (!)</span></span>
-<span id="cb34-47"><a href="#cb34-47" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">as.matrix</span>(train)) <span class="sc">%&gt;%</span> <span class="fu">apply</span>(<span class="dv">1</span>, which.max) <span class="sc">-</span> <span class="dv">1</span></span>
-<span id="cb34-48"><a href="#cb34-48" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">accuracy</span>(pred, labelsTrain)</span>
-<span id="cb34-49"><a href="#cb34-49" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred, labelsTrain)</span>
-<span id="cb34-50"><a href="#cb34-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-51"><a href="#cb34-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Reverse subtraction (for start at 0) and create submission file.</span></span>
-<span id="cb34-52"><a href="#cb34-52" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(pred <span class="sc">+</span> <span class="fu">min</span>(<span class="fu">as.data.frame</span>(EcoData<span class="sc">::</span>wine)<span class="sc">$</span>quality, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb34-53"><a href="#cb34-53" aria-hidden="true" tabindex="-1"></a>          <span class="at">file =</span> <span class="st">"wine_NN.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set_random_seed</span>(321L, <span class="at">disable_gpu =</span> <span class="cn">FALSE</span>)  <span class="co"># Already sets R's random seed.</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>retVal <span class="ot">=</span> <span class="fu">readin</span>(<span class="at">percentageTest =</span> <span class="dv">0</span>, <span class="at">aggregate =</span> <span class="dv">0</span>)</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>labelsTrain <span class="ot">=</span> retVal[[<span class="st">"labelsTrain"</span>]]</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>labelsTest <span class="ot">=</span> retVal[[<span class="st">"labelsTest"</span>]]</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> retVal[[<span class="st">"train"</span>]]</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> retVal[[<span class="st">"test"</span>]]</span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>submission <span class="ot">=</span> retVal[[<span class="st">"submission"</span>]]</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(retVal)</span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>classNumber <span class="ot">=</span> <span class="fu">length</span>(<span class="fu">table</span>(labelsTrain))</span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
+<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
+<span id="cb42-17"><a href="#cb42-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 200L, <span class="at">activation =</span> <span class="st">"leaky_relu"</span>,</span>
+<span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l2</span>(<span class="fl">0.00035</span>),</span>
+<span id="cb42-19"><a href="#cb42-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">input_shape =</span> <span class="fu">ncol</span>(train)) <span class="sc">%&gt;%</span></span>
+<span id="cb42-20"><a href="#cb42-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.45</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb42-21"><a href="#cb42-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 100L, <span class="at">activation =</span> <span class="st">"relu"</span>,</span>
+<span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">bias_regularizer =</span> <span class="fu">regularizer_l1_l2</span>(<span class="fl">0.5</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb42-23"><a href="#cb42-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.2</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb42-24"><a href="#cb42-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 100L, <span class="at">activation =</span> <span class="st">"leaky_relu"</span>,</span>
+<span id="cb42-25"><a href="#cb42-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l2</span>(<span class="fl">0.00035</span>),</span>
+<span id="cb42-26"><a href="#cb42-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">bias_regularizer =</span> <span class="fu">regularizer_l1_l2</span>(<span class="fl">0.1</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb42-27"><a href="#cb42-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.25</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb42-28"><a href="#cb42-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 50L, <span class="at">activation =</span> <span class="st">"gelu"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb42-29"><a href="#cb42-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 25L, <span class="at">activation =</span> <span class="st">"elu"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb42-30"><a href="#cb42-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.35</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb42-31"><a href="#cb42-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># We need probabilities. So we use the softmax function.</span></span>
+<span id="cb42-32"><a href="#cb42-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Remember, the labels MUST start at 0!</span></span>
+<span id="cb42-33"><a href="#cb42-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> classNumber, <span class="at">activation =</span> <span class="st">"softmax"</span>)</span>
+<span id="cb42-34"><a href="#cb42-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-35"><a href="#cb42-35" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
+<span id="cb42-36"><a href="#cb42-36" aria-hidden="true" tabindex="-1"></a>    keras<span class="sc">::</span><span class="fu">compile</span>(<span class="at">loss =</span> loss_binary_crossentropy,</span>
+<span id="cb42-37"><a href="#cb42-37" aria-hidden="true" tabindex="-1"></a>                   <span class="at">optimizer =</span> <span class="fu">optimizer_adamax</span>(<span class="at">learning_rate =</span> <span class="fl">0.015</span>))</span>
+<span id="cb42-38"><a href="#cb42-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-39"><a href="#cb42-39" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span> </span>
+<span id="cb42-40"><a href="#cb42-40" aria-hidden="true" tabindex="-1"></a>    model <span class="sc">%&gt;%</span> <span class="co"># Mind the matrix property (no data.frame)!</span></span>
+<span id="cb42-41"><a href="#cb42-41" aria-hidden="true" tabindex="-1"></a>        <span class="fu">fit</span>(<span class="at">x =</span> <span class="fu">as.matrix</span>(train), <span class="at">y =</span> <span class="fu">k_one_hot</span>(labelsTrain, classNumber),</span>
+<span id="cb42-42"><a href="#cb42-42" aria-hidden="true" tabindex="-1"></a>            <span class="at">epochs =</span> 80L, <span class="at">batch =</span> 12L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb42-43"><a href="#cb42-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-44"><a href="#cb42-44" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model_history)</span>
+<span id="cb42-45"><a href="#cb42-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-46"><a href="#cb42-46" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy on training set (!)</span></span>
+<span id="cb42-47"><a href="#cb42-47" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">as.matrix</span>(train)) <span class="sc">%&gt;%</span> <span class="fu">apply</span>(<span class="dv">1</span>, which.max) <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb42-48"><a href="#cb42-48" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">accuracy</span>(pred, labelsTrain)</span>
+<span id="cb42-49"><a href="#cb42-49" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred, labelsTrain)</span>
+<span id="cb42-50"><a href="#cb42-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-51"><a href="#cb42-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Reverse subtraction (for start at 0) and create submission file.</span></span>
+<span id="cb42-52"><a href="#cb42-52" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(pred <span class="sc">+</span> <span class="fu">min</span>(<span class="fu">as.data.frame</span>(EcoData<span class="sc">::</span>wine)<span class="sc">$</span>quality, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb42-53"><a href="#cb42-53" aria-hidden="true" tabindex="-1"></a>          <span class="at">file =</span> <span class="st">"wine_NN.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>

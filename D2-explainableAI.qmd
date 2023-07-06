@@ -12,6 +12,8 @@ editor_options:
 #| results: false
 reticulate::use_condaenv("r-reticulate")
 library(tensorflow)
+library(raster)
+library(sp)
 tf
 tf$abs(3.)
 ```
@@ -20,24 +22,61 @@ The goal of explainable AI (xAI, aka interpretable machine learning) is to expla
 
 ## A Practical Example
 
-In this lecture we will work with another famous data set, the *Boston housing* data set:
+In this lecture we will work with an African Elephant occurrence dataset.
 
 We will fit a random forest and use the iml package for xAI, see <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>.
 
 ```{r chunk_chapter6_0}
 library(iml)
-library(randomForest)
+library(ranger) # different random Forest package!
+library(EcoData)
 set.seed(123)
 
-data("Boston", package = "MASS")
-rf = randomForest(medv ~ ., data = Boston, ntree = 50)
+
+data = EcoData::elephant$occurenceData
+head(data)
+?EcoData::elephant
+
 ```
 
-xAI packages are written generic, i.e. they can handle almost all machine learning models. When we want to use them, we first have to create a predictor object, that holds the model and the data. The iml package uses R6 classes, that means new objects can be created by calling Predictor\$new(). (Do not worry if you do not know what R6 classes are, just use the command.)
+Meaning of the bioclim variables:
+
+| Bioclim variable | Meaning                                                    |
+|--------------------------------------|----------------------------------|
+| bio1             | Annual Mean Temperature                                    |
+| bio2             | Mean Diurnal Range (Mean of monthly (max temp - min temp)) |
+| bio3             | Isothermality (BIO2/BIO7) (×100)                           |
+| bio4             | Temperature Seasonality (standard deviation ×100)          |
+| bio5             | Max Temperature of Warmest Month                           |
+| bio6             | Min Temperature of Coldest Month                           |
+| bio7             | Temperature Annual Range (BIO5-BIO6)                       |
+| bio8             | Mean Temperature of Wettest Quarter                        |
+| bio9             | Mean Temperature of Driest Quarter                         |
+| bio10            | Mean Temperature of Warmest Quarter                        |
+| bio11            | Mean Temperature of Coldest Quarter                        |
+| bio12            | Annual Precipitation                                       |
+| bio13            | Precipitation of Wettest Month                             |
+| bio14            | Precipitation of Driest Month                              |
+| bio15            | Precipitation Seasonality (Coefficient of Variation)       |
+| bio16            | Precipitation of Wettest Quarter                           |
+| bio17            | Precipitation of Driest Quarter                            |
+| bio18            | Precipitation of Warmest Quarter                           |
+| bio19            | Precipitation of Coldest Quarter                           |
+
+```{r}
+rf = ranger(as.factor(Presence) ~ ., data = data, probability = TRUE)
+```
+
+xAI packages are written generic, i.e. they can handle almost all machine learning models. When we want to use them, we first have to create a predictor object, that holds the model and the data. The `iml` package uses R6 classes, that means new objects can be created by calling `Predictor$new()`. (Do not worry if you do not know what R6 classes are, just use the command.)
+
+We often have to warp our predict function inside a so called wrapper function so that the output of the predict function fits to iml (iml expects that the predict function returns a vector of predictions:
 
 ```{r chunk_chapter6_1}
-X = Boston[which(names(Boston) != "medv")]
-predictor = Predictor$new(rf, data = X, y = Boston$medv)
+
+predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions[,2]
+
+predictor = Predictor$new(rf, data = data[,-1], y = data[,1], predict.function = predict_wrapper)
+predictor$task = "classif" # set task to classification
 # "Predictor" is an object generator.
 ```
 
@@ -46,24 +85,18 @@ predictor = Predictor$new(rf, data = X, y = Boston$medv)
 Feature importance should not be mistaken with the random forest variable importance though they are related. It tells us how important the individual variables are for predictions, can be calculated for all machine learning models and is based on a permutation approach (have a look at the book):
 
 ```{r chunk_chapter6_2}
-imp = FeatureImp$new(predictor, loss = "mae")
+imp = FeatureImp$new(predictor, loss = "ce")
 plot(imp)
 ```
+
+bio9 (Precipitation of the wettest Quarter) is the most important variable.
 
 ## Partial Dependencies
 
 Partial dependencies are similar to allEffects plots for normal regressions. The idea is to visualize "marginal effects" of predictors (with the "feature" argument we specify the variable we want to visualize):
 
 ```{r chunk_chapter6_3}
-eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp",
-                        grid.size = 30)
-plot(eff)
-```
-
-Partial dependencies can also be plotted for single observations:
-
-```{r chunk_chapter6_4}
-eff = FeatureEffect$new(predictor, feature = "rm", method = "pdp+ice",
+eff = FeatureEffect$new(predictor, feature = "bio9", method = "pdp",
                         grid.size = 30)
 plot(eff)
 ```
@@ -75,7 +108,7 @@ One disadvantage of partial dependencies is that they are sensitive to correlate
 Accumulated local effects (ALE) are basically partial dependencies plots but try to correct for correlations between predictors.
 
 ```{r chunk_chapter6_5}
-ale = FeatureEffect$new(predictor, feature = "rm", method = "ale")
+ale = FeatureEffect$new(predictor, feature = "bio9", method = "ale")
 ale$plot()
 ```
 
@@ -86,7 +119,7 @@ If there is no collinearity, you shouldn't see much difference between partial d
 The H-statistic can be used to find interactions between predictors. However, again, keep in mind that the H-statistic is sensible to correlation between predictors:
 
 ```{r chunk_chapter6_6, message=FALSE, warning=FALSE}
-interact = Interaction$new(predictor, "lstat")
+interact = Interaction$new(predictor, "bio9",grid.size = 5L)
 plot(interact)
 ```
 
@@ -108,7 +141,7 @@ The global approach is to simplify the entire machine learning-black-box model v
 However, sometimes we are only interested in understanding how single predictions are generated. The LIME (Local interpretable model-agnostic explanations) approach explores the feature space around one observation and based on this locally fits a simpler model (e.g. a linear model):
 
 ```{r chunk_chapter6_8, message=FALSE, warning=FALSE}
-lime.explain = LocalModel$new(predictor, x.interest = X[1,])
+lime.explain = LocalModel$new(predictor, x.interest = data[1,-1])
 lime.explain$results
 plot(lime.explain)
 ```
@@ -118,7 +151,7 @@ plot(lime.explain)
 The Shapley method computes the so called Shapley value, feature contributions for single predictions, and is based on an approach from cooperative game theory. The idea is that each feature value of the instance is a "player" in a game, where the prediction is the reward. The Shapley value tells us how to fairly distribute the reward among the features.
 
 ```{r chunk_chapter6_9}
-shapley = Shapley$new(predictor, x.interest = X[1,])
+shapley = Shapley$new(predictor, x.interest = data[1,-1])
 shapley$plot()
 ```
 
@@ -127,12 +160,12 @@ shapley$plot()
 ::: {.callout-caution icon="false"}
 #### Question
 
-Use one of the non-image based data sets (preferably Wine, which is also described in the data sets section @sec-datasets but wasn't used yet, but you can also use Nasa or Titanic) and fit a random forest. Explore / interpret the fitted model using `iml` (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>).
+Use one of the non-image based data sets (preferably Wine, which is also described in the data sets section @sec-datasets but wasn't used yet, but you can also use Nasa or Titanic) and fit a random forest or a BRT using xgboost. Explore / interpret the fitted model using `iml` (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>).
 
-`r hide("Click here to see the solution")`
+`r hide("Click here to see the solution for RF")`
 
-```{r chunk_chapter6_task_0, message=FALSE, warning=FALSE}
-library(randomForest)
+```{r , message=FALSE, warning=FALSE}
+library(ranger)
 library("iml")
 set.seed(1234)
 
@@ -142,8 +175,8 @@ data = data[complete.cases(data), ] # Removes sumbmission data as well.
 
 # Remark: Features don't need to be scaled for regression trees.
 
-rf = randomForest(quality ~ ., data = data)
-pred = round(predict(rf, data))
+rf = ranger(quality ~ ., data = data, importance = "impurity")
+pred = round(predict(rf, data)$predictions)
 table(pred, data$quality)
 (accuracy = mean(pred == data$quality)) # Fits pretty well (on the training data...)
 
@@ -153,9 +186,15 @@ table(pred, data$quality)
 # Standard depiction of importance:
 rf$importance
 
+# Setup wrapper
+predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions
+
+
 # IML:
 predictor = Predictor$new(
-    rf, data = data[,which(names(data) != "quality")], y = data$quality)
+    rf, data = data[,which(names(data) != "quality")], y = data$quality,
+    predict.function = predict_wrapper
+    )
 
 # Mind: This is stochastical!
 importance = FeatureImp$new(predictor, loss = "mae")
@@ -163,7 +202,7 @@ importance = FeatureImp$new(predictor, loss = "mae")
 plot(importance)
 
 # Comparison between standard importance and IML importance:
-importanceRf = rownames(rf$importance)[order(rf$importance, decreasing = TRUE)]
+importanceRf = names(rf$variable.importance)[order(rf$variable.importance, decreasing = TRUE)]
 importanceIML = importance$results[1]
 comparison = cbind(importanceIML, importanceRf)
 colnames(comparison) = c("IML", "RF")
@@ -172,7 +211,62 @@ as.matrix(comparison)
 
 Mind that feature importance, and the random forest's variable importance are related but not equal! Variable importance is a measure for determining importance while creating the forest (i.e. for fitting). Feature importance is a measure for how important a variable is for prediction.
 
-Maybe you want to see other explanation methods as well. Surely you can use the other techniques of this section on your own. `r unhide()`
+Maybe you want to see other explanation methods as well. Surely you can use the other techniques of this section on your own. 
+
+`r unhide()`
+
+
+
+`r hide("Click here to see the solution for xgboost")`
+
+```{r chunk_chapter6_task_0, message=FALSE, warning=FALSE}
+library(xgboost)
+library("iml")
+set.seed(1234)
+
+data = as.data.frame(EcoData::wine)
+submission = data[which(is.na(data$quality)), -which(colnames(data) == "quality")]
+data = data[complete.cases(data), ] # Removes sumbmission data as well.
+
+
+data_xg = xgb.DMatrix(
+  data = as.matrix(data[,which(names(data) != "quality")]),
+  label = data$quality
+)
+brt = xgboost(data_xg, nrounds = 24)
+
+pred = round(predict(brt, newdata = data_xg)) # On
+
+table(pred, data$quality)
+(accuracy = mean(pred == data$quality)) # Fits pretty well (on the training data...)
+
+# For submission:
+#write.csv(round(predict(rf, submission)), file = "wine_RF.csv")
+
+# Standard depiction of importance:
+xgboost::xgb.importance(model = brt)
+
+# Setup wrapper
+predict_wrapper = function(model, newdata) predict(model, as.matrix(newdata))
+
+
+# IML:
+predictor = Predictor$new(
+    brt, data = data[,which(names(data) != "quality")], y = data$quality,
+    predict.function = predict_wrapper
+    )
+
+# Mind: This is stochastical!
+importance = FeatureImp$new(predictor, loss = "mae")
+
+plot(importance)
+
+```
+
+
+
+`r unhide()`
+
 :::
 
 ::: {.callout-caution icon="false"}
