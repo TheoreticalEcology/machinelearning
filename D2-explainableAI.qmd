@@ -162,6 +162,22 @@ shapley$plot()
 
 Use one of the non-image based data sets (preferably Wine, which is also described in the data sets section @sec-datasets but wasn't used yet, but you can also use Nasa or Titanic) and fit a random forest or a BRT using xgboost. Explore / interpret the fitted model using `iml` (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>).
 
+Tip:
+
+If you use iml, you need to provide a proper prediction function wrapper:
+
+```{r, eval=FALSE}
+# random Forest (ranger), regression:
+predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions
+
+# random Forest (ranger), classification:
+predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions[,2]
+
+# xgboost:
+predict_wrapper = function(model, newdata) predict(model, as.matrix(newdata))
+```
+
+
 `r hide("Click here to see the solution for RF")`
 
 ```{r , message=FALSE, warning=FALSE}
