@@ -4,9 +4,209 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Recurrent Neural Networks
-Artificial neural networks are biologically inspired, the idea is that inputs are processed by weights, the neurons, the signals then accumulate at hidden nodes (axioms), and only if the sum of activations of several neurons exceed a certain threshold, the signal will be passed on.
+# Recurrent Neural Networks (RNN)
 
 ```{r}
-library(cito)
+#| echo: false
+#| include: false
+#| results: false
+reticulate::use_condaenv("r-reticulate")
+library(tensorflow)
+tf
+tf$abs(3.)
 ```
+
+
+Recurrent neural networks are used to model sequential data, i.e. a temporal sequence that exhibits temporal dynamic behavior. Here is a good introduction to the topic:
+
+```{r chunk_chapter5_0, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
+cat(
+  '<iframe width="560" height="315" 
+  src="https://www.youtube.com/embed/SEnXr6v2ifU"
+  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
+  gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>'
+)
+```
+
+
+## Case Study: Predicting drought
+We will use a subset of the data explained in [this github repository](https://github.com/Epistoteles/predicting-drought)
+```{r chunk_chapter5_0_Rnn, message=FALSE, warning=FALSE}
+utils::download.file("https://www.dropbox.com/s/radyscnl5zcf57b/weather_soil.RDS?raw=1", destfile = "weather_soil.RDS")
+data = readRDS("weather_soil.RDS")
+X = data$train # Features of the last 180 days
+dim(X)
+# 999 batches of 180 days with 21 features each
+Y = data$target
+dim(Y)
+# 999 batches of 6 week drought predictions
+
+# let's visualize drought over 24 months:
+# -> We have to take 16 batches (16*6 = 96 weaks ( = 24 months) )
+plot(as.vector(Y[1:16,]), type = "l", xlab = "week", ylab = "Drought")
+```
+
+
+
+```{r chunk_chapter5_1_Rnn, message=FALSE, warning=FALSE}
+library(keras)
+
+holdout = 700:999
+X_train = X[-holdout,,]
+X_test = X[holdout,,]
+
+Y_train = Y[-holdout,]
+Y_test = Y[holdout,]
+
+model = keras_model_sequential()
+model %>% 
+  layer_rnn(cell = layer_lstm_cell(units = 60L),input_shape = dim(X)[2:3]) %>% 
+  layer_dense(units = 6L)
+
+model %>% compile(loss = loss_mean_squared_error, optimizer = optimizer_adamax(learning_rate = 0.01))
+  
+model %>% fit(x = X_train, y = Y_train, epochs = 30L)
+
+preds = 
+  model %>% predict(X_test)
+
+
+matplot(cbind(as.vector(preds[1:48,]),  
+              as.vector(Y_test[1:48,])), 
+        col = c("darkblue", "darkred"),
+        type = "o", 
+        pch = c(15, 16),
+        xlab = "week", ylab = "Drought")
+legend("topright", bty = "n", 
+       col = c("darkblue", "darkred"),
+      pch = c(15, 16), 
+      legend = c("Prediction", "True Values"))
+
+```
+
+
+
+
+
+The following code snippet shows you many (technical) things you need for building more complex network structures, even with LSTM cells (the following example doesn't have any functionality, it is just an example for how to process two different inputs in different ways within one network):
+
+
+::: panel-tabset
+## Keras
+
+```{r chunk_chapter5_1, message=FALSE, warning=FALSE}
+library(tensorflow)
+library(keras)
+set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
+tf$keras$backend$clear_session()  # Resets especially layer counter.
+
+inputDimension1 = 50L
+inputDimension2 = 10L
+
+input1 = layer_input(shape = inputDimension1)
+input2 = layer_input(shape = inputDimension2)
+
+modelInput2 = input2 %>%
+  layer_dropout(rate = 0.5) %>%
+  layer_dense(units = inputDimension2, activation = "gelu")
+
+modelMemory = input1 %>%
+  layer_embedding(input_dim = inputDimension1, output_dim = 64L) %>%
+  layer_lstm(units = 64L) %>%
+  layer_dropout(rate = 0.5) %>%
+  layer_dense(units = 2L, activation = "sigmoid")
+
+modelDeep = input1 %>%
+  layer_dropout(rate = 0.5) %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dense(units = 5L, activation = "sigmoid")
+
+modelMain = layer_concatenate(c(modelMemory, modelDeep, modelInput2)) %>%
+  layer_dropout(rate = 0.25) %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 64L, activation = "relu") %>%
+  layer_dense(units = 2L, activation = "sigmoid")
+
+model = keras_model(
+  inputs = c(input1, input2),
+  outputs = c(modelMain)  # Use the whole modelMain (resp. its output) as output.
+)
+
+summary(model)
+# model %>% plot_model()
+```
+
+## Torch
+
+```{r chunk_chapter5_1_torch, message=FALSE, warning=FALSE}
+library(torch)
+
+model_torch = nn_module(
+  initialize = function(type, inputDimension1 = 50L, inputDimension2 = 10L) {
+    self$dim1 = inputDimension1
+    self$dim2 = inputDimension2
+    self$modelInput2 = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(in_features = self$dim2, out_features = self$dim2),
+      nn_selu()
+    )
+    self$modelMemory = nn_sequential(
+      nn_embedding(self$dim1, 64),
+      nn_lstm(64, 64)
+    )
+    self$modelMemoryOutput = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(64L, 2L),
+      nn_sigmoid()
+    )
+    
+    self$modelDeep = nn_sequential(
+      nn_dropout(0.5),
+      nn_linear(self$dim1, 64L),
+      nn_relu(),
+      nn_dropout(0.3),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_linear(64, 5),
+      nn_sigmoid()
+    )
+    
+    self$modelMain = nn_sequential(
+      nn_linear(7+self$dim2, 64),
+      nn_relu(),
+      nn_dropout(0.5),
+      nn_linear(64, 64),
+      nn_relu(),
+      nn_dropout(),
+      nn_linear(64, 2),
+      nn_sigmoid()
+    )
+  },
+  
+  forward = function(x) {
+    input1 = x[[1]]
+    input2 = x[[2]]
+    out2 = self$modelInput2(input2)
+    out1 = self$modelMemoryOutput( self$modelMemory(input1)$view(list(dim(input1)[1], -1)) )
+    out3 = self$modelDeep(input1)
+    out = self$modelMain(torch_cat(list(out1, out2, out3), 2))
+    return(out)
+  }
+  
+)
+
+(model_torch())
+
+```
+
+
+:::
+

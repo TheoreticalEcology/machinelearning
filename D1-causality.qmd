@@ -1,0 +1,168 @@
+---
+output: html_document
+editor_options:
+  chunk_output_type: console
+---
+
+# Causal Inference and Machine Learning {#sec-causalInference}
+
+
+```{r}
+#| echo: false
+#| include: false
+#| results: false
+reticulate::use_condaenv("r-reticulate")
+library(tensorflow)
+tf
+tf$abs(3.)
+```
+
+
+xAI aims at explaining how predictions are being made. In general, xAI != causality. xAI methods measure which variables are used for predictions by the algorithm, or how far variables improve predictions. The important point to note here: If a variable causes something, we could also expect that it helps predicting the very thing. The opposite, however, is not generally true - very often it is possible that a variable that doesn't cause anything can predict something.
+
+In statistics courses (in particular our course: Advanced Biostatistics), we discuss the issue of causality at full length. Here, we don't want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what's going on in the algorithm, not about what's going on in reality.
+
+## Causal Inference on Static Data {#causalInference}
+
+Methods for causal inference depend on whether we have dynamic or static data. The latter is the more common case. With static data, the problem is confounding. If you have several correlated predictors, you can get spurious correlations between a given predictor and the response, although there is no causal effect in general.
+
+Multiple regression and few other methods are able to correct for other predictors and thus isolate the causal effect. The same is not necessarily true for machine learning algorithms and xAI methods. This is not a bug, but a feature - for making good predictions, it is often no problem, but rather an advantage to also use non-causal predictors.
+
+Here an example for the indicators of variable importance in the random forest algorithm. The purpose of this script is to show that random forest variable importance will split importance values for collinear variables evenly, even if collinearity is low enough so that variables are separable and would be correctly separated by an lm / ANOVA.
+
+We first simulate a data set with 2 predictors that are strongly correlated, but only one of them has an effect on the response.
+
+```{r chunk_chapter6_10}
+library(randomForest)
+set.seed(123)
+
+# Simulation parameters.
+n = 1000
+col = 0.7
+
+# Create collinear predictors.
+x1 = runif(n)
+x2 = col * x1 + (1-col) * runif(n)
+
+# Response is only influenced by x1.
+y = x1 + rnorm(n)
+```
+
+lm / anova correctly identify $x1$ as causal variable.
+
+```{r chunk_chapter6_11}
+summary(lm(y ~ x1 + x2))
+```
+
+Fit random forest and show variable importance:
+
+```{r chunk_chapter6_12}
+set.seed(123)
+
+fit = randomForest(y ~ x1 + x2, importance = TRUE)
+varImpPlot(fit)
+```
+
+Variable importance is now split nearly evenly.
+
+Task: understand why this is - remember:
+
+-   How the random forest works - variables are randomly hidden from the regression tree when the trees for the forest are built.
+-   Remember that as $x1 \propto x2$, we can use $x2$ as a replacement for $x1$.
+-   Remember that the variable importance measures the average contributions of the different variables in the trees of the forest.
+
+## Structural Equation Models
+
+If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). Structural equation models are designed to estimate entire causal diagrams. There are two main SEM packages in R: For anything that is non-normal, you will currently have to estimate the directed acyclic graph (that depicts causal relations) piece-wise with CRAN package piecewiseSEM. Example for a vegetation data set:
+
+```{r chunk_chapter6_13, results='hide', message=FALSE, warning=FALSE}
+library(piecewiseSEM)
+
+mod = psem(
+ lm(rich ~ distance + elev + abiotic + age + hetero + firesev + cover,
+    data = keeley),
+ lm(firesev ~ elev + age + cover, data = keeley),
+ lm(cover ~ age + elev + hetero + abiotic, data = keeley)
+)
+summary(mod)
+plot(mod)
+```
+
+For linear structural equation models, we can estimate the entire directed acyclic graph at once. This also allows having unobserved variables in the directed acyclic graph. One of the most popular packages for this is lavaan.
+
+```{r chunk_chapter6_14, message=FALSE, warning=FALSE}
+library(lavaan)
+
+mod = "
+ rich ~ distance + elev + abiotic + age + hetero + firesev + cover
+ firesev ~ elev + age + cover
+ cover ~ age + elev + abiotic
+"
+fit = sem(mod, data = keeley)
+summary(fit)
+```
+
+The default plot options are not so nice as before.
+
+```{r chunk_chapter6_15}
+library(lavaanPlot)
+
+lavaanPlot(model = fit)
+```
+
+Another plotting option is using semPlot.
+
+```{r chunk_chapter6_16}
+library(semPlot)
+
+semPaths(fit)
+```
+
+## Automatic Causal Discovery
+
+But how to get the causal graph? In statistics, it is common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the *PC algorithm*. Here an example using the pcalg package:
+
+```{r chunk_chapter6_17}
+library(pcalg)
+```
+
+Loading the data:
+
+```{r chunk_chapter6_18}
+data("gmG", package = "pcalg") # Loads data sets gmG and gmG8.
+suffStat = list(C = cor(gmG8$x), n = nrow(gmG8$x))
+varNames = gmG8$g@nodes
+```
+
+First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph).
+
+```{r chunk_chapter6_19}
+skel.gmG8 = skeleton(suffStat, indepTest = gaussCItest,
+labels = varNames, alpha = 0.01)
+Rgraphviz::plot(skel.gmG8@graph)
+```
+
+What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.
+
+```{r chunk_chapter6_20}
+pc.gmG8 = pc(suffStat, indepTest = gaussCItest,
+labels = varNames, alpha = 0.01)
+Rgraphviz::plot(pc.gmG8@graph )
+``` 
+
+## Causal Inference on Dynamic Data
+
+When working with dynamic data, we can use an additional piece of information - the cause usually precedes the effect, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as *Granger causality*, or Granger methods. Here an example:
+
+```{r chunk_chapter6_21, message=FALSE, warning=FALSE}
+library(lmtest)
+
+## What came first: the chicken or the egg?
+data(ChickEgg)
+grangertest(egg ~ chicken, order = 3, data = ChickEgg)
+grangertest(chicken ~ egg, order = 3, data = ChickEgg)
+```
+
+## Outlook for Machine Learning
+
+As we have seen, there are already a few methods / algorithms for discovering causality from large data sets, but the systematic transfer of these concepts to machine learning, in particular deep learning, is still at its infancy. At the moment, this field is actively researched and changes extremely fast, so we recommend using Google to see what is currently going on. Particular in business and industry, there is a large interest in learning about causal effect from large data sets. In our opinion, a great topic for young scientists to specialize on.
