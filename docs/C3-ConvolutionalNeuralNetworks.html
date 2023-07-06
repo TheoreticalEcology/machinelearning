@@ -2755,7 +2755,7 @@ ________________________________________________________________________________
 <span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> data<span class="sc">$</span>test</span>
 <span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>labels <span class="ot">=</span> data<span class="sc">$</span>labels</span>
 <span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>densenet <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">application_densenet201</span>(<span class="at">include_top =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>densenet <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">application_efficientnet_b1</span>(<span class="at">include_top =</span> <span class="cn">FALSE</span>,</span>
 <span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">input_shape =</span> <span class="fu">list</span>(80L, 80L, 3L))</span>
 <span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a>keras<span class="sc">::</span><span class="fu">freeze_weights</span>(densenet)</span>
@@ -2768,38 +2768,44 @@ ________________________________________________________________________________
 <span id="cb51-20"><a href="#cb51-20" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">layer_dropout</span>(<span class="fl">0.2</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb51-21"><a href="#cb51-21" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">layer_dense</span>(<span class="at">units =</span> 5L, <span class="at">activation =</span> <span class="st">"softmax"</span>))</span>
 <span id="cb51-22"><a href="#cb51-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-23"><a href="#cb51-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Data augmentation.</span></span>
-<span id="cb51-24"><a href="#cb51-24" aria-hidden="true" tabindex="-1"></a>aug <span class="ot">=</span> <span class="fu">image_data_generator</span>(<span class="at">rotation_range =</span> <span class="dv">180</span>, <span class="at">zoom_range =</span> <span class="fl">0.4</span>,</span>
-<span id="cb51-25"><a href="#cb51-25" aria-hidden="true" tabindex="-1"></a>                           <span class="at">width_shift_range =</span> <span class="fl">0.2</span>, <span class="at">height_shift_range =</span> <span class="fl">0.2</span>,</span>
-<span id="cb51-26"><a href="#cb51-26" aria-hidden="true" tabindex="-1"></a>                           <span class="at">vertical_flip =</span> <span class="cn">TRUE</span>, <span class="at">horizontal_flip =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb51-27"><a href="#cb51-27" aria-hidden="true" tabindex="-1"></a>                           <span class="at">preprocessing_function =</span> imagenet_preprocess_input)</span>
-<span id="cb51-28"><a href="#cb51-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-29"><a href="#cb51-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Data preparation / splitting.</span></span>
-<span id="cb51-30"><a href="#cb51-30" aria-hidden="true" tabindex="-1"></a>indices <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="fu">nrow</span>(train), <span class="fl">0.1</span> <span class="sc">*</span> <span class="fu">nrow</span>(train))</span>
-<span id="cb51-31"><a href="#cb51-31" aria-hidden="true" tabindex="-1"></a>generator <span class="ot">=</span> <span class="fu">flow_images_from_data</span>(train[<span class="sc">-</span>indices,,,]<span class="sc">/</span><span class="dv">255</span>,</span>
-<span id="cb51-32"><a href="#cb51-32" aria-hidden="true" tabindex="-1"></a>                                  <span class="fu">k_one_hot</span>(labels[<span class="sc">-</span>indices], <span class="at">num_classes =</span> 5L), </span>
-<span id="cb51-33"><a href="#cb51-33" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">batch_size =</span> 25L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb51-34"><a href="#cb51-34" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">generator =</span> aug)</span>
-<span id="cb51-35"><a href="#cb51-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-36"><a href="#cb51-36" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> <span class="fu">imagenet_preprocess_input</span>(train[indices,,,])</span>
-<span id="cb51-37"><a href="#cb51-37" aria-hidden="true" tabindex="-1"></a>test_labels <span class="ot">=</span> <span class="fu">k_one_hot</span>(labels[indices], <span class="at">num_classes =</span> 5L)</span>
+<span id="cb51-23"><a href="#cb51-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-24"><a href="#cb51-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-25"><a href="#cb51-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-26"><a href="#cb51-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Data augmentation.</span></span>
+<span id="cb51-27"><a href="#cb51-27" aria-hidden="true" tabindex="-1"></a>aug <span class="ot">=</span> <span class="fu">image_data_generator</span>(<span class="at">rotation_range =</span> <span class="dv">180</span>, <span class="at">zoom_range =</span> <span class="fl">0.4</span>,</span>
+<span id="cb51-28"><a href="#cb51-28" aria-hidden="true" tabindex="-1"></a>                           <span class="at">width_shift_range =</span> <span class="fl">0.2</span>, <span class="at">height_shift_range =</span> <span class="fl">0.2</span>,</span>
+<span id="cb51-29"><a href="#cb51-29" aria-hidden="true" tabindex="-1"></a>                           <span class="at">vertical_flip =</span> <span class="cn">TRUE</span>, <span class="at">horizontal_flip =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb51-30"><a href="#cb51-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-31"><a href="#cb51-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-32"><a href="#cb51-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Data preparation / splitting.</span></span>
+<span id="cb51-33"><a href="#cb51-33" aria-hidden="true" tabindex="-1"></a>indices <span class="ot">=</span> <span class="fu">sample.int</span>(<span class="fu">nrow</span>(train), <span class="fl">0.1</span> <span class="sc">*</span> <span class="fu">nrow</span>(train))</span>
+<span id="cb51-34"><a href="#cb51-34" aria-hidden="true" tabindex="-1"></a>generator <span class="ot">=</span> <span class="fu">flow_images_from_data</span>(train[<span class="sc">-</span>indices,,,],</span>
+<span id="cb51-35"><a href="#cb51-35" aria-hidden="true" tabindex="-1"></a>                                  <span class="fu">k_one_hot</span>(labels[<span class="sc">-</span>indices], <span class="at">num_classes =</span> 5L), </span>
+<span id="cb51-36"><a href="#cb51-36" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">batch_size =</span> 25L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb51-37"><a href="#cb51-37" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">generator =</span> aug)</span>
 <span id="cb51-38"><a href="#cb51-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-39"><a href="#cb51-39" aria-hidden="true" tabindex="-1"></a><span class="do">## Training loop with early stopping:</span></span>
-<span id="cb51-40"><a href="#cb51-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-41"><a href="#cb51-41" aria-hidden="true" tabindex="-1"></a><span class="co"># As we use an iterator (the generator), validation loss is not applicable.</span></span>
-<span id="cb51-42"><a href="#cb51-42" aria-hidden="true" tabindex="-1"></a><span class="co"># An available metric is the normal loss.</span></span>
-<span id="cb51-43"><a href="#cb51-43" aria-hidden="true" tabindex="-1"></a>early <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">callback_early_stopping</span>(<span class="at">patience =</span> 2L, <span class="at">monitor =</span> <span class="st">"loss"</span>)</span>
-<span id="cb51-44"><a href="#cb51-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-45"><a href="#cb51-45" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
-<span id="cb51-46"><a href="#cb51-46" aria-hidden="true" tabindex="-1"></a>    keras<span class="sc">::</span><span class="fu">compile</span>(<span class="at">loss =</span> loss_categorical_crossentropy,</span>
-<span id="cb51-47"><a href="#cb51-47" aria-hidden="true" tabindex="-1"></a>                   <span class="at">optimizer =</span> keras<span class="sc">::</span><span class="fu">optimizer_rmsprop</span>(<span class="at">learning_rate =</span> <span class="fl">0.0005</span>))</span>
-<span id="cb51-48"><a href="#cb51-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-49"><a href="#cb51-49" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
-<span id="cb51-50"><a href="#cb51-50" aria-hidden="true" tabindex="-1"></a>    <span class="fu">fit</span>(generator, <span class="at">epochs =</span> 8L, <span class="at">batch_size =</span> 45L,</span>
-<span id="cb51-51"><a href="#cb51-51" aria-hidden="true" tabindex="-1"></a>        <span class="at">shuffle =</span> <span class="cn">TRUE</span>, <span class="at">callbacks =</span> <span class="fu">c</span>(early))</span>
-<span id="cb51-52"><a href="#cb51-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-53"><a href="#cb51-53" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">imagenet_preprocess_input</span>(data<span class="sc">$</span>test))</span>
-<span id="cb51-54"><a href="#cb51-54" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">1</span>, which.max) <span class="sc">-</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb51-39"><a href="#cb51-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-40"><a href="#cb51-40" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> (train[indices,,,])</span>
+<span id="cb51-41"><a href="#cb51-41" aria-hidden="true" tabindex="-1"></a>test_labels <span class="ot">=</span> <span class="fu">k_one_hot</span>(labels[indices], <span class="at">num_classes =</span> 5L)</span>
+<span id="cb51-42"><a href="#cb51-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-43"><a href="#cb51-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-44"><a href="#cb51-44" aria-hidden="true" tabindex="-1"></a><span class="do">## Training loop with early stopping:</span></span>
+<span id="cb51-45"><a href="#cb51-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-46"><a href="#cb51-46" aria-hidden="true" tabindex="-1"></a><span class="co"># As we use an iterator (the generator), validation loss is not applicable.</span></span>
+<span id="cb51-47"><a href="#cb51-47" aria-hidden="true" tabindex="-1"></a><span class="co"># An available metric is the normal loss.</span></span>
+<span id="cb51-48"><a href="#cb51-48" aria-hidden="true" tabindex="-1"></a>early <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">callback_early_stopping</span>(<span class="at">patience =</span> 5L, <span class="at">monitor =</span> <span class="st">"loss"</span>)</span>
+<span id="cb51-49"><a href="#cb51-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-50"><a href="#cb51-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-51"><a href="#cb51-51" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
+<span id="cb51-52"><a href="#cb51-52" aria-hidden="true" tabindex="-1"></a>  keras<span class="sc">::</span><span class="fu">compile</span>(<span class="at">loss =</span> loss_categorical_crossentropy,</span>
+<span id="cb51-53"><a href="#cb51-53" aria-hidden="true" tabindex="-1"></a>                 <span class="at">optimizer =</span> keras<span class="sc">::</span><span class="fu">optimizer_rmsprop</span>(<span class="at">learning_rate =</span> <span class="fl">0.0005</span>))</span>
+<span id="cb51-54"><a href="#cb51-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-55"><a href="#cb51-55" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span></span>
+<span id="cb51-56"><a href="#cb51-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit</span>(generator, <span class="at">epochs =</span> 8L, <span class="at">batch_size =</span> 45L,<span class="at">steps_per_epoch =</span> <span class="fu">floor</span>(<span class="fu">nrow</span>(train)<span class="sc">/</span><span class="dv">45</span>),</span>
+<span id="cb51-57"><a href="#cb51-57" aria-hidden="true" tabindex="-1"></a>      <span class="at">shuffle =</span> <span class="cn">TRUE</span>, <span class="at">callbacks =</span> <span class="fu">c</span>(early), <span class="at">validation_data =</span> <span class="fu">list</span>(test, test_labels))</span>
+<span id="cb51-58"><a href="#cb51-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-59"><a href="#cb51-59" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="fu">imagenet_preprocess_input</span>(data<span class="sc">$</span>test))</span>
+<span id="cb51-60"><a href="#cb51-60" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">1</span>, which.max) <span class="sc">-</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

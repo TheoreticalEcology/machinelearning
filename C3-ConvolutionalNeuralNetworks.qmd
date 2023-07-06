@@ -783,7 +783,7 @@ train = data$train
 test = data$test
 labels = data$labels
 
-densenet = keras::application_densenet201(include_top = FALSE,
+densenet = keras::application_efficientnet_b1(include_top = FALSE,
                                           input_shape = list(80L, 80L, 3L))
 
 keras::freeze_weights(densenet)
@@ -796,35 +796,41 @@ model = keras_model(inputs = densenet$input,
                       layer_dropout(0.2) %>%
                       layer_dense(units = 5L, activation = "softmax"))
 
+
+
+
 # Data augmentation.
 aug = image_data_generator(rotation_range = 180, zoom_range = 0.4,
                            width_shift_range = 0.2, height_shift_range = 0.2,
-                           vertical_flip = TRUE, horizontal_flip = TRUE,
-                           preprocessing_function = imagenet_preprocess_input)
+                           vertical_flip = TRUE, horizontal_flip = TRUE)
+
 
 # Data preparation / splitting.
 indices = sample.int(nrow(train), 0.1 * nrow(train))
-generator = flow_images_from_data(train[-indices,,,]/255,
+generator = flow_images_from_data(train[-indices,,,],
                                   k_one_hot(labels[-indices], num_classes = 5L), 
                                   batch_size = 25L, shuffle = TRUE,
                                   generator = aug)
 
-test = imagenet_preprocess_input(train[indices,,,])
+
+test = (train[indices,,,])
 test_labels = k_one_hot(labels[indices], num_classes = 5L)
+
 
 ## Training loop with early stopping:
 
 # As we use an iterator (the generator), validation loss is not applicable.
 # An available metric is the normal loss.
-early = keras::callback_early_stopping(patience = 2L, monitor = "loss")
+early = keras::callback_early_stopping(patience = 5L, monitor = "loss")
+
 
 model %>%
-	keras::compile(loss = loss_categorical_crossentropy,
-	               optimizer = keras::optimizer_rmsprop(learning_rate = 0.0005))
+  keras::compile(loss = loss_categorical_crossentropy,
+                 optimizer = keras::optimizer_rmsprop(learning_rate = 0.0005))
 
 model %>%
-	fit(generator, epochs = 8L, batch_size = 45L,
-	    shuffle = TRUE, callbacks = c(early))
+  fit(generator, epochs = 8L, batch_size = 45L,steps_per_epoch = floor(nrow(train)/45),
+      shuffle = TRUE, callbacks = c(early), validation_data = list(test, test_labels))
 
 pred = predict(model, imagenet_preprocess_input(data$test))
 pred = apply(pred, 1, which.max) - 1
