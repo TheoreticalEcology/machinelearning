@@ -776,62 +776,97 @@ Let's do that with our flower data set:
 ```{r chunk_chapter5_33, eval=FALSE}
 library(keras)
 library(tensorflow)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 data = EcoData::dataset_flower()
-train = data$train/127.5 - 1
+
+train = data$train/127.5 - 1 
 test = data$test/127.5 - 1
 labels = data$labels
 
-densenet = keras::application_efficientnet_b1(include_top = FALSE,
-                                          input_shape = list(80L, 80L, 3L))
 
-keras::freeze_weights(densenet)
+# Transfer learning
 
-model = keras_model(inputs = densenet$input, 
-                    outputs = densenet$output %>%
-                      layer_flatten() %>%
-                      layer_dropout(0.2) %>%
-                      layer_dense(units = 200L) %>%
-                      layer_dropout(0.2) %>%
-                      layer_dense(units = 5L, activation = "softmax"))
+# weights were trained to imagenet
+pretrained_model = keras::application_efficientnet_b1(include_top = FALSE,
+                                                      input_shape = c(80L, 80L, 3L))
+# pretrained_model
+
+keras::freeze_weights(pretrained_model)
+pretrained_model
+
+# Build model
+
+dnn = pretrained_model$output %>% 
+  layer_flatten() %>% 
+  layer_dropout(0.2) %>% 
+  layer_dense(units = 5L, activation = "softmax")
+dnn
+
+model = keras_model(inputs = pretrained_model$input,
+                    outputs = dnn
+                    )
+model %>%
+  keras::compile(loss = loss_categorical_crossentropy,
+                 optimizer = keras::optimizer_rmsprop(learning_rate = 0.0005))
+
+
+model %>% 
+  fit(x = train, y = k_one_hot(labels, 5L), validation_split = 0.2, epochs = 5L)
 
 
 
+# Data augmentation
+# Transfer learning
 
-# Data augmentation.
+# weights were trained to imagenet
+pretrained_model = keras::application_efficientnet_b1(include_top = FALSE,
+                                                      input_shape = c(80L, 80L, 3L))
+# pretrained_model
+
+keras::freeze_weights(pretrained_model)
+pretrained_model
+
+# Build model
+
+dnn = pretrained_model$output %>% 
+  layer_flatten() %>% 
+  layer_dropout(0.2) %>% 
+  layer_dense(units = 5L, activation = "softmax")
+dnn
+
+model = keras_model(inputs = pretrained_model$input,
+                    outputs = dnn
+)
+
+### Set up augmentation
 aug = image_data_generator(rotation_range = 180, zoom_range = 0.4,
                            width_shift_range = 0.2, height_shift_range = 0.2,
                            vertical_flip = TRUE, horizontal_flip = TRUE)
 
 
-# Data preparation / splitting.
-indices = sample.int(nrow(train), 0.1 * nrow(train))
-generator = flow_images_from_data(train[-indices,,,],
-                                  k_one_hot(labels[-indices], num_classes = 5L), 
-                                  batch_size = 25L, shuffle = TRUE,
-                                  generator = aug)
-
-
-test = (train[indices,,,])
-test_labels = k_one_hot(labels[indices], num_classes = 5L)
-
-
-## Training loop with early stopping:
-
-# As we use an iterator (the generator), validation loss is not applicable.
-# An available metric is the normal loss.
-early = keras::callback_early_stopping(patience = 5L, monitor = "loss")
+### Set up the data
+indices = sample.int(nrow(train), 0.1 * nrow(train)) # for validation
+generator = flow_images_from_data(x = train[-indices,,,],
+                                  y = k_one_hot(labels[-indices], 5L),
+                                  generator = aug
+                                  )
+generator
 
 
 model %>%
   keras::compile(loss = loss_categorical_crossentropy,
                  optimizer = keras::optimizer_rmsprop(learning_rate = 0.0005))
 
-model %>%
-  fit(generator, epochs = 8L, batch_size = 45L,steps_per_epoch = floor(nrow(train)/45),
-      shuffle = TRUE, callbacks = c(early), validation_data = list(test, test_labels))
+steps_per_epoch = nrow(train[-indices,,,]) /45
+steps_per_epoch = floor(steps_per_epoch)
 
-pred = predict(model, imagenet_preprocess_input(data$test))
+model %>% 
+  fit(generator, epochs = 5L, batch_size = 45L, steps_per_epoch = steps_per_epoch, 
+      validation_data = list(train[indices,,,], k_one_hot(labels[indices], 5L))
+      )
+
+pred = predict(model, test)
 pred = apply(pred, 1, which.max) - 1
+pred
+
 ```
