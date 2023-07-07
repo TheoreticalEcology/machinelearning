@@ -69,10 +69,9 @@ We need a function to sample images for the discriminator.
 batch_size = 32L
 dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
 dataset$batch(batch_size)
-#> <BatchDataset element_spec=TensorSpec(shape=(None, 784), dtype=tf.float32, name=None)>
 ```
 
-Define generator model:
+Create function that returns the generator model:
 
 ``` r
 get_generator = function(){
@@ -88,7 +87,7 @@ get_generator = function(){
 }
 ```
 
-And we also test the generator model:
+Test the generator:
 
 ``` r
 generator = get_generator()
@@ -119,8 +118,15 @@ And we also test the discriminator function.
 ``` r
 discriminator = get_discriminator()
 discriminator(generator(tf$random$normal(c(1L, 100L))))
-#> tf.Tensor([[0.5089391]], shape=(1, 1), dtype=float32)
 ```
+
+```{r, eval = TRUE,echo = FALSE, results = TRUE}
+cat("
+tf.Tensor([[0.5089391]], shape=(1, 1), dtype=float32)
+    
+    ")
+```
+
 
 We also have to define the loss functions for both networks.We use the already known binary cross entropy. However, we have to encode the real and predicted values for the two networks individually.
 
@@ -198,10 +204,6 @@ Now we can finally train our networks in a training loop:
 5.  Repeat step 2-4 for number of epochs.
 
 ``` r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
-
 batch_size = 128L
 epochs = 20L
 steps = as.integer(nrow(train_x)/batch_size)
@@ -230,15 +232,23 @@ for(e in 1:epochs){
     imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen")
   }
 }
-#> Gen:  0.8095555  Disc:  1.10533  
-#> Gen:  0.8928918  Disc:  1.287504
 ```
+
+```{r, eval = TRUE,echo = FALSE, results = TRUE}
+cat("
+Gen:  0.8095555  Disc:  1.10533  
+Gen:  0.8928918  Disc:  1.287504    
+    ")
+```
+
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-1.png" width="100%" style="display: block; margin: auto;"/>
 
-```         
-#> Gen:  0.9071119  Disc:  1.314586  
-#> Gen:  0.9514963  Disc:  1.31548
+```{r, eval = TRUE,echo = FALSE, results = TRUE}
+cat("
+Gen:  0.9071119  Disc:  1.314586  
+Gen:  0.9514963  Disc:  1.31548 
+    ")
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_30-2.png" width="100%" style="display: block; margin: auto;"/>
@@ -250,14 +260,6 @@ We can now also do the same for the flower data set. We will write this complete
 ``` r
 library(keras)
 library(tidyverse)
-#> ── Attaching packages ───────────────────────────────────────────────── tidyverse 1.3.1 ──
-#> ✔ ggplot2 3.3.6     ✔ purrr   0.3.4
-#> ✔ tibble  3.1.7     ✔ dplyr   1.0.9
-#> ✔ tidyr   1.2.0     ✔ stringr 1.4.0
-#> ✔ readr   2.1.2     ✔ forcats 0.5.1
-#> ── Conflicts ──────────────────────────────────────────────────── tidyverse_conflicts() ──
-#> ✖ dplyr::filter() masks stats::filter()
-#> ✖ dplyr::lag()    masks stats::lag()
 library(tensorflow)
 library(EcoData)
 
@@ -271,10 +273,6 @@ dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32"))
 Define the generator model and test it:
 
 ``` r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
-
 get_generator = function(){
   generator = keras_model_sequential()
   generator %>% 
@@ -319,10 +317,6 @@ image %>%
 Define the discriminator and test it:
 
 ``` r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
-
 get_discriminator = function(){
   discriminator = keras_model_sequential()
   discriminator %>% 
@@ -346,31 +340,37 @@ get_discriminator = function(){
 
 discriminator = get_discriminator()
 discriminator
-#> Model: "sequential_13"
-#> __________________________________________________________________________________________
-#>  Layer (type)                           Output Shape                        Param #       
-#> ==========================================================================================
-#>  conv2d_21 (Conv2D)                     (None, 40, 40, 64)                  4864          
-#>  leaky_re_lu_14 (LeakyReLU)             (None, 40, 40, 64)                  0             
-#>  dropout_6 (Dropout)                    (None, 40, 40, 64)                  0             
-#>  conv2d_20 (Conv2D)                     (None, 20, 20, 128)                 204928        
-#>  leaky_re_lu_13 (LeakyReLU)             (None, 20, 20, 128)                 0             
-#>  dropout_5 (Dropout)                    (None, 20, 20, 128)                 0             
-#>  conv2d_19 (Conv2D)                     (None, 10, 10, 256)                 295168        
-#>  leaky_re_lu_12 (LeakyReLU)             (None, 10, 10, 256)                 0             
-#>  dropout_4 (Dropout)                    (None, 10, 10, 256)                 0             
-#>  flatten_3 (Flatten)                    (None, 25600)                       0             
-#>  dense_25 (Dense)                       (None, 1)                           25601         
-#> ==========================================================================================
-#> Total params: 530,561
-#> Trainable params: 530,561
-#> Non-trainable params: 0
-#> __________________________________________________________________________________________
 discriminator(generator(tf$random$normal(c(1L, 100L))))
-#> tf.Tensor([[0.49996078]], shape=(1, 1), dtype=float32)
 ```
 
-Define the loss functions:
+```{r}
+cat('
+Model: "sequential_13"
+__________________________________________________________________________________________
+ Layer (type)                           Output Shape                        Param #       
+==========================================================================================
+ conv2d_21 (Conv2D)                     (None, 40, 40, 64)                  4864          
+ leaky_re_lu_14 (LeakyReLU)             (None, 40, 40, 64)                  0             
+ dropout_6 (Dropout)                    (None, 40, 40, 64)                  0             
+ conv2d_20 (Conv2D)                     (None, 20, 20, 128)                 204928        
+ leaky_re_lu_13 (LeakyReLU)             (None, 20, 20, 128)                 0             
+ dropout_5 (Dropout)                    (None, 20, 20, 128)                 0             
+ conv2d_19 (Conv2D)                     (None, 10, 10, 256)                 295168        
+ leaky_re_lu_12 (LeakyReLU)             (None, 10, 10, 256)                 0             
+ dropout_4 (Dropout)                    (None, 10, 10, 256)                 0             
+ flatten_3 (Flatten)                    (None, 25600)                       0             
+ dense_25 (Dense)                       (None, 1)                           25601         
+==========================================================================================
+Total params: 530,561
+Trainable params: 530,561
+Non-trainable params: 0
+__________________________________________________________________________________________
+
+tf.Tensor([[0.49996078]], shape=(1, 1), dtype=float32)    
+    ')
+```
+
+Loss functions:
 
 ``` r
 ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE,
@@ -433,10 +433,6 @@ train_step = tf$`function`(reticulate::py_func(train_step))
 Do the training:
 
 ``` r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
-
 batch_size = 32L
 epochs = 30L
 steps = as.integer(dim(train_x)[1]/batch_size)
@@ -470,26 +466,31 @@ for(e in 1:epochs){
    
   if(e %% 10 == 0) cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n")
 }
-#> Gen:  1.651127  Disc:  0.8720699
+```
+
+```{r, eval = TRUE,echo = FALSE, results = TRUE}
+cat('
+Gen:  1.651127  Disc:  0.8720699    
+    ')
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_37-1.png" width="100%" style="display: block; margin: auto;"/>
 
-```         
-#> Gen:  1.303061  Disc:  1.037192
+```{r, eval = TRUE,echo = FALSE, results = TRUE}
+cat('
+Gen:  1.303061  Disc:  1.037192 
+    ')
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_37-2.png" width="100%" style="display: block; margin: auto;"/>
 
-```         
-#> Gen:  1.168868  Disc:  1.100166
+```{r, eval = TRUE,echo = FALSE, results = TRUE}
+cat('
+Gen:  1.168868  Disc:  1.100166
+    ')
 ```
 
 ``` r
-library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
-
 noise = tf$random$normal(c(1L, 100L))
 image = generator(noise)$numpy()[1,,,]
 image = scales::rescale(image, to = c(0, 255))

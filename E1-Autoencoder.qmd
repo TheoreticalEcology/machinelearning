@@ -16,7 +16,7 @@ tf
 tf$abs(3.)
 ```
 
-An autoencoder (AE) is a type of artificial neural network for unsupervised learning. The idea is similar to data compression: The first part of the network compresses (encodes) the data to a low dimensional space (e.g. 2-4 dimensions) and the second part of the network decompresses (reverses the encoding) and learns to reconstruct the data (think of a hourglass).
+Autoencoders (AE) can be used for unsupervised learning. The idea is similar to data compression: The first part of the network compresses (encodes) the data to a low dimensional space (e.g. 2-4 dimensions) and the second part of the network decompresses (decodes) and learns to reconstruct the data (think of a hourglass).
 
 Why is this useful? The method is similar to a dimension reduction technique (e.g. PCA) but with the advantage that we don't have to make any distributional assumptions (but see PCA). For instance, we could first train an autoencoder on genomic expression data with thousands of features, compress them into 2-4 dimensions, and then use them for clustering.
 
@@ -79,36 +79,37 @@ autoencoder = keras_model(inputs = down_size_model$input,
 autoencoder$compile(loss = loss_binary_crossentropy,
                     optimizer = optimizer_adamax(0.01))
 summary(autoencoder)
-#> Model: "model"
-#> __________________________________________________________________________________________
-#>  Layer (type)                           Output Shape                        Param #       
-#> ==========================================================================================
-#>  dense_2_input (InputLayer)             [(None, 784)]                       0             
-#>  dense_2 (Dense)                        (None, 100)                         78500         
-#>  dense_1 (Dense)                        (None, 20)                          2020          
-#>  dense (Dense)                          (None, 2)                           42            
-#>  sequential_1 (Sequential)              (None, 784)                         81344         
-#> ==========================================================================================
-#> Total params: 161,906
-#> Trainable params: 161,906
-#> Non-trainable params: 0
-#> __________________________________________________________________________________________
 ```
+
+```{r, eval = TRUE,echo = FALSE, results = TRUE}
+cat("
+Model:
+__________________________________________________________________________________________
+ Layer (type)                           Output Shape                        Param #       
+==========================================================================================
+ dense_2_input (InputLayer)             [(None, 784)]                       0             
+ dense_2 (Dense)                        (None, 100)                         78500         
+ dense_1 (Dense)                        (None, 20)                          2020          
+ dense (Dense)                          (None, 2)                           42            
+ sequential_1 (Sequential)              (None, 784)                         81344         
+==========================================================================================
+Total params: 161,906
+Trainable params: 161,906
+Non-trainable params: 0
+__________________________________________________________________________________________    
+    ")
+```
+
 
 We will now show an example of an image before and after the unfitted autoencoder, so we see that we have to train the autoencoder.
 
 ``` r
 image = autoencoder(train_x[1,,drop = FALSE])
-oldpar = par(mfrow = c(1, 2))
 imgPlot(array(train_x[1,,drop = FALSE], c(28, 28)), title = "Before")
 imgPlot(array(image$numpy(), c(28, 28)), title = "After")
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_6__AEmnistoutput-1.png" width="100%" style="display: block; margin: auto;"/>
-
-``` r
-par(oldpar)
-```
 
 Fit the autoencoder (inputs == outputs!):
 
@@ -139,10 +140,6 @@ plot(pred_dim$numpy()[,1], pred_dim$numpy()[,2], col = ownColors[test[[2]]+1L])
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_9__AEvisualizationContinuation-1.png" width="100%" style="display: block; margin: auto;"/>
-
-``` r
-par(oldpar)
-```
 
 The picture above shows the 2-dimensional encoded values of the numbers in the MNIST data set and the number they are depicting via the respective color.
 
@@ -259,7 +256,6 @@ We will use TensorFlow probability to define priors for our latent variables.
 
 ``` r
 library(tfprobability)
-set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 tfp = reticulate::import("tensorflow_probability")
 ```
@@ -334,10 +330,6 @@ plot(dist$mean()$numpy()[,1], dist$mean()$numpy()[,2], col = ownColors[train[[2]
 ```
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-2.png" width="100%" style="display: block; margin: auto;"/>
-
-``` r
-par(oldpar)
-```
 
 ## Exercise
 
@@ -418,28 +410,34 @@ up_size_model = tf$keras$models$Sequential(list(
 
 VAE = tf$keras$models$Model(inputs = down_size_model$inputs, 
                             outputs = up_size_model(down_size_model$outputs))
-summary(VAE)
-#> Model: "model_3"
-#> __________________________________________________________________________________________
-#>  Layer (type)                           Output Shape                        Param #       
-#> ==========================================================================================
-#>  input_1 (InputLayer)                   [(None, 80, 80, 3)]                 0             
-#>  conv2d_14 (Conv2D)                     (None, 76, 76, 32)                  2432          
-#>  conv2d_15 (Conv2D)                     (None, 36, 36, 32)                  25632         
-#>  conv2d_16 (Conv2D)                     (None, 32, 32, 64)                  51264         
-#>  conv2d_17 (Conv2D)                     (None, 14, 14, 64)                  102464        
-#>  conv2d_18 (Conv2D)                     (None, 8, 8, 128)                   401536        
-#>  flatten_2 (Flatten)                    (None, 8192)                        0             
-#>  dense_10 (Dense)                       (None, 65)                          532545        
-#>  multivariate_normal_tri_l (Multivariat  ((None, 10),                       0             
-#>  eNormalTriL)                            (None, 10))                                      
-#>  sequential_7 (Sequential)              (None, 80, 80, 3)                   1278464       
-#> ==========================================================================================
-#> Total params: 2,394,337
-#> Trainable params: 2,394,337
-#> Non-trainable params: 0
-#> __________________________________________________________________________________________
 ```
+
+```{r, eval = TRUE,echo = FALSE, results = TRUE}
+cat('
+summary(VAE)
+Model: "model_3"
+__________________________________________________________________________________________
+ Layer (type)                           Output Shape                        Param #       
+==========================================================================================
+ input_1 (InputLayer)                   [(None, 80, 80, 3)]                 0             
+ conv2d_14 (Conv2D)                     (None, 76, 76, 32)                  2432          
+ conv2d_15 (Conv2D)                     (None, 36, 36, 32)                  25632         
+ conv2d_16 (Conv2D)                     (None, 32, 32, 64)                  51264         
+ conv2d_17 (Conv2D)                     (None, 14, 14, 64)                  102464        
+ conv2d_18 (Conv2D)                     (None, 8, 8, 128)                   401536        
+ flatten_2 (Flatten)                    (None, 8192)                        0             
+ dense_10 (Dense)                       (None, 65)                          532545        
+ multivariate_normal_tri_l (Multivariat  ((None, 10),                       0             
+ eNormalTriL)                            (None, 10))                                      
+ sequential_7 (Sequential)              (None, 80, 80, 3)                   1278464       
+==========================================================================================
+Total params: 2,394,337
+Trainable params: 2,394,337
+Non-trainable params: 0
+__________________________________________________________________________________________    
+    ')
+```
+
 
 Compile and train model:
 
@@ -451,7 +449,6 @@ be = function(true, pred){
 VAE$compile(loss = be,
             optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.0003))
 VAE$fit(x = train, y = train, epochs = 50L, shuffle = TRUE, batch_size = 20L)
-#> <keras.callbacks.History object at 0x7fcefde64b90>
 
 dist = down_size_model(train[1:10,,,])
 images = up_size_model( dist$sample()[1:5,] )
@@ -478,9 +475,6 @@ scales::rescale(images[3,,,]$numpy(), to = c(0, 255)) %>%
 
 <img src="09-GAN_files/figure-html/chunk_chapter7_task_2__VAEflower-1.png" width="100%" style="display: block; margin: auto;"/>
 
-``` r
-par(oldpar)
-```
 
 `r unhide()`
 
