@@ -338,11 +338,13 @@ microbenchmark::microbenchmark(
 ```{r chunk_chapter3_task_12, eval=TRUE, include=TRUE}
 do_something_TF = function(x = matrix(0.0, 10L, 10L)){
   x = tf$constant(x)  # Remember, this is a local copy!
-  mean_per_row = tf$reduce_mean(x, axis = 0L)
-  result = x - mean_per_row
-  return(result)
+  mean_per_row = tf$reduce_mean(x, axis = 1L)
+  result = tf$transpose(x) - mean_per_row 
+  return(tf$transpose(result)) 
 }
 ```
+
+Short explanation: A 2 dimensional tensor in tensorflow can be seen as an array of arrays. E.g. a 20x30 (rows x columns) matrix is an array which consists of 20 arrays of length 30. If we write result = matrix - vector, tensorflow tries to subtract from every inner array of the matrix (so from every row) the vector. Therefore if the want to substract the first number of mean_per_row from the first column of the matrix, we have to transpose this matrix, do the subtraction and then of course transpose it back to the original dimensions.
 
 ```{r chunk_chapter3_task_13, eval=TRUE, include=TRUE}
 test = matrix(0.0, 100L, 100L)
@@ -1067,4 +1069,3 @@ cat("Original intercept: ", intercept, "\n")
 
 `r unhide()`
 :::
-
