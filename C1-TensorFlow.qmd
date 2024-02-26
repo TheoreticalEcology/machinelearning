@@ -344,7 +344,7 @@ do_something_TF = function(x = matrix(0.0, 10L, 10L)){
 }
 ```
 
-Short explanation: A 2 dimensional tensor in tensorflow can be seen as an array of arrays. E.g. a 20x30 (rows x columns) matrix is an array which consists of 20 arrays of length 30. If we write result = matrix - vector, tensorflow tries to subtract from every inner array of the matrix (so from every row) the vector. Therefore if the want to substract the first number of mean_per_row from the first column of the matrix, we have to transpose this matrix, do the subtraction and then of course transpose it back to the original dimensions. Alternativly one could do `result = x - tf$reshape(mean_per_row, shape = list(20L,1L))` and then omit the second transpose in the return statement. You could now also try to guess, which one of the two is faster and then check that!
+Short explanation: A 2 dimensional tensor in tensorflow can be seen as an array of arrays. E.g. a 20x30 (rows x columns) matrix is an array which consists of 20 arrays of length 30. If we write result = matrix - vector, tensorflow tries to subtract from every inner array of the matrix (so from every row) the vector. Therefore if the want to substract the first number of mean_per_row from the first column of the matrix, we have to transpose this matrix, do the subtraction and then of course transpose it back to the original dimensions. Alternativly one could transform the vector to an matrix of size 20x1: `result = x - tf$reshape(mean_per_row, shape = list(20L,1L))` and then omit the second transpose in the return statement. You could now also try to guess, which one of the two is faster and then check that!
 
 ```{r chunk_chapter3_task_13, eval=TRUE, include=TRUE}
 test = matrix(0.0, 100L, 100L)
