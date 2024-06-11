@@ -55,7 +55,7 @@ devtools::install_github("andrie/deepviz", dependencies = TRUE,
 devtools::install_github('skinner927/reprtree')
 devtools::install_version("lavaanPlot", version = "0.6.0")
 
-reticulate::conda_install("r-reticulate", packages = "scipy", pip = TRUE)
-reticulate::conda_install("r-reticulate", packages = "tensorflow_probability", pip = TRUE)
+reticulate::conda_install("r-keras", packages = "scipy", pip = TRUE)
+reticulate::conda_install("r-keras", packages = "tensorflow_probability", pip = TRUE)
 
 
