@@ -8,7 +8,9 @@ editor_options:
 #| echo: false
 #| include: false
 #| results: false
-reticulate::use_condaenv("r-reticulate")
+reticulate::use_condaenv("r-keras")
+library(keras3)
+use_backend("tensorflow")
 library(tensorflow)
 tf
 tf$abs(3.)
@@ -67,13 +69,13 @@ To get started with TensorFlow, we have to load the library and check if the ins
 
 ```{r chunk_chapter3_44}
 library(tensorflow)
-library(keras)
+library(keras3)
 
 # Don't worry about weird messages. TensorFlow supports additional optimizations.
 exists("tf")
 
 immutable = tf$constant(5.0)
-mutable = tf$constant(5.0)
+mutable = tf$Variable(5.0)
 ```
 
 Don't worry about weird messages (they will only appear once at the start of the session).
@@ -90,7 +92,6 @@ print(b)
 c = tf$add(a, b)
 print(c)
 tf$print(c) # Prints to stderr. For stdout, use k_print_tensor(..., message).
-k_print_tensor(c) # Comes out of Keras!
 ```
 
 Normal R methods such as print() are provided by the R package "tensorflow".
@@ -100,7 +101,7 @@ The TensorFlow library (created by the RStudio team) built R methods for all com
 ```{r chunk_chapter3_46}
 `+.tensorflow.tensor` = function(a, b){ return(tf$add(a,b)) }
 # Mind the backticks.
-k_print_tensor(a+b)
+(a+b)
 ```
 
 Their operators also automatically transform R numbers into constant tensors when attempting to add a tensor to an R number:
@@ -115,6 +116,7 @@ TensorFlow containers are objects, what means that they are not just simple vari
 ```{r chunk_chapter3_48}
 class(d)
 class(d$numpy())
+class(as.matrix(d))
 ```
 
 ### Data Types
@@ -185,7 +187,7 @@ An example: How to get the maximum value of a vector?
 
 ```{r chunk_chapter3_task_5, eval=FALSE}
 library(tensorflow)
-library(keras)
+library(keras3)
 
 x = 100:1
 y = as.double(100:1)
@@ -405,7 +407,7 @@ det(A)
 
 ```{r chunk_chapter3_task_16, eval=TRUE, include=TRUE}
 library(tensorflow)
-library(keras)
+library(keras3)
 
 A = matrix(c(1., 2., 0., 0., 2., 0., 2., 5., 3.), 3, 3)
 # Do not use the "L" form here!
@@ -489,8 +491,6 @@ A more advanced example: *Linear regression*
 In this case we first simulate data following $\boldsymbol{y} = \boldsymbol{X} \boldsymbol{w} + \boldsymbol{\epsilon}$ ($\boldsymbol{\epsilon}$ follows a normal distribution == error).
 
 ```{r chunk_chapter3_task_22, eval=TRUE}
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
-
 x = matrix(round(runif(500, -2, 2), 3), 100, 5)
 w = round(rnorm(5, 2, 1), 3)
 y = x %*% w + round(rnorm(100, 0, 0.25), 4)
@@ -508,8 +508,7 @@ The input (predictors, independent variables or features, $\boldsymbol{X}$) and 
 
 ```{r chunk_chapter3_task_24, eval=TRUE}
 library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+library(keras3)
 
 x = matrix(round(runif(500, -2, 2), 3), 100, 5)
 w = round(rnorm(5, 2, 1), 3)
@@ -534,12 +533,12 @@ for(i in 1:100){
     }
   )
 
-  if(!i%%10){ k_print_tensor(loss, message = "Loss: ") }  # Every 10 times.
+  if(!i%%10){ print(as.numeric(loss), message = "Loss: ") }  # Every 10 times.
   grads = tape$gradient(loss, wTF)
   optimizer$apply_gradients(purrr::transpose(list(list(grads), list(wTF))))
 }
 
-k_print_tensor(wTF, message = "Resulting weights:\n")
+print(as.matrix(wTF), message = "Resulting weights:\n")
 cat("Original weights: ", w, "\n")
 ```
 
@@ -553,8 +552,7 @@ Play around with the simulation, increase/decrease the number of weights, add an
 
 ```{r chunk_chapter3_task_25, eval=TRUE, include=TRUE, warning=FALSE}
 library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+library(keras3)
 
 numberOfWeights = 3
 numberOfFeatures = 10000
@@ -582,14 +580,14 @@ for(i in 1:100){
     }
   )
 
-  if(!i%%10){ k_print_tensor(loss, message = "Loss: ") }  # Every 10 times.
+  if(!i%%10){ print(as.numeric(loss), message = "Loss: ") }  # Every 10 times.
   grads = tape$gradient(loss, list(wTF, interceptTF))
   optimizer$apply_gradients(purrr::transpose(list(grads, list(wTF, interceptTF))))
 }
 
-k_print_tensor(wTF, message = "Resulting weights:\n")
+print(as.matrix(wTF), message = "Resulting weights:\n")
 cat("Original weights: ", w, "\n")
-k_print_tensor(interceptTF, message = "Resulting intercept:\n")
+print(as.numeric(interceptTF), message = "Resulting intercept:\n")
 cat("Original intercept: ", intercept, "\n")
 ```
 
@@ -1067,4 +1065,3 @@ cat("Original intercept: ", intercept, "\n")
 
 `r unhide()`
 :::
-

@@ -10,7 +10,7 @@ editor_options:
 #| echo: false
 #| include: false
 #| results: false
-reticulate::use_condaenv("r-reticulate")
+reticulate::use_condaenv("r-keras")
 library(tensorflow)
 tf
 tf$abs(3.)
@@ -23,7 +23,7 @@ Keras is a powerful framework for building and training neural networks with jus
 The goal of this lesson is to familiarize you with Keras. If you have TensorFlow installed, you can find Keras inside TensorFlow: tf.keras. However, the RStudio team has built an R package on top of tf.keras that is more convenient to use. To load the Keras package, type
 
 ```{r chunk_chapter3_61}
-library(keras)
+library(keras3)
 # or library(torch)
 ```
 
@@ -32,10 +32,10 @@ library(keras)
 We build a small classifier to predict the three species of the iris data set. Load the necessary packages and data sets:
 
 ```{r chunk_chapter3_62}
-library(keras)
+library(keras3)
 library(tensorflow)
 library(torch)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+
 
 data(iris)
 head(iris)
@@ -51,7 +51,7 @@ Y = iris[,5]
 Additionally, Keras/TensorFlow cannot handle factors and we have to create contrasts (one-hot encoding). To do so, we have to specify the number of categories. This can be tricky for a beginner, because in other programming languages like Python and C++, arrays start at zero. Thus, when we would specify 3 as number of classes for our three species, we would have the classes 0,1,2,3. Keep this in mind.
 
 ```{r chunk_chapter3_64, cache=TRUE}
-Y = to_categorical(as.integer(Y) - 1L, 3)
+Y = keras3::to_categorical(as.integer(Y) - 1L, 3)
 head(Y) # 3 columns, one for each level of the response.
 ```
 
@@ -63,7 +63,7 @@ After having prepared the data, we start now with the typical workflow in keras.
 ## Keras
 
 ```{r chunk_chapter3_65, cache=TRUE}
-model = keras_model_sequential()
+model = keras_model_sequential(shape = list(4L))
 ```
 
 ## Torch
@@ -84,7 +84,7 @@ The shape of the input is the number of predictors (here 4) and the shape of the
 
 ```{r chunk_chapter3_66, cache=TRUE}
 model %>%
-  layer_dense(units = 20L, activation = "relu", input_shape = list(4L)) %>%
+  layer_dense(units = 20L, activation = "relu") %>%
   layer_dense(units = 20L) %>%
   layer_dense(units = 20L) %>%
   layer_dense(units = 3L, activation = "softmax") 
@@ -117,9 +117,10 @@ We will learn about other options later, so for now, do not worry about the "**l
 
 ```{r chunk_chapter3_68, cache=TRUE}
 model %>%
-  compile(loss = loss_categorical_crossentropy,
-          keras::optimizer_adamax(learning_rate = 0.001))
+  compile(loss = keras3::loss_categorical_crossentropy,
+          keras3::optimizer_adamax(learning_rate = 0.001))
 summary(model)
+plot(model)
 ```
 
 ## Torch
@@ -138,8 +139,8 @@ optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 
 ```{r chunk_chapter3_70, cache=TRUE}
 library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+library(keras3)
+
 
 model_history =
   model %>%
@@ -292,8 +293,8 @@ Before we start, load and prepare the data set:
 
 ```{r chunk_chapter3_task_26, eval=TRUE}
 library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+library(keras3)
+
 
 data = airquality
 
@@ -311,7 +312,7 @@ summary(data)
 
 `r unhide()`
 
-2.  **Split the data in features ($\boldsymbol{X}$) and response ($\boldsymbol{y}$, Ozone) and scale the $\boldsymbol{X}$ matrix.**
+2.  **Split the data in features (**$\boldsymbol{X}$) and response ($\boldsymbol{y}$, Ozone) and scale the $\boldsymbol{X}$ matrix.
 
 `r hide("Solution")`
 
@@ -328,7 +329,7 @@ y = data[,1]
 
 ```{r}
 library(tensorflow)
-library(keras)
+library(keras3)
 model = keras_model_sequential()
 ```
 
@@ -434,7 +435,7 @@ summary(data)
 
 `r unhide()`
 
-2.  **Split the data in features ($\boldsymbol{X}$) and response ($\boldsymbol{y}$, Ozone) and scale the $\boldsymbol{X}$ matrix.**
+2.  **Split the data in features (**$\boldsymbol{X}$) and response ($\boldsymbol{y}$, Ozone) and scale the $\boldsymbol{X}$ matrix.
 
 `r hide("Solution")`
 
@@ -607,14 +608,11 @@ print(rmse_torch)
 :::
 :::
 
-
 ::: {.callout-caution icon="false"}
 #### Task: Titanic dataset
 
 Build a Keras DNN for the titanic dataset
-
 :::
-
 
 ::: {.callout-caution icon="false"}
 #### Bonus Task: More details on the inner working of Keras
@@ -635,7 +633,7 @@ Similar to Torch, here we will write the training loop ourselves in the followin
 
 ```{r}
 library(tensorflow)
-library(keras)
+library(keras3)
 
 data = airquality
 data = data[complete.cases(data),]  # Remove NAs.
@@ -779,7 +777,7 @@ Now change the code from above for the iris data set. Tip: In tf$keras$losses\$.
 
 ```{r}
 library(tensorflow)
-library(keras)
+library(keras3)
 set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 x = scale(iris[,1:4])

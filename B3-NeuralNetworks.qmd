@@ -103,7 +103,6 @@ model = dnn(Ozone~.,
 ```
 :::
 
-
 ## Regularization
 
 We can use $\lambda$ and $\alpha$ to set L1 and L2 regularization on the weights in our NN:
@@ -130,8 +129,7 @@ fields::image.plot(coef(model)[[1]][[1]]) # weights of the first layer
 
 ## Exercise
 
-
-::: {.callout-caution icon="false"}
+::: {.callout-warning}
 #### Question: Hyperparameter tuning - Titanic dataset
 
 Tune architecture
@@ -141,8 +139,6 @@ Tune architecture
 Bonus:
 
 -   Tune the architecture! (depth and width of the NN via the hidden argument)
-
-
 
 ```{r}
 library(EcoData)
@@ -182,66 +178,106 @@ predictions = predict(model, newdata = data_new)
 write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_ensemble.csv")
 ```
 
-
 <!-- ```{r, eval=FALSE} -->
+
 <!-- library(cito) -->
+
 <!-- set.seed(42) -->
+
 <!-- data_obs = data_sub[!is.na(data_sub$survived),]  -->
+
 <!-- cv = 3 -->
 
 <!-- outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
 
 <!-- results = data.frame( -->
+
 <!--   set = rep(NA, cv), -->
+
 <!--   lambda = rep(NA, cv), -->
+
 <!--   AUC = rep(NA, cv) -->
+
 <!-- ) -->
 
 <!-- for(i in 1:cv) { -->
+
 <!--   train_outer = data_obs[outer_split != i, ] -->
+
 <!--   test_outer = data_obs[outer_split == i, ] -->
 
 <!--   tuning_results =  -->
+
 <!--       sapply(1:length(hyper_lambda), function(k) { -->
+
 <!--         model = dnn(survived~.,  -->
+
 <!--             hidden = c(10L, 10L),  -->
+
 <!--             activation = c("selu", "selu"),  -->
+
 <!--             loss = "binomial",  -->
+
 <!--             lr = 0.05, -->
+
 <!--             lambda = ..., # change this line -->
+
 <!--             alpha = 0.1, -->
+
 <!--             lr_scheduler = config_lr_scheduler("step", step_size = 10, gamma = 0.1), -->
+
 <!--             data = train_outer, epochs = 40L, verbose = FALSE, plot= FALSE) -->
+
 <!--         return(Metrics::auc(test_outer$survived, predict(model, test_outer )[,2])) -->
+
 <!--       }) -->
+
 <!--   best_lambda = hyper_lambda[which.max(tuning_results)] -->
 
 <!--   results[i, 1] = i -->
+
 <!--   results[i, 2] = best_lambda -->
+
 <!--   results[i, 3] = max(tuning_results) -->
+
 <!-- } -->
 
 <!-- print(results) -->
+
 <!-- ``` -->
 
-
 <!-- ```{r} -->
+
 <!-- library(EcoData) -->
+
 <!-- library(dplyr) -->
+
 <!-- library(missRanger) -->
+
 <!-- data(titanic_ml) -->
+
 <!-- data = titanic_ml -->
+
 <!-- data =  -->
+
 <!--   data %>% select(survived, sex, age, fare, pclass) -->
+
 <!-- data[,-1] = missRanger(data[,-1], verbose = 0) -->
 
 <!-- data_sub = -->
+
 <!--   data %>% -->
+
 <!--     mutate(age = scales::rescale(age, c(0, 1)), -->
+
 <!--            fare = scales::rescale(fare, c(0, 1))) %>% -->
+
 <!--     mutate(sex = as.integer(sex) - 1L, -->
+
 <!--            pclass = as.integer(pclass - 1L)) -->
+
 <!-- data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end -->
+
 <!-- data_obs = data_sub[!is.na(data_sub$survived),] # data with known response -->
 
 <!-- ``` -->
@@ -249,68 +285,111 @@ write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_ensemble.csv")
 <!-- `r hide("Click here to see the solution")` -->
 
 <!-- ```{r} -->
+
 <!-- library(cito) -->
+
 <!-- set.seed(42) -->
+
 <!-- cv = 3 -->
+
 <!-- hyper_lambda = runif(5,0.0001, 0.02) -->
 
 <!-- outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
 
 <!-- results = data.frame( -->
+
 <!--   set = rep(NA, cv), -->
+
 <!--   lambda = rep(NA, cv), -->
+
 <!--   AUC = rep(NA, cv) -->
+
 <!-- ) -->
 
 <!-- for(i in 1:cv) { -->
+
 <!--   train_outer = data_obs[outer_split != i, ] -->
+
 <!--   test_outer = data_obs[outer_split == i, ] -->
 
 <!--   tuning_results =  -->
+
 <!--       sapply(1:length(hyper_lambda), function(k) { -->
+
 <!--         model = dnn(survived~.,  -->
+
 <!--             hidden = c(10L, 10L),  -->
+
 <!--             activation = c("selu", "selu"),  -->
+
 <!--             loss = "binomial",  -->
+
 <!--             lr = 0.05, -->
+
 <!--             lambda = hyper_lambda[k], -->
+
 <!--             alpha = 0.1, -->
+
 <!--             lr_scheduler = config_lr_scheduler("step", step_size = 10, gamma = 0.1), -->
+
 <!--             data = train_outer, epochs = 40L, verbose = FALSE, plot= FALSE) -->
+
 <!--         return(Metrics::auc(test_outer$survived, predict(model, test_outer )[,1])) -->
+
 <!--       }) -->
+
 <!--   best_lambda = hyper_lambda[which.max(tuning_results)] -->
 
 <!--   results[i, 1] = i -->
+
 <!--   results[i, 2] = best_lambda -->
+
 <!--   results[i, 3] = max(tuning_results) -->
+
 <!-- } -->
 
 <!-- print(results) -->
+
 <!-- ``` -->
 
 <!-- Make predictions: -->
 
 <!-- ```{r, results='hide', warning=FALSE, message=FALSE} -->
+
 <!-- prediction_ensemble =  -->
+
 <!--   sapply(1:nrow(results), function(i) { -->
+
 <!--   model = dnn(survived~.,  -->
+
 <!--               hidden = c(10L, 10L),  -->
+
 <!--               activation = c("selu", "selu"),  -->
+
 <!--               loss = "binomial",  -->
+
 <!--               lr = 0.05, -->
+
 <!--               lambda = results$lambda[i], -->
+
 <!--               alpha = 0.1, -->
+
 <!--               lr_scheduler = config_lr_scheduler("step", step_size = 10, gamma = 0.1), -->
+
 <!--               data = data_sub[is.na(data_sub$survived),] , epochs = 40L, verbose = FALSE, plot= FALSE) -->
+
 <!--     return(predict(model, data_obs)[,1]) -->
+
 <!--   }) -->
 
 <!-- # Single predictions from the model with the highest AUC: -->
+
 <!-- write.csv(data.frame(y = prediction_ensemble[,which.max(results$AUC)]), file = "Max_titanic_best_model.csv") -->
 
 <!-- # Single predictions from the ensemble model: -->
+
 <!-- write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titanic_ensemble.csv") -->
+
 <!-- ``` -->
 
 <!-- `r unhide()` -->
@@ -318,102 +397,166 @@ write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_ensemble.csv")
 <!-- `r hide("Click here to see the solution for architecture tuning")` -->
 
 <!-- ```{r} -->
+
 <!-- library(cito) -->
+
 <!-- set.seed(42) -->
+
 <!-- data_obs = data_sub[!is.na(data_sub$survived),]  -->
+
 <!-- cv = 3 -->
+
 <!-- hyper_lambda = runif(10,0.0001, 0.02) -->
+
 <!-- hyper_alpha = runif(10,0, 1.0) -->
+
 <!-- hyper_hidden = sample.int(10, 10) -->
+
 <!-- hyper_nodes = sample(seq(5, 100), size = 10) -->
 
 <!-- outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
 
 <!-- results = data.frame( -->
+
 <!--   set = rep(NA, cv), -->
+
 <!--   lambda = rep(NA, cv), -->
+
 <!--   alpha = rep(NA, cv), -->
+
 <!--   hidden = rep(NA, cv), -->
+
 <!--   nodes = rep(NA, cv), -->
+
 <!--   AUC = rep(NA, cv) -->
+
 <!-- ) -->
 
 <!-- for(i in 1:cv) { -->
+
 <!--   train_outer = data_obs[outer_split != i, ] -->
+
 <!--   test_outer = data_obs[outer_split == i, ] -->
 
 <!--   tuning_results =  -->
+
 <!--       sapply(1:length(hyper_lambda), function(k) { -->
+
 <!--         model = dnn(survived~.,  -->
+
 <!--             hidden = rep(hyper_nodes[k], hyper_hidden[k]),  -->
+
 <!--             activation = rep("selu", hyper_hidden[k]),  -->
+
 <!--             loss = "binomial",  -->
+
 <!--             lr = 0.05, -->
+
 <!--             lambda = hyper_lambda[k], -->
+
 <!--             alpha = hyper_alpha[k], -->
+
 <!--             lr_scheduler = config_lr_scheduler("step", step_size = 10, gamma = 0.1), -->
+
 <!--             data = train_outer, epochs = 40L, verbose = FALSE, plot= FALSE) -->
+
 <!--         return(Metrics::auc(test_outer$survived, predict(model, test_outer )[,1])) -->
+
 <!--       }) -->
+
 <!--   results[i, 1] = i -->
+
 <!--   results[i, 2] =  hyper_lambda[which.max(tuning_results)] -->
+
 <!--   results[i, 3] =  hyper_alpha[which.max(tuning_results)] -->
+
 <!--   results[i, 4] =  hyper_hidden[which.max(tuning_results)] -->
+
 <!--   results[i, 5] =  hyper_nodes[which.max(tuning_results)]   -->
+
 <!--   results[i, 6] = max(tuning_results) -->
+
 <!-- } -->
 
 <!-- print(results) -->
+
 <!-- ``` -->
 
 <!-- Make predictions: -->
 
 <!-- ```{r, results='hide', warning=FALSE, message=FALSE} -->
+
 <!-- prediction_ensemble =  -->
+
 <!--   sapply(1:nrow(results), function(i) { -->
+
 <!--   model = dnn(survived~.,  -->
+
 <!--               hidden = rep(results$nodes[i], results$hidden[i]),  -->
+
 <!--               activation = rep("selu", results$hidden[i]),  -->
+
 <!--               loss = "binomial",  -->
+
 <!--               lr = 0.05, -->
+
 <!--               lambda = results$lambda[i], -->
+
 <!--               alpha = results$alpha[i], -->
+
 <!--               lr_scheduler = config_lr_scheduler("step", step_size = 10, gamma = 0.1), -->
+
 <!--               data = data_sub[is.na(data_sub$survived),] , epochs = 40L, verbose = FALSE, plot= FALSE) -->
+
 <!--     return(predict(model, data_obs)[,1]) -->
+
 <!--   }) -->
 
 <!-- # Single predictions from the model with the highest AUC: -->
+
 <!-- write.csv(data.frame(y = prediction_ensemble[,which.max(results$AUC)]), file = "Max_titanic_best_model.csv") -->
 
 <!-- # Single predictions from the ensemble model: -->
+
 <!-- write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titanic_ensemble.csv") -->
+
 <!-- ``` -->
 
 <!-- `r unhide()` -->
-
 :::
 
-
-
 <!-- ::: {.callout-caution icon="false"} -->
+
 <!-- #### Question: Regularization -->
 
 <!-- Change the following code to a pure L1 regularization and try different $\lambda$ values, what happens to the weights of the first layer? -->
 
 <!-- ```{r} -->
+
 <!-- data = airquality -->
+
 <!-- model = dnn(Ozone~.,  -->
+
 <!--             hidden = c(40L, 40L),  -->
+
 <!--             activation = c("selu", "selu"),  -->
+
 <!--             loss = "mse",  -->
+
 <!--             lr = 0.05, -->
+
 <!--             lambda = 0.0, -->
+
 <!--             alpha = 0.5, -->
+
 <!--             lr_scheduler = config_lr_scheduler("step", step_size = 30, gamma = 0.1), -->
+
 <!--             # reduce learning all 30 epochs (new lr = 0.1* old lr) -->
+
 <!--             data = data, epochs = 150L, verbose = FALSE) -->
+
 <!-- fields::image.plot(coef(model)[[1]][[1]]) -->
+
 <!-- ``` -->
 
 <!-- `r hide("Click here to see the solution")` -->
@@ -421,43 +564,66 @@ write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_ensemble.csv")
 <!-- $\alpha = 0.0$ means that only L1 is used: Weak regularization -->
 
 <!-- ```{r} -->
+
 <!-- model = dnn(Ozone~.,  -->
+
 <!--             hidden = c(40L, 40L),  -->
+
 <!--             activation = c("selu", "selu"),  -->
+
 <!--             loss = "mse",  -->
+
 <!--             lr = 0.05, -->
+
 <!--             lambda = 0.01, -->
+
 <!--             alpha = 0.0, -->
+
 <!--             lr_scheduler = config_lr_scheduler("step", step_size = 30, gamma = 0.1), -->
+
 <!--             # reduce learning all 30 epochs (new lr = 0.1* old lr) -->
+
 <!--             data = data, epochs = 150L, verbose = FALSE, plot = FALSE) -->
+
 <!-- fields::image.plot(coef(model)[[1]][[1]]) -->
+
 <!-- ``` -->
 
 <!-- Strong regularization -->
 
 <!-- ```{r} -->
+
 <!-- model = dnn(Ozone~.,  -->
+
 <!--             hidden = c(40L, 40L),  -->
+
 <!--             activation = c("selu", "selu"),  -->
+
 <!--             loss = "mse",  -->
+
 <!--             lr = 0.05, -->
+
 <!--             lambda = 0.04, -->
+
 <!--             alpha = 0.1, -->
+
 <!--             lr_scheduler = config_lr_scheduler("step", step_size = 30, gamma = 0.1), -->
+
 <!--             # reduce learning all 30 epochs (new lr = 0.1* old lr) -->
+
 <!--             data = data, epochs = 150L, verbose = FALSE, plot= FALSE) -->
+
 <!-- fields::image.plot(coef(model)[[1]][[1]]) -->
+
 <!-- ``` -->
 
 <!-- The weights get sparse, i.e. many of them are zero. -->
 
 <!-- `r unhide()` -->
+
 <!-- ::: -->
 
-
-
-::: {.callout-caution icon="false"}
+::: {.callout-warning}
 #### Question: Hyperparameter tuning - Plant-pollinator dataset
 
 see @sec-plantpoll for more information about the dataset.
@@ -503,19 +669,20 @@ dim(data_obs)
 The dataset is large! More than 10,000 observations. For now, let's switch to a simple holdout strategy for validating our model (e.g. use 80% of the data to train the model and 20% of the data to validate your model.
 
 Moreover:
+
 ```{r}
 table(data_obs$interaction)
 ```
-The data is strongly imbalanced, i.e. many 0s but only a few 1. There are different strategies how to deal with that, for example oversampling the 1s or undersampling the 0s. 
+
+The data is strongly imbalanced, i.e. many 0s but only a few 1. There are different strategies how to deal with that, for example oversampling the 1s or undersampling the 0s.
 
 Undersampling the 0s:
+
 ```{r}
 data_obs = data_obs[c(sample(which(data_obs$interaction == 0), 2000), which(data_obs$interaction == 1)),]
 table(data_obs$interaction)
 data_obs$interaction = as.integer(data_obs$interaction)
 ```
-
-
 
 `r hide("Click here to see the solution")`
 
@@ -588,7 +755,5 @@ predictions = predict(model, newdata = data_new)[,1]
 write.csv(data.frame(y = predictions), file = "Max_plant_poll_ensemble.csv")
 ```
 
-
 `r unhide()`
-
 :::
