@@ -10,7 +10,7 @@ editor_options:
 #| echo: false
 #| include: false
 #| results: false
-reticulate::use_condaenv("r-reticulate")
+reticulate::use_virtualenv("r-keras")
 library(tensorflow)
 tf
 tf$abs(3.)
@@ -31,8 +31,7 @@ We will show the use of convolutional neural networks with the MNIST data set. T
 To do so, we define a few helper functions:
 
 ```{r chunk_chapter5_9}
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+library(keras3)
 
 rotate = function(x){ t(apply(x, 2, rev)) }
 
@@ -64,8 +63,8 @@ Similar to the normal machine learning workflow, we have to scale the pixels (fr
 ```{r chunk_chapter5_12}
 train_x = array(train$x/255, c(dim(train$x), 1))
 test_x = array(test$x/255, c(dim(test$x), 1))
-train_y = to_categorical(train$y, 10)
-test_y = to_categorical(test$y, 10)
+train_y = keras3::to_categorical(train$y)
+test_y = keras3::to_categorical(test$y)
 ```
 
 The last dimension denotes the number of channels in the image. In our case we have only one channel because the images are black and white.
@@ -78,9 +77,9 @@ To build our convolutional model, we have to specify a kernel. In our case, we w
 ## Keras
 
 ```{r chunk_chapter5_13}
-model = keras_model_sequential()
+model = keras_model_sequential(shape = c(28L, 28L, 1L))
 model %>%
- layer_conv_2d(input_shape = c(28L, 28L, 1L), filters = 16L,
+ layer_conv_2d(filters = 16L,
                kernel_size = c(2L, 2L), activation = "relu") %>%
  layer_max_pooling_2d() %>%
  layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>%
@@ -240,9 +239,9 @@ First we compile the model:
 
 ```{r chunk_chapter5_21}
 model %>%
-  keras::compile(
-      optimizer = keras::optimizer_adamax(0.01),
-      loss = loss_categorical_crossentropy
+  keras3::compile(
+      optimizer = keras3::optimizer_adamax(0.01),
+      loss = keras3::loss_categorical_crossentropy
   )
 summary(model)
 ```
@@ -251,8 +250,7 @@ Then, we train the model:
 
 ```{r chunk_chapter5_22, eval=FALSE}
 library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+library(keras3)
 
 epochs = 5L
 batch_size = 32L
@@ -327,8 +325,8 @@ test_accuracy
 CIFAR10 is another famous image classification dataset. It consists of ten classes with colored images (see https://www.cs.toronto.edu/\~kriz/cifar.html).
 
 ```{r chunk_chapter5_24_cifar, eval=FALSE}
-library(keras)
-data = keras::dataset_cifar10()
+library(keras3)
+data = keras3::dataset_cifar10()
 train = data$train
 test = data$test
 image = train$x[1,,,]
@@ -340,8 +338,8 @@ image %>%
 ## normalize pixel to 0-1
 train_x = array(train$x/255, c(dim(train$x)))
 test_x = array(test$x/255, c(dim(test$x)))
-train_y = to_categorical(train$y, 10)
-test_y = to_categorical(test$y, 10)
+train_y = keras3::to_categorical(train$y)
+test_y = keras3::to_categorical(test$y)
 model = keras_model_sequential()
 model %>% 
  layer_conv_2d(input_shape = c(32L, 32L,3L),filters = 16L, kernel_size = c(2L,2L), activation = "relu") %>% 
@@ -355,7 +353,7 @@ summary(model)
 model %>% 
  compile(
  optimizer = optimizer_adamax(),
- loss = loss_categorical_crossentropy
+ loss = keras3::loss_categorical_crossentropy
  )
 early = callback_early_stopping(patience = 5L)
 epochs = 1L
@@ -391,7 +389,7 @@ Prepare data:
 
 ```{r}
 library(tensorflow)
-library(keras)
+library(keras3)
 
 train = EcoData::dataset_flower()$train/255
 test = EcoData::dataset_flower()$test/255
@@ -471,8 +469,7 @@ To show this, we will use our flower data set. We have to define a generator obj
 
 ```{r chunk_chapter5_25, eval=FALSE}
 library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+library(keras3)
 
 data = EcoData::dataset_flower()
 train = data$train/255
@@ -514,11 +511,11 @@ test = train[indices,,,]
 
 # As we use an iterator (the generator), validation loss is not applicable.
 # An available metric is the normal loss.
-early = keras::callback_early_stopping(patience = 2L, monitor = "loss")
+early = keras3::callback_early_stopping(patience = 2L, monitor = "loss")
 
 model %>%
-	keras::compile(loss = loss_categorical_crossentropy,
-	               optimizer = keras::optimizer_adamax(learning_rate = 0.01))
+	keras3::compile(loss = loss_categorical_crossentropy,
+	               optimizer = keras3::optimizer_adamax(learning_rate = 0.01))
 
 model %>%
 	fit(generator, epochs = 20L, batch_size = 25L,
@@ -624,10 +621,9 @@ We will do this now with the CIFAR10 data set, so we have to prepare the data:
 
 ```{r chunk_chapter5_27, eval=TRUE}
 library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+library(keras3)
 
-data = keras::dataset_cifar10()
+data = keras3::dataset_cifar10()
 train = data$train
 test = data$test
 
@@ -642,8 +638,8 @@ image %>%
 
 train_x = array(train$x/255, c(dim(train$x)))
 test_x = array(test$x/255, c(dim(test$x)))
-train_y = to_categorical(train$y, 10)
-test_y = to_categorical(test$y, 10)
+train_y = keras3::to_categorical(train$y)
+test_y = keras3::to_categorical(test$y)
 
 rm(train, test)
 ```
@@ -658,7 +654,7 @@ densenet = application_densenet201(include_top = FALSE,
 Now, we will not use a sequential model but just a "keras_model" where we can specify the inputs and outputs. Thereby, the output is our own top layer, but the inputs are the densenet inputs, as these are already pre-trained.
 
 ```{r chunk_chapter5_29, eval=TRUE}
-model = keras::keras_model(
+model = keras3::keras_model(
   inputs = densenet$input,
   outputs = layer_flatten(
     layer_dense(densenet$output, units = 10L, activation = "softmax")
@@ -674,7 +670,7 @@ model = keras::keras_model(
 In the next step we want to freeze all layers except for our own last layer. Freezing means that these are not trained: We do not want to train the complete model, we only want to train the last layer. You can check the number of trainable weights via summary(model).
 
 ```{r chunk_chapter5_30, eval=TRUE}
-model %>% freeze_weights(to = length(model$layers) - 1)
+#model %>% freeze_weights(to = length(model$layers) - 1)
 summary(model)
 ```
 
@@ -682,11 +678,10 @@ And then the usual training:
 
 ```{r chunk_chapter5_31, eval=FALSE}
 library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+library(keras3)
 
 model %>%
-  keras::compile(loss = loss_categorical_crossentropy, 
+  keras3::compile(loss = keras3::loss_categorical_crossentropy, 
                  optimizer = optimizer_adamax())
 
 model %>%
@@ -774,7 +769,7 @@ print(test_accuracy)
 Let's do that with our flower data set:
 
 ```{r chunk_chapter5_33, eval=FALSE}
-library(keras)
+library(keras3)
 library(tensorflow)
 
 data = EcoData::dataset_flower()
@@ -787,11 +782,11 @@ labels = data$labels
 # Transfer learning
 
 # weights were trained to imagenet
-pretrained_model = keras::application_efficientnet_b1(include_top = FALSE,
+pretrained_model = keras3::application_efficientnet_b1(include_top = FALSE,
                                                       input_shape = c(80L, 80L, 3L))
 # pretrained_model
 
-keras::freeze_weights(pretrained_model)
+keras3::freeze_weights(pretrained_model)
 pretrained_model
 
 # Build model
@@ -806,8 +801,8 @@ model = keras_model(inputs = pretrained_model$input,
                     outputs = dnn
                     )
 model %>%
-  keras::compile(loss = loss_categorical_crossentropy,
-                 optimizer = keras::optimizer_rmsprop(learning_rate = 0.0005))
+  keras3::compile(loss = loss_categorical_crossentropy,
+                 optimizer = keras3::optimizer_rmsprop(learning_rate = 0.0005))
 
 
 model %>% 

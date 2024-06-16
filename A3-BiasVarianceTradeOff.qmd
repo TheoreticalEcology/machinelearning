@@ -61,7 +61,7 @@ The phenomenon that the predictive error drops significantly when going from the
 
 What about m1 - is m1 just complex enough, or is it too simple? Underfitting cannot be directly diagnosed, you just have to try around if making the model more complex can improve results on the validation data. Let's try a random forest
 
-```{r}
+```{r, message=FALSE}
 library(randomForest)
 m3 = randomForest(medv~., data = data[train,])
 cor(predict(m3), data[train,]$medv)
@@ -92,12 +92,11 @@ for(i in 1:k){
 cor(pred, data$medv)
 ```
 
-
 ### The bootstrap
 
 It doesn't really fit in here, but as we just introduced validation and cross-valation, we also want to introduce you to the bootstrap, which is next to cross-validation the other main resampling technique.
 
-In a bootstrap, is instead of splitting up the data in test / validation, we sample from the dasta with replacement and fit the models repeatedly. The idea is to get an estimate about the variability we would expect if we created another dataset of the same size.
+In a bootstrap, is instead of splitting up the data in test / validation, we sample from the data with replacement and fit the models repeatedly. The idea is to get an estimate about the variability we would expect if we created another dataset of the same size.
 
 ```{r}
 k = 10 # bootstrap samples
@@ -105,7 +104,7 @@ pred = matrix(NA,k,n)
 dim(pred)
 
 for(i in 1:k){
-  bootSample = sample.int(n, n, replace = F)
+  bootSample = sample.int(n, n, replace = TRUE)
   m1 = randomForest(medv~., data = data[bootSample,])
   pred[i,] = predict(m1)
 }
@@ -113,14 +112,14 @@ for(i in 1:k){
 boxplot(pred[,1:10], main = "uncertainty predictions 1-10")
 ```
 
-Basically, the distinction between bootstrap and validation / cross-valiation is as follows:
+Basically, the distinction between bootstrap and validation / cross-validation is as follows:
 
-* Validation / cross-valiation estimates out-of-sample predictive error
-* Bootstrap estimates uncertainty / confidence interval on all model outputs (could be prediction and inference).
+-   Validation / cross-validation estimates out-of-sample predictive error
+-   Bootstrap estimates uncertainty / confidence interval on all model outputs (could be prediction and inference).
 
 ## The bias-variance trade-off
 
-What we have just seen in the previous chapeter is an example of the bias-variance trade-off. The idea is that we look at the error of the model on new test data. The total error comes from 2 contributions:
+What we have just seen in the previous chapter is an example of the bias-variance trade-off. The idea is that we look at the error of the model on new test data. The total error comes from 2 contributions:
 
 -   Bias = systematic error that comes from the fact that the model is not flexible enough, related to underfitting
 
@@ -175,7 +174,7 @@ The model with all features and their potential interactions has the highest $R^
 
 Regularization means adding information or structure to a system in order to solve an ill-posed optimization problem or to prevent overfitting. There are many ways of regularizing a machine learning model. The most important distinction is between *shrinkage estimators* and estimators based on *model averaging*.
 
-**Shrikage estimators** are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are *"shrunk"* to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also *Lasso* or *LASSO*, where the penalty is proportional to the sum of absolute deviations ($L1$ penalty), and the *Tikhonov regularization* aka *Ridge regression*, where the penalty is proportional to the sum of squared distances from the reference ($L2$ penalty). Thus, the loss function that we optimize is given by
+**Shrinkage estimators** are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are *"shrunk"* to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also *Lasso* or *LASSO*, where the penalty is proportional to the sum of absolute deviations ($L1$ penalty), and the *Tikhonov regularization* aka *Ridge regression*, where the penalty is proportional to the sum of squared distances from the reference ($L2$ penalty). Thus, the loss function that we optimize is given by
 
 $$
 loss = fit - \lambda \cdot d
@@ -234,7 +233,7 @@ hist(cor(X))
 m1 = glmnet(y = Y, x = X, alpha = 0)
 ```
 
-The `glmnet` function automatically tries different values for lambda:
+The `glmnet` function automatically tests different values for lambda:
 
 ```{r}
 cbind(coef(m1, s = 0.001), coef(m1, s = 100.5))
@@ -262,7 +261,7 @@ cbind(coef(m3, s = 0.001), coef(m3, s = 0.5))
 
 ### What is a hyperparameter?
 
-Generally, parameters such as $\lambda$ and $\alpha$ that, for example, control the complexity of the model or other model features such as learning or the optimization are called hyperparameters. 
+Generally, parameters such as $\lambda$ and $\alpha$ that, for example, control the complexity of the model or other model features such as learning or the optimization are called hyperparameters.
 
 Hyperparameter tuning describes the process of finding the optimal set of hyperparameters for a certain task. They are usually data specific, so they have to tuned for each dataset.
 
@@ -289,7 +288,7 @@ We see that the lowest lambda achieved the highest RMSE - which is not surprisin
 
 ### Tuning with a train / test split
 
-We want a model that generalizes well to new data, which we need to "simulate" here by splitting of a holdout before the training and using the holdout then for testing our model. This split is often called the train / test split. 
+We want a model that generalizes well to new data, which we need to "simulate" here by splitting of a holdout before the training and using the holdout then for testing our model. This split is often called the train / test split.
 
 ```{r}
 set.seed(1)
@@ -342,12 +341,11 @@ m1$lambda.min
 
 So low values of $\lambda$ seem to achieve the lowest error, thus the highest predictive performance.
 
-### Nested (cross)-validation 
+### Nested (cross)-validation
 
-In the previous example, we have used the train/test split to find the best model. However, we have not done a validation split yet to see how the finally selected model would do on new data. This is absolutely neccessary, because else you will overfit with your model selection to the test data.
+In the previous example, we have used the train/test split to find the best model. However, we have not done a validation split yet to see how the finally selected model would do on new data. This is absolutely necessary, because else you will overfit with your model selection to the test data.
 
-If we have several nestes splits, we talk about a nested validation / cross-validation. For each level, you can in principle switch between validation and cross-validation. Here, and example of tuning with a inner cross-valiation and an outer validation. 
-
+If we have several nested splits, we talk about a nested validation / cross-validation. For each level, you can in principle switch between validation and cross-validation. Here, and example of tuning with a inner cross-validation and an outer validation.
 
 ```{r}
 # outer split
@@ -387,5 +385,95 @@ cor(finalPred,
     data[validation,]$medv)
 ```
 
+## Exercise - Predicting species interactions
+
+The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower). We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>.
+
+::: callout-warning
+### Task: Tune randomForest model for the Plant-Pollinator dataset
+
+1. Prepare data
+
+```{r}
+library(EcoData)
+
+data(plantPollinator_df)
+plant_poll = plantPollinator_df
+summary(plant_poll)
+
+# remove NAs
+df = plant_poll[complete.cases(plant_poll),] # remove NAs
+
+# remove first two columns (species names)
+df = df[,-(1:2)]
+
+# Example:
+rf = randomForest(interaction~., data = df[1:500,], trees = 500)
+pred = predict(rf, newdata = df[-(1:500),], type = "prob")[,2]
+Metrics::auc(as.integer(df[-(1:500),]$interaction)-1, pred)
+
+```
+
+2. Create outer split
+3. Tune mtry under nested Cross-Validation
+(Bonus 4. Create submissions)
+
+:::
+
+
+`r hide("Click here to see the solution")`
+
+```{r}
+set.seed(42)
+n = nrow(df)
+# outer split
+validation = sample.int(n, round(0.2*n))
+dat = df[-validation,]
+
+# inner split
+nI = nrow(dat)
+hyperparameter = data.frame(mtry = seq(2, 14, by = 1))
+m = nrow(hyperparameter)
+k = 5 # folds
+split = sample.int(k, nI, replace = T)
+
+
+# making predictions for all hyperparameters / splits
+pred = matrix(NA, nI, m)
+for(l in 1:m){
+  for(i in 1:k){
+    m1 = randomForest(interaction~., data = dat[split != i,], mtry = hyperparameter$mtry[l], trees = 300)
+    pred[split == i,l] = predict(m1, newdata = dat[split == i,], type = "prob")[,2]
+  }
+}
+
+# getting best hyperparameter option on test
+innerLoss = function(x) Metrics::auc(dat$interaction, x)
+res = apply(pred, 2, innerLoss)
+choice = which.max(res) 
+
+# fitting model again with best hyperparameters 
+# and all test / validation data 
+mFinal = randomForest(interaction~., data = dat, mtry = hyperparameter$mtry[choice], trees = 300)
+
+# testing final prediction on validation data 
+finalPred = predict(mFinal, newdata = df[validation,], type = "prob")[,2]
+
+Metrics::auc(df[validation,]$interaction, finalPred)
+```
+
+
+Create submissions:
+```{r}
+newdata = plantPollinator_df[is.na(plantPollinator_df$interaction), ]
+newdata_imputed = missRanger::missRanger(data = newdata[,-ncol(newdata)], verbose = 0)
+newdata_imputed$interaction = NA
+predictions = predict(mFinal, newdata = newdata_imputed, type = "prob")[,2]
+
+write.csv(data.frame(y = predictions), file = "rf_max.csv")
+```
+
+
+`r unhide()`
 
 

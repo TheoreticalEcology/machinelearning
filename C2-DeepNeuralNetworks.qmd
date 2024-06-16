@@ -10,7 +10,7 @@ editor_options:
 #| echo: false
 #| include: false
 #| results: false
-reticulate::use_condaenv("r-keras")
+reticulate::use_virtualenv("r-keras")
 library(tensorflow)
 tf
 tf$abs(3.)
@@ -277,7 +277,7 @@ So you see, building a neural network is very easy with Keras or Torch and you c
 
 ## Exercise
 
-::: {.callout-caution icon="false"}
+::: {.callout-warning}
 #### Task: Regression with keras
 
 We now build a regression for the airquality data set with Keras/Torch. We want to predict the variable "Ozone" (continuous).
@@ -363,7 +363,7 @@ model %>%
 
 ```{r chunk_chapter3_task_29, eval=TRUE, purl=FALSE}
 model %>%
-  compile(loss = loss_mean_squared_error, optimizer_adamax(learning_rate = 0.05))
+  compile(loss = keras3::loss_mean_squared_error, optimizer_adamax(learning_rate = 0.05))
 ```
 
 What is the "mean_squared_error" loss?
@@ -608,13 +608,13 @@ print(rmse_torch)
 :::
 :::
 
-::: {.callout-caution icon="false"}
+::: {.callout-warning}
 #### Task: Titanic dataset
 
 Build a Keras DNN for the titanic dataset
 :::
 
-::: {.callout-caution icon="false"}
+::: {.callout-warning}
 #### Bonus Task: More details on the inner working of Keras
 
 The next task differs for Torch and Keras users. Keras users will learn more about the inner working of training while Torch users will learn how to simplify and generalize the training loop.
@@ -676,7 +676,7 @@ for(i in 1:steps){
   with(tf$GradientTape() %as% tape,
     {
       pred = model(bX) # We record the operation for our model weights.
-      loss = tf$reduce_mean(tf$keras$losses$mean_squared_error(bY, pred))
+      loss = tf$reduce_mean(tf$keras$losses$mse(bY, pred))
     }
   )
   
@@ -778,11 +778,10 @@ Now change the code from above for the iris data set. Tip: In tf$keras$losses\$.
 ```{r}
 library(tensorflow)
 library(keras3)
-set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed.
 
 x = scale(iris[,1:4])
 y = iris[,5]
-y = keras::to_categorical(as.integer(Y)-1L, 3)
+y = keras3::to_categorical(as.integer(Y)-1L, 3)
 
 layers = tf$keras$layers
 model = tf$keras$models$Sequential(

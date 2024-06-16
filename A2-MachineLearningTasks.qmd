@@ -89,14 +89,11 @@ segments(100.5, 0, 100.5, 5, col = "black", lwd = 2)
 
 The observations are from 3 species and indeed those species tend to have different traits, meaning that the observations form 3 clusters.
 
-
 ::: column-margin
-
 ```{r chunk-chapter3-2"}
 #| echo: false
 pairs(traits, pch = as.integer(species), col = colors[as.integer(species)])
 ```
-
 :::
 
 However, imagine we don't know what species are, what is basically the situation in which people in the antique have been. The people just noted that some plants have different flowers than others, and decided to give them different names. This kind of process is what unsupervised learning does.
@@ -195,18 +192,38 @@ str(iris)
 hist(iris$Sepal.Length)
 ```
 
-The randomForest can be used similar to a linear regression model, we can specify the features using the formula syntax (\~. means that all other variables should be used as features):
+The randomForest can be used similar to a linear regression model, we can specify the features using the formula syntax (`~.` means that all other variables should be used as features):
 
 ```{r chunk_chapter3_27}
 m1 = randomForest(Sepal.Length ~ ., data = iris)   # ~.: Against all others.
 print(m1)
 ```
 
+::: column-margin
+
+In statistics we would use a linear regression model:
+
+```{r}
+mLM = lm(Sepal.Length~., data = iris)
+```
+
+:::
+
 As many other ML algorithms, the RF is not interpretable, so we don't get coefficients that connect the variables to the response. But, at least we get the variable importance which is similar to an anova, telling us which variables were the most important ones:
 
 ```{r}
 varImpPlot(m1)
 ```
+
+::: column-margin
+
+Our liner model would report linear effects, however, the lm cannot keep up with the flexibility of a random forest!
+
+```{r}
+coef(mLM)
+```
+
+:::
 
 And the finally, we can use the model to make predictions using the predict method:
 
@@ -281,9 +298,8 @@ Confusion matrix:
 knitr::kable(table(predict(m1), iris$Species))
 ```
 
-## Exercises
 
-### Exercise - Supervised Learning
+## Exercise - Supervised Learning
 
 ```{r}
 #| results: asis
@@ -345,6 +361,8 @@ table(apply(predict(model), 1, which.max), as.integer(iris$Species))
 -   Use the 'mse' loss function
 -   Plot predicted vs observed
 
+:::
+
 `r hide("Click here to see the solution")`
 
 Regression:
@@ -370,5 +388,3 @@ cor(iris_scaled$Sepal.Length, predict(model))**2
 ```
 
 `r unhide()`
-:::
-
