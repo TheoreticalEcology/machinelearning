@@ -274,3 +274,305 @@ Confusion matrix:
 ```{r chunk_chapter3_34, results='hide'}
 knitr::kable(table(predict(m1), iris$Species))
 ```
+
+## Exercises
+
+### Exercise - Unsupervised learning
+
+::: callout-warning
+#### Task
+
+Go through the 4(5) unsupervised algorithms from the supervised chapter @sec-unsupervised, and check
+
+-   if they are sensitive (i.e. if results change)
+-   if you scale the input features (= predictors), instead of using the raw data.
+
+Discuss in your group: Which is more appropriate for this analysis and/or in general: Scaling or not scaling?
+
+`r hide("Click here to see the solution for hierarchical clustering")`
+
+```{r chunk_chapter3_task_0, message=FALSE, warning=FALSE}
+library(dendextend)
+
+methods = c("ward.D", "single", "complete", "average",
+            "mcquitty", "median", "centroid", "ward.D2")
+
+cluster_all_methods = function(distances){
+  out = dendlist()
+  for(method in methods){
+    res = hclust(distances, method = method)
+    out = dendlist(out, as.dendrogram(res))
+  }
+  names(out) = methods
+
+  return(out)
+}
+
+get_ordered_3_clusters = function(dend){
+  return(cutree(dend, k = 3)[order.dendrogram(dend)])
+}
+
+compare_clusters_to_iris = function(clus){
+  return(FM_index(clus, rep(1:3, each = 50), assume_sorted_vectors = TRUE))
+}
+
+do_clustering = function(traits, scale = FALSE){
+  set.seed(123)
+  headline = "Performance of linkage methods\nin detecting the 3 species\n"
+
+  if(scale){
+    traits = scale(traits)  # Do scaling on copy of traits.
+    headline = paste0(headline, "Scaled")
+  }else{ headline = paste0(headline, "Not scaled") }
+
+  distances = dist(traits)
+  out = cluster_all_methods(distances)
+  dend_3_clusters = lapply(out, get_ordered_3_clusters)
+  clusters_performance = sapply(dend_3_clusters, compare_clusters_to_iris)
+  dotchart(sort(clusters_performance), xlim = c(0.3,1),
+           xlab = "Fowlkes-Mallows index",
+           main = headline,
+           pch = 19)
+}
+
+traits = as.matrix(iris[,1:4])
+
+# Do clustering on unscaled data.
+do_clustering(traits, FALSE)
+
+# Do clustering on scaled data.
+do_clustering(traits, TRUE)
+```
+
+It seems that scaling is harmful for hierarchical clustering. But this might be a deception. **Be careful:** If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.
+
+`r unhide()`
+
+`r hide("Click here to see the solution for K-means")`
+
+```{r chunk_chapter3_task_1}
+do_clustering = function(traits, scale = FALSE){
+  set.seed(123)
+
+  if(scale){
+    traits = scale(traits)  # Do scaling on copy of traits.
+    headline = "K-means Clustering\nScaled\nSum of all tries: "
+  }else{ headline = "K-means Clustering\nNot scaled\nSum of all tries: " }
+
+  getSumSq = function(k){ kmeans(traits, k, nstart = 25)$tot.withinss }
+  iris.kmeans1to10 = sapply(1:10, getSumSq)
+
+  headline = paste0(headline, round(sum(iris.kmeans1to10), 2))
+
+  plot(1:10, iris.kmeans1to10, type = "b", pch = 19, frame = FALSE,
+       main = headline,
+       xlab = "Number of clusters K",
+       ylab = "Total within-clusters sum of squares",
+       col = c("black", "red", rep("black", 8)) )
+}
+
+traits = as.matrix(iris[,1:4])
+
+# Do clustering on unscaled data.
+do_clustering(traits, FALSE)
+
+# Do clustering on scaled data.
+do_clustering(traits, TRUE)
+```
+
+It seems that scaling is harmful for K-means clustering. But this might be a deception. <strong>*Be careful:*</strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.
+
+`r unhide()`
+
+`r hide("Click here to see the solution for density-based clustering")`
+
+```{r chunk_chapter3_task_2, message=FALSE, warning=FALSE, include=TRUE}
+library(dbscan)
+
+correct = as.factor(iris[,5])
+# Start at 1. Noise points will get 0 later.
+levels(correct) = 1:length(levels(correct))
+correct
+
+do_clustering = function(traits, scale = FALSE){
+  set.seed(123)
+
+  if(scale){ traits = scale(traits) } # Do scaling on copy of traits.
+
+  #####
+  # Play around with the parameters "eps" and "minPts" on your own!
+  #####
+  dc = dbscan(traits, eps = 0.41, minPts = 4)
+
+  labels = as.factor(dc$cluster)
+  noise = sum(dc$cluster == 0)
+  levels(labels) = c("noise", 1:( length(levels(labels)) - 1))
+
+  tbl = table(correct, labels)
+  correct_classified = 0
+  for(i in 1:length(levels(correct))){
+    correct_classified = correct_classified + tbl[i, i + 1]
+  }
+
+  cat( if(scale){ "Scaled" }else{ "Not scaled" }, "\n\n" )
+  cat("Confusion matrix:\n")
+  print(tbl)
+  cat("\nCorrect classified points: ", correct_classified, " / ", length(iris[,5]))
+  cat("\nSum of noise points: ", noise, "\n")
+}
+
+traits = as.matrix(iris[,1:4])
+
+# Do clustering on unscaled data.
+do_clustering(traits, FALSE)
+
+# Do clustering on scaled data.
+do_clustering(traits, TRUE)
+```
+
+It seems that scaling is harmful for density based clustering. But this might be a deception. <strong>*Be careful:*</strong> If you have data on different units or magnitudes, scaling is definitely useful! Otherwise variables with higher values get higher influence.
+
+`r unhide()`
+
+`r hide("Click here to see the solution for model-based clustering")`
+
+```{r chunk_chapter3_task_3, message=FALSE, warning=FALSE, include=TRUE}
+library(mclust)
+
+do_clustering = function(traits, scale = FALSE){
+  set.seed(123)
+
+  if(scale){ traits = scale(traits) } # Do scaling on copy of traits.
+
+  mb3 = Mclust(traits, 3)
+
+  tbl = table(iris$Species, mb3$classification)
+
+  cat( if(scale){ "Scaled" }else{ "Not scaled" }, "\n\n" )
+  cat("Confusion matrix:\n")
+  print(tbl)
+  cat("\nCorrect classified points: ", sum(diag(tbl)), " / ", length(iris[,5]))
+}
+
+traits = as.matrix(iris[,1:4])
+
+# Do clustering on unscaled data.
+do_clustering(traits, FALSE)
+
+# Do clustering on scaled data.
+do_clustering(traits, TRUE)
+```
+
+For model based clustering, scaling does not matter.
+
+`r unhide()`
+
+`r hide("Click here to see the solution for ordination")`
+
+```{r chunk_chapter3_task_4, message=FALSE, warning=FALSE, include=TRUE}
+traits = as.matrix(iris[,1:4])
+
+biplot(prcomp(traits, center = TRUE, scale. = TRUE),
+       main = "Use integrated scaling")
+
+biplot(prcomp(scale(traits), center = FALSE, scale. = FALSE),
+       main = "Scale explicitly")
+
+biplot(prcomp(traits, center = FALSE, scale. = FALSE),
+       main = "No scaling at all")
+```
+
+For PCA ordination, scaling matters. Because we are interested in directions of maximal variance, all parameters should be scaled, or the one with the highest values might dominate all others.
+
+`r unhide()`
+:::
+
+### Exercise - Supervised Learning
+
+```{r}
+#| results: asis
+#| echo: false
+opts <- c(
+   answer = "Species.",
+   "Sepal.Width."
+)
+
+cat("Using a random forest on the iris dataset, which parameter would be more important (remember there is a function to check this) to predict Petal.Width?", webexercises::longmcq(opts))
+```
+
+::: callout-warning
+#### Task: First deep neural network
+
+Deep neural networks are currently the state of the art in unsupervised learning. Their ability to model different types of data (e.g. graphs, images) is one of the reasons for their rise in recent years. However, their use beyond tabular data (tabular data == features have specific meanings) requires extensive (programming) knowledge of the underlying deep learning frameworks (e.g. TensorFlow or PyTorch), which we will teach you in two days. For tabular data, we can use packages like cito, which work similarly to regression functions like lm and allow us to train deep neural networks in one line of code.
+
+A demonstration with the iris dataset:
+
+```{r, results='hide'}
+library(cito)
+
+# always scale your features when using DNNs
+iris_scaled = iris
+iris_scaled[,1:4] = scale(iris_scaled[,1:4])
+
+# the default architecture is 3 hidden layers, each with 10 hidden nodes (we will talk on Wednesday more about the architecture)
+# Similar to a lm/glm we have to specify the response/loss family, for multi-target (3 species) we use the softmax loss function
+model = dnn(Species~., lr = 0.1,data = iris_scaled, loss = "softmax", verbose = FALSE)
+```
+
+DNNs are not interpretable, i.e. no coefficients (slopes) that tell us how the features affect the response, however, similar to the RF, we can calculate a 'variable importance' which is similar to an anova:
+
+```{r}
+summary(model)
+```
+
+Predictions
+
+```{r}
+head(predict(model, type = "response"))
+```
+
+We get three columns, one for each species, and they are probabilities.
+
+```{r}
+plot(iris$Sepal.Length, iris$Sepal.Width, col = apply(predict(model, type = "response"), 1, which.max))
+```
+
+Performance:
+
+```{r}
+table(apply(predict(model), 1, which.max), as.integer(iris$Species))
+```
+
+**Task:**
+
+-   predict `Sepal.Length` instead of `Species` (classification -\> regression)
+-   Use the 'mse' loss function
+-   Plot predicted vs observed
+
+`r hide("Click here to see the solution")`
+
+Regression:
+
+losses such as "mse" (mean squared error) or the "msa" (mean absolute error) are used for regression tasks
+
+```{r, results='hide'}
+model = dnn(Sepal.Length~., lr = 0.1,data = iris_scaled, loss = "mse")
+```
+
+```{r}
+summary(model)
+```
+
+```{r}
+plot(iris_scaled$Sepal.Length, predict(model))
+```
+
+Calculate $R^2$:
+
+```{r}
+cor(iris_scaled$Sepal.Length, predict(model))**2
+```
+
+`r unhide()`
+:::
+
