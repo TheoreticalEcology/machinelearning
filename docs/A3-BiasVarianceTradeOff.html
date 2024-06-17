@@ -1000,7 +1000,16 @@ Attaching package: 'ranger'</code></pre>
 </div>
 <p><strong>2. Create an outer split</strong></p>
 <p><strong>3. Tune min.node.size under nested Cross-Validation on the training split from step 2</strong></p>
-<p>(Bonus 4. Create submissions)</p>
+<p>** 4. Create submissions **</p>
+<p>How to create your submission file:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>newdata <span class="ot">=</span> plantPollinator_df[<span class="fu">is.na</span>(plantPollinator_df<span class="sc">$</span>interaction), ]</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>newdata_imputed <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(<span class="at">data =</span> newdata[,<span class="sc">-</span><span class="fu">ncol</span>(newdata)], <span class="at">verbose =</span> <span class="dv">0</span>) <span class="co"># fill NAs</span></span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>newdata_imputed<span class="sc">$</span>interaction <span class="ot">=</span> <span class="cn">NA</span></span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">predict</span>(rf, <span class="at">data =</span> newdata_imputed)<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> predictions), <span class="at">file =</span> <span class="st">"rf_max.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </div>
 </div>
 <div class="webex-solution">
@@ -1008,54 +1017,54 @@ Attaching package: 'ranger'</code></pre>
 Click here to see the solution
 </button>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">nrow</span>(df)</span>
-<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a><span class="co"># outer split</span></span>
-<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>validation <span class="ot">=</span> <span class="fu">sample.int</span>(n, <span class="fu">round</span>(<span class="fl">0.2</span><span class="sc">*</span>n))</span>
-<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> df[<span class="sc">-</span>validation,]</span>
-<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a><span class="co"># inner split</span></span>
-<span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a>nI <span class="ot">=</span> <span class="fu">nrow</span>(dat)</span>
-<span id="cb65-9"><a href="#cb65-9" aria-hidden="true" tabindex="-1"></a>hyperparameter <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">min.node.size =</span> <span class="fu">seq</span>(<span class="dv">10</span>, <span class="dv">500</span>, <span class="at">by =</span> <span class="dv">1</span>))</span>
-<span id="cb65-10"><a href="#cb65-10" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="fu">nrow</span>(hyperparameter)</span>
-<span id="cb65-11"><a href="#cb65-11" aria-hidden="true" tabindex="-1"></a>k <span class="ot">=</span> <span class="dv">5</span> <span class="co"># folds</span></span>
-<span id="cb65-12"><a href="#cb65-12" aria-hidden="true" tabindex="-1"></a>split <span class="ot">=</span> <span class="fu">sample.int</span>(k, nI, <span class="at">replace =</span> T)</span>
-<span id="cb65-13"><a href="#cb65-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-14"><a href="#cb65-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-15"><a href="#cb65-15" aria-hidden="true" tabindex="-1"></a><span class="co"># making predictions for all hyperparameters / splits</span></span>
-<span id="cb65-16"><a href="#cb65-16" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, nI, m)</span>
-<span id="cb65-17"><a href="#cb65-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(l <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>m){</span>
-<span id="cb65-18"><a href="#cb65-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>k){</span>
-<span id="cb65-19"><a href="#cb65-19" aria-hidden="true" tabindex="-1"></a>    m1 <span class="ot">=</span> <span class="fu">ranger</span>(interaction<span class="sc">~</span>., <span class="at">data =</span> dat[split <span class="sc">!=</span> i,], <span class="at">min.node.size =</span> hyperparameter<span class="sc">$</span>min.node.size[l], <span class="at">probability =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb65-20"><a href="#cb65-20" aria-hidden="true" tabindex="-1"></a>    pred[split <span class="sc">==</span> i,l] <span class="ot">=</span> <span class="fu">predict</span>(m1, <span class="at">data =</span> dat[split <span class="sc">==</span> i,])<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
-<span id="cb65-21"><a href="#cb65-21" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb65-22"><a href="#cb65-22" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb65-23"><a href="#cb65-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-24"><a href="#cb65-24" aria-hidden="true" tabindex="-1"></a><span class="co"># getting best hyperparameter option on test</span></span>
-<span id="cb65-25"><a href="#cb65-25" aria-hidden="true" tabindex="-1"></a>innerLoss <span class="ot">=</span> <span class="cf">function</span>(x) Metrics<span class="sc">::</span><span class="fu">auc</span>(dat<span class="sc">$</span>interaction, x)</span>
-<span id="cb65-26"><a href="#cb65-26" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">2</span>, innerLoss)</span>
-<span id="cb65-27"><a href="#cb65-27" aria-hidden="true" tabindex="-1"></a>choice <span class="ot">=</span> <span class="fu">which.max</span>(res) </span>
-<span id="cb65-28"><a href="#cb65-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-29"><a href="#cb65-29" aria-hidden="true" tabindex="-1"></a><span class="co"># fitting model again with best hyperparameters </span></span>
-<span id="cb65-30"><a href="#cb65-30" aria-hidden="true" tabindex="-1"></a><span class="co"># and all test / validation data </span></span>
-<span id="cb65-31"><a href="#cb65-31" aria-hidden="true" tabindex="-1"></a>mFinal <span class="ot">=</span> <span class="fu">ranger</span>(interaction<span class="sc">~</span>., <span class="at">data =</span> dat, <span class="at">mtry =</span> hyperparameter<span class="sc">$</span>min.node.size[choice], <span class="at">probability =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb65-32"><a href="#cb65-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-33"><a href="#cb65-33" aria-hidden="true" tabindex="-1"></a><span class="co"># testing final prediction on validation data </span></span>
-<span id="cb65-34"><a href="#cb65-34" aria-hidden="true" tabindex="-1"></a>finalPred <span class="ot">=</span> <span class="fu">predict</span>(mFinal, <span class="at">data =</span> df[validation,])<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
-<span id="cb65-35"><a href="#cb65-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-36"><a href="#cb65-36" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">auc</span>(df[validation,]<span class="sc">$</span>interaction, finalPred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">nrow</span>(df)</span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a><span class="co"># outer split</span></span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>validation <span class="ot">=</span> <span class="fu">sample.int</span>(n, <span class="fu">round</span>(<span class="fl">0.2</span><span class="sc">*</span>n))</span>
+<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> df[<span class="sc">-</span>validation,]</span>
+<span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a><span class="co"># inner split</span></span>
+<span id="cb66-8"><a href="#cb66-8" aria-hidden="true" tabindex="-1"></a>nI <span class="ot">=</span> <span class="fu">nrow</span>(dat)</span>
+<span id="cb66-9"><a href="#cb66-9" aria-hidden="true" tabindex="-1"></a>hyperparameter <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">min.node.size =</span> <span class="fu">seq</span>(<span class="dv">10</span>, <span class="dv">500</span>, <span class="at">by =</span> <span class="dv">1</span>))</span>
+<span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="fu">nrow</span>(hyperparameter)</span>
+<span id="cb66-11"><a href="#cb66-11" aria-hidden="true" tabindex="-1"></a>k <span class="ot">=</span> <span class="dv">5</span> <span class="co"># folds</span></span>
+<span id="cb66-12"><a href="#cb66-12" aria-hidden="true" tabindex="-1"></a>split <span class="ot">=</span> <span class="fu">sample.int</span>(k, nI, <span class="at">replace =</span> T)</span>
+<span id="cb66-13"><a href="#cb66-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-14"><a href="#cb66-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-15"><a href="#cb66-15" aria-hidden="true" tabindex="-1"></a><span class="co"># making predictions for all hyperparameters / splits</span></span>
+<span id="cb66-16"><a href="#cb66-16" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, nI, m)</span>
+<span id="cb66-17"><a href="#cb66-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(l <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>m){</span>
+<span id="cb66-18"><a href="#cb66-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>k){</span>
+<span id="cb66-19"><a href="#cb66-19" aria-hidden="true" tabindex="-1"></a>    m1 <span class="ot">=</span> <span class="fu">ranger</span>(interaction<span class="sc">~</span>., <span class="at">data =</span> dat[split <span class="sc">!=</span> i,], <span class="at">min.node.size =</span> hyperparameter<span class="sc">$</span>min.node.size[l], <span class="at">probability =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb66-20"><a href="#cb66-20" aria-hidden="true" tabindex="-1"></a>    pred[split <span class="sc">==</span> i,l] <span class="ot">=</span> <span class="fu">predict</span>(m1, <span class="at">data =</span> dat[split <span class="sc">==</span> i,])<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
+<span id="cb66-21"><a href="#cb66-21" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb66-22"><a href="#cb66-22" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb66-23"><a href="#cb66-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-24"><a href="#cb66-24" aria-hidden="true" tabindex="-1"></a><span class="co"># getting best hyperparameter option on test</span></span>
+<span id="cb66-25"><a href="#cb66-25" aria-hidden="true" tabindex="-1"></a>innerLoss <span class="ot">=</span> <span class="cf">function</span>(x) Metrics<span class="sc">::</span><span class="fu">auc</span>(dat<span class="sc">$</span>interaction, x)</span>
+<span id="cb66-26"><a href="#cb66-26" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">2</span>, innerLoss)</span>
+<span id="cb66-27"><a href="#cb66-27" aria-hidden="true" tabindex="-1"></a>choice <span class="ot">=</span> <span class="fu">which.max</span>(res) </span>
+<span id="cb66-28"><a href="#cb66-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-29"><a href="#cb66-29" aria-hidden="true" tabindex="-1"></a><span class="co"># fitting model again with best hyperparameters </span></span>
+<span id="cb66-30"><a href="#cb66-30" aria-hidden="true" tabindex="-1"></a><span class="co"># and all test / validation data </span></span>
+<span id="cb66-31"><a href="#cb66-31" aria-hidden="true" tabindex="-1"></a>mFinal <span class="ot">=</span> <span class="fu">ranger</span>(interaction<span class="sc">~</span>., <span class="at">data =</span> dat, <span class="at">mtry =</span> hyperparameter<span class="sc">$</span>min.node.size[choice], <span class="at">probability =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb66-32"><a href="#cb66-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-33"><a href="#cb66-33" aria-hidden="true" tabindex="-1"></a><span class="co"># testing final prediction on validation data </span></span>
+<span id="cb66-34"><a href="#cb66-34" aria-hidden="true" tabindex="-1"></a>finalPred <span class="ot">=</span> <span class="fu">predict</span>(mFinal, <span class="at">data =</span> df[validation,])<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
+<span id="cb66-35"><a href="#cb66-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-36"><a href="#cb66-36" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">auc</span>(df[validation,]<span class="sc">$</span>interaction, finalPred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.8594383</code></pre>
 </div>
 </div>
 <p>Create submissions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>newdata <span class="ot">=</span> plantPollinator_df[<span class="fu">is.na</span>(plantPollinator_df<span class="sc">$</span>interaction), ]</span>
-<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>newdata_imputed <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(<span class="at">data =</span> newdata[,<span class="sc">-</span><span class="fu">ncol</span>(newdata)], <span class="at">verbose =</span> <span class="dv">0</span>)</span>
-<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>newdata_imputed<span class="sc">$</span>interaction <span class="ot">=</span> <span class="cn">NA</span></span>
-<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">predict</span>(mFinal, <span class="at">data =</span> newdata_imputed)<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
-<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> predictions), <span class="at">file =</span> <span class="st">"rf_max.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>newdata <span class="ot">=</span> plantPollinator_df[<span class="fu">is.na</span>(plantPollinator_df<span class="sc">$</span>interaction), ]</span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>newdata_imputed <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(<span class="at">data =</span> newdata[,<span class="sc">-</span><span class="fu">ncol</span>(newdata)], <span class="at">verbose =</span> <span class="dv">0</span>)</span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>newdata_imputed<span class="sc">$</span>interaction <span class="ot">=</span> <span class="cn">NA</span></span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">predict</span>(mFinal, <span class="at">data =</span> newdata_imputed)<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
+<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> predictions), <span class="at">file =</span> <span class="st">"rf_max.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </section>

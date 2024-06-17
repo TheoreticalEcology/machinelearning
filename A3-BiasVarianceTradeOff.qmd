@@ -435,7 +435,19 @@ Metrics::auc(as.integer(df[-(1:500),]$interaction)-1, pred)
 
 **3. Tune min.node.size under nested Cross-Validation on the training split from step 2**
 
-(Bonus 4. Create submissions)
+** 4. Create submissions **
+
+How to create your submission file:
+
+```{r}
+newdata = plantPollinator_df[is.na(plantPollinator_df$interaction), ]
+newdata_imputed = missRanger::missRanger(data = newdata[,-ncol(newdata)], verbose = 0) # fill NAs
+newdata_imputed$interaction = NA
+predictions = predict(rf, data = newdata_imputed)$predictions[,2]
+
+write.csv(data.frame(y = predictions), file = "rf_max.csv")
+```
+
 
 :::
 

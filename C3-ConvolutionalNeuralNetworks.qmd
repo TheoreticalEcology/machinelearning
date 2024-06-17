@@ -470,6 +470,7 @@ To show this, we will use our flower data set. We have to define a generator obj
 
 ```{r chunk_chapter5_25, eval=FALSE}
 library(tensorflow)
+library(keras)
 library(keras3)
 
 data = EcoData::dataset_flower()
@@ -492,14 +493,14 @@ model |>
 
   
 # Data augmentation.
-aug = image_data_generator(rotation_range = 90, 
+aug = keras::image_data_generator(rotation_range = 90, 
                            zoom_range = c(0.3), 
                            horizontal_flip = TRUE, 
                            vertical_flip = TRUE)
 
 # Data preparation / splitting.
 indices = sample.int(nrow(train), 0.1 * nrow(train))
-generator = flow_images_from_data(train[-indices,,,],
+generator = keras::flow_images_from_data(train[-indices,,,],
                                   k_one_hot(labels[-indices], num_classes = 5L),
                                   generator = aug,
                                   batch_size = 25L,
@@ -514,7 +515,7 @@ test = train[indices,,,]
 early = keras3::callback_early_stopping(patience = 2L, monitor = "loss")
 
 model |>
-	keras3::compile(loss = loss_categorical_crossentropy,
+	keras3::compile(loss = keras3::loss_categorical_crossentropy,
 	               optimizer = keras3::optimizer_adamax(learning_rate = 0.01))
 
 model |>
@@ -647,7 +648,7 @@ rm(train, test)
 Keras provides download functions for all famous architectures/convolutional neural network models which are already trained on the imagenet data set (another famous data set). These trained networks come already without their top layer, so we have to set include_top to false and change the input shape.
 
 ```{r chunk_chapter5_28, eval=TRUE}
-densenet = application_densenet201(include_top = FALSE,
+densenet = keras3::application_densenet201(include_top = FALSE,
                                    input_shape  = c(32L, 32L, 3L))
 ```
 
@@ -670,7 +671,7 @@ model = keras3::keras_model(
 In the next step we want to freeze all layers except for our own last layer. Freezing means that these are not trained: We do not want to train the complete model, we only want to train the last layer. You can check the number of trainable weights via summary(model).
 
 ```{r chunk_chapter5_30, eval=TRUE}
-#model |> freeze_weights(to = length(model$layers) - 1)
+model |> keras3::freeze_weights(from = 1, to = length(model$layers) - 2)
 summary(model)
 ```
 
@@ -814,11 +815,11 @@ model |>
 # Transfer learning
 
 # weights were trained to imagenet
-pretrained_model = keras::application_efficientnet_b1(include_top = FALSE,
+pretrained_model = keras3::application_efficientnet_b1(include_top = FALSE,
                                                       input_shape = c(80L, 80L, 3L))
 # pretrained_model
 
-keras::freeze_weights(pretrained_model)
+keras3::freeze_weights(pretrained_model)
 pretrained_model
 
 # Build model
@@ -834,14 +835,14 @@ model = keras_model(inputs = pretrained_model$input,
 )
 
 ### Set up augmentation
-aug = image_data_generator(rotation_range = 180, zoom_range = 0.4,
+aug = keras::image_data_generator(rotation_range = 180, zoom_range = 0.4,
                            width_shift_range = 0.2, height_shift_range = 0.2,
                            vertical_flip = TRUE, horizontal_flip = TRUE)
 
 
 ### Set up the data
 indices = sample.int(nrow(train), 0.1 * nrow(train)) # for validation
-generator = flow_images_from_data(x = train[-indices,,,],
+generator = keras::flow_images_from_data(x = train[-indices,,,],
                                   y = k_one_hot(labels[-indices], 5L),
                                   generator = aug
                                   )
@@ -849,7 +850,7 @@ generator
 
 
 model |>
-  keras::compile(loss = loss_categorical_crossentropy,
+  keras3::compile(loss = keras3::loss_categorical_crossentropy,
                  optimizer = keras::optimizer_rmsprop(learning_rate = 0.0005))
 
 steps_per_epoch = nrow(train[-indices,,,]) /45
