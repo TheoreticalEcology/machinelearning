@@ -11,6 +11,7 @@ editor_options:
 #| include: false
 #| results: false
 reticulate::use_virtualenv("r-keras")
+library(keras3)
 library(tensorflow)
 tf
 tf$abs(3.)
@@ -77,17 +78,18 @@ To build our convolutional model, we have to specify a kernel. In our case, we w
 ## Keras
 
 ```{r chunk_chapter5_13}
-model = keras_model_sequential(shape = c(28L, 28L, 1L))
-model %>%
+model = keras_model_sequential(shape(28L, 28L, 1L))
+model |>
  layer_conv_2d(filters = 16L,
-               kernel_size = c(2L, 2L), activation = "relu") %>%
- layer_max_pooling_2d() %>%
- layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") %>%
- layer_max_pooling_2d() %>%
- layer_flatten() %>%
- layer_dense(100L, activation = "relu") %>%
+               kernel_size = c(2L, 2L), activation = "relu") |>
+ layer_max_pooling_2d() |>
+ layer_conv_2d(filters = 16L, kernel_size = c(3L, 3L), activation = "relu") |>
+ layer_max_pooling_2d() |>
+ layer_flatten() |>
+ layer_dense(100L, activation = "relu") |>
  layer_dense(10L, activation = "softmax")
 summary(model)
+plot(model)
 ```
 
 ## Torch
@@ -139,7 +141,7 @@ sample$size()
 
 ```{r chunk_chapter5_17}
 conv1 = nn_conv2d(1, 16L, 2L, stride = 1L)
-(sample %>% conv1)$size()
+(sample |> conv1())$size()
 ```
 
 Output: batch_size = 32, number of feature maps = 16, dimensions of each feature map = $(27 , 27)$ Wit a kernel size of two and stride = 1 we will lose one pixel in each dimension... Questions:
@@ -150,7 +152,7 @@ Output: batch_size = 32, number of feature maps = 16, dimensions of each feature
 **Pooling layer summarizes each feature map**
 
 ```{r chunk_chapter5_18}
-(sample %>% conv1 %>% nnf_max_pool2d(kernel_size = 2L, stride = 2L))$size()
+(sample |> conv1() |> nnf_max_pool2d(kernel_size = 2L, stride = 2L))$size()
 ```
 
 kernel_size = 2L and stride = 2L halfs the pixel dimensions of our image.
@@ -160,14 +162,14 @@ kernel_size = 2L and stride = 2L halfs the pixel dimensions of our image.
 Now we have to flatten our final output of the convolutional neural network model to use a normal fully connected layer, but to do so we have to calculate the number of inputs for the fully connected layer:
 
 ```{r chunk_chapter5_19}
-dims = (sample %>% conv1 %>%
+dims = (sample |> conv1() |>
           nnf_max_pool2d(kernel_size = 2L, stride = 2L))$size()
 # Without the batch size of course.
 final = prod(dims[-1]) 
 print(final)
 fc = nn_linear(final, 10L)
-(sample %>% conv1 %>% nnf_max_pool2d(kernel_size = 2L, stride = 2L)
-  %>% torch_flatten(start_dim = 2L) %>% fc)$size()
+(sample |> conv1() |> nnf_max_pool2d(kernel_size = 2L, stride = 2L)
+  |> torch_flatten(start_dim = 2L) |> fc())$size()
 ```
 
 Build the network:
@@ -182,16 +184,16 @@ net = nn_module(
     self$fc2 = nn_linear(100L, 10L)
   },
   forward = function(x){
-    x %>%
-      self$conv1() %>%
-      nnf_relu() %>%
-      nnf_max_pool2d(2) %>%
-      self$conv2() %>%
-      nnf_relu() %>%
-      nnf_max_pool2d(2) %>%
-      torch_flatten(start_dim = 2) %>%
-      self$fc1() %>%
-      nnf_relu() %>%
+    x |>
+      self$conv1() |>
+      nnf_relu() |>
+      nnf_max_pool2d(2) |>
+      self$conv2() |>
+      nnf_relu() |>
+      nnf_max_pool2d(2) |>
+      torch_flatten(start_dim = 2) |>
+      self$fc1() |>
+      nnf_relu() |>
       self$fc2()
   }
 )
@@ -238,7 +240,7 @@ The rest is as usual:
 First we compile the model:
 
 ```{r chunk_chapter5_21}
-model %>%
+model |>
   keras3::compile(
       optimizer = keras3::optimizer_adamax(0.01),
       loss = keras3::loss_categorical_crossentropy
@@ -254,7 +256,7 @@ library(keras3)
 
 epochs = 5L
 batch_size = 32L
-model %>%
+model |>
   fit(
     x = train_x, 
     y = train_y,
@@ -330,7 +332,7 @@ data = keras3::dataset_cifar10()
 train = data$train
 test = data$test
 image = train$x[1,,,]
-image %>% 
+image %>%  
  image_to_array() %>%
  `/`(., 255) %>%
  as.raster() %>%
@@ -340,17 +342,17 @@ train_x = array(train$x/255, c(dim(train$x)))
 test_x = array(test$x/255, c(dim(test$x)))
 train_y = keras3::to_categorical(train$y)
 test_y = keras3::to_categorical(test$y)
-model = keras_model_sequential()
-model %>% 
- layer_conv_2d(input_shape = c(32L, 32L,3L),filters = 16L, kernel_size = c(2L,2L), activation = "relu") %>% 
- layer_max_pooling_2d() %>% 
- layer_dropout(0.3) %>% 
- layer_conv_2d(filters = 16L, kernel_size = c(3L,3L), activation = "relu") %>% 
- layer_max_pooling_2d() %>% 
- layer_flatten() %>% 
+model = keras_model_sequential(shape(32L, 32L,3L))
+model |> 
+ layer_conv_2d(input_shape = c(32L, 32L,3L),filters = 16L, kernel_size = c(2L,2L), activation = "relu") |> 
+ layer_max_pooling_2d() |> 
+ layer_dropout(0.3) |> 
+ layer_conv_2d(filters = 16L, kernel_size = c(3L,3L), activation = "relu") |> 
+ layer_max_pooling_2d() |> 
+ layer_flatten() |> 
  layer_dense(10, activation = "softmax")
 summary(model)
-model %>% 
+model |> 
  compile(
  optimizer = optimizer_adamax(),
  loss = keras3::loss_categorical_crossentropy
@@ -358,7 +360,7 @@ model %>%
 early = callback_early_stopping(patience = 5L)
 epochs = 1L
 batch_size =20L
-model %>% fit(
+model |> fit(
  x = train_x, 
  y = train_y,
  epochs = epochs,
@@ -399,9 +401,9 @@ labels = EcoData::dataset_flower()$labels
 Plot flower:
 
 ```{r}
-train[100,,,] %>%
-  image_to_array() %>%
-  as.raster() %>%
+train[100,,,] |>
+  image_to_array() |>
+  as.raster() |>
   plot()
 ```
 
@@ -412,21 +414,20 @@ train[100,,,] %>%
 Build model:
 
 ```{r}
-model = keras_model_sequential()
-model %>% 
-  layer_conv_2d(filters = 4L, kernel_size = 2L,
-                input_shape = list(80L, 80L, 3L)) %>% 
-  layer_max_pooling_2d() %>% 
-  layer_flatten() %>% 
+model = keras_model_sequential(shape(80L, 80L, 3L))
+model |> 
+  layer_conv_2d(filters = 4L, kernel_size = 2L) |> 
+  layer_max_pooling_2d() |> 
+  layer_flatten() |> 
   layer_dense(units = 5L, activation = "softmax")
 
 ### Model fitting ###
 
-model %>% 
+model |> 
   compile(loss = loss_categorical_crossentropy, 
           optimizer = optimizer_adamax(learning_rate = 0.01))
 
-model %>% 
+model |> 
   fit(x = train, y = keras::k_one_hot(labels, 5L))
 ```
 
@@ -434,12 +435,12 @@ Predictions:
 
 ```{r}
 # Prediction on training data:
-pred = apply(model %>% predict(train), 1, which.max)
+pred = apply(model |> predict(train), 1, which.max)
 Metrics::accuracy(pred - 1L, labels)
 table(pred)
 
 # Prediction for the submission server:
-pred = model %>% predict(test) %>% apply(1, which.max) - 1L
+pred = model |> predict(test) |> apply(1, which.max) - 1L
 table(pred)
 ```
 
@@ -475,19 +476,18 @@ data = EcoData::dataset_flower()
 train = data$train/255
 labels = data$labels
 
-model = keras_model_sequential()
-model %>%
-  layer_conv_2d(filter = 16L, kernel_size = c(5L, 5L),
-                input_shape = c(80L, 80L, 3L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
+model = keras_model_sequential(shape(80L, 80L, 3L))
+model |>
+  layer_conv_2d(filter = 16L, kernel_size = c(5L, 5L), activation = "relu") |>
+  layer_max_pooling_2d() |>
   layer_conv_2d(filter = 32L, kernel_size = c(3L, 3L),
-                activation = "relu") %>%
-  layer_max_pooling_2d() %>%
+                activation = "relu") |>
+  layer_max_pooling_2d() |>
   layer_conv_2d(filter = 64L, kernel_size = c(3L, 3L),
-                strides = c(2L, 2L), activation = "relu") %>%
-  layer_max_pooling_2d() %>%
-  layer_flatten() %>%
-  layer_dropout(0.5) %>%
+                strides = c(2L, 2L), activation = "relu") |>
+  layer_max_pooling_2d() |>
+  layer_flatten() |>
+  layer_dropout(0.5) |>
   layer_dense(units = 5L, activation = "softmax")
 
   
@@ -513,26 +513,26 @@ test = train[indices,,,]
 # An available metric is the normal loss.
 early = keras3::callback_early_stopping(patience = 2L, monitor = "loss")
 
-model %>%
+model |>
 	keras3::compile(loss = loss_categorical_crossentropy,
 	               optimizer = keras3::optimizer_adamax(learning_rate = 0.01))
 
-model %>%
+model |>
 	fit(generator, epochs = 20L, batch_size = 25L,
 	    shuffle = TRUE, callbacks = c(early))
 
 # Predictions on the training set:
-pred = predict(model, data$train[-indices,,,]) %>% apply(1, which.max) - 1
+pred = predict(model, data$train[-indices,,,]) |> apply(1, which.max) - 1
 Metrics::accuracy(pred, labels[-indices])
 table(pred)
 
 # Predictions on the holdout / test set:
-pred = predict(model, test) %>% apply(1, which.max) - 1
+pred = predict(model, test) |> apply(1, which.max) - 1
 Metrics::accuracy(pred, labels[indices])
 table(pred)
 
 # If you want to predict on the holdout for submission, use:
-pred = predict(model, EcoData::dataset_flower()$test/255) %>%
+pred = predict(model, EcoData::dataset_flower()$test/255) |>
   apply(1, which.max) - 1
 table(pred)
 ```
@@ -549,10 +549,10 @@ torch_manual_seed(321L)
 set.seed(123)
 
 train_transforms = function(img){
-  img %>%
-    transform_to_tensor() %>%
-    transform_random_horizontal_flip(p = 0.3) %>%
-    transform_random_resized_crop(size = c(28L, 28L)) %>%
+  img |>
+    transform_to_tensor() |>
+    transform_random_horizontal_flip(p = 0.3) |>
+    transform_random_resized_crop(size = c(28L, 28L)) |>
     transform_random_vertical_flip(0.3)
 }
 
@@ -631,7 +631,7 @@ rm(data)
 
 image = train$x[5,,,]
 image %>%
-  image_to_array() %>%
+  image_to_array() %>% 
   `/`(., 255) %>%
   as.raster() %>%
   plot()
@@ -670,7 +670,7 @@ model = keras3::keras_model(
 In the next step we want to freeze all layers except for our own last layer. Freezing means that these are not trained: We do not want to train the complete model, we only want to train the last layer. You can check the number of trainable weights via summary(model).
 
 ```{r chunk_chapter5_30, eval=TRUE}
-#model %>% freeze_weights(to = length(model$layers) - 1)
+#model |> freeze_weights(to = length(model$layers) - 1)
 summary(model)
 ```
 
@@ -680,11 +680,11 @@ And then the usual training:
 library(tensorflow)
 library(keras3)
 
-model %>%
+model |>
   keras3::compile(loss = keras3::loss_categorical_crossentropy, 
                  optimizer = optimizer_adamax())
 
-model %>%
+model |>
   fit(
     x = train_x, 
     y = train_y,
@@ -716,7 +716,7 @@ test_dl = dataloader(test_ds, batch_size = 100L)
 model_torch = model_resnet18(pretrained = TRUE)
 
 # We will set all model parameters to constant values:
-model_torch$parameters %>%
+model_torch$parameters |>
   purrr::walk(function(param) param$requires_grad_(FALSE))
 
 # Let's replace the last layer (last layer is named 'fc') with our own layer:
@@ -791,21 +791,21 @@ pretrained_model
 
 # Build model
 
-dnn = pretrained_model$output %>% 
-  layer_flatten() %>% 
-  layer_dropout(0.2) %>% 
+dnn = pretrained_model$output |> 
+  layer_flatten() |> 
+  layer_dropout(0.2) |> 
   layer_dense(units = 5L, activation = "softmax")
 dnn
 
 model = keras_model(inputs = pretrained_model$input,
                     outputs = dnn
                     )
-model %>%
+model |>
   keras3::compile(loss = loss_categorical_crossentropy,
                  optimizer = keras3::optimizer_rmsprop(learning_rate = 0.0005))
 
 
-model %>% 
+model |> 
   fit(x = train, y = k_one_hot(labels, 5L), validation_split = 0.2, epochs = 5L)
 
 
@@ -823,9 +823,9 @@ pretrained_model
 
 # Build model
 
-dnn = pretrained_model$output %>% 
-  layer_flatten() %>% 
-  layer_dropout(0.2) %>% 
+dnn = pretrained_model$output |> 
+  layer_flatten() |> 
+  layer_dropout(0.2) |> 
   layer_dense(units = 5L, activation = "softmax")
 dnn
 
@@ -848,7 +848,7 @@ generator = flow_images_from_data(x = train[-indices,,,],
 generator
 
 
-model %>%
+model |>
   keras::compile(loss = loss_categorical_crossentropy,
                  optimizer = keras::optimizer_rmsprop(learning_rate = 0.0005))
 

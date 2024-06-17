@@ -141,6 +141,7 @@ Bonus:
 -   Tune the learning rate and the regularization for the titanic dataset! 
 
 ```{r}
+#| message: false
 library(EcoData)
 library(dplyr)
 library(missRanger)
@@ -173,7 +174,7 @@ model = dnn(survived~.,
 
 # Predictions:
 
-predictions = predict(model, newdata = data_new)
+predictions = predict(model, newdata = data_new, type = "response") # change prediction type to response so that cito predicts probabilities
 
 write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv")
 ```
@@ -203,8 +204,6 @@ model_tuned$tuning
 
 
 # model_tuned is now already the best model!
-model_tuned
-
 ```
 
 :::
@@ -265,10 +264,18 @@ The data is strongly imbalanced, i.e. many 0s but only a few 1. There are differ
 Undersampling the 0s:
 
 ```{r}
-data_obs = data_obs[c(sample(which(data_obs$interaction == 0), 2000), which(data_obs$interaction == 1)),]
+data_obs = data_obs[c(sample(which(data_obs$interaction == 0), 1000), which(data_obs$interaction == 1)),]
 table(data_obs$interaction)
-data_obs$interaction = as.integer(data_obs$interaction)
+data_obs$interaction = as.integer(data_obs$interaction)-1
 ```
+
+Your Tasks:
+
+- Use cito to tune a dnn on the data
+- Submit your predictions
+
+:::
+
 
 `r hide("Click here to see the solution")`
 
@@ -277,69 +284,29 @@ Minimal example:
 ```{r}
 library(cito)
 set.seed(42)
-tuning_steps = 2
-hyper_lambda = runif(tuning_steps,0.0001, 0.02)
-hyper_alpha = runif(tuning_steps,0, 1.0)
-hyper_hidden = sample.int(10, tuning_steps)
-hyper_nodes = sample(seq(5, 100), size = tuning_steps)
+model = dnn(interaction~., 
+    hidden = c(50, 50), 
+    activation = "selu", 
+    loss = "binomial", 
+    lr = tune(values = seq(0.0001, 0.03, length.out = 10)),
+    lambda = tune(values = seq(0.0001, 0.1, length.out = 10)),
+    alpha = tune(),
+    batchsize = 100L, # increasing the batch size will reduce the runtime
+    data = data_obs, 
+    epochs = 100L, 
+    tuning = config_tuning(CV = 3, steps = 15, parallel = 5L))
 
-outer_split = sample(nrow(data_obs), 0.2*nrow(data_obs))
 
-results = data.frame(
-  set = 1,
-  lambda = rep(NA, 1),
-  alpha = rep(NA, 1),
-  hidden = rep(NA, 1),
-  nodes = rep(NA, 1),
-  AUC = rep(NA, 1)
-)
-
-train_outer = data_obs[-outer_split, ]
-test_outer = data_obs[outer_split, ]
-
-tuning_results = 
-    sapply(1:length(hyper_lambda), function(k) {
-      model = dnn(interaction~., 
-          hidden = rep(hyper_nodes[k], hyper_hidden[k]), 
-          activation = rep("selu", hyper_hidden[k]), 
-          loss = "binomial", 
-          lr = 0.05,
-          lambda = hyper_lambda[k],
-          alpha = hyper_alpha[k],
-          batchsize = 100L, # increasing the batch size will reduce the runtime
-          lr_scheduler = config_lr_scheduler("reduce_on_plateau", patience = 10, factor = 0.9),
-          data = train_outer, epochs = 50L, verbose = FALSE, plot= FALSE)
-      return(Metrics::auc(test_outer$interaction, predict(model, test_outer )[,1]))
-    })
-results[1, 1] = 1
-results[1, 2] =  hyper_lambda[which.max(tuning_results)]
-results[1, 3] =  hyper_alpha[which.max(tuning_results)]
-results[1, 4] =  hyper_hidden[which.max(tuning_results)]
-results[1, 5] =  hyper_nodes[which.max(tuning_results)]  
-results[1, 6] = max(tuning_results)
-
-print(results)
+print(model$tuning)
 ```
 
 Make predictions:
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
-k = 1
-model = dnn(interaction~., 
-    hidden = rep(results$nodes[k], results$hidden[k]), 
-    activation = rep("selu", hyper_hidden[k]), 
-    loss = "binomial", 
-    lr = 0.05,
-    lambda = results$lambda[k],
-    alpha = results$alpha[k],
-    batchsize = 100L, # increasing the batch size will reduce the runtime
-    lr_scheduler = config_lr_scheduler("reduce_on_plateau", patience = 10, factor = 0.9),
-    data = train_outer, epochs = 50L, verbose = FALSE, plot= FALSE)
 
-predictions = predict(model, newdata = data_new)[,1]
+predictions = predict(model, newdata = data_new, type = "response")[,1]
 
 write.csv(data.frame(y = predictions), file = "Max_plant_poll_ensemble.csv")
 ```
 
 `r unhide()`
-:::

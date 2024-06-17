@@ -504,7 +504,7 @@ dplyr and tidyverse
 </div></div><p>For this lecture you need the Titanic data set provided by us (via the <code>EcoData</code> package).</p>
 
 <div class="no-row-height column-margin column-container"><div class="">
-<p>You can find it in GRIPS (datasets.RData in the data set and submission section) or at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio6.uni-regensburg.de:8500</a> (VPN for University of Regensburg is required!).</p>
+<p>You can find it in GRIPS (datasets.RData in the data set and submission section) or at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a> (VPN for University of Regensburg is required!).</p>
 </div></div><div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -859,38 +859,34 @@ Attaching package: 'glmnetUtils'</code></pre>
 <span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">!=</span> j, ]</span>
 <span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">==</span> j, ]</span>
 <span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
-<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_inner, </span>
-<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a>                                                       <span class="at">s =</span> hyper_lambda[k], <span class="co"># specify lambda here</span></span>
-<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a>                                                       <span class="at">type =</span> <span class="st">"response"</span>))</span>
-<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb50-21"><a href="#cb50-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
-<span id="cb50-22"><a href="#cb50-22" aria-hidden="true" tabindex="-1"></a>    })</span>
-<span id="cb50-23"><a href="#cb50-23" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">lambda =</span> hyper_lambda, <span class="at">AUC =</span> tuning_results)</span>
-<span id="cb50-24"><a href="#cb50-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-25"><a href="#cb50-25" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">family =</span> <span class="st">"binomial"</span>, <span class="at">lambda =</span> hyper_lambda[k])</span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_inner, <span class="at">type =</span> <span class="st">"response"</span>))</span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">lambda =</span> hyper_lambda, <span class="at">AUC =</span> tuning_results)</span>
+<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-21"><a href="#cb50-21" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       lambda       AUC
 1  0.18296121 0.7438247
 2  0.18741508 0.7438247
-3  0.05722791 0.8023242
+3  0.05722791 0.8027653
 4  0.16608953 0.7438247
-5  0.12834910 0.7731345
+5  0.12834910 0.7563711
 6  0.10381919 0.8027653
-7  0.14731766 0.7506220
-8  0.02693332 0.8134370
-9  0.13139846 0.7731345
+7  0.14731766 0.7438247
+8  0.02693332 0.8133076
+9  0.13139846 0.7563711
 10 0.14101296 0.7563711
 11 0.09154836 0.8027653
-12 0.14382245 0.7506220
+12 0.14382245 0.7438247
 13 0.18693445 0.7438247
-14 0.05108576 0.8038770
+14 0.05108576 0.8023242
 15 0.09245856 0.8027653
 16 0.18800290 0.7438247
 17 0.19564529 0.7438247
-18 0.02349747 0.8132826
+18 0.02349747 0.8133310
 19 0.09499942 0.8027653
 20 0.11206655 0.8027653</code></pre>
 </div>
@@ -899,8 +895,8 @@ Attaching package: 'glmnetUtils'</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>results[<span class="fu">which.max</span>(results<span class="sc">$</span>AUC),]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>      lambda      AUC
-8 0.02693332 0.813437</code></pre>
+<pre><code>       lambda      AUC
+18 0.02349747 0.813331</code></pre>
 </div>
 </div>
 </section>
@@ -1403,7 +1399,10 @@ Task: Tuning <span class="math inline">\(\alpha\)</span> and <span class="math i
 <li>Try cito</li>
 <li>Try different datasets (see <a href="Appendix-Datasets.html"><span>Appendix&nbsp;A</span></a>)</li>
 </ul>
-<p>Code template for a simple CV (only <span class="math inline">\(\lambda\)</span> is tuned, add the tuning for <span class="math inline">\(\alpha\)</span>:</p>
+<p>Code template for a simple CV (for tuning <span class="math inline">\(\lambda\)</span>):</p>
+<ul>
+<li>Extend the following code so that <span class="math inline">\(\alpha\)</span> is also tuned!</li>
+</ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
 <span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">5</span></span>
@@ -1419,34 +1418,32 @@ Task: Tuning <span class="math inline">\(\alpha\)</span> and <span class="math i
 <span id="cb79-12"><a href="#cb79-12" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">!=</span> j, ]</span>
 <span id="cb79-13"><a href="#cb79-13" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">==</span> j, ]</span>
 <span id="cb79-14"><a href="#cb79-14" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb79-15"><a href="#cb79-15" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
+<span id="cb79-15"><a href="#cb79-15" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">lambda =</span> hyper_lambda[k], <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
 <span id="cb79-16"><a href="#cb79-16" aria-hidden="true" tabindex="-1"></a>          </span>
 <span id="cb79-17"><a href="#cb79-17" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb79-18"><a href="#cb79-18" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_inner, </span>
-<span id="cb79-19"><a href="#cb79-19" aria-hidden="true" tabindex="-1"></a>                                                       <span class="at">s =</span> hyper_lambda[k],</span>
-<span id="cb79-20"><a href="#cb79-20" aria-hidden="true" tabindex="-1"></a>                                                       <span class="at">type =</span> <span class="st">"response"</span>))</span>
-<span id="cb79-21"><a href="#cb79-21" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb79-22"><a href="#cb79-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
-<span id="cb79-23"><a href="#cb79-23" aria-hidden="true" tabindex="-1"></a>    })</span>
-<span id="cb79-24"><a href="#cb79-24" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">lambda =</span> hyper_lambda, <span class="at">AUC =</span> tuning_results)</span>
-<span id="cb79-25"><a href="#cb79-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-26"><a href="#cb79-26" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb79-18"><a href="#cb79-18" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_inner, <span class="at">type =</span> <span class="st">"response"</span>))</span>
+<span id="cb79-19"><a href="#cb79-19" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb79-20"><a href="#cb79-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
+<span id="cb79-21"><a href="#cb79-21" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb79-22"><a href="#cb79-22" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">lambda =</span> hyper_lambda, <span class="at">AUC =</span> tuning_results)</span>
+<span id="cb79-23"><a href="#cb79-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-24"><a href="#cb79-24" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       lambda       AUC
 1  0.18296121 0.7438247
 2  0.18741508 0.7438247
-3  0.05722791 0.8021771
+3  0.05722791 0.8027653
 4  0.16608953 0.7438247
-5  0.12834910 0.7731345
+5  0.12834910 0.7563711
 6  0.10381919 0.8027653
-7  0.14731766 0.7506220
+7  0.14731766 0.7438247
 8  0.02693332 0.8148047
-9  0.13139846 0.7731345
+9  0.13139846 0.7563711
 10 0.14101296 0.7563711
 11 0.09154836 0.8027653
-12 0.14382245 0.7506220
+12 0.14382245 0.7438247
 13 0.18693445 0.7438247
-14 0.05108576 0.8043251
+14 0.05108576 0.8021771
 15 0.09245856 0.8027653
 16 0.18800290 0.7438247
 17 0.19564529 0.7438247
@@ -1477,39 +1474,37 @@ Click here to see the solution
 <span id="cb81-13"><a href="#cb81-13" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">!=</span> j, ]</span>
 <span id="cb81-14"><a href="#cb81-14" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">==</span> j, ]</span>
 <span id="cb81-15"><a href="#cb81-15" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb81-16"><a href="#cb81-16" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">family =</span> <span class="st">"binomial"</span>, <span class="at">alpha =</span> hyper_alpha[k])</span>
+<span id="cb81-16"><a href="#cb81-16" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">glmnet</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">family =</span> <span class="st">"binomial"</span>, <span class="at">alpha =</span> hyper_alpha[k], <span class="at">lambda =</span> hyper_lambda[k])</span>
 <span id="cb81-17"><a href="#cb81-17" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb81-18"><a href="#cb81-18" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_inner, </span>
-<span id="cb81-19"><a href="#cb81-19" aria-hidden="true" tabindex="-1"></a>                                                       <span class="at">s =</span> hyper_lambda[k],</span>
-<span id="cb81-20"><a href="#cb81-20" aria-hidden="true" tabindex="-1"></a>                                                       <span class="at">type =</span> <span class="st">"response"</span>))</span>
-<span id="cb81-21"><a href="#cb81-21" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb81-22"><a href="#cb81-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
-<span id="cb81-23"><a href="#cb81-23" aria-hidden="true" tabindex="-1"></a>    })</span>
-<span id="cb81-24"><a href="#cb81-24" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">lambda =</span> hyper_lambda, <span class="at">alpha =</span> hyper_alpha,  <span class="at">AUC =</span> tuning_results)</span>
-<span id="cb81-25"><a href="#cb81-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-26"><a href="#cb81-26" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb81-18"><a href="#cb81-18" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, <span class="fu">predict</span>(model, test_inner, <span class="at">type =</span> <span class="st">"response"</span>))</span>
+<span id="cb81-19"><a href="#cb81-19" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb81-20"><a href="#cb81-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
+<span id="cb81-21"><a href="#cb81-21" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb81-22"><a href="#cb81-22" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">lambda =</span> hyper_lambda, <span class="at">alpha =</span> hyper_alpha,  <span class="at">AUC =</span> tuning_results)</span>
+<span id="cb81-23"><a href="#cb81-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-24"><a href="#cb81-24" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       lambda       alpha       AUC
 1  0.18296121 0.904031387 0.7438247
 2  0.18741508 0.138710168 0.8125274
-3  0.05722791 0.988891729 0.8021771
+3  0.05722791 0.988891729 0.8027653
 4  0.16608953 0.946668233 0.7438247
 5  0.12834910 0.082437558 0.8160241
 6  0.10381919 0.514211784 0.7988632
-7  0.14731766 0.390203467 0.8017660
-8  0.02693332 0.905738131 0.8149835
+7  0.14731766 0.390203467 0.7988632
+8  0.02693332 0.905738131 0.8150353
 9  0.13139846 0.446969628 0.7988632
-10 0.14101296 0.836004260 0.8027653
-11 0.09154836 0.737595618 0.8021771
+10 0.14101296 0.836004260 0.7865904
+11 0.09154836 0.737595618 0.8027653
 12 0.14382245 0.811055141 0.8027653
 13 0.18693445 0.388108283 0.7988632
-14 0.05108576 0.685169729 0.8131312
+14 0.05108576 0.685169729 0.8130814
 15 0.09245856 0.003948339 0.8176636
-16 0.18800290 0.832916080 0.7495738
+16 0.18800290 0.832916080 0.7438247
 17 0.19564529 0.007334147 0.8145899
 18 0.02349747 0.207658973 0.8189813
 19 0.09499942 0.906601408 0.8027653
-20 0.11206655 0.611778643 0.8009676</code></pre>
+20 0.11206655 0.611778643 0.8021771</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results[<span class="fu">which.max</span>(results<span class="sc">$</span>AUC),])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">

@@ -101,7 +101,7 @@ Another good reference is "**R for data science**" by Hadley Wickham: <a href="h
 For this lecture you need the Titanic data set provided by us (via the `EcoData` package).
 
 ::: column-margin
-You can find it in GRIPS (datasets.RData in the data set and submission section) or at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio6.uni-regensburg.de:8500</a> (VPN for University of Regensburg is required!).
+You can find it in GRIPS (datasets.RData in the data set and submission section) or at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a> (VPN for University of Regensburg is required!).
 :::
 
 ::: callout-important
@@ -340,12 +340,8 @@ tuning_results =
           train_inner = data_obs[inner_split != j, ]
           test_inner = data_obs[inner_split == j, ]
       
-          model = glmnet(survived~.,data = train_inner, family = "binomial")
-          
-          
-          auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, 
-                                                       s = hyper_lambda[k], # specify lambda here
-                                                       type = "response"))
+          model = glmnet(survived~.,data = train_inner, family = "binomial", lambda = hyper_lambda[k])
+          auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response"))
         }
       return(mean(auc_inner))
     })
@@ -610,7 +606,9 @@ Bonus:
 -   Try cito
 -   Try different datasets (see @sec-datasets)
 
-Code template for a simple CV (only $\lambda$ is tuned, add the tuning for $\alpha$:
+Code template for a simple CV (for tuning $\lambda$):
+
+- Extend the following code so that $\alpha$ is also tuned!
 
 
 ```{r}
@@ -628,12 +626,10 @@ tuning_results =
           train_inner = data_obs[inner_split != j, ]
           test_inner = data_obs[inner_split == j, ]
       
-          model = glmnet(survived~.,data = train_inner, family = "binomial")
+          model = glmnet(survived~.,data = train_inner, lambda = hyper_lambda[k], family = "binomial")
           
           
-          auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, 
-                                                       s = hyper_lambda[k],
-                                                       type = "response"))
+          auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response"))
         }
       return(mean(auc_inner))
     })
@@ -665,11 +661,9 @@ tuning_results =
           train_inner = data_obs[inner_split != j, ]
           test_inner = data_obs[inner_split == j, ]
       
-          model = glmnet(survived~.,data = train_inner, family = "binomial", alpha = hyper_alpha[k])
+          model = glmnet(survived~.,data = train_inner, family = "binomial", alpha = hyper_alpha[k], lambda = hyper_lambda[k])
           
-          auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, 
-                                                       s = hyper_lambda[k],
-                                                       type = "response"))
+          auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response"))
         }
       return(mean(auc_inner))
     })

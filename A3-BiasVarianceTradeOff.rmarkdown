@@ -4,6 +4,7 @@ editor_options:
   chunk_output_type: console
 ---
 
+
 # Managing algorithmic complexity
 
 ## Estimating predictive error
@@ -14,6 +15,7 @@ You probably remember from statistics that a more complex model always fits the 
 
 To check the out-of-sample error, we usually split out some part of the data for later model validation. Let's look at this at the example of a supervised regression, trying to predict house prices in Boston.
 
+
 ```{r}
 library(mlbench)
 
@@ -22,28 +24,36 @@ data = BostonHousing
 set.seed(123)
 ```
 
+
 Creating a split by deciding randomly for each data point if it is used for training or validation
+
 
 ```{r}
 n = nrow(BostonHousing)
 train = sample.int(n, size = round(0.7*n))
 ```
 
+
 Fitting two lms, one with a few predictors, one with a lot of predictors (all interaction up to 3-way)
+
 
 ```{r}
 m1 = lm(medv~., data = data[train,])
 m2 = lm(medv~.^3, data = data[train,])
 ```
 
+
 Testing predictive ability on training data (in-sample error)
+
 
 ```{r}
 cor(predict(m1), data[train,]$medv)
 cor(predict(m2), data[train,]$medv)
 ```
 
+
 Conclusion: m2 (more complex) is much better on training. As a next step, we are testing the predictive ability on hold-out (aka valikation, out-of-sample error).
+
 
 ```{r}
 cor(predict(m1, newdata = data[-train,] ), 
@@ -53,6 +63,7 @@ cor(predict(m2, newdata = data[-train,] ),
 
 ```
 
+
 Now, m2 is much worse!
 
 ### Overfitting vs. underfitting
@@ -61,6 +72,7 @@ The phenomenon that the predictive error drops significantly when going from the
 
 What about m1 - is m1 just complex enough, or is it too simple? Underfitting cannot be directly diagnosed, you just have to try around if making the model more complex can improve results on the validation data. Let's try a random forest
 
+
 ```{r, message=FALSE}
 library(randomForest)
 m3 = randomForest(medv~., data = data[train,])
@@ -68,6 +80,7 @@ cor(predict(m3), data[train,]$medv)
 cor(predict(m3, newdata = data[-train,] ), 
     data[-train,]$medv)
 ```
+
 
 No drop on validation data (i.e. no overfitting), but error on training and validation is much better than for m1 - so this seems to be a better model, and m1 was probably underfitting, i.e. it was not complex enough to get good performance!
 
@@ -78,6 +91,7 @@ A problem with the validation split is that we test only on a certain fraction o
 If computationally possible, a better method to estimate error is cross-validation. The idea of cross-validation is to perform the train/validation split again and again until all data was used for the validation, and then average the validation error over this data.
 
 Here an example of a k-fold cross-validation, which is akin to 5x an 80/20 split.
+
 
 ```{r}
 k = 5 # folds
@@ -92,11 +106,13 @@ for(i in 1:k){
 cor(pred, data$medv)
 ```
 
+
 ### The bootstrap
 
 It doesn't really fit in here, but as we just introduced validation and cross-valation, we also want to introduce you to the bootstrap, which is next to cross-validation the other main resampling technique.
 
 In a bootstrap, is instead of splitting up the data in test / validation, we sample from the data with replacement and fit the models repeatedly. The idea is to get an estimate about the variability we would expect if we created another dataset of the same size.
+
 
 ```{r}
 k = 10 # bootstrap samples
@@ -111,6 +127,7 @@ for(i in 1:k){
 
 boxplot(pred[,1:10], main = "uncertainty predictions 1-10")
 ```
+
 
 Basically, the distinction between bootstrap and validation / cross-validation is as follows:
 
@@ -138,6 +155,7 @@ Optimizing the bias-variance trade-off means adjusting the complexity of the mod
 ::: {.webex-check .webex-box}
 ![](images/biasVarianceTradeoff.png)
 
+
 ```{r}
 #| results: asis
 #| echo: false
@@ -148,11 +166,13 @@ opts <- c(
 
 cat("Which of the following statements about the bias-variance trade-off is correct? (see figure above)", longmcq(opts))
 ```
+
 :::
 
 ### Feature selection
 
 Adding features increases the flexibility of the model and the goodness of fit:
+
 
 ```{r}
 library(mlbench)
@@ -169,6 +189,7 @@ summary(lm(medv~., data = data))$r.squared
 # Main effects + all potential interactions:
 summary(lm(medv~.^2, data = data))$r.squared
 ```
+
 
 The model with all features and their potential interactions has the highest $R^2$, but it also has the highest uncertainty because there are on average only 5 observations for each parameter (92 parameters and 506 observations). So how do we decide which level of complexity is appropriate for our task? For the data we use to train the model, $R^2$ will always get better with higher model complexity, so it is a poor decision criterion. We will show this in the @sec-cv section. In short, the idea is that we need to split the data so that we have an evaluation (test) dataset that wasn't used to train the model, which we can then use in turn to see if our model generalizes well to new data.
 
@@ -202,12 +223,14 @@ To see how these techniques work in practice, let's first focus on LASSO and Rid
 
 LASSO $\left(penalty \propto \sum_{}^{} \mathrm{abs}(weights) \right)$ and Ridge $\left(penalty \propto \sum_{}^{} weights^{2} \right)$ have slightly different properties. They are best understood if we express those as the effective prior preference they create on the parameters:
 
+
 ```{r chunk_chapter4_10, echo = F}
 oldpar = par(mfrow = c(1, 2))
 curve(dexp(abs(x)), -5, 5, main = "LASSO prior")
 curve(dnorm(abs(x)), -5, 5, main = "Ridge prior")
 par(oldpar)
 ```
+
 
 As you can see, the LASSO creates a very strong preference towards exactly zero, but falls off less strongly towards the tails. This means that parameters tend to be estimated either to exactly zero, or, if not, they are more free than the Ridge. For this reason, LASSO is often more interpreted as a model selection method.
 
@@ -218,6 +241,7 @@ The Ridge, on the other hand, has a certain area around zero where it is relativ
 We can use the `glmnet` package for Ridge, LASSO, and elastic-net regressions.
 
 We want to predict the house prices of Boston (see help of the dataset):
+
 
 ```{r}
 library(mlbench)
@@ -235,29 +259,36 @@ hist(cor(X))
 m1 = glmnet(y = Y, x = X, alpha = 0)
 ```
 
+
 The `glmnet` function automatically tests different values for lambda:
+
 
 ```{r}
 cbind(coef(m1, s = 0.001), coef(m1, s = 100.5))
 ```
 
+
 #### LASSO - Example
 
 By changing $alpha$ to 1.0 we use a LASSO instead of a Ridge regression:
+
 
 ```{r}
 m2 = glmnet(y = Y, x = X, alpha = 1.0)
 cbind(coef(m2, s = 0.001), coef(m2, s = 0.5))
 ```
 
+
 #### Elastic-net - Example
 
 By setting $alpha$ to a value between 0 and 1.0, we use a combination of LASSO and Rdige:
+
 
 ```{r}
 m3 = glmnet(y = Y, x = X, alpha = 0.5)
 cbind(coef(m3, s = 0.001), coef(m3, s = 0.5))
 ```
+
 
 ## Hyperparameter tuning
 
@@ -269,11 +300,14 @@ Hyperparameter tuning describes the process of finding the optimal set of hyperp
 
 Let's have a look at this using our glmnet example - we can plot the effect of $\lambda$ on the effect estimates:
 
+
 ```{r}
 plot(m1)
 ```
 
+
 So which lambda should we choose now? If we calculate the model fit for different lambdas (e.g. using the RMSE):
+
 
 ```{r}
 lambdas = seq(0.001, 1.5, length.out = 100)
@@ -286,11 +320,13 @@ RMSEs =
 plot(lambdas, RMSEs)
 ```
 
+
 We see that the lowest lambda achieved the highest RMSE - which is not surprising because the unconstrained model, the most complex model, has the highest fit, so no bias but probably high variance (with respect to the bias-variance tradeoff).
 
 ### Tuning with a train / test split
 
 We want a model that generalizes well to new data, which we need to "simulate" here by splitting of a holdout before the training and using the holdout then for testing our model. This split is often called the train / test split.
+
 
 ```{r}
 set.seed(1)
@@ -319,7 +355,9 @@ pred = predict(m1, newx = test_X, s = 0.01)
 Metrics::rmse(test_Y, pred)
 ```
 
+
 Let's do it again for different values of lambdas:
+
 
 ```{r}
 lambdas = seq(0.0000001, 0.5, length.out = 100)
@@ -332,7 +370,9 @@ plot(lambdas, RMSEs, xlab = "Lambda", ylab = "RMSE", type = "l", las = 2)
 abline(v = lambdas[which.min(RMSEs)], col = "red", lwd = 1.5)
 ```
 
+
 Alternatively, you automatically run a CV to determine the hyperparameters for glmnet, using the `cv.glmnet` function which does per default a 5xCV (so 5 splits) and in each split different values for $\lambda$ are tested
+
 
 ```{r}
 m1 = glmnet::cv.glmnet(x = X, y = Y, alpha = 0.5, nfolds = 5)
@@ -341,6 +381,7 @@ plot(m1)
 m1$lambda.min
 ```
 
+
 So low values of $\lambda$ seem to achieve the lowest error, thus the highest predictive performance.
 
 ### Nested (cross)-validation
@@ -348,6 +389,7 @@ So low values of $\lambda$ seem to achieve the lowest error, thus the highest pr
 In the previous example, we have used the train/test split to find the best model. However, we have not done a validation split yet to see how the finally selected model would do on new data. This is absolutely necessary, because else you will overfit with your model selection to the test data.
 
 If we have several nested splits, we talk about a nested validation / cross-validation. For each level, you can in principle switch between validation and cross-validation. Here, and example of tuning with a inner cross-validation and an outer validation.
+
 
 ```{r}
 # outer split
@@ -387,6 +429,7 @@ cor(finalPred,
     data[validation,]$medv)
 ```
 
+
 ## Exercise - Predicting species interactions
 
 The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower). We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>.
@@ -403,6 +446,7 @@ min.node.size = Minimum size of terminal nodes. Setting this number larger cause
 **Nodesize determines the complexity of the individual trees (we will talk about the exact working tomorrow)**
 
 **1. Prepare data**
+
 
 ```{r}
 library(ranger) # alternative faster random forest implementation
@@ -431,6 +475,7 @@ Metrics::auc(as.integer(df[-(1:500),]$interaction)-1, pred)
 
 ```
 
+
 **2. Create an outer split**
 
 **3. Tune min.node.size under nested Cross-Validation on the training split from step 2**
@@ -441,6 +486,7 @@ Metrics::auc(as.integer(df[-(1:500),]$interaction)-1, pred)
 
 
 `r hide("Click here to see the solution")`
+
 
 ```{r}
 set.seed(42)
@@ -482,7 +528,9 @@ Metrics::auc(df[validation,]$interaction, finalPred)
 ```
 
 
+
 Create submissions:
+
 ```{r}
 newdata = plantPollinator_df[is.na(plantPollinator_df$interaction), ]
 newdata_imputed = missRanger::missRanger(data = newdata[,-ncol(newdata)], verbose = 0)
@@ -493,8 +541,10 @@ write.csv(data.frame(y = predictions), file = "rf_max.csv")
 ```
 
 
+
 `r unhide()`
 
 
 ## References {.unnumbered}
+
 
