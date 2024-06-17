@@ -10,7 +10,7 @@ editor_options:
 #| echo: false
 #| include: false
 #| results: false
-reticulate::use_condaenv("r-reticulate")
+reticulate::use_virtualenv("r-keras")
 library(tensorflow)
 tf
 tf$abs(3.)
@@ -48,7 +48,7 @@ plot(as.vector(Y[1:16,]), type = "l", xlab = "week", ylab = "Drought")
 ```
 
 ```{r chunk_chapter5_1_Rnn, message=FALSE, warning=FALSE}
-library(keras)
+library(keras3)
 
 holdout = 700:999
 X_train = X[-holdout,,]
@@ -59,10 +59,10 @@ Y_test = Y[holdout,]
 
 model = keras_model_sequential()
 model %>% 
-  layer_rnn(cell = layer_lstm_cell(units = 60L),input_shape = dim(X)[2:3]) %>% 
+  layer_lstm(units = 60L,input_shape = dim(X)[2:3]) %>% 
   layer_dense(units = 6L)
 
-model %>% compile(loss = loss_mean_squared_error, optimizer = optimizer_adamax(learning_rate = 0.01))
+model %>% compile(loss = keras3::loss_mean_squared_error, optimizer = optimizer_adamax(learning_rate = 0.01))
   
 model %>% fit(x = X_train, y = Y_train, epochs = 30L)
 
@@ -90,10 +90,8 @@ The following code snippet shows you many (technical) things you need for buildi
 
 ```{r chunk_chapter5_1, message=FALSE, warning=FALSE}
 library(tensorflow)
-library(keras)
-set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
+library(keras3)
 
-tf$keras$backend$clear_session()  # Resets especially layer counter.
 
 inputDimension1 = 50L
 inputDimension2 = 10L
