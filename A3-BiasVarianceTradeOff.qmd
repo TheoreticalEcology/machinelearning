@@ -391,12 +391,21 @@ cor(finalPred,
 
 The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower). We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>.
 
+You can also find a small explanation of he dataset in the Appendix of the book @sec-plantpoll .
+
 ::: callout-warning
-### Task: Tune randomForest model for the Plant-Pollinator dataset
+### Task: Tune random orest model for the Plant-Pollinator dataset
+
+Tune the min.node.size hyperparameter, from the randomForest help:
+
+min.node.size = Minimum size of terminal nodes. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
+
+Nodesize determines the complexity of the individual trees (we will talk about the exact working tomorrow)
 
 1. Prepare data
 
 ```{r}
+library(ranger) # alternative faster random forest implementation
 library(EcoData)
 
 data(plantPollinator_df)
@@ -410,14 +419,20 @@ df = plant_poll[complete.cases(plant_poll),] # remove NAs
 df = df[,-(1:2)]
 
 # Example:
-rf = randomForest(interaction~., data = df[1:500,], trees = 500)
-pred = predict(rf, newdata = df[-(1:500),], type = "prob")[,2]
+rf = ranger(interaction~., 
+            data = df[1:500,], 
+            min.node.size = 20, 
+            probability = TRUE) # we want our model to predict probabilities!
+
+# the predict function of the ranger will return an object, the actual predictions
+# are inside a matrix with the name predictions
+pred = predict(rf, data = df[-(1:500),])$predictions[,2] 
 Metrics::auc(as.integer(df[-(1:500),]$interaction)-1, pred)
 
 ```
 
 2. Create outer split
-3. Tune mtry under nested Cross-Validation
+3. Tune min.node.size under nested Cross-Validation
 (Bonus 4. Create submissions)
 
 :::
@@ -434,7 +449,7 @@ dat = df[-validation,]
 
 # inner split
 nI = nrow(dat)
-hyperparameter = data.frame(mtry = seq(2, 14, by = 1))
+hyperparameter = data.frame(min.node.size = seq(10, 500, by = 1))
 m = nrow(hyperparameter)
 k = 5 # folds
 split = sample.int(k, nI, replace = T)
@@ -444,8 +459,8 @@ split = sample.int(k, nI, replace = T)
 pred = matrix(NA, nI, m)
 for(l in 1:m){
   for(i in 1:k){
-    m1 = randomForest(interaction~., data = dat[split != i,], mtry = hyperparameter$mtry[l], trees = 300)
-    pred[split == i,l] = predict(m1, newdata = dat[split == i,], type = "prob")[,2]
+    m1 = ranger(interaction~., data = dat[split != i,], min.node.size = hyperparameter$min.node.size[l], probability = TRUE)
+    pred[split == i,l] = predict(m1, data = dat[split == i,])$predictions[,2]
   }
 }
 
@@ -456,10 +471,10 @@ choice = which.max(res)
 
 # fitting model again with best hyperparameters 
 # and all test / validation data 
-mFinal = randomForest(interaction~., data = dat, mtry = hyperparameter$mtry[choice], trees = 300)
+mFinal = ranger(interaction~., data = dat, mtry = hyperparameter$min.node.size[choice], probability = TRUE)
 
 # testing final prediction on validation data 
-finalPred = predict(mFinal, newdata = df[validation,], type = "prob")[,2]
+finalPred = predict(mFinal, data = df[validation,])$predictions[,2]
 
 Metrics::auc(df[validation,]$interaction, finalPred)
 ```
@@ -470,7 +485,7 @@ Create submissions:
 newdata = plantPollinator_df[is.na(plantPollinator_df$interaction), ]
 newdata_imputed = missRanger::missRanger(data = newdata[,-ncol(newdata)], verbose = 0)
 newdata_imputed$interaction = NA
-predictions = predict(mFinal, newdata = newdata_imputed, type = "prob")[,2]
+predictions = predict(mFinal, data = newdata_imputed)$predictions[,2]
 
 write.csv(data.frame(y = predictions), file = "rf_max.csv")
 ```
@@ -478,4 +493,6 @@ write.csv(data.frame(y = predictions), file = "rf_max.csv")
 
 `r unhide()`
 
+
+## References {.unnumbered}
 
