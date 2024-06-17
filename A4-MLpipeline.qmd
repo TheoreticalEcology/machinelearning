@@ -17,37 +17,123 @@ The typical machine learning workflow consist of:
 -   Splitting data set into training and test set for evaluation.
 -   Model fitting.
 -   Model evaluation.
--   New predictions.
+-   New predictions
 
-Here is an (optional) video that explains the entire pipeline from a slightly different perspective:
+![Machine Learning pipeline](images/pipeline.png)
 
-```{r chunk_chapter4_39, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-  '<iframe width="560" height="315" 
-  src="https://www.youtube.com/embed/nKW8Ndu7Mjw"
-  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
+<!-- Here is an (optional) video that explains the entire pipeline from a slightly different perspective: -->
 
-In the following example, we use tidyverse, a collection of R packages for data science / data manipulation mainly developed by Hadley Wickham. A video that explains the basics can be found here :
+<!-- ```{r chunk_chapter4_39, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F} -->
 
-```{r chunk_chapter4_40, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
-cat(
-  '<iframe width="560" height="315" 
-  src="https://www.youtube.com/embed/nRtp7wSEtJA"
-  frameborder="0" allow="accelerometer; autoplay; encrypted-media;
-  gyroscope; picture-in-picture" allowfullscreen>
-  </iframe>'
-)
-```
+<!-- cat( -->
 
+<!--   '<iframe width="560" height="315"  -->
+
+<!--   src="https://www.youtube.com/embed/nKW8Ndu7Mjw" -->
+
+<!--   frameborder="0" allow="accelerometer; autoplay; encrypted-media; -->
+
+<!--   gyroscope; picture-in-picture" allowfullscreen> -->
+
+<!--   </iframe>' -->
+
+<!-- ) -->
+
+<!-- ``` -->
+
+In the following example, we use tidyverse, a collection of R packages for data science / data manipulation mainly developed by Hadley Wickham.
+
+::: {.callout-note appearance="default" collapse="true"}
+## dplyr and tidyverse
+
+The `dplyr` package is part of a framework called tidyverse. Unique features of the tidyverse are the pipe `%>%` operator and `tibble` objects.
+
+-   The `%>%` operator:
+
+    Applying several functions in sequence on an object often results in uncountable/confusing number of round brackets:
+
+    ```{r}
+    library(tidyverse)
+    max(mean(range(c(5, 3, 2, 1))))
+    ```
+
+    The pipe operator simplifies that by saying "apply the next function on the result of the current function":
+
+    ```{r}
+    c(5, 3, 2, 1) %>% range %>% mean %>% max
+    ```
+
+    Which is easier to write, read, and to understand!
+
+-   `tibble` objects are just an extension of data.frames. In the course we will use mostly data.frames, so it is better to transform the tibbles back to data.frames:
+
+    ```{r}
+    air_grouped = airquality %>% group_by(Month)
+    
+    class(air_grouped)
+    air_grouped = as.data.frame(air_grouped)
+    class(air_grouped)
+    ```
+:::
+
+<!-- ```{r chunk_chapter4_40, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F} -->
+
+<!-- cat( -->
+
+<!--   '<iframe width="560" height="315"  -->
+
+<!--   src="https://www.youtube.com/embed/nRtp7wSEtJA" -->
+
+<!--   frameborder="0" allow="accelerometer; autoplay; encrypted-media; -->
+
+<!--   gyroscope; picture-in-picture" allowfullscreen> -->
+
+<!--   </iframe>' -->
+
+<!-- ) -->
+
+<!-- ``` -->
+
+::: column-margin
 Another good reference is "**R for data science**" by Hadley Wickham: <a href="https://r4ds.had.co.nz/" target="_blank" rel="noopener"></a>.
+:::
 
-For this lecture you need the Titanic data set provided by us. You can find it in GRIPS (datasets.RData in the data set and submission section) or at <a href="http://rhsbio6.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio6.uni-regensburg.de:8500</a>.
+For this lecture you need the Titanic data set provided by us (via the `EcoData` package).
 
-We have split the data set already into training and test/prediction data sets (the test/prediction split has one column less than the train split, as the result is not known a priori).
+::: column-margin
+You can find it in GRIPS (datasets.RData in the data set and submission section) or at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio6.uni-regensburg.de:8500</a> (VPN for University of Regensburg is required!).
+:::
+
+::: callout-important
+### Motivation - We need a model that can predict the survival probability of new passengers.
+
+We have split the data set into training and an outer test/prediction data sets (the test/prediction split has one column less than the train split, as the response for the test/outer split is unknown).
+
+**The goal is to build a predictive model that can accurately predict the chances of survival for Titanic passengers!**
+
+The dataset:
+
+```{r}
+library(tidyverse)
+library(EcoData)
+data(titanic_ml)
+data = titanic_ml
+```
+
+The response variable:
+
+```{r}
+unique(data$survived)
+```
+
+0 = passenger died
+
+1 = passenger survived
+
+NA = we don't have information about the passenger, at the end, we will make predictions for these passengers!
+
+**Important**: Preprocessing of the data must be done for the training and testing data together!!
+:::
 
 ## Data preparation
 
@@ -107,7 +193,7 @@ titles %>%
  fct_count()
 ```
 
-We will combine titles with low occurrences into one title, which we can easily do with the forcats package.
+We will combine titles with low occurrences into one title, which we can easily do with the `forcats` package.
 
 ```{r chunk_chapter4_48}
 titles2 =
@@ -138,14 +224,22 @@ data =
 
 ### Imputation
 
-NAs are a common problem in ML. For example, the age variable has 20% NAs:
+NAs are a common problem in ML and most ML algorithms cannot handle NAs. For example, the age variable has 20% NAs:
 
 ```{r chunk_chapter4_51}
 summary(data$age)
 sum(is.na(data$age)) / nrow(data)
 ```
 
-Either we remove all observations with NAs, or we impute (fill) the missing values, e.g. with the median age. However, age itself might depend on other variables such as sex, class and title. We want to fill the NAs with the median age of these groups. In tidyverse we can easily "group" the data, i.e. we will nest the observations (here: group_by after sex, pclass and title). After grouping, all operations (such as our median(age....)) will be done within the specified groups.
+There are few options how to handle NAs:
+
+-   Drop observations with NAs, however, we may lose many observations (not what we want!)
+
+-   Imputation, fill the missing values
+
+We impute (fill) the missing values, for example with the median age. However, age itself might depend on other variables such as sex, class and title. Thus, instead of filling the NAs with the overall median of the passengers, we want to fill the NAs with the median age of these groups so that the associations with the other groups are preserved (or in other words, that the new values are hopefully closer to the unknown true values).
+
+In `tidyverse` we can "group" the data, i.e. we will nest the observations within categorical variables for which we assume that there may be an association with age (here: `group_by` after sex, pclass and title). After grouping, all operations (such as our `median(age....)`) will be done within the specified groups (to get better estimates of these missing NAs).
 
 ```{r chunk_chapter4_52}
 data =
@@ -203,113 +297,68 @@ head(data)
 
 ### Split data for final predictions
 
-To tune our hyperparameters and evaluate our models, we need to split the data as we learned in the CV section. Before doing so, however, we must split off the new observations in the data set :
+To tune our hyperparameters and evaluate our models, we need to split the data as we learned in the CV section. Before doing so, however, we must split off the new observations (the outer test split) in the data set :
 
 ```{r}
 summary(data_sub$survived)
 ```
 
-655 observations have NAs in our response variable, these are the observations for which we want to make predictions at the end of our pipeline (we have no information about their actual values!).
+655 observations have NAs in our response variable, these are the observations for which we want to make predictions at the end of our pipeline.
 
 ```{r chunk_chapter4_56}
 data_new = data_sub[is.na(data_sub$survived),]
 data_obs = data_sub[!is.na(data_sub$survived),]
 ```
 
-### Training and evaluation
-
-Now, we can do a simple 10xCV with the observed_data:
-
-```{r, warning=FALSE, message=FALSE, results='hide'}
-library(glmnet)
-library(glmnetUtils)
-data_obs = data_sub[!is.na(data_sub$survived),] 
-cv = 10
-
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-
-results = data.frame(
-  set = 1:cv,
-  AUC = rep(NA, cv)
-)
-
-for(i in 1:cv) {
-  train_outer = data_obs[outer_split != i, ]
-  test_outer = data_obs[outer_split == i, ]
-  model = glmnet(survived~.,data = train_outer, family = "binomial",alpha = 0.2)
-  results[i, 2] = Metrics::auc(test_outer$survived, predict(model, test_outer, 
-                                                            alpha = 0.2,
-                                                            s = 0.01,
-                                                            type = "response"))
-
-}
-```
-
-```{r}
-print(results)
-print(mean(results$AUC))
-```
 
 ### Hyperparameter optimization
 
-We did a simple 10xCV to evaluate our model but we didn't tune our hyperparameters ($\lambda$ and $\alpha$). If we want to tune them, we need do another CV within each split of the model evaulation CV, which is called nested CV.
+We want to tune our hyperparameters ($\lambda$ and $\alpha$). Normally, we should do a nested CV on our training data (data_obs), however, we assume that the test data on the submission server is our outer split, so we can tune our hyperparameters using a n-fold Cross-Validation which serves as our inner CV. 
 
-We used only one split (the split for the submission server doesn't count) to evaluate the performance of the model before we made the final predictions. If we test many different hyperparameter combinations, how do we ensure that a certain hyperparameter is not only good for our training dataset but also good for the new data (our outer split on the submission server)? You may have guessed it already, we need to do another CV within the previous CV to check whether a certain hyperparameter solution generalizes to the whole data. To tune $\lambda$, we would need to split the data another time (called nested CV).
 
-Why is it important to tune hyperparameters? Hyperparameters (configuration parameters of our ML algorithms that (mostly) control their complexity) are usually tuned (optimized) in an automatic / systematic way. A common procedure, called random search, is to sample random configuration combinations from the set of hyperparameters and test for each combination the prediction error.
+::: column-margin
 
-Let's implement manually a nested CV to tune the $\alpha$. Let's start with a 5CVx5CV and 20x different alpha values:
+Again, why is it important to tune hyperparameters? Hyperparameters (configuration parameters of our ML algorithms that (mostly) control their complexity) are usually tuned (optimized) in an automatic / systematic way. A common procedure, called random search, is to sample random configuration combinations from the set of hyperparameters and test for each combination the prediction error.
+
+:::
+
+We implement manually a CV to tune the $\lambda$. Let's start with a 5xCV and 20x different lambda values:
 
 ```{r}
 library(glmnet)
 library(glmnetUtils)
 set.seed(42)
-data_obs = data_sub[!is.na(data_sub$survived),] 
 cv = 5
-cv_inner = 5
-hyper_alpha = runif(20,0, 1)
+hyper_lambda = runif(20,0, 0.2)
 
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-
-results = data.frame(
-  set = rep(NA, cv),
-  alpha = rep(NA, cv),
-  AUC = rep(NA, cv)
-)
-
-for(i in 1:cv) {
-  train_outer = data_obs[outer_split != i, ]
-  test_outer = data_obs[outer_split == i, ]
   
-  best_alpha = NULL
-  best_auc = NULL
-  
-  # inner split
-  for(j in 1:cv_inner) {
-    inner_split = as.integer(cut(1:nrow(train_outer), breaks = cv_inner))
-    train_inner = train_outer[inner_split != j, ]
-    test_inner = train_outer[inner_split == j, ]
-    
-    tuning_results_inner = 
-      sapply(1:length(hyper_alpha), function(k) {
-        model = glmnet(survived~.,data = train_inner, family = "binomial",alpha = hyper_alpha[k])
-        return(Metrics::auc(test_inner$survived, predict(model, test_inner, 
-                                                         alpha = hyper_alpha[k],
-                                                         s = 0.01,
-                                                         type = "response")))
-      })
-    best_alpha[j] = hyper_alpha[which.max(tuning_results_inner)]
-    best_auc[j] = max(tuning_results_inner)
-  }
-  best_alpha = best_alpha[which.max(best_auc)]
-  model = glmnet(survived~., data = train_outer, alpha = best_alpha, family = "binomial")
-  results[i, 1] = i
-  results[i, 2] = best_alpha
-  results[i, 3] = Metrics::auc(test_outer$survived, predict(model, test_outer, s = 0.01, alpha = best_alpha, type = "response"))
-}
+tuning_results = 
+    sapply(1:length(hyper_lambda), function(k) {
+        auc_inner = NULL # save results from CV
+        for(j in 1:cv) {
+          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+          train_inner = data_obs[inner_split != j, ]
+          test_inner = data_obs[inner_split == j, ]
+      
+          model = glmnet(survived~.,data = train_inner, family = "binomial")
+          
+          
+          auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, 
+                                                       s = hyper_lambda[k], # specify lambda here
+                                                       type = "response"))
+        }
+      return(mean(auc_inner))
+    })
+results = data.frame(lambda = hyper_lambda, AUC = tuning_results)
 
 print(results)
 ```
+
+The best (highest AUC) $\lambda$ is then:
+```{r}
+results[which.max(results$AUC),]
+```
+
 
 ## Predictions and Submission
 
@@ -318,7 +367,7 @@ When we are satisfied with the performance of our model, we will create predicti
 $\alpha = 0.915$ has the highest AUC, let's use it to train the model on the full dataset:
 
 ```{r}
-model = glmnet(survived~.,data = data_obs, family = "binomial",alpha = 0.915)
+model = glmnet(survived~.,data = data_obs, family = "binomial")
 ```
 
 We cannot assess the performance for the new observations because the true survival ratio is unknown, however, we can now submit our predictions to the submission server at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a>.
@@ -327,21 +376,11 @@ For the submission it is critical to change the predictions into a data.frame, s
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
 data_new = data_sub[is.na(data_sub$survived),]
-write.csv(data.frame(y = predict(model, data_new, alpha = 0.915, s = 0.01, type = "response")[,1] ), file = "Max_1.csv")
+write.csv(data.frame(y = predict(model, data_new, s = results[which.max(results$AUC),1], type = "response")[,1] ), file = "Max_1.csv")
 ```
 
-We have now used the $\alpha$ value with the highest AUC here, but our tuning has shown that the best value of $\alpha$ depends on the partitioning, so it would probably be better to build ten models and combine their predictions (e.g., by averaging the predictions):
 
-```{r, results='hide',warning=FALSE, message=FALSE}
-prediction_ensemble = 
-  sapply(results$alpha, function(alpha) {
-    model = glmnet(survived~.,data = data_obs, family = "binomial",alpha = alpha)
-    return(predict(model, data_new, alpha = alpha, s = 0.01, type = "response")[,1])
-  })
-write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_1.csv")
-```
-
-## Machine learning frameworks
+## Machine learning frameworks - Bonus
 
 As we have seen today, many of the machine learning algorithms are distributed over several packages but the general machine learning pipeline is very similar for all models: feature engineering, feature selection, hyperparameter tuning and cross-validation.
 
@@ -528,14 +567,13 @@ predictions = apply(pred, 1, mean)
 
 ### Tuning Regularization
 
-::: callout-warning
+::: {.callout-warning}
+
 #### Task: Tuning $\alpha$ and $\lambda$
 
-1.  Extend the code from above and tune $\alpha$ and $\lambda$ (Nested-CV or via a simple CV)
+1.  Extend the code from above and tune $\alpha$ and $\lambda$ (via 10xCV)
 
 2.  Train the model with best set of hyperparameters and submit your predictions
-
-3.  Compare the predictive performance from the single best model with the ensemble model
 
 Submit both predictions (<http://rhsbio7.uni-regensburg.de:8500/>), which model has a higher AUC?
 
@@ -549,10 +587,8 @@ data(titanic_ml)
 data = titanic_ml
 data = 
   data %>% select(survived, sex, age, fare, pclass)
-
 # missRanger uses a random forest to impute NAs (RF is trained on the data to predict values for the NAs)
 data[,-1] = missRanger(data[,-1], verbose = 0)
-
 data_sub =
   data %>%
     mutate(age = scales::rescale(age, c(0, 1)),
@@ -569,185 +605,94 @@ Bonus:
 -   Try cito
 -   Try different datasets (see @sec-datasets)
 
-Code template for a simple CV (only $\alpha$ is tuned, add the tuning for $\lambda$:
+Code template for a simple CV (only $\lambda$ is tuned, add the tuning for $\alpha$:
 
-```{r}
-library(glmnet)
-library(glmnetUtils)
-set.seed(42)
-data_obs = data_sub[!is.na(data_sub$survived),] 
-cv = 5
-hyper_alpha = runif(20,0, 1)
-
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-
-results = data.frame(
-  set = rep(NA, cv),
-  alpha = rep(NA, cv),
-  AUC = rep(NA, cv)
-)
-
-for(i in 1:cv) {
-  train_outer = data_obs[outer_split != i, ]
-  test_outer = data_obs[outer_split == i, ]
-  
-  tuning_results = 
-      sapply(1:length(hyper_alpha), function(k) {
-        model = glmnet(survived~.,data = train_outer, family = "binomial",alpha = hyper_alpha[k])
-        return(Metrics::auc(test_outer$survived, predict(model, test_outer, 
-                                                         alpha = hyper_alpha[k],
-                                                         s = 0.01,
-                                                         type = "response")))
-      })
-  best_alpha = hyper_alpha[which.max(tuning_results)]
-  results[i, 1] = i
-  results[i, 2] = best_alpha
-  results[i, 3] = max(tuning_results)
-}
-
-print(results)
-```
-
-
-:::
-
-`r hide("Click here to see the solution for the single model")`
-
-Nested CV:
 
 ```{r}
 set.seed(42)
-data_obs = data_sub[!is.na(data_sub$survived),] 
 cv = 5
-cv_inner = 5
-hyper_alpha = runif(30,0, 1)
-hyper_lambda = runif(30,0, 1)
+hyper_lambda = runif(20,0, 0.2)
 
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-
-results = data.frame(
-  set = rep(NA, cv),
-  alpha = rep(NA, cv),
-  lambda = rep(NA, cv),
-  AUC = rep(NA, cv)
-)
-
-for(i in 1:cv) {
-  train_outer = data_obs[outer_split != i, ]
-  test_outer = data_obs[outer_split == i, ]
   
-  
-  tuning_results_inner = 
-      sapply(1:length(hyper_alpha), function(k) {
-          best_alpha = NULL
-          best_lambda = NULL
-          best_auc = NULL  
+tuning_results = 
+    sapply(1:length(hyper_lambda), function(k) {
+        auc_inner = NULL
+      
+        for(j in 1:cv) {
+          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+          train_inner = data_obs[inner_split != j, ]
+          test_inner = data_obs[inner_split == j, ]
+      
+          model = glmnet(survived~.,data = train_inner, family = "binomial")
           
-          auc_inner = NULL
-        
-          for(j in 1:cv_inner) {
-            inner_split = as.integer(cut(1:nrow(train_outer), breaks = cv_inner))
-            train_inner = train_outer[inner_split != j, ]
-            test_inner = train_outer[inner_split == j, ]
-        
-            model = glmnet(survived~.,data = train_inner, family = "binomial",alpha = hyper_alpha[k])
-            
-            
-            auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, 
-                                                         alpha = hyper_alpha[k],
-                                                         s = hyper_lambda[k],
-                                                         type = "response"))
-            
-          }
-        return(mean(auc_inner))
-      })
-  
-  
-  best_alpha = hyper_alpha[which.max(tuning_results_inner)]
-  best_lambda = hyper_lambda[which.max(tuning_results_inner)]
-  best_auc = max(tuning_results_inner)
-  
-  model = glmnet(survived~., data = train_outer, alpha = best_alpha, family = "binomial")
-  
-  results[i, 1] = i
-  results[i, 2] = best_alpha
-  results[i, 3] = best_lambda
-  results[i, 4] = Metrics::auc(test_outer$survived, predict(model, test_outer, s = best_lambda, alpha = best_alpha, type = "response"))
-}
+          
+          auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, 
+                                                       s = hyper_lambda[k],
+                                                       type = "response"))
+        }
+      return(mean(auc_inner))
+    })
+results = data.frame(lambda = hyper_lambda, AUC = tuning_results)
 
 print(results)
-
 ```
 
-Simple CV:
+
+`r hide("Click here to see the solution")`
+
+
 
 ```{r}
 set.seed(42)
-data_obs = data_sub[!is.na(data_sub$survived),] 
 cv = 5
-hyper_alpha = runif(20,0, 1)
-hyper_lambda = runif(20, 0, 1)
+hyper_lambda = runif(20,0, 0.2)
+hyper_alpha = runif(20, 0, 1)
 
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-
-results = data.frame(
-  set = rep(NA, cv),
-  alpha = rep(NA, cv),
-  lambda = rep(NA, cv),
-  AUC = rep(NA, cv)
-)
-
-for(i in 1:cv) {
-  train_outer = data_obs[outer_split != i, ]
-  test_outer = data_obs[outer_split == i, ]
   
-  tuning_results = 
-      sapply(1:length(hyper_alpha), function(k) {
-        model = glmnet(survived~.,data = train_outer, family = "binomial",alpha = hyper_alpha[k])
-        return(Metrics::auc(test_outer$survived, predict(model, test_outer, 
-                                                         alpha = hyper_alpha[k],
-                                                         s = hyper_lambda[k],
-                                                         type = "response")))
-      })
-  best_alpha = hyper_alpha[which.max(tuning_results)]
-  best_lambda = hyper_lambda[which.max(tuning_results)]
-  results[i, 1] = i
-  results[i, 2] = best_alpha
-  results[i, 3] = best_lambda
-  results[i, 4] = max(tuning_results)
-}
+tuning_results = 
+    sapply(1:length(hyper_alpha), function(k) {
+        auc_inner = NULL
+      
+        for(j in 1:cv) {
+          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+          train_inner = data_obs[inner_split != j, ]
+          test_inner = data_obs[inner_split == j, ]
+      
+          model = glmnet(survived~.,data = train_inner, family = "binomial", alpha = hyper_alpha[k])
+          
+          auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, 
+                                                       s = hyper_lambda[k],
+                                                       type = "response"))
+        }
+      return(mean(auc_inner))
+    })
+results = data.frame(lambda = hyper_lambda, alpha = hyper_alpha,  AUC = tuning_results)
 
 print(results)
+print(results[which.max(results$AUC),])
 ```
 
 Predictions:
 
 ```{r, results='hide', message=FALSE, warning=FALSE}
-prediction_ensemble = 
-  sapply(1:nrow(results), function(i) {
-    model = glmnet(survived~.,data = data_obs, family = "binomial",alpha = results$alpha[i])
-    return(predict(model, data_new, alpha = results$alpha[i], s = results$lambda[i], type = "response")[,1])
-  })
+model = glmnet(survived~.,data = data_obs, family = "binomial",alpha = results[which.max(results$AUC),2])
+predictions = predict(model, data_new, alpha = results$alpha[i], s = results[which.max(results$AUC),1], type = "response")[,1]
 
-# Single predictions from the model with the highest AUC:
-write.csv(data.frame(y = prediction_ensemble[,which.max(results$AUC)]), file = "Max_titanic_best_model.csv")
-
-# Single predictions from the ensemble model:
-write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titanic_ensemble.csv")
+write.csv(data.frame(y = predictions, file = "Max_titanic_best_model.csv"))
 ```
 
 `r unhide()`
+:::
 
 ### Bonus: mlr3
 
-::: {.callout-caution icon="false"}
+::: {.callout-warning}
 #### Task: Use mlr3 for the titanic dataset
 
 1.  Use `mlr3` to tune glmnet for the titanic dataset using nested CV
 2.  Submit single predictions and multiple predictions
 
 If you need help, take a look at the solution, go through it line by line and try to understand it.
-
 :::
 
 `r hide("Click here to see the solution")`
