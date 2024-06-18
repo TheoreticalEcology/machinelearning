@@ -534,16 +534,16 @@ Day          15436.47</code></pre>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(data<span class="sc">$</span>Temp[<span class="fu">order</span>(data<span class="sc">$</span>Temp)], pred[<span class="fu">order</span>(data<span class="sc">$</span>Temp)], <span class="at">col =</span> <span class="st">"red"</span>)</span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[11:52:02] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
+<pre><code>[15:26:09] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[11:52:02] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
+<pre><code>[15:26:09] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[11:52:02] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
+<pre><code>[15:26:09] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[11:52:02] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
+<pre><code>[15:26:09] WARNING: src/c_api/c_api.cc:935: `ntree_limit` is deprecated, use `iteration_range` instead.</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="B1-Trees_files/figure-html/chunk_chapter4_29__BRT2-1.png" class="img-fluid" width="672"></p>
@@ -1038,7 +1038,9 @@ Attaching package: 'dplyr'</code></pre>
 <span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">sex =</span> <span class="fu">as.integer</span>(sex) <span class="sc">-</span> 1L,</span>
 <span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">pclass =</span> <span class="fu">as.integer</span>(pclass <span class="sc">-</span> 1L))</span>
 <span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>data_new <span class="ot">=</span> data_sub[<span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># for which we want to make predictions at the end</span></span>
-<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># data with known response</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># data with known response</span></span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a>data_sub<span class="sc">$</span>survived <span class="ot">=</span> <span class="fu">as.factor</span>(data_sub<span class="sc">$</span>survived)</span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a>data_obs<span class="sc">$</span>survived <span class="ot">=</span> <span class="fu">as.factor</span>(data_obs<span class="sc">$</span>survived)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Hints:</strong></p>
 <ul>
@@ -1047,7 +1049,7 @@ Attaching package: 'dplyr'</code></pre>
 </ul>
 <p><strong>Bonus:</strong></p>
 <ul>
-<li>tune also mtry</li>
+<li>tune min node size (and mtry)</li>
 <li>use more features</li>
 </ul>
 <div class="callout callout-style-simple callout-tip no-icon callout-titled">
@@ -1063,39 +1065,32 @@ Code template
 <div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>hyper_minnodesize <span class="ot">=</span> ...</span>
 <span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a><span class="co"># sample minnodesize values (must be integers)</span></span>
-<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>hyper_minnodesize <span class="ot">=</span> ...</span>
-<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
-<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">minnodesize =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
-<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
-<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
-<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
-<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a>  tuning_results <span class="ot">=</span> </span>
-<span id="cb45-22"><a href="#cb45-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
-<span id="cb45-23"><a href="#cb45-23" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">randomForest</span>(<span class="fu">as.factor</span>(survived)<span class="sc">~</span>., <span class="at">data =</span> train_outer, <span class="at">nodesize =</span> ... )</span>
-<span id="cb45-24"><a href="#cb45-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, <span class="at">newdata =</span> test_outer, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]))</span>
-<span id="cb45-25"><a href="#cb45-25" aria-hidden="true" tabindex="-1"></a>      })</span>
-<span id="cb45-26"><a href="#cb45-26" aria-hidden="true" tabindex="-1"></a>  best_minnodesize <span class="ot">=</span> hyper_minnodesize[<span class="fu">which.max</span>(tuning_results)]</span>
-<span id="cb45-27"><a href="#cb45-27" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb45-28"><a href="#cb45-28" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
-<span id="cb45-29"><a href="#cb45-29" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_minnodesize</span>
-<span id="cb45-30"><a href="#cb45-30" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
-<span id="cb45-31"><a href="#cb45-31" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb45-32"><a href="#cb45-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-33"><a href="#cb45-33" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>tuning_results <span class="ot">=</span></span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>        auc_inner <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a>          inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">!=</span> j, ]</span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">==</span> j, ]</span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">ranger</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">min.node.size =</span> hyper_minnodesize[k], <span class="at">probability =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>          predictions <span class="ot">=</span> <span class="fu">predict</span>(model, test_inner)<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
+<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, predictions)</span>
+<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
+<span id="cb45-22"><a href="#cb45-22" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb45-23"><a href="#cb45-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-24"><a href="#cb45-24" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">minnodesize =</span> hyper_minnodesize, <span class="at">AUC =</span> tuning_results)</span>
+<span id="cb45-25"><a href="#cb45-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-26"><a href="#cb45-26" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -1107,56 +1102,69 @@ Code template
 Click here to see the solution
 </button>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a><span class="co"># sample minnodesize values (must be integers)</span></span>
-<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>hyper_minnodesize <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">300</span>, <span class="dv">20</span>)</span>
-<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
-<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">minnodesize =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
-<span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb46-16"><a href="#cb46-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-17"><a href="#cb46-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
-<span id="cb46-18"><a href="#cb46-18" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
-<span id="cb46-19"><a href="#cb46-19" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
-<span id="cb46-20"><a href="#cb46-20" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb46-21"><a href="#cb46-21" aria-hidden="true" tabindex="-1"></a>  tuning_results <span class="ot">=</span> </span>
-<span id="cb46-22"><a href="#cb46-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
-<span id="cb46-23"><a href="#cb46-23" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">randomForest</span>(<span class="fu">as.factor</span>(survived)<span class="sc">~</span>., <span class="at">data =</span> train_outer, <span class="at">nodesize =</span> hyper_minnodesize[k] )</span>
-<span id="cb46-24"><a href="#cb46-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, <span class="fu">predict</span>(model, <span class="at">newdata =</span> test_outer, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]))</span>
-<span id="cb46-25"><a href="#cb46-25" aria-hidden="true" tabindex="-1"></a>      })</span>
-<span id="cb46-26"><a href="#cb46-26" aria-hidden="true" tabindex="-1"></a>  best_minnodesize <span class="ot">=</span> hyper_minnodesize[<span class="fu">which.max</span>(tuning_results)]</span>
-<span id="cb46-27"><a href="#cb46-27" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb46-28"><a href="#cb46-28" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
-<span id="cb46-29"><a href="#cb46-29" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> best_minnodesize</span>
-<span id="cb46-30"><a href="#cb46-30" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
-<span id="cb46-31"><a href="#cb46-31" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb46-32"><a href="#cb46-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-33"><a href="#cb46-33" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'ranger'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:randomForest':
+
+    importance</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>hyper_minnodesize <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">300</span>, <span class="dv">20</span>)</span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>tuning_results <span class="ot">=</span></span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>        auc_inner <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>          inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">!=</span> j, ]</span>
+<span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">==</span> j, ]</span>
+<span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">ranger</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">min.node.size =</span> hyper_minnodesize[k], <span class="at">probability =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a>          predictions <span class="ot">=</span> <span class="fu">predict</span>(model, test_inner)<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
+<span id="cb49-16"><a href="#cb49-16" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb49-17"><a href="#cb49-17" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, predictions)</span>
+<span id="cb49-18"><a href="#cb49-18" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb49-19"><a href="#cb49-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
+<span id="cb49-20"><a href="#cb49-20" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb49-21"><a href="#cb49-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-22"><a href="#cb49-22" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">minnodesize =</span> hyper_minnodesize, <span class="at">AUC =</span> tuning_results)</span>
+<span id="cb49-23"><a href="#cb49-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-24"><a href="#cb49-24" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  set minnodesize       AUC
-1   1          74 0.8116560
-2   2          20 0.8409981
-3   3          20 0.8513631</code></pre>
+<pre><code>   minnodesize       AUC
+1           49 0.8269769
+2          153 0.8186182
+3           74 0.8191470
+4          228 0.8139092
+5          146 0.8176753
+6          122 0.8190757
+7          300 0.8080344
+8          128 0.8202545
+9           24 0.8296999
+10          89 0.8206236
+11         165 0.8170405
+12         110 0.8198368
+13          20 0.8302728
+14         291 0.8090011
+15         283 0.8105243
+16         109 0.8209075
+17           5 0.8282860
+18         212 0.8122884
+19         259 0.8125252
+20         292 0.8081344</code></pre>
 </div>
 </div>
 <p>Make predictions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>prediction_ensemble <span class="ot">=</span> </span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(results), <span class="cf">function</span>(i) {</span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">=</span> <span class="fu">randomForest</span>(<span class="fu">as.factor</span>(survived)<span class="sc">~</span>., <span class="at">data =</span> data_obs, <span class="at">nodesize =</span> results<span class="sc">$</span>minnodesize[i] )</span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">predict</span>(model, data_obs, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>])</span>
-<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Single predictions from the ensemble model:</span></span>
-<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">apply</span>(prediction_ensemble, <span class="dv">1</span>, mean)), <span class="at">file =</span> <span class="st">"Max_titanic_ensemble.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">ranger</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> data_obs, <span class="at">min.node.size =</span> results[<span class="fu">which.max</span>(results<span class="sc">$</span>AUC),<span class="dv">1</span>], <span class="at">probability =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">predict</span>(model, data_new)<span class="sc">$</span>predictions[,<span class="dv">1</span>]), <span class="at">file =</span> <span class="st">"Max_titanic_rf.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning callout-titled">
@@ -1207,23 +1215,23 @@ Question: Hyperparameter tuning of boosted regression trees
 <p>Combing back to the titanic dataset from the morning, we want to optimize max depth and the eta parameter in xgboost.</p>
 <p>Prepare the data:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
-<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(titanic_ml)</span>
-<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> titanic_ml</span>
-<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> </span>
-<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span> <span class="fu">select</span>(survived, sex, age, fare, pclass)</span>
-<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>data[,<span class="sc">-</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">missRanger</span>(data[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">verbose =</span> <span class="dv">0</span>)</span>
-<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>data_sub <span class="ot">=</span></span>
-<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
-<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">age =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(age, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
-<span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">fare =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(fare, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">sex =</span> <span class="fu">as.integer</span>(sex) <span class="sc">-</span> 1L,</span>
-<span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">pclass =</span> <span class="fu">as.integer</span>(pclass <span class="sc">-</span> 1L))</span>
-<span id="cb49-16"><a href="#cb49-16" aria-hidden="true" tabindex="-1"></a>data_new <span class="ot">=</span> data_sub[<span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># for which we want to make predictions at the end</span></span>
-<span id="cb49-17"><a href="#cb49-17" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># data with known response</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(titanic_ml)</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> titanic_ml</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> </span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span> <span class="fu">select</span>(survived, sex, age, fare, pclass)</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>data[,<span class="sc">-</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">missRanger</span>(data[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">verbose =</span> <span class="dv">0</span>)</span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>data_sub <span class="ot">=</span></span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">age =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(age, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">fare =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(fare, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">sex =</span> <span class="fu">as.integer</span>(sex) <span class="sc">-</span> 1L,</span>
+<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">pclass =</span> <span class="fu">as.integer</span>(pclass <span class="sc">-</span> 1L))</span>
+<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a>data_new <span class="ot">=</span> data_sub[<span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># for which we want to make predictions at the end</span></span>
+<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># data with known response</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="callout callout-style-simple callout-tip no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
@@ -1238,46 +1246,38 @@ Code template
 <div id="callout-6" class="callout-6-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
-<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
-<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
-<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a><span class="co"># sample minnodesize values (must be integers)</span></span>
-<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>hyper_depth <span class="ot">=</span> ...</span>
-<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>hyper_eta <span class="ot">=</span> ...</span>
-<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
-<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">depth =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">eta =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
-<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
-<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
-<span id="cb50-21"><a href="#cb50-21" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
-<span id="cb50-22"><a href="#cb50-22" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb50-23"><a href="#cb50-23" aria-hidden="true" tabindex="-1"></a>  tuning_results <span class="ot">=</span> </span>
-<span id="cb50-24"><a href="#cb50-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_depth), <span class="cf">function</span>(k) {</span>
-<span id="cb50-25"><a href="#cb50-25" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb50-26"><a href="#cb50-26" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Cast data to xgboost data types</span></span>
-<span id="cb50-27"><a href="#cb50-27" aria-hidden="true" tabindex="-1"></a>        data_xg <span class="ot">=</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> <span class="fu">as.matrix</span>(train_outer[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">label =</span> train_outer<span class="sc">$</span>survived)</span>
-<span id="cb50-28"><a href="#cb50-28" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">xgboost</span>(data_xg, <span class="at">nrounds =</span> 16L, <span class="at">eta =</span> hyper_eta[k], <span class="at">max_depth =</span> hyper_depth[k])</span>
-<span id="cb50-29"><a href="#cb50-29" aria-hidden="true" tabindex="-1"></a>        predictions <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> <span class="fu">as.matrix</span>(test_outer)[,<span class="sc">-</span><span class="dv">1</span>])</span>
-<span id="cb50-30"><a href="#cb50-30" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb50-31"><a href="#cb50-31" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, predictions))<span class="er">)</span></span>
-<span id="cb50-32"><a href="#cb50-32" aria-hidden="true" tabindex="-1"></a>      })</span>
-<span id="cb50-33"><a href="#cb50-33" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb50-34"><a href="#cb50-34" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
-<span id="cb50-35"><a href="#cb50-35" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> hyper_depth[<span class="fu">which.max</span>(tuning_results)]</span>
-<span id="cb50-36"><a href="#cb50-36" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> hyper_eta[<span class="fu">which.max</span>(tuning_results)]  </span>
-<span id="cb50-37"><a href="#cb50-37" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">4</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
-<span id="cb50-38"><a href="#cb50-38" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb50-39"><a href="#cb50-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-40"><a href="#cb50-40" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a><span class="co"># sample minnodesize values (must be integers)</span></span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>hyper_depth <span class="ot">=</span> ...</span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>hyper_eta <span class="ot">=</span> ...</span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a>tuning_results <span class="ot">=</span></span>
+<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
+<span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>        auc_inner <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a>          inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">!=</span> j, ]</span>
+<span id="cb53-18"><a href="#cb53-18" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">==</span> j, ]</span>
+<span id="cb53-19"><a href="#cb53-19" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb53-20"><a href="#cb53-20" aria-hidden="true" tabindex="-1"></a>          data_xg <span class="ot">=</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> <span class="fu">as.matrix</span>(train_inner[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">label =</span> train_inner<span class="sc">$</span>survived)</span>
+<span id="cb53-21"><a href="#cb53-21" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb53-22"><a href="#cb53-22" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">xgboost</span>(data_xg, <span class="at">nrounds =</span> 16L, <span class="at">eta =</span> hyper_eta[k], <span class="at">max_depth =</span> hyper_depth[k])</span>
+<span id="cb53-23"><a href="#cb53-23" aria-hidden="true" tabindex="-1"></a>          predictions <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> <span class="fu">as.matrix</span>(test_inner)[,<span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb53-24"><a href="#cb53-24" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb53-25"><a href="#cb53-25" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, predictions)</span>
+<span id="cb53-26"><a href="#cb53-26" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb53-27"><a href="#cb53-27" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
+<span id="cb53-28"><a href="#cb53-28" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb53-29"><a href="#cb53-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-30"><a href="#cb53-30" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">depth =</span> hyper_depth, <span class="at">eta =</span> hyper_eta, <span class="at">AUC =</span> tuning_results)</span>
+<span id="cb53-31"><a href="#cb53-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-32"><a href="#cb53-32" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -1287,53 +1287,44 @@ Code template
 Click here to see the solution
 </button>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
-<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
-<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
-<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
-<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a><span class="co"># sample minnodesize values (must be integers)</span></span>
-<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>hyper_depth <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">200</span>, <span class="dv">20</span>)</span>
-<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>hyper_eta <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">20</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
-<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
-<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">set =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">depth =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">eta =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv),</span>
-<span id="cb51-16"><a href="#cb51-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">AUC =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, cv)</span>
-<span id="cb51-17"><a href="#cb51-17" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb51-18"><a href="#cb51-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-19"><a href="#cb51-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
-<span id="cb51-20"><a href="#cb51-20" aria-hidden="true" tabindex="-1"></a>  train_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">!=</span> i, ]</span>
-<span id="cb51-21"><a href="#cb51-21" aria-hidden="true" tabindex="-1"></a>  test_outer <span class="ot">=</span> data_obs[outer_split <span class="sc">==</span> i, ]</span>
-<span id="cb51-22"><a href="#cb51-22" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb51-23"><a href="#cb51-23" aria-hidden="true" tabindex="-1"></a>  tuning_results <span class="ot">=</span> </span>
-<span id="cb51-24"><a href="#cb51-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_depth), <span class="cf">function</span>(k) {</span>
-<span id="cb51-25"><a href="#cb51-25" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb51-26"><a href="#cb51-26" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Cast data to xgboost data types</span></span>
-<span id="cb51-27"><a href="#cb51-27" aria-hidden="true" tabindex="-1"></a>        data_xg <span class="ot">=</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> <span class="fu">as.matrix</span>(train_outer[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">label =</span> train_outer<span class="sc">$</span>survived)</span>
-<span id="cb51-28"><a href="#cb51-28" aria-hidden="true" tabindex="-1"></a>        model <span class="ot">=</span> <span class="fu">xgboost</span>(data_xg, <span class="at">nrounds =</span> 16L, <span class="at">eta =</span> hyper_eta[k], <span class="at">max_depth =</span> hyper_depth[k])</span>
-<span id="cb51-29"><a href="#cb51-29" aria-hidden="true" tabindex="-1"></a>        predictions <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> <span class="fu">as.matrix</span>(test_outer)[,<span class="sc">-</span><span class="dv">1</span>])</span>
-<span id="cb51-30"><a href="#cb51-30" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb51-31"><a href="#cb51-31" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(Metrics<span class="sc">::</span><span class="fu">auc</span>(test_outer<span class="sc">$</span>survived, predictions))</span>
-<span id="cb51-32"><a href="#cb51-32" aria-hidden="true" tabindex="-1"></a>      })</span>
-<span id="cb51-33"><a href="#cb51-33" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb51-34"><a href="#cb51-34" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">1</span>] <span class="ot">=</span> i</span>
-<span id="cb51-35"><a href="#cb51-35" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">2</span>] <span class="ot">=</span> hyper_depth[<span class="fu">which.max</span>(tuning_results)]</span>
-<span id="cb51-36"><a href="#cb51-36" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">3</span>] <span class="ot">=</span> hyper_eta[<span class="fu">which.max</span>(tuning_results)]  </span>
-<span id="cb51-37"><a href="#cb51-37" aria-hidden="true" tabindex="-1"></a>  results[i, <span class="dv">4</span>] <span class="ot">=</span> <span class="fu">max</span>(tuning_results)</span>
-<span id="cb51-38"><a href="#cb51-38" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] </span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>outer_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a><span class="co"># sample minnodesize values (must be integers)</span></span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>hyper_depth <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">200</span>, <span class="dv">20</span>)</span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>hyper_eta <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">20</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a>tuning_results <span class="ot">=</span></span>
+<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
+<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a>        auc_inner <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>          inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">!=</span> j, ]</span>
+<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">==</span> j, ]</span>
+<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a>          data_xg <span class="ot">=</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> <span class="fu">as.matrix</span>(train_inner[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">label =</span> train_inner<span class="sc">$</span>survived)</span>
+<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">xgboost</span>(data_xg, <span class="at">nrounds =</span> 16L, <span class="at">eta =</span> hyper_eta[k], <span class="at">max_depth =</span> hyper_depth[k])</span>
+<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a>          predictions <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> <span class="fu">as.matrix</span>(test_inner)[,<span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb54-25"><a href="#cb54-25" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, predictions)</span>
+<span id="cb54-27"><a href="#cb54-27" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb54-28"><a href="#cb54-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
+<span id="cb54-29"><a href="#cb54-29" aria-hidden="true" tabindex="-1"></a>    })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] train-rmse:0.175827 
-[2] train-rmse:0.109441 
-[3] train-rmse:0.092795 
-[4] train-rmse:0.088512 
-[5] train-rmse:0.087381 
-[6] train-rmse:0.087107 
-[7] train-rmse:0.087027 
-[8] train-rmse:0.087007 
+<pre><code>[1] train-rmse:0.179874 
+[2] train-rmse:0.111511 
+[3] train-rmse:0.093345 
+[4] train-rmse:0.088640 
+[5] train-rmse:0.087423 
+[6] train-rmse:0.087114 
+[7] train-rmse:0.087028 
+[8] train-rmse:0.087008 
 [9] train-rmse:0.087003 
 [10]    train-rmse:0.087002 
 [11]    train-rmse:0.087002 
@@ -1342,638 +1333,30 @@ Click here to see the solution
 [14]    train-rmse:0.087002 
 [15]    train-rmse:0.087002 
 [16]    train-rmse:0.087002 
-[1] train-rmse:0.182387 
-[2] train-rmse:0.112793 
-[3] train-rmse:0.094016 
-[4] train-rmse:0.088861 
-[5] train-rmse:0.087508 
-[6] train-rmse:0.087140 
-[7] train-rmse:0.087039 
-[8] train-rmse:0.087011 
-[9] train-rmse:0.087004 
-[10]    train-rmse:0.087002 
-[11]    train-rmse:0.087002 
-[12]    train-rmse:0.087002 
-[13]    train-rmse:0.087002 
-[14]    train-rmse:0.087002 
-[15]    train-rmse:0.087002 
-[16]    train-rmse:0.087002 
-[1] train-rmse:0.467591 
-[2] train-rmse:0.437246 
-[3] train-rmse:0.409265 
-[4] train-rmse:0.383782 
-[5] train-rmse:0.360274 
-[6] train-rmse:0.337716 
-[7] train-rmse:0.316400 
-[8] train-rmse:0.296867 
-[9] train-rmse:0.278947 
-[10]    train-rmse:0.262474 
-[11]    train-rmse:0.246994 
-[12]    train-rmse:0.232921 
-[13]    train-rmse:0.220217 
-[14]    train-rmse:0.208335 
-[15]    train-rmse:0.197668 
-[16]    train-rmse:0.187673 
-[1] train-rmse:0.305459 
-[2] train-rmse:0.203594 
-[3] train-rmse:0.145842 
-[4] train-rmse:0.116749 
-[5] train-rmse:0.101977 
-[6] train-rmse:0.094731 
-[7] train-rmse:0.091107 
-[8] train-rmse:0.089156 
-[9] train-rmse:0.088162 
-[10]    train-rmse:0.087629 
-[11]    train-rmse:0.087345 
-[12]    train-rmse:0.087189 
-[13]    train-rmse:0.087103 
-[14]    train-rmse:0.087057 
-[15]    train-rmse:0.087032 
-[16]    train-rmse:0.087018 
-[1] train-rmse:0.350164 
-[2] train-rmse:0.252016 
-[3] train-rmse:0.186831 
-[4] train-rmse:0.147834 
-[5] train-rmse:0.123078 
-[6] train-rmse:0.108796 
-[7] train-rmse:0.100220 
-[8] train-rmse:0.095171 
-[9] train-rmse:0.092074 
-[10]    train-rmse:0.090201 
-[11]    train-rmse:0.088995 
-[12]    train-rmse:0.088264 
-[13]    train-rmse:0.087806 
-[14]    train-rmse:0.087516 
-[15]    train-rmse:0.087331 
-[16]    train-rmse:0.087211 
-[1] train-rmse:0.190103 
-[2] train-rmse:0.116106 
-[3] train-rmse:0.095590 
-[4] train-rmse:0.089478 
-[5] train-rmse:0.087726 
-[6] train-rmse:0.087214 
-[7] train-rmse:0.087064 
-[8] train-rmse:0.087020 
-[9] train-rmse:0.087006 
-[10]    train-rmse:0.087003 
-[11]    train-rmse:0.087003 
-[12]    train-rmse:0.087003 
-[13]    train-rmse:0.087003 
-[14]    train-rmse:0.087003 
-[15]    train-rmse:0.087003 
-[16]    train-rmse:0.087003 
-[1] train-rmse:0.329438 
-[2] train-rmse:0.229970 
-[3] train-rmse:0.165347 
-[4] train-rmse:0.130049 
-[5] train-rmse:0.110895 
-[6] train-rmse:0.100268 
-[7] train-rmse:0.094529 
-[8] train-rmse:0.091396 
-[9] train-rmse:0.089568 
-[10]    train-rmse:0.088477 
-[11]    train-rmse:0.087870 
-[12]    train-rmse:0.087513 
-[13]    train-rmse:0.087307 
-[14]    train-rmse:0.087184 
-[15]    train-rmse:0.087110 
-[16]    train-rmse:0.087066 
-[1] train-rmse:0.205885 
-[2] train-rmse:0.121338 
-[3] train-rmse:0.097982 
-[4] train-rmse:0.090629 
-[5] train-rmse:0.088183 
-[6] train-rmse:0.087395 
-[7] train-rmse:0.087133 
-[8] train-rmse:0.087045 
-[9] train-rmse:0.087016 
-[10]    train-rmse:0.087006 
-[11]    train-rmse:0.087003 
-[12]    train-rmse:0.087003 
-[13]    train-rmse:0.087003 
-[14]    train-rmse:0.087003 
-[15]    train-rmse:0.087003 
-[16]    train-rmse:0.087003 
-[1] train-rmse:0.232610 
-[2] train-rmse:0.136983 
-[3] train-rmse:0.105745 
-[4] train-rmse:0.094020 
-[5] train-rmse:0.089683 
-[6] train-rmse:0.088056 
-[7] train-rmse:0.087410 
-[8] train-rmse:0.087154 
-[9] train-rmse:0.087060 
-[10]    train-rmse:0.087024 
-[11]    train-rmse:0.087010 
-[12]    train-rmse:0.087005 
-[13]    train-rmse:0.087003 
-[14]    train-rmse:0.087003 
-[15]    train-rmse:0.087003 
-[16]    train-rmse:0.087003 
-[1] train-rmse:0.212223 
-[2] train-rmse:0.126366 
-[3] train-rmse:0.100020 
-[4] train-rmse:0.091146 
-[5] train-rmse:0.088439 
-[6] train-rmse:0.087504 
-[7] train-rmse:0.087178 
-[8] train-rmse:0.087062 
-[9] train-rmse:0.087022 
-[10]    train-rmse:0.087008 
-[11]    train-rmse:0.087004 
-[12]    train-rmse:0.087003 
-[13]    train-rmse:0.087003 
-[14]    train-rmse:0.087003 
-[15]    train-rmse:0.087003 
-[16]    train-rmse:0.087003 
-[1] train-rmse:0.350936 
-[2] train-rmse:0.253277 
-[3] train-rmse:0.189156 
-[4] train-rmse:0.148701 
-[5] train-rmse:0.123730 
-[6] train-rmse:0.109281 
-[7] train-rmse:0.100498 
-[8] train-rmse:0.095362 
-[9] train-rmse:0.092203 
-[10]    train-rmse:0.090257 
-[11]    train-rmse:0.089029 
-[12]    train-rmse:0.088286 
-[13]    train-rmse:0.087820 
-[14]    train-rmse:0.087527 
-[15]    train-rmse:0.087338 
-[16]    train-rmse:0.087215 
-[1] train-rmse:0.248468 
-[2] train-rmse:0.145743 
-[3] train-rmse:0.110049 
-[4] train-rmse:0.096179 
-[5] train-rmse:0.090720 
-[6] train-rmse:0.088565 
-[7] train-rmse:0.087669 
-[8] train-rmse:0.087290 
-[9] train-rmse:0.087122 
-[10]    train-rmse:0.087052 
-[11]    train-rmse:0.087023 
-[12]    train-rmse:0.087010 
-[13]    train-rmse:0.087005 
-[14]    train-rmse:0.087004 
-[15]    train-rmse:0.087004 
-[16]    train-rmse:0.087004 
-[1] train-rmse:0.498441 
-[2] train-rmse:0.496901 
-[3] train-rmse:0.495367 
-[4] train-rmse:0.493828 
-[5] train-rmse:0.492281 
-[6] train-rmse:0.490754 
-[7] train-rmse:0.489233 
-[8] train-rmse:0.487703 
-[9] train-rmse:0.486194 
-[10]    train-rmse:0.484701 
-[11]    train-rmse:0.483189 
-[12]    train-rmse:0.481697 
-[13]    train-rmse:0.480212 
-[14]    train-rmse:0.478716 
-[15]    train-rmse:0.477242 
-[16]    train-rmse:0.475773 
-[1] train-rmse:0.206652 
-[2] train-rmse:0.121658 
-[3] train-rmse:0.098195 
-[4] train-rmse:0.090556 
-[5] train-rmse:0.088205 
-[6] train-rmse:0.087406 
-[7] train-rmse:0.087138 
-[8] train-rmse:0.087045 
-[9] train-rmse:0.087015 
-[10]    train-rmse:0.087006 
-[11]    train-rmse:0.087003 
-[12]    train-rmse:0.087002 
-[13]    train-rmse:0.087002 
-[14]    train-rmse:0.087002 
-[15]    train-rmse:0.087002 
-[16]    train-rmse:0.087002 
-[1] train-rmse:0.497105 
-[2] train-rmse:0.494254 
-[3] train-rmse:0.491404 
-[4] train-rmse:0.488575 
-[5] train-rmse:0.485738 
-[6] train-rmse:0.482949 
-[7] train-rmse:0.480181 
-[8] train-rmse:0.477404 
-[9] train-rmse:0.474695 
-[10]    train-rmse:0.471927 
-[11]    train-rmse:0.469235 
-[12]    train-rmse:0.466506 
-[13]    train-rmse:0.463826 
-[14]    train-rmse:0.461135 
-[15]    train-rmse:0.458464 
-[16]    train-rmse:0.455845 
-[1] train-rmse:0.419005 
-[2] train-rmse:0.352627 
-[3] train-rmse:0.297627 
-[4] train-rmse:0.253814 
-[5] train-rmse:0.217581 
-[6] train-rmse:0.189113 
-[7] train-rmse:0.166227 
-[8] train-rmse:0.148174 
-[9] train-rmse:0.134004 
-[10]    train-rmse:0.123090 
-[11]    train-rmse:0.114698 
-[12]    train-rmse:0.108291 
-[13]    train-rmse:0.103426 
-[14]    train-rmse:0.099694 
-[15]    train-rmse:0.096845 
-[16]    train-rmse:0.094662 
-[1] train-rmse:0.189928 
-[2] train-rmse:0.116045 
-[3] train-rmse:0.095563 
-[4] train-rmse:0.089466 
-[5] train-rmse:0.087722 
-[6] train-rmse:0.087214 
-[7] train-rmse:0.087063 
-[8] train-rmse:0.087019 
-[9] train-rmse:0.087007 
-[10]    train-rmse:0.087003 
-[11]    train-rmse:0.087003 
-[12]    train-rmse:0.087003 
-[13]    train-rmse:0.087003 
-[14]    train-rmse:0.087003 
-[15]    train-rmse:0.087003 
-[16]    train-rmse:0.087003 
-[1] train-rmse:0.272092 
-[2] train-rmse:0.163696 
-[3] train-rmse:0.120192 
-[4] train-rmse:0.101641 
-[5] train-rmse:0.093493 
-[6] train-rmse:0.089993 
-[7] train-rmse:0.088384 
-[8] train-rmse:0.087659 
-[9] train-rmse:0.087310 
-[10]    train-rmse:0.087144 
-[11]    train-rmse:0.087068 
-[12]    train-rmse:0.087032 
-[13]    train-rmse:0.087016 
-[14]    train-rmse:0.087008 
-[15]    train-rmse:0.087004 
-[16]    train-rmse:0.087003 
-[1] train-rmse:0.354093 
-[2] train-rmse:0.257314 
-[3] train-rmse:0.192974 
-[4] train-rmse:0.151840 
-[5] train-rmse:0.126063 
-[6] train-rmse:0.110879 
-[7] train-rmse:0.101735 
-[8] train-rmse:0.096267 
-[9] train-rmse:0.092827 
-[10]    train-rmse:0.090699 
-[11]    train-rmse:0.089337 
-[12]    train-rmse:0.088477 
-[13]    train-rmse:0.087941 
-[14]    train-rmse:0.087602 
-[15]    train-rmse:0.087392 
-[16]    train-rmse:0.087254 
-[1] train-rmse:0.333494 
-[2] train-rmse:0.234593 
-[3] train-rmse:0.170822 
-[4] train-rmse:0.133994 
-[5] train-rmse:0.113482 
-[6] train-rmse:0.102127 
-[7] train-rmse:0.095877 
-[8] train-rmse:0.092217 
-[9] train-rmse:0.090080 
-[10]    train-rmse:0.088836 
-[11]    train-rmse:0.088098 
-[12]    train-rmse:0.087662 
-[13]    train-rmse:0.087401 
-[14]    train-rmse:0.087243 
-[15]    train-rmse:0.087148 
-[16]    train-rmse:0.087090 
-[1] train-rmse:0.188921 
-[2] train-rmse:0.126826 
-[3] train-rmse:0.111578 
-[4] train-rmse:0.107653 
-[5] train-rmse:0.106672 
-[6] train-rmse:0.106413 
-[7] train-rmse:0.106345 
+[1] train-rmse:0.197605 
+[2] train-rmse:0.127881 
+[3] train-rmse:0.111491 
+[4] train-rmse:0.107606 
+[5] train-rmse:0.106642 
+[6] train-rmse:0.106404 
+[7] train-rmse:0.106343 
 [8] train-rmse:0.106328 
-[9] train-rmse:0.106325 
-[10]    train-rmse:0.106325 
-[11]    train-rmse:0.106325 
-[12]    train-rmse:0.106325 
-[13]    train-rmse:0.106325 
-[14]    train-rmse:0.106325 
-[15]    train-rmse:0.106325 
-[16]    train-rmse:0.106325 
-[1] train-rmse:0.195457 
-[2] train-rmse:0.129858 
-[3] train-rmse:0.112563 
-[4] train-rmse:0.107986 
-[5] train-rmse:0.106780 
-[6] train-rmse:0.106446 
-[7] train-rmse:0.106357 
-[8] train-rmse:0.106331 
-[9] train-rmse:0.106327 
-[10]    train-rmse:0.106324 
-[11]    train-rmse:0.106324 
-[12]    train-rmse:0.106324 
-[13]    train-rmse:0.106324 
-[14]    train-rmse:0.106324 
-[15]    train-rmse:0.106324 
-[16]    train-rmse:0.106324 
-[1] train-rmse:0.468748 
-[2] train-rmse:0.439602 
-[3] train-rmse:0.412375 
-[4] train-rmse:0.387024 
-[5] train-rmse:0.363245 
-[6] train-rmse:0.341305 
-[7] train-rmse:0.321214 
-[8] train-rmse:0.302495 
-[9] train-rmse:0.285540 
-[10]    train-rmse:0.269621 
-[11]    train-rmse:0.254977 
-[12]    train-rmse:0.241989 
-[13]    train-rmse:0.229524 
-[14]    train-rmse:0.218100 
-[15]    train-rmse:0.207744 
-[16]    train-rmse:0.198353 
-[1] train-rmse:0.313094 
-[2] train-rmse:0.208954 
-[3] train-rmse:0.157890 
-[4] train-rmse:0.132285 
-[5] train-rmse:0.119543 
-[6] train-rmse:0.113201 
-[7] train-rmse:0.109925 
-[8] train-rmse:0.108229 
-[9] train-rmse:0.107343 
-[10]    train-rmse:0.106871 
-[11]    train-rmse:0.106623 
-[12]    train-rmse:0.106485 
-[13]    train-rmse:0.106412 
-[14]    train-rmse:0.106371 
-[15]    train-rmse:0.106348 
-[16]    train-rmse:0.106336 
-[1] train-rmse:0.355868 
-[2] train-rmse:0.259663 
-[3] train-rmse:0.200152 
-[4] train-rmse:0.162609 
-[5] train-rmse:0.139389 
-[6] train-rmse:0.125898 
-[7] train-rmse:0.118142 
-[8] train-rmse:0.113540 
-[9] train-rmse:0.110768 
-[10]    train-rmse:0.109049 
-[11]    train-rmse:0.108048 
-[12]    train-rmse:0.107412 
-[13]    train-rmse:0.107015 
-[14]    train-rmse:0.106758 
-[15]    train-rmse:0.106599 
-[16]    train-rmse:0.106498 
-[1] train-rmse:0.202989 
-[2] train-rmse:0.132188 
-[3] train-rmse:0.113915 
-[4] train-rmse:0.108559 
-[5] train-rmse:0.106982 
-[6] train-rmse:0.106521 
-[7] train-rmse:0.106381 
-[8] train-rmse:0.106339 
-[9] train-rmse:0.106327 
-[10]    train-rmse:0.106325 
-[11]    train-rmse:0.106325 
-[12]    train-rmse:0.106325 
-[13]    train-rmse:0.106325 
-[14]    train-rmse:0.106325 
-[15]    train-rmse:0.106325 
-[16]    train-rmse:0.106325 
-[1] train-rmse:0.336020 
-[2] train-rmse:0.239423 
-[3] train-rmse:0.178614 
-[4] train-rmse:0.145721 
-[5] train-rmse:0.128115 
-[6] train-rmse:0.118376 
-[7] train-rmse:0.113218 
-[8] train-rmse:0.110247 
-[9] train-rmse:0.108582 
-[10]    train-rmse:0.107646 
-[11]    train-rmse:0.107094 
-[12]    train-rmse:0.106781 
-[13]    train-rmse:0.106591 
-[14]    train-rmse:0.106481 
-[15]    train-rmse:0.106416 
-[16]    train-rmse:0.106377 
-[1] train-rmse:0.218171 
-[2] train-rmse:0.138561 
-[3] train-rmse:0.116578 
-[4] train-rmse:0.109665 
-[5] train-rmse:0.107391 
-[6] train-rmse:0.106672 
-[7] train-rmse:0.106438 
-[8] train-rmse:0.106361 
-[9] train-rmse:0.106335 
-[10]    train-rmse:0.106328 
-[11]    train-rmse:0.106326 
-[12]    train-rmse:0.106325 
-[13]    train-rmse:0.106325 
-[14]    train-rmse:0.106325 
-[15]    train-rmse:0.106325 
-[16]    train-rmse:0.106325 
-[1] train-rmse:0.243659 
-[2] train-rmse:0.151452 
-[3] train-rmse:0.122570 
-[4] train-rmse:0.112393 
-[5] train-rmse:0.108622 
-[6] train-rmse:0.107210 
-[7] train-rmse:0.106669 
-[8] train-rmse:0.106458 
-[9] train-rmse:0.106375 
-[10]    train-rmse:0.106343 
-[11]    train-rmse:0.106330 
-[12]    train-rmse:0.106327 
-[13]    train-rmse:0.106325 
-[14]    train-rmse:0.106324 
-[15]    train-rmse:0.106324 
-[16]    train-rmse:0.106324 
-[1] train-rmse:0.224229 
-[2] train-rmse:0.143881 
-[3] train-rmse:0.118744 
-[4] train-rmse:0.110552 
-[5] train-rmse:0.107774 
-[6] train-rmse:0.106820 
-[7] train-rmse:0.106494 
-[8] train-rmse:0.106382 
-[9] train-rmse:0.106343 
-[10]    train-rmse:0.106330 
-[11]    train-rmse:0.106326 
-[12]    train-rmse:0.106325 
-[13]    train-rmse:0.106325 
-[14]    train-rmse:0.106325 
-[15]    train-rmse:0.106325 
-[16]    train-rmse:0.106325 
-[1] train-rmse:0.356608 
-[2] train-rmse:0.260611 
-[3] train-rmse:0.201036 
-[4] train-rmse:0.163319 
-[5] train-rmse:0.139903 
-[6] train-rmse:0.126250 
-[7] train-rmse:0.118378 
-[8] train-rmse:0.113702 
-[9] train-rmse:0.110875 
-[10]    train-rmse:0.109121 
-[11]    train-rmse:0.108097 
-[12]    train-rmse:0.107444 
-[13]    train-rmse:0.107040 
-[14]    train-rmse:0.106780 
-[15]    train-rmse:0.106610 
-[16]    train-rmse:0.106506 
-[1] train-rmse:0.258755 
-[2] train-rmse:0.161024 
-[3] train-rmse:0.127393 
-[4] train-rmse:0.114806 
-[5] train-rmse:0.109861 
-[6] train-rmse:0.107794 
-[7] train-rmse:0.106926 
-[8] train-rmse:0.106577 
-[9] train-rmse:0.106431 
-[10]    train-rmse:0.106368 
-[11]    train-rmse:0.106342 
-[12]    train-rmse:0.106330 
-[13]    train-rmse:0.106326 
-[14]    train-rmse:0.106325 
-[15]    train-rmse:0.106324 
-[16]    train-rmse:0.106324 
-[1] train-rmse:0.498496 
-[2] train-rmse:0.497004 
-[3] train-rmse:0.495503 
-[4] train-rmse:0.494016 
-[5] train-rmse:0.492527 
-[6] train-rmse:0.491058 
-[7] train-rmse:0.489582 
-[8] train-rmse:0.488116 
-[9] train-rmse:0.486651 
-[10]    train-rmse:0.485198 
-[11]    train-rmse:0.483749 
-[12]    train-rmse:0.482301 
-[13]    train-rmse:0.480863 
-[14]    train-rmse:0.479433 
-[15]    train-rmse:0.478008 
-[16]    train-rmse:0.476554 
-[1] train-rmse:0.218904 
-[2] train-rmse:0.140297 
-[3] train-rmse:0.117255 
-[4] train-rmse:0.109975 
-[5] train-rmse:0.107500 
-[6] train-rmse:0.106715 
-[7] train-rmse:0.106452 
-[8] train-rmse:0.106366 
-[9] train-rmse:0.106337 
-[10]    train-rmse:0.106327 
-[11]    train-rmse:0.106325 
-[12]    train-rmse:0.106324 
-[13]    train-rmse:0.106324 
-[14]    train-rmse:0.106324 
-[15]    train-rmse:0.106324 
-[16]    train-rmse:0.106324 
-[1] train-rmse:0.497207 
-[2] train-rmse:0.494446 
-[3] train-rmse:0.491677 
-[4] train-rmse:0.488942 
-[5] train-rmse:0.486212 
-[6] train-rmse:0.483530 
-[7] train-rmse:0.480842 
-[8] train-rmse:0.478182 
-[9] train-rmse:0.475485 
-[10]    train-rmse:0.472820 
-[11]    train-rmse:0.470169 
-[12]    train-rmse:0.467528 
-[13]    train-rmse:0.464914 
-[14]    train-rmse:0.462323 
-[15]    train-rmse:0.459744 
-[16]    train-rmse:0.457167 
-[1] train-rmse:0.421967 
-[2] train-rmse:0.356180 
-[3] train-rmse:0.303317 
-[4] train-rmse:0.261215 
-[5] train-rmse:0.226402 
-[6] train-rmse:0.200018 
-[7] train-rmse:0.179061 
-[8] train-rmse:0.162063 
-[9] train-rmse:0.149095 
-[10]    train-rmse:0.138970 
-[11]    train-rmse:0.131664 
-[12]    train-rmse:0.125849 
-[13]    train-rmse:0.121325 
-[14]    train-rmse:0.117884 
-[15]    train-rmse:0.115363 
-[16]    train-rmse:0.113489 
-[1] train-rmse:0.202819 
-[2] train-rmse:0.132252 
-[3] train-rmse:0.113920 
-[4] train-rmse:0.108616 
-[5] train-rmse:0.106990 
-[6] train-rmse:0.106518 
-[7] train-rmse:0.106380 
-[8] train-rmse:0.106339 
-[9] train-rmse:0.106327 
-[10]    train-rmse:0.106325 
-[11]    train-rmse:0.106324 
-[12]    train-rmse:0.106324 
-[13]    train-rmse:0.106324 
-[14]    train-rmse:0.106324 
-[15]    train-rmse:0.106324 
-[16]    train-rmse:0.106324 
-[1] train-rmse:0.281255 
-[2] train-rmse:0.177293 
-[3] train-rmse:0.136263 
-[4] train-rmse:0.119489 
-[5] train-rmse:0.112259 
-[6] train-rmse:0.109022 
-[7] train-rmse:0.107610 
-[8] train-rmse:0.106922 
-[9] train-rmse:0.106606 
-[10]    train-rmse:0.106456 
-[11]    train-rmse:0.106385 
-[12]    train-rmse:0.106352 
-[13]    train-rmse:0.106336 
-[14]    train-rmse:0.106329 
-[15]    train-rmse:0.106326 
-[16]    train-rmse:0.106326 
-[1] train-rmse:0.359633 
-[2] train-rmse:0.264519 
-[3] train-rmse:0.204909 
-[4] train-rmse:0.165767 
-[5] train-rmse:0.142295 
-[6] train-rmse:0.128040 
-[7] train-rmse:0.119535 
-[8] train-rmse:0.114573 
-[9] train-rmse:0.111464 
-[10]    train-rmse:0.109553 
-[11]    train-rmse:0.108353 
-[12]    train-rmse:0.107599 
-[13]    train-rmse:0.107136 
-[14]    train-rmse:0.106842 
-[15]    train-rmse:0.106655 
-[16]    train-rmse:0.106536 
-[1] train-rmse:0.339902 
-[2] train-rmse:0.243940 
-[3] train-rmse:0.182473 
-[4] train-rmse:0.148246 
-[5] train-rmse:0.129837 
-[6] train-rmse:0.119676 
-[7] train-rmse:0.114036 
-[8] train-rmse:0.110838 
-[9] train-rmse:0.108953 
-[10]    train-rmse:0.107867 
-[11]    train-rmse:0.107235 
-[12]    train-rmse:0.106866 
-[13]    train-rmse:0.106645 
-[14]    train-rmse:0.106515 
-[15]    train-rmse:0.106438 
-[16]    train-rmse:0.106392 
-[1] train-rmse:0.172884 
-[2] train-rmse:0.114327 
-[3] train-rmse:0.097112 
-[4] train-rmse:0.092596 
-[5] train-rmse:0.091285 
-[6] train-rmse:0.090974 
-[7] train-rmse:0.090897 
-[8] train-rmse:0.090876 
+[9] train-rmse:0.106324 
+[10]    train-rmse:0.106323 
+[11]    train-rmse:0.106323 
+[12]    train-rmse:0.106323 
+[13]    train-rmse:0.106323 
+[14]    train-rmse:0.106323 
+[15]    train-rmse:0.106323 
+[16]    train-rmse:0.106323 
+[1] train-rmse:0.177381 
+[2] train-rmse:0.114268 
+[3] train-rmse:0.097132 
+[4] train-rmse:0.092418 
+[5] train-rmse:0.091262 
+[6] train-rmse:0.090967 
+[7] train-rmse:0.090894 
+[8] train-rmse:0.090875 
 [9] train-rmse:0.090872 
 [10]    train-rmse:0.090871 
 [11]    train-rmse:0.090871 
@@ -1982,79 +1365,47 @@ Click here to see the solution
 [14]    train-rmse:0.090871 
 [15]    train-rmse:0.090871 
 [16]    train-rmse:0.090871 
-[1] train-rmse:0.180143 
-[2] train-rmse:0.119365 
-[3] train-rmse:0.099512 
-[4] train-rmse:0.093257 
-[5] train-rmse:0.091529 
-[6] train-rmse:0.091051 
-[7] train-rmse:0.090931 
-[8] train-rmse:0.090886 
+[1] train-rmse:0.186140 
+[2] train-rmse:0.114098 
+[3] train-rmse:0.094564 
+[4] train-rmse:0.089031 
+[5] train-rmse:0.087557 
+[6] train-rmse:0.087152 
+[7] train-rmse:0.087042 
+[8] train-rmse:0.087012 
+[9] train-rmse:0.087005 
+[10]    train-rmse:0.087003 
+[11]    train-rmse:0.087003 
+[12]    train-rmse:0.087003 
+[13]    train-rmse:0.087003 
+[14]    train-rmse:0.087003 
+[15]    train-rmse:0.087003 
+[16]    train-rmse:0.087003 
+[1] train-rmse:0.203653 
+[2] train-rmse:0.134873 
+[3] train-rmse:0.113641 
+[4] train-rmse:0.108327 
+[5] train-rmse:0.106851 
+[6] train-rmse:0.106469 
+[7] train-rmse:0.106362 
+[8] train-rmse:0.106333 
+[9] train-rmse:0.106325 
+[10]    train-rmse:0.106323 
+[11]    train-rmse:0.106323 
+[12]    train-rmse:0.106323 
+[13]    train-rmse:0.106323 
+[14]    train-rmse:0.106323 
+[15]    train-rmse:0.106323 
+[16]    train-rmse:0.106323 
+[1] train-rmse:0.184197 
+[2] train-rmse:0.117938 
+[3] train-rmse:0.098806 
+[4] train-rmse:0.093020 
+[5] train-rmse:0.091468 
+[6] train-rmse:0.091033 
+[7] train-rmse:0.090913 
+[8] train-rmse:0.090881 
 [9] train-rmse:0.090874 
-[10]    train-rmse:0.090871 
-[11]    train-rmse:0.090871 
-[12]    train-rmse:0.090871 
-[13]    train-rmse:0.090871 
-[14]    train-rmse:0.090871 
-[15]    train-rmse:0.090871 
-[16]    train-rmse:0.090871 
-[1] train-rmse:0.467837 
-[2] train-rmse:0.438604 
-[3] train-rmse:0.411015 
-[4] train-rmse:0.385333 
-[5] train-rmse:0.362395 
-[6] train-rmse:0.340771 
-[7] train-rmse:0.320978 
-[8] train-rmse:0.302839 
-[9] train-rmse:0.285958 
-[10]    train-rmse:0.269559 
-[11]    train-rmse:0.254379 
-[12]    train-rmse:0.240419 
-[13]    train-rmse:0.227989 
-[14]    train-rmse:0.216288 
-[15]    train-rmse:0.205268 
-[16]    train-rmse:0.195270 
-[1] train-rmse:0.306273 
-[2] train-rmse:0.207907 
-[3] train-rmse:0.150508 
-[4] train-rmse:0.122639 
-[5] train-rmse:0.107649 
-[6] train-rmse:0.099862 
-[7] train-rmse:0.095745 
-[8] train-rmse:0.093491 
-[9] train-rmse:0.092295 
-[10]    train-rmse:0.091648 
-[11]    train-rmse:0.091298 
-[12]    train-rmse:0.091104 
-[13]    train-rmse:0.090998 
-[14]    train-rmse:0.090940 
-[15]    train-rmse:0.090908 
-[16]    train-rmse:0.090890 
-[1] train-rmse:0.350994 
-[2] train-rmse:0.256770 
-[3] train-rmse:0.192391 
-[4] train-rmse:0.152738 
-[5] train-rmse:0.128474 
-[6] train-rmse:0.113825 
-[7] train-rmse:0.105039 
-[8] train-rmse:0.099728 
-[9] train-rmse:0.096563 
-[10]    train-rmse:0.094503 
-[11]    train-rmse:0.093173 
-[12]    train-rmse:0.092334 
-[13]    train-rmse:0.091808 
-[14]    train-rmse:0.091472 
-[15]    train-rmse:0.091260 
-[16]    train-rmse:0.091121 
-[1] train-rmse:0.188462 
-[2] train-rmse:0.121134 
-[3] train-rmse:0.100574 
-[4] train-rmse:0.093793 
-[5] train-rmse:0.091724 
-[6] train-rmse:0.091118 
-[7] train-rmse:0.090942 
-[8] train-rmse:0.090891 
-[9] train-rmse:0.090876 
 [10]    train-rmse:0.090872 
 [11]    train-rmse:0.090872 
 [12]    train-rmse:0.090872 
@@ -2062,31 +1413,575 @@ Click here to see the solution
 [14]    train-rmse:0.090872 
 [15]    train-rmse:0.090872 
 [16]    train-rmse:0.090872 
-[1] train-rmse:0.330286 
-[2] train-rmse:0.233028 
-[3] train-rmse:0.171402 
-[4] train-rmse:0.136800 
-[5] train-rmse:0.116880 
-[6] train-rmse:0.105968 
-[7] train-rmse:0.099698 
-[8] train-rmse:0.096035 
-[9] train-rmse:0.093901 
-[10]    train-rmse:0.092672 
-[11]    train-rmse:0.091943 
-[12]    train-rmse:0.091513 
-[13]    train-rmse:0.091258 
-[14]    train-rmse:0.091101 
-[15]    train-rmse:0.091007 
-[16]    train-rmse:0.090952 
-[1] train-rmse:0.205089 
-[2] train-rmse:0.126427 
-[3] train-rmse:0.103381 
-[4] train-rmse:0.095116 
-[5] train-rmse:0.092337 
-[6] train-rmse:0.091355 
-[7] train-rmse:0.091028 
-[8] train-rmse:0.090923 
-[9] train-rmse:0.090887 
+[1] train-rmse:0.467729 
+[2] train-rmse:0.437615 
+[3] train-rmse:0.409922 
+[4] train-rmse:0.384800 
+[5] train-rmse:0.360897 
+[6] train-rmse:0.338433 
+[7] train-rmse:0.317906 
+[8] train-rmse:0.298215 
+[9] train-rmse:0.280254 
+[10]    train-rmse:0.264027 
+[11]    train-rmse:0.248838 
+[12]    train-rmse:0.234521 
+[13]    train-rmse:0.221550 
+[14]    train-rmse:0.209482 
+[15]    train-rmse:0.198952 
+[16]    train-rmse:0.188723 
+[1] train-rmse:0.469162 
+[2] train-rmse:0.439984 
+[3] train-rmse:0.412966 
+[4] train-rmse:0.387596 
+[5] train-rmse:0.364004 
+[6] train-rmse:0.342254 
+[7] train-rmse:0.322150 
+[8] train-rmse:0.303419 
+[9] train-rmse:0.286478 
+[10]    train-rmse:0.270574 
+[11]    train-rmse:0.256408 
+[12]    train-rmse:0.243034 
+[13]    train-rmse:0.230632 
+[14]    train-rmse:0.219210 
+[15]    train-rmse:0.208778 
+[16]    train-rmse:0.199186 
+[1] train-rmse:0.467916 
+[2] train-rmse:0.438880 
+[3] train-rmse:0.411728 
+[4] train-rmse:0.386746 
+[5] train-rmse:0.363667 
+[6] train-rmse:0.341896 
+[7] train-rmse:0.321571 
+[8] train-rmse:0.303275 
+[9] train-rmse:0.285446 
+[10]    train-rmse:0.269235 
+[11]    train-rmse:0.253895 
+[12]    train-rmse:0.239985 
+[13]    train-rmse:0.226963 
+[14]    train-rmse:0.215091 
+[15]    train-rmse:0.204276 
+[16]    train-rmse:0.194171 
+[1] train-rmse:0.306732 
+[2] train-rmse:0.197584 
+[3] train-rmse:0.141514 
+[4] train-rmse:0.114190 
+[5] train-rmse:0.100733 
+[6] train-rmse:0.094156 
+[7] train-rmse:0.090719 
+[8] train-rmse:0.088965 
+[9] train-rmse:0.088037 
+[10]    train-rmse:0.087571 
+[11]    train-rmse:0.087307 
+[12]    train-rmse:0.087166 
+[13]    train-rmse:0.087091 
+[14]    train-rmse:0.087050 
+[15]    train-rmse:0.087027 
+[16]    train-rmse:0.087015 
+[1] train-rmse:0.316426 
+[2] train-rmse:0.212646 
+[3] train-rmse:0.159442 
+[4] train-rmse:0.132158 
+[5] train-rmse:0.119495 
+[6] train-rmse:0.113040 
+[7] train-rmse:0.109813 
+[8] train-rmse:0.108169 
+[9] train-rmse:0.107309 
+[10]    train-rmse:0.106851 
+[11]    train-rmse:0.106606 
+[12]    train-rmse:0.106477 
+[13]    train-rmse:0.106406 
+[14]    train-rmse:0.106367 
+[15]    train-rmse:0.106346 
+[16]    train-rmse:0.106335 
+[1] train-rmse:0.307302 
+[2] train-rmse:0.202465 
+[3] train-rmse:0.147832 
+[4] train-rmse:0.119587 
+[5] train-rmse:0.105759 
+[6] train-rmse:0.098713 
+[7] train-rmse:0.095032 
+[8] train-rmse:0.093150 
+[9] train-rmse:0.092104 
+[10]    train-rmse:0.091540 
+[11]    train-rmse:0.091235 
+[12]    train-rmse:0.091074 
+[13]    train-rmse:0.090981 
+[14]    train-rmse:0.090930 
+[15]    train-rmse:0.090902 
+[16]    train-rmse:0.090887 
+[1] train-rmse:0.351015 
+[2] train-rmse:0.252167 
+[3] train-rmse:0.186257 
+[4] train-rmse:0.146757 
+[5] train-rmse:0.122451 
+[6] train-rmse:0.108297 
+[7] train-rmse:0.099927 
+[8] train-rmse:0.094947 
+[9] train-rmse:0.091985 
+[10]    train-rmse:0.090114 
+[11]    train-rmse:0.088953 
+[12]    train-rmse:0.088226 
+[13]    train-rmse:0.087783 
+[14]    train-rmse:0.087496 
+[15]    train-rmse:0.087317 
+[16]    train-rmse:0.087204 
+[1] train-rmse:0.358195 
+[2] train-rmse:0.260765 
+[3] train-rmse:0.201220 
+[4] train-rmse:0.162572 
+[5] train-rmse:0.139558 
+[6] train-rmse:0.126062 
+[7] train-rmse:0.118349 
+[8] train-rmse:0.113667 
+[9] train-rmse:0.110882 
+[10]    train-rmse:0.109190 
+[11]    train-rmse:0.108103 
+[12]    train-rmse:0.107432 
+[13]    train-rmse:0.107025 
+[14]    train-rmse:0.106768 
+[15]    train-rmse:0.106603 
+[16]    train-rmse:0.106501 
+[1] train-rmse:0.351623 
+[2] train-rmse:0.254639 
+[3] train-rmse:0.191452 
+[4] train-rmse:0.151625 
+[5] train-rmse:0.127169 
+[6] train-rmse:0.113025 
+[7] train-rmse:0.104328 
+[8] train-rmse:0.099150 
+[9] train-rmse:0.096040 
+[10]    train-rmse:0.094130 
+[11]    train-rmse:0.092931 
+[12]    train-rmse:0.092173 
+[13]    train-rmse:0.091699 
+[14]    train-rmse:0.091398 
+[15]    train-rmse:0.091207 
+[16]    train-rmse:0.091087 
+[1] train-rmse:0.193564 
+[2] train-rmse:0.116438 
+[3] train-rmse:0.095766 
+[4] train-rmse:0.089590 
+[5] train-rmse:0.087776 
+[6] train-rmse:0.087231 
+[7] train-rmse:0.087070 
+[8] train-rmse:0.087022 
+[9] train-rmse:0.087007 
+[10]    train-rmse:0.087003 
+[11]    train-rmse:0.087003 
+[12]    train-rmse:0.087003 
+[13]    train-rmse:0.087003 
+[14]    train-rmse:0.087003 
+[15]    train-rmse:0.087003 
+[16]    train-rmse:0.087003 
+[1] train-rmse:0.210684 
+[2] train-rmse:0.136753 
+[3] train-rmse:0.114866 
+[4] train-rmse:0.108728 
+[5] train-rmse:0.107031 
+[6] train-rmse:0.106529 
+[7] train-rmse:0.106384 
+[8] train-rmse:0.106340 
+[9] train-rmse:0.106327 
+[10]    train-rmse:0.106324 
+[11]    train-rmse:0.106324 
+[12]    train-rmse:0.106324 
+[13]    train-rmse:0.106324 
+[14]    train-rmse:0.106324 
+[15]    train-rmse:0.106324 
+[16]    train-rmse:0.106324 
+[1] train-rmse:0.192100 
+[2] train-rmse:0.121765 
+[3] train-rmse:0.100305 
+[4] train-rmse:0.093577 
+[5] train-rmse:0.091657 
+[6] train-rmse:0.091102 
+[7] train-rmse:0.090937 
+[8] train-rmse:0.090889 
+[9] train-rmse:0.090875 
+[10]    train-rmse:0.090872 
+[11]    train-rmse:0.090871 
+[12]    train-rmse:0.090871 
+[13]    train-rmse:0.090871 
+[14]    train-rmse:0.090871 
+[15]    train-rmse:0.090871 
+[16]    train-rmse:0.090871 
+[1] train-rmse:0.330469 
+[2] train-rmse:0.230227 
+[3] train-rmse:0.165742 
+[4] train-rmse:0.130524 
+[5] train-rmse:0.111136 
+[6] train-rmse:0.100685 
+[7] train-rmse:0.094826 
+[8] train-rmse:0.091561 
+[9] train-rmse:0.089642 
+[10]    train-rmse:0.088556 
+[11]    train-rmse:0.087917 
+[12]    train-rmse:0.087544 
+[13]    train-rmse:0.087327 
+[14]    train-rmse:0.087192 
+[15]    train-rmse:0.087115 
+[16]    train-rmse:0.087069 
+[1] train-rmse:0.338786 
+[2] train-rmse:0.237202 
+[3] train-rmse:0.177989 
+[4] train-rmse:0.145894 
+[5] train-rmse:0.127648 
+[6] train-rmse:0.118145 
+[7] train-rmse:0.113166 
+[8] train-rmse:0.110322 
+[9] train-rmse:0.108614 
+[10]    train-rmse:0.107659 
+[11]    train-rmse:0.107110 
+[12]    train-rmse:0.106782 
+[13]    train-rmse:0.106592 
+[14]    train-rmse:0.106482 
+[15]    train-rmse:0.106417 
+[16]    train-rmse:0.106378 
+[1] train-rmse:0.331081 
+[2] train-rmse:0.234663 
+[3] train-rmse:0.172205 
+[4] train-rmse:0.136670 
+[5] train-rmse:0.116758 
+[6] train-rmse:0.105696 
+[7] train-rmse:0.099554 
+[8] train-rmse:0.095938 
+[9] train-rmse:0.093846 
+[10]    train-rmse:0.092645 
+[11]    train-rmse:0.091928 
+[12]    train-rmse:0.091503 
+[13]    train-rmse:0.091248 
+[14]    train-rmse:0.091096 
+[15]    train-rmse:0.091005 
+[16]    train-rmse:0.090951 
+[1] train-rmse:0.208858 
+[2] train-rmse:0.123660 
+[3] train-rmse:0.098584 
+[4] train-rmse:0.090828 
+[5] train-rmse:0.088301 
+[6] train-rmse:0.087434 
+[7] train-rmse:0.087148 
+[8] train-rmse:0.087051 
+[9] train-rmse:0.087018 
+[10]    train-rmse:0.087007 
+[11]    train-rmse:0.087005 
+[12]    train-rmse:0.087004 
+[13]    train-rmse:0.087004 
+[14]    train-rmse:0.087004 
+[15]    train-rmse:0.087004 
+[16]    train-rmse:0.087004 
+[1] train-rmse:0.224991 
+[2] train-rmse:0.143104 
+[3] train-rmse:0.117787 
+[4] train-rmse:0.109923 
+[5] train-rmse:0.107489 
+[6] train-rmse:0.106702 
+[7] train-rmse:0.106447 
+[8] train-rmse:0.106363 
+[9] train-rmse:0.106336 
+[10]    train-rmse:0.106327 
+[11]    train-rmse:0.106325 
+[12]    train-rmse:0.106323 
+[13]    train-rmse:0.106323 
+[14]    train-rmse:0.106323 
+[15]    train-rmse:0.106323 
+[16]    train-rmse:0.106323 
+[1] train-rmse:0.208073 
+[2] train-rmse:0.127989 
+[3] train-rmse:0.103306 
+[4] train-rmse:0.095162 
+[5] train-rmse:0.092360 
+[6] train-rmse:0.091372 
+[7] train-rmse:0.091036 
+[8] train-rmse:0.090925 
+[9] train-rmse:0.090888 
+[10]    train-rmse:0.090876 
+[11]    train-rmse:0.090873 
+[12]    train-rmse:0.090873 
+[13]    train-rmse:0.090873 
+[14]    train-rmse:0.090873 
+[15]    train-rmse:0.090873 
+[16]    train-rmse:0.090873 
+[1] train-rmse:0.234956 
+[2] train-rmse:0.135984 
+[3] train-rmse:0.105247 
+[4] train-rmse:0.093754 
+[5] train-rmse:0.089597 
+[6] train-rmse:0.088029 
+[7] train-rmse:0.087402 
+[8] train-rmse:0.087159 
+[9] train-rmse:0.087062 
+[10]    train-rmse:0.087025 
+[11]    train-rmse:0.087010 
+[12]    train-rmse:0.087004 
+[13]    train-rmse:0.087003 
+[14]    train-rmse:0.087003 
+[15]    train-rmse:0.087003 
+[16]    train-rmse:0.087003 
+[1] train-rmse:0.249281 
+[2] train-rmse:0.154890 
+[3] train-rmse:0.123886 
+[4] train-rmse:0.112802 
+[5] train-rmse:0.108784 
+[6] train-rmse:0.107254 
+[7] train-rmse:0.106677 
+[8] train-rmse:0.106464 
+[9] train-rmse:0.106378 
+[10]    train-rmse:0.106344 
+[11]    train-rmse:0.106331 
+[12]    train-rmse:0.106327 
+[13]    train-rmse:0.106325 
+[14]    train-rmse:0.106325 
+[15]    train-rmse:0.106325 
+[16]    train-rmse:0.106325 
+[1] train-rmse:0.234856 
+[2] train-rmse:0.150792 
+[3] train-rmse:0.114122 
+[4] train-rmse:0.099989 
+[5] train-rmse:0.094492 
+[6] train-rmse:0.092311 
+[7] train-rmse:0.091423 
+[8] train-rmse:0.091092 
+[9] train-rmse:0.090956 
+[10]    train-rmse:0.090903 
+[11]    train-rmse:0.090882 
+[12]    train-rmse:0.090875 
+[13]    train-rmse:0.090873 
+[14]    train-rmse:0.090872 
+[15]    train-rmse:0.090872 
+[16]    train-rmse:0.090872 
+[1] train-rmse:0.215028 
+[2] train-rmse:0.126956 
+[3] train-rmse:0.100580 
+[4] train-rmse:0.091678 
+[5] train-rmse:0.088563 
+[6] train-rmse:0.087548 
+[7] train-rmse:0.087210 
+[8] train-rmse:0.087074 
+[9] train-rmse:0.087026 
+[10]    train-rmse:0.087010 
+[11]    train-rmse:0.087005 
+[12]    train-rmse:0.087003 
+[13]    train-rmse:0.087003 
+[14]    train-rmse:0.087003 
+[15]    train-rmse:0.087003 
+[16]    train-rmse:0.087003 
+[1] train-rmse:0.230737 
+[2] train-rmse:0.145761 
+[3] train-rmse:0.119177 
+[4] train-rmse:0.110624 
+[5] train-rmse:0.107760 
+[6] train-rmse:0.106805 
+[7] train-rmse:0.106490 
+[8] train-rmse:0.106381 
+[9] train-rmse:0.106342 
+[10]    train-rmse:0.106329 
+[11]    train-rmse:0.106325 
+[12]    train-rmse:0.106324 
+[13]    train-rmse:0.106324 
+[14]    train-rmse:0.106324 
+[15]    train-rmse:0.106324 
+[16]    train-rmse:0.106324 
+[1] train-rmse:0.214446 
+[2] train-rmse:0.132342 
+[3] train-rmse:0.105288 
+[4] train-rmse:0.095947 
+[5] train-rmse:0.092801 
+[6] train-rmse:0.091555 
+[7] train-rmse:0.091108 
+[8] train-rmse:0.090952 
+[9] train-rmse:0.090898 
+[10]    train-rmse:0.090879 
+[11]    train-rmse:0.090875 
+[12]    train-rmse:0.090872 
+[13]    train-rmse:0.090872 
+[14]    train-rmse:0.090872 
+[15]    train-rmse:0.090872 
+[16]    train-rmse:0.090872 
+[1] train-rmse:0.351781 
+[2] train-rmse:0.253427 
+[3] train-rmse:0.188588 
+[4] train-rmse:0.147626 
+[5] train-rmse:0.123102 
+[6] train-rmse:0.108737 
+[7] train-rmse:0.100261 
+[8] train-rmse:0.095162 
+[9] train-rmse:0.092115 
+[10]    train-rmse:0.090235 
+[11]    train-rmse:0.089058 
+[12]    train-rmse:0.088310 
+[13]    train-rmse:0.087845 
+[14]    train-rmse:0.087546 
+[15]    train-rmse:0.087350 
+[16]    train-rmse:0.087225 
+[1] train-rmse:0.358919 
+[2] train-rmse:0.261709 
+[3] train-rmse:0.202105 
+[4] train-rmse:0.163287 
+[5] train-rmse:0.140079 
+[6] train-rmse:0.126398 
+[7] train-rmse:0.118578 
+[8] train-rmse:0.113839 
+[9] train-rmse:0.110995 
+[10]    train-rmse:0.109211 
+[11]    train-rmse:0.108125 
+[12]    train-rmse:0.107451 
+[13]    train-rmse:0.107033 
+[14]    train-rmse:0.106776 
+[15]    train-rmse:0.106609 
+[16]    train-rmse:0.106503 
+[1] train-rmse:0.352388 
+[2] train-rmse:0.255801 
+[3] train-rmse:0.192627 
+[4] train-rmse:0.152263 
+[5] train-rmse:0.127752 
+[6] train-rmse:0.113479 
+[7] train-rmse:0.104592 
+[8] train-rmse:0.099280 
+[9] train-rmse:0.096116 
+[10]    train-rmse:0.094183 
+[11]    train-rmse:0.092973 
+[12]    train-rmse:0.092202 
+[13]    train-rmse:0.091715 
+[14]    train-rmse:0.091412 
+[15]    train-rmse:0.091219 
+[16]    train-rmse:0.091096 
+[1] train-rmse:0.250519 
+[2] train-rmse:0.147518 
+[3] train-rmse:0.110311 
+[4] train-rmse:0.096490 
+[5] train-rmse:0.090867 
+[6] train-rmse:0.088598 
+[7] train-rmse:0.087675 
+[8] train-rmse:0.087284 
+[9] train-rmse:0.087122 
+[10]    train-rmse:0.087053 
+[11]    train-rmse:0.087023 
+[12]    train-rmse:0.087010 
+[13]    train-rmse:0.087005 
+[14]    train-rmse:0.087003 
+[15]    train-rmse:0.087003 
+[16]    train-rmse:0.087003 
+[1] train-rmse:0.263780 
+[2] train-rmse:0.164382 
+[3] train-rmse:0.128273 
+[4] train-rmse:0.115004 
+[5] train-rmse:0.109797 
+[6] train-rmse:0.107767 
+[7] train-rmse:0.106924 
+[8] train-rmse:0.106590 
+[9] train-rmse:0.106436 
+[10]    train-rmse:0.106369 
+[11]    train-rmse:0.106342 
+[12]    train-rmse:0.106331 
+[13]    train-rmse:0.106327 
+[14]    train-rmse:0.106325 
+[15]    train-rmse:0.106325 
+[16]    train-rmse:0.106325 
+[1] train-rmse:0.250671 
+[2] train-rmse:0.154800 
+[3] train-rmse:0.117639 
+[4] train-rmse:0.102356 
+[5] train-rmse:0.095750 
+[6] train-rmse:0.092974 
+[7] train-rmse:0.091787 
+[8] train-rmse:0.091262 
+[9] train-rmse:0.091036 
+[10]    train-rmse:0.090940 
+[11]    train-rmse:0.090899 
+[12]    train-rmse:0.090882 
+[13]    train-rmse:0.090875 
+[14]    train-rmse:0.090873 
+[15]    train-rmse:0.090873 
+[16]    train-rmse:0.090873 
+[1] train-rmse:0.498448 
+[2] train-rmse:0.496880 
+[3] train-rmse:0.495318 
+[4] train-rmse:0.493771 
+[5] train-rmse:0.492210 
+[6] train-rmse:0.490655 
+[7] train-rmse:0.489126 
+[8] train-rmse:0.487582 
+[9] train-rmse:0.486065 
+[10]    train-rmse:0.484544 
+[11]    train-rmse:0.483018 
+[12]    train-rmse:0.481518 
+[13]    train-rmse:0.480004 
+[14]    train-rmse:0.478514 
+[15]    train-rmse:0.477012 
+[16]    train-rmse:0.475515 
+[1] train-rmse:0.498515 
+[2] train-rmse:0.497047 
+[3] train-rmse:0.495575 
+[4] train-rmse:0.494117 
+[5] train-rmse:0.492657 
+[6] train-rmse:0.491188 
+[7] train-rmse:0.489692 
+[8] train-rmse:0.488208 
+[9] train-rmse:0.486723 
+[10]    train-rmse:0.485252 
+[11]    train-rmse:0.483778 
+[12]    train-rmse:0.482317 
+[13]    train-rmse:0.480854 
+[14]    train-rmse:0.479398 
+[15]    train-rmse:0.477953 
+[16]    train-rmse:0.476507 
+[1] train-rmse:0.498457 
+[2] train-rmse:0.496922 
+[3] train-rmse:0.495393 
+[4] train-rmse:0.493870 
+[5] train-rmse:0.492353 
+[6] train-rmse:0.490861 
+[7] train-rmse:0.489385 
+[8] train-rmse:0.487883 
+[9] train-rmse:0.486408 
+[10]    train-rmse:0.484939 
+[11]    train-rmse:0.483485 
+[12]    train-rmse:0.482027 
+[13]    train-rmse:0.480555 
+[14]    train-rmse:0.479118 
+[15]    train-rmse:0.477677 
+[16]    train-rmse:0.476233 
+[1] train-rmse:0.209603 
+[2] train-rmse:0.123993 
+[3] train-rmse:0.098737 
+[4] train-rmse:0.090888 
+[5] train-rmse:0.088331 
+[6] train-rmse:0.087446 
+[7] train-rmse:0.087152 
+[8] train-rmse:0.087051 
+[9] train-rmse:0.087018 
+[10]    train-rmse:0.087007 
+[11]    train-rmse:0.087004 
+[12]    train-rmse:0.087004 
+[13]    train-rmse:0.087004 
+[14]    train-rmse:0.087004 
+[15]    train-rmse:0.087004 
+[16]    train-rmse:0.087004 
+[1] train-rmse:0.225685 
+[2] train-rmse:0.143415 
+[3] train-rmse:0.117934 
+[4] train-rmse:0.109989 
+[5] train-rmse:0.107516 
+[6] train-rmse:0.106711 
+[7] train-rmse:0.106452 
+[8] train-rmse:0.106366 
+[9] train-rmse:0.106337 
+[10]    train-rmse:0.106328 
+[11]    train-rmse:0.106325 
+[12]    train-rmse:0.106324 
+[13]    train-rmse:0.106324 
+[14]    train-rmse:0.106324 
+[15]    train-rmse:0.106324 
+[16]    train-rmse:0.106324 
+[1] train-rmse:0.208845 
+[2] train-rmse:0.128217 
+[3] train-rmse:0.103305 
+[4] train-rmse:0.095078 
+[5] train-rmse:0.092521 
+[6] train-rmse:0.091415 
+[7] train-rmse:0.091053 
+[8] train-rmse:0.090932 
+[9] train-rmse:0.090890 
 [10]    train-rmse:0.090876 
 [11]    train-rmse:0.090873 
 [12]    train-rmse:0.090872 
@@ -2094,220 +1989,332 @@ Click here to see the solution
 [14]    train-rmse:0.090872 
 [15]    train-rmse:0.090872 
 [16]    train-rmse:0.090872 
-[1] train-rmse:0.232649 
-[2] train-rmse:0.140287 
-[3] train-rmse:0.109680 
-[4] train-rmse:0.098320 
-[5] train-rmse:0.093795 
-[6] train-rmse:0.092004 
-[7] train-rmse:0.091305 
-[8] train-rmse:0.091040 
-[9] train-rmse:0.090936 
-[10]    train-rmse:0.090895 
-[11]    train-rmse:0.090879 
-[12]    train-rmse:0.090875 
-[13]    train-rmse:0.090872 
-[14]    train-rmse:0.090872 
-[15]    train-rmse:0.090872 
-[16]    train-rmse:0.090872 
-[1] train-rmse:0.211676 
-[2] train-rmse:0.130184 
-[3] train-rmse:0.104742 
-[4] train-rmse:0.095784 
-[5] train-rmse:0.092631 
-[6] train-rmse:0.091497 
-[7] train-rmse:0.091087 
-[8] train-rmse:0.090944 
-[9] train-rmse:0.090896 
-[10]    train-rmse:0.090878 
-[11]    train-rmse:0.090874 
-[12]    train-rmse:0.090872 
-[13]    train-rmse:0.090872 
-[14]    train-rmse:0.090872 
-[15]    train-rmse:0.090872 
-[16]    train-rmse:0.090872 
-[1] train-rmse:0.351765 
-[2] train-rmse:0.257726 
-[3] train-rmse:0.193300 
-[4] train-rmse:0.153479 
-[5] train-rmse:0.129025 
-[6] train-rmse:0.114251 
-[7] train-rmse:0.105334 
-[8] train-rmse:0.099924 
-[9] train-rmse:0.096689 
-[10]    train-rmse:0.094583 
-[11]    train-rmse:0.093217 
-[12]    train-rmse:0.092362 
-[13]    train-rmse:0.091826 
-[14]    train-rmse:0.091482 
-[15]    train-rmse:0.091265 
-[16]    train-rmse:0.091124 
-[1] train-rmse:0.248807 
-[2] train-rmse:0.150750 
-[3] train-rmse:0.114629 
-[4] train-rmse:0.100943 
-[5] train-rmse:0.095022 
-[6] train-rmse:0.092671 
-[7] train-rmse:0.091637 
-[8] train-rmse:0.091212 
-[9] train-rmse:0.091015 
-[10]    train-rmse:0.090932 
-[11]    train-rmse:0.090895 
-[12]    train-rmse:0.090880 
-[13]    train-rmse:0.090874 
-[14]    train-rmse:0.090873 
-[15]    train-rmse:0.090873 
-[16]    train-rmse:0.090873 
-[1] train-rmse:0.498454 
-[2] train-rmse:0.496913 
-[3] train-rmse:0.495379 
-[4] train-rmse:0.493850 
-[5] train-rmse:0.492327 
-[6] train-rmse:0.490810 
-[7] train-rmse:0.489318 
-[8] train-rmse:0.487812 
-[9] train-rmse:0.486312 
-[10]    train-rmse:0.484818 
-[11]    train-rmse:0.483348 
-[12]    train-rmse:0.481865 
-[13]    train-rmse:0.480387 
-[14]    train-rmse:0.478934 
-[15]    train-rmse:0.477468 
-[16]    train-rmse:0.476007 
-[1] train-rmse:0.205887 
-[2] train-rmse:0.126584 
-[3] train-rmse:0.103145 
-[4] train-rmse:0.095044 
-[5] train-rmse:0.092488 
-[6] train-rmse:0.091395 
-[7] train-rmse:0.091042 
-[8] train-rmse:0.090927 
-[9] train-rmse:0.090888 
-[10]    train-rmse:0.090875 
-[11]    train-rmse:0.090872 
-[12]    train-rmse:0.090872 
-[13]    train-rmse:0.090872 
-[14]    train-rmse:0.090872 
-[15]    train-rmse:0.090872 
-[16]    train-rmse:0.090872 
-[1] train-rmse:0.497128 
-[2] train-rmse:0.494277 
-[3] train-rmse:0.491445 
-[4] train-rmse:0.488669 
-[5] train-rmse:0.485877 
-[6] train-rmse:0.483105 
-[7] train-rmse:0.480352 
-[8] train-rmse:0.477654 
-[9] train-rmse:0.474939 
-[10]    train-rmse:0.472245 
-[11]    train-rmse:0.469603 
-[12]    train-rmse:0.466945 
-[13]    train-rmse:0.464307 
-[14]    train-rmse:0.461687 
-[15]    train-rmse:0.459094 
-[16]    train-rmse:0.456486 
-[1] train-rmse:0.419566 
-[2] train-rmse:0.354595 
-[3] train-rmse:0.302976 
-[4] train-rmse:0.261853 
-[5] train-rmse:0.227510 
-[6] train-rmse:0.198239 
-[7] train-rmse:0.174989 
-[8] train-rmse:0.156728 
-[9] train-rmse:0.142304 
-[10]    train-rmse:0.131013 
-[11]    train-rmse:0.122163 
-[12]    train-rmse:0.115350 
-[13]    train-rmse:0.110198 
-[14]    train-rmse:0.106096 
-[15]    train-rmse:0.103045 
-[16]    train-rmse:0.100497 
-[1] train-rmse:0.188274 
-[2] train-rmse:0.121075 
-[3] train-rmse:0.100476 
-[4] train-rmse:0.093772 
-[5] train-rmse:0.091719 
-[6] train-rmse:0.091116 
-[7] train-rmse:0.090941 
-[8] train-rmse:0.090890 
-[9] train-rmse:0.090876 
+[1] train-rmse:0.497117 
+[2] train-rmse:0.494214 
+[3] train-rmse:0.491312 
+[4] train-rmse:0.488467 
+[5] train-rmse:0.485606 
+[6] train-rmse:0.482765 
+[7] train-rmse:0.479979 
+[8] train-rmse:0.477178 
+[9] train-rmse:0.474452 
+[10]    train-rmse:0.471690 
+[11]    train-rmse:0.468975 
+[12]    train-rmse:0.466287 
+[13]    train-rmse:0.463583 
+[14]    train-rmse:0.460933 
+[15]    train-rmse:0.458287 
+[16]    train-rmse:0.455666 
+[1] train-rmse:0.497243 
+[2] train-rmse:0.494525 
+[3] train-rmse:0.491811 
+[4] train-rmse:0.489086 
+[5] train-rmse:0.486322 
+[6] train-rmse:0.483593 
+[7] train-rmse:0.480867 
+[8] train-rmse:0.478174 
+[9] train-rmse:0.475486 
+[10]    train-rmse:0.472834 
+[11]    train-rmse:0.470184 
+[12]    train-rmse:0.467568 
+[13]    train-rmse:0.464955 
+[14]    train-rmse:0.462363 
+[15]    train-rmse:0.459802 
+[16]    train-rmse:0.457245 
+[1] train-rmse:0.497134 
+[2] train-rmse:0.494293 
+[3] train-rmse:0.491473 
+[4] train-rmse:0.488707 
+[5] train-rmse:0.485981 
+[6] train-rmse:0.483255 
+[7] train-rmse:0.480511 
+[8] train-rmse:0.477844 
+[9] train-rmse:0.475176 
+[10]    train-rmse:0.472513 
+[11]    train-rmse:0.469888 
+[12]    train-rmse:0.467262 
+[13]    train-rmse:0.464617 
+[14]    train-rmse:0.462029 
+[15]    train-rmse:0.459453 
+[16]    train-rmse:0.456877 
+[1] train-rmse:0.419390 
+[2] train-rmse:0.353346 
+[3] train-rmse:0.298449 
+[4] train-rmse:0.254510 
+[5] train-rmse:0.217803 
+[6] train-rmse:0.190061 
+[7] train-rmse:0.166867 
+[8] train-rmse:0.148505 
+[9] train-rmse:0.134282 
+[10]    train-rmse:0.123753 
+[11]    train-rmse:0.115280 
+[12]    train-rmse:0.108795 
+[13]    train-rmse:0.103857 
+[14]    train-rmse:0.100032 
+[15]    train-rmse:0.097152 
+[16]    train-rmse:0.094904 
+[1] train-rmse:0.423078 
+[2] train-rmse:0.357700 
+[3] train-rmse:0.304688 
+[4] train-rmse:0.262851 
+[5] train-rmse:0.229419 
+[6] train-rmse:0.201481 
+[7] train-rmse:0.179908 
+[8] train-rmse:0.162848 
+[9] train-rmse:0.149699 
+[10]    train-rmse:0.139326 
+[11]    train-rmse:0.131554 
+[12]    train-rmse:0.125665 
+[13]    train-rmse:0.121146 
+[14]    train-rmse:0.117755 
+[15]    train-rmse:0.115186 
+[16]    train-rmse:0.113354 
+[1] train-rmse:0.419811 
+[2] train-rmse:0.356227 
+[3] train-rmse:0.303668 
+[4] train-rmse:0.259524 
+[5] train-rmse:0.223536 
+[6] train-rmse:0.195919 
+[7] train-rmse:0.172883 
+[8] train-rmse:0.154638 
+[9] train-rmse:0.140301 
+[10]    train-rmse:0.129240 
+[11]    train-rmse:0.120637 
+[12]    train-rmse:0.114023 
+[13]    train-rmse:0.108881 
+[14]    train-rmse:0.104854 
+[15]    train-rmse:0.101991 
+[16]    train-rmse:0.099816 
+[1] train-rmse:0.193395 
+[2] train-rmse:0.116378 
+[3] train-rmse:0.095737 
+[4] train-rmse:0.089578 
+[5] train-rmse:0.087771 
+[6] train-rmse:0.087229 
+[7] train-rmse:0.087068 
+[8] train-rmse:0.087022 
+[9] train-rmse:0.087007 
+[10]    train-rmse:0.087003 
+[11]    train-rmse:0.087002 
+[12]    train-rmse:0.087002 
+[13]    train-rmse:0.087002 
+[14]    train-rmse:0.087002 
+[15]    train-rmse:0.087002 
+[16]    train-rmse:0.087002 
+[1] train-rmse:0.210524 
+[2] train-rmse:0.136690 
+[3] train-rmse:0.114836 
+[4] train-rmse:0.108716 
+[5] train-rmse:0.107026 
+[6] train-rmse:0.106527 
+[7] train-rmse:0.106383 
+[8] train-rmse:0.106340 
+[9] train-rmse:0.106327 
+[10]    train-rmse:0.106324 
+[11]    train-rmse:0.106324 
+[12]    train-rmse:0.106324 
+[13]    train-rmse:0.106324 
+[14]    train-rmse:0.106324 
+[15]    train-rmse:0.106324 
+[16]    train-rmse:0.106324 
+[1] train-rmse:0.191921 
+[2] train-rmse:0.121702 
+[3] train-rmse:0.100276 
+[4] train-rmse:0.093564 
+[5] train-rmse:0.091652 
+[6] train-rmse:0.091100 
+[7] train-rmse:0.090937 
+[8] train-rmse:0.090889 
+[9] train-rmse:0.090875 
 [10]    train-rmse:0.090872 
-[11]    train-rmse:0.090872 
-[12]    train-rmse:0.090872 
-[13]    train-rmse:0.090872 
-[14]    train-rmse:0.090872 
-[15]    train-rmse:0.090872 
+[11]    train-rmse:0.090871 
+[12]    train-rmse:0.090871 
+[13]    train-rmse:0.090871 
+[14]    train-rmse:0.090871 
+[15]    train-rmse:0.090871 
+[16]    train-rmse:0.090871 
+[1] train-rmse:0.273776 
+[2] train-rmse:0.165159 
+[3] train-rmse:0.120057 
+[4] train-rmse:0.101687 
+[5] train-rmse:0.093506 
+[6] train-rmse:0.089943 
+[7] train-rmse:0.088365 
+[8] train-rmse:0.087651 
+[9] train-rmse:0.087310 
+[10]    train-rmse:0.087148 
+[11]    train-rmse:0.087072 
+[12]    train-rmse:0.087034 
+[13]    train-rmse:0.087017 
+[14]    train-rmse:0.087008 
+[15]    train-rmse:0.087006 
+[16]    train-rmse:0.087004 
+[1] train-rmse:0.285507 
+[2] train-rmse:0.182207 
+[3] train-rmse:0.138173 
+[4] train-rmse:0.120081 
+[5] train-rmse:0.112562 
+[6] train-rmse:0.109147 
+[7] train-rmse:0.107627 
+[8] train-rmse:0.106961 
+[9] train-rmse:0.106624 
+[10]    train-rmse:0.106466 
+[11]    train-rmse:0.106392 
+[12]    train-rmse:0.106355 
+[13]    train-rmse:0.106337 
+[14]    train-rmse:0.106329 
+[15]    train-rmse:0.106327 
+[16]    train-rmse:0.106326 
+[1] train-rmse:0.274173 
+[2] train-rmse:0.170897 
+[3] train-rmse:0.126160 
+[4] train-rmse:0.106902 
+[5] train-rmse:0.098405 
+[6] train-rmse:0.094582 
+[7] train-rmse:0.092600 
+[8] train-rmse:0.091691 
+[9] train-rmse:0.091259 
+[10]    train-rmse:0.091057 
+[11]    train-rmse:0.090959 
+[12]    train-rmse:0.090912 
+[13]    train-rmse:0.090889 
+[14]    train-rmse:0.090879 
+[15]    train-rmse:0.090874 
 [16]    train-rmse:0.090872 
-[1] train-rmse:0.272716 
-[2] train-rmse:0.168770 
-[3] train-rmse:0.125837 
-[4] train-rmse:0.106769 
-[5] train-rmse:0.098221 
-[6] train-rmse:0.094337 
-[7] train-rmse:0.092501 
-[8] train-rmse:0.091659 
-[9] train-rmse:0.091242 
-[10]    train-rmse:0.091046 
-[11]    train-rmse:0.090953 
-[12]    train-rmse:0.090909 
-[13]    train-rmse:0.090888 
-[14]    train-rmse:0.090878 
-[15]    train-rmse:0.090875 
-[16]    train-rmse:0.090873 
-[1] train-rmse:0.354916 
-[2] train-rmse:0.261668 
-[3] train-rmse:0.197618 
-[4] train-rmse:0.157084 
-[5] train-rmse:0.131749 
-[6] train-rmse:0.116237 
-[7] train-rmse:0.106711 
-[8] train-rmse:0.100926 
-[9] train-rmse:0.097294 
-[10]    train-rmse:0.094981 
-[11]    train-rmse:0.093500 
-[12]    train-rmse:0.092565 
-[13]    train-rmse:0.091972 
-[14]    train-rmse:0.091582 
-[15]    train-rmse:0.091333 
-[16]    train-rmse:0.091172 
-[1] train-rmse:0.334342 
-[2] train-rmse:0.237612 
-[3] train-rmse:0.175374 
-[4] train-rmse:0.139616 
-[5] train-rmse:0.118774 
-[6] train-rmse:0.107187 
-[7] train-rmse:0.100534 
-[8] train-rmse:0.096630 
-[9] train-rmse:0.094311 
-[10]    train-rmse:0.092937 
-[11]    train-rmse:0.092117 
-[12]    train-rmse:0.091627 
-[13]    train-rmse:0.091330 
-[14]    train-rmse:0.091151 
-[15]    train-rmse:0.091040 
-[16]    train-rmse:0.090973 </code></pre>
+[1] train-rmse:0.354913 
+[2] train-rmse:0.259141 
+[3] train-rmse:0.193752 
+[4] train-rmse:0.151920 
+[5] train-rmse:0.126471 
+[6] train-rmse:0.111022 
+[7] train-rmse:0.101936 
+[8] train-rmse:0.096285 
+[9] train-rmse:0.092825 
+[10]    train-rmse:0.090703 
+[11]    train-rmse:0.089371 
+[12]    train-rmse:0.088539 
+[13]    train-rmse:0.087995 
+[14]    train-rmse:0.087642 
+[15]    train-rmse:0.087417 
+[16]    train-rmse:0.087270 
+[1] train-rmse:0.361881 
+[2] train-rmse:0.265598 
+[3] train-rmse:0.205743 
+[4] train-rmse:0.166596 
+[5] train-rmse:0.142247 
+[6] train-rmse:0.127962 
+[7] train-rmse:0.119527 
+[8] train-rmse:0.114512 
+[9] train-rmse:0.111396 
+[10]    train-rmse:0.109501 
+[11]    train-rmse:0.108359 
+[12]    train-rmse:0.107614 
+[13]    train-rmse:0.107144 
+[14]    train-rmse:0.106850 
+[15]    train-rmse:0.106665 
+[16]    train-rmse:0.106541 
+[1] train-rmse:0.355516 
+[2] train-rmse:0.259145 
+[3] train-rmse:0.195938 
+[4] train-rmse:0.155144 
+[5] train-rmse:0.130427 
+[6] train-rmse:0.114998 
+[7] train-rmse:0.105689 
+[8] train-rmse:0.100132 
+[9] train-rmse:0.096693 
+[10]    train-rmse:0.094565 
+[11]    train-rmse:0.093239 
+[12]    train-rmse:0.092387 
+[13]    train-rmse:0.091862 
+[14]    train-rmse:0.091509 
+[15]    train-rmse:0.091288 
+[16]    train-rmse:0.091142 
+[1] train-rmse:0.334489 
+[2] train-rmse:0.234848 
+[3] train-rmse:0.169772 
+[4] train-rmse:0.132958 
+[5] train-rmse:0.112852 
+[6] train-rmse:0.101744 
+[7] train-rmse:0.095450 
+[8] train-rmse:0.091966 
+[9] train-rmse:0.089956 
+[10]    train-rmse:0.088759 
+[11]    train-rmse:0.088056 
+[12]    train-rmse:0.087632 
+[13]    train-rmse:0.087380 
+[14]    train-rmse:0.087228 
+[15]    train-rmse:0.087138 
+[16]    train-rmse:0.087084 
+[1] train-rmse:0.342579 
+[2] train-rmse:0.241744 
+[3] train-rmse:0.181848 
+[4] train-rmse:0.148656 
+[5] train-rmse:0.129412 
+[6] train-rmse:0.119614 
+[7] train-rmse:0.114012 
+[8] train-rmse:0.110799 
+[9] train-rmse:0.108960 
+[10]    train-rmse:0.107884 
+[11]    train-rmse:0.107240 
+[12]    train-rmse:0.106871 
+[13]    train-rmse:0.106648 
+[14]    train-rmse:0.106517 
+[15]    train-rmse:0.106439 
+[16]    train-rmse:0.106393 
+[1] train-rmse:0.335102 
+[2] train-rmse:0.239308 
+[3] train-rmse:0.176252 
+[4] train-rmse:0.139660 
+[5] train-rmse:0.118779 
+[6] train-rmse:0.107073 
+[7] train-rmse:0.100468 
+[8] train-rmse:0.096583 
+[9] train-rmse:0.094254 
+[10]    train-rmse:0.092895 
+[11]    train-rmse:0.092087 
+[12]    train-rmse:0.091604 
+[13]    train-rmse:0.091318 
+[14]    train-rmse:0.091142 
+[15]    train-rmse:0.091037 
+[16]    train-rmse:0.090971 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">depth =</span> hyper_depth, <span class="at">eta =</span> hyper_eta, <span class="at">AUC =</span> tuning_results)</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  set depth         eta       AUC
-1   1   110 0.007334147 0.7782072
-2   2   153 0.082437558 0.8068937
-3   3    89 0.003948339 0.8102082</code></pre>
+<pre><code>   depth         eta       AUC
+1     49 0.988891729 0.7594596
+2     65 0.946668233 0.7619427
+3    153 0.082437558 0.7921509
+4     74 0.514211784 0.7733820
+5    146 0.390203467 0.7703667
+6    122 0.905738131 0.7752571
+7    200 0.446969628 0.7744517
+8    128 0.836004260 0.7690691
+9     47 0.737595618 0.7722132
+10    24 0.811055141 0.7699673
+11    71 0.388108283 0.7725511
+12   100 0.685169729 0.7709563
+13    89 0.003948339 0.7860489
+14   165 0.832916080 0.7756390
+15   110 0.007334147 0.7878891
+16    20 0.207658973 0.7865948
+17   154 0.906601408 0.7728606
+18   114 0.611778643 0.7701296
+19   111 0.379559241 0.7792801
+20   131 0.435771585 0.7690351</code></pre>
 </div>
 </div>
 <p>Make predictions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>prediction_ensemble <span class="ot">=</span> </span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(results), <span class="cf">function</span>(i) {</span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>      data_xg <span class="ot">=</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> <span class="fu">as.matrix</span>(data_obs[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">label =</span> data_obs<span class="sc">$</span>survived)</span>
-<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>      model <span class="ot">=</span> <span class="fu">xgboost</span>(data_xg, <span class="at">nrounds =</span> 16L, <span class="at">eta =</span> results<span class="sc">$</span>eta[i], <span class="at">max_depth =</span> results<span class="sc">$</span>depth[i])</span>
-<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>      predictions <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> <span class="fu">as.matrix</span>(data_new)[,<span class="sc">-</span><span class="dv">1</span>])</span>
-<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(predictions)</span>
-<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Single predictions from the ensemble model:</span></span>
-<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">apply</span>(prediction_ensemble, <span class="dv">1</span>, mean)), <span class="at">file =</span> <span class="st">"Max_titanic_ensemble.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>data_xg <span class="ot">=</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> <span class="fu">as.matrix</span>(data_obs[,<span class="sc">-</span><span class="dv">1</span>]), <span class="at">label =</span> data_obs<span class="sc">$</span>survived)</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">xgboost</span>(data_xg, <span class="at">nrounds =</span> 16L, <span class="at">eta =</span> results[<span class="fu">which.max</span>(results<span class="sc">$</span>AUC), <span class="dv">2</span>], <span class="at">max_depth =</span> results[<span class="fu">which.max</span>(results<span class="sc">$</span>AUC), <span class="dv">1</span>])</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> <span class="fu">as.matrix</span>(data_new)[,<span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Single predictions from the ensemble model:</span></span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> predictions), <span class="at">file =</span> <span class="st">"Max_titanic_xgboost.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -2332,11 +2339,11 @@ Click here to see the solution
 <p>Go through the code line by line and try to understand it. Ask, if you have any questions you cannot solve.</p>
 <p>Let’s try it:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">model.matrix</span>(<span class="sc">~</span>. , <span class="at">data =</span> airquality)</span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">get_boosting_model</span>(<span class="at">x =</span> data[,<span class="sc">-</span><span class="dv">2</span>], <span class="at">y =</span> data[,<span class="dv">2</span>], <span class="at">n_trees =</span> 5L )</span>
-<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> data[,<span class="sc">-</span><span class="dv">2</span>])</span>
-<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(data[,<span class="dv">2</span>], pred, <span class="at">xlab =</span> <span class="st">"observed"</span>, <span class="at">ylab =</span> <span class="st">"predicted"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">model.matrix</span>(<span class="sc">~</span>. , <span class="at">data =</span> airquality)</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">get_boosting_model</span>(<span class="at">x =</span> data[,<span class="sc">-</span><span class="dv">2</span>], <span class="at">y =</span> data[,<span class="dv">2</span>], <span class="at">n_trees =</span> 5L )</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> data[,<span class="sc">-</span><span class="dv">2</span>])</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(data[,<span class="dv">2</span>], pred, <span class="at">xlab =</span> <span class="st">"observed"</span>, <span class="at">ylab =</span> <span class="st">"predicted"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="B1-Trees_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
 </div>

@@ -412,6 +412,8 @@ data_sub =
            pclass = as.integer(pclass - 1L))
 data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
 data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
+data_sub$survived = as.factor(data_sub$survived)
+data_obs$survived = as.factor(data_obs$survived)
 ```
 
 **Hints:**
@@ -421,44 +423,37 @@ data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
 
 **Bonus:**
 
--   tune also mtry
+-   tune min node size (and mtry)
 -   use more features
 
 ::: {.callout-tip collapse="true" appearance="minimal"}
 ## Code template
 
 ```{r, eval=FALSE}
-library(randomForest)
-set.seed(42)
+library(ranger)
 data_obs = data_sub[!is.na(data_sub$survived),] 
+set.seed(42)
+
 cv = 3
-
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-
-# sample minnodesize values (must be integers)
 hyper_minnodesize = ...
 
-results = data.frame(
-  set = rep(NA, cv),
-  minnodesize = rep(NA, cv),
-  AUC = rep(NA, cv)
-)
+tuning_results =
+    sapply(1:length(hyper_minnodesize), function(k) {
+        auc_inner = NULL
+        for(j in 1:cv) {
+          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+          train_inner = data_obs[inner_split != j, ]
+          test_inner = data_obs[inner_split == j, ]
+          
+          model = ranger(survived~.,data = train_inner, min.node.size = hyper_minnodesize[k], probability = TRUE)
+          predictions = predict(model, test_inner)$predictions[,2]
+          
+          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
+        }
+      return(mean(auc_inner))
+    })
 
-for(i in 1:cv) {
-  train_outer = data_obs[outer_split != i, ]
-  test_outer = data_obs[outer_split == i, ]
-  
-  tuning_results = 
-      sapply(1:length(hyper_minnodesize), function(k) {
-        model = randomForest(as.factor(survived)~., data = train_outer, nodesize = ... )
-        return(Metrics::auc(test_outer$survived, predict(model, newdata = test_outer, type = "prob")[,2]))
-      })
-  best_minnodesize = hyper_minnodesize[which.max(tuning_results)]
-  
-  results[i, 1] = i
-  results[i, 2] = best_minnodesize
-  results[i, 3] = max(tuning_results)
-}
+results = data.frame(minnodesize = hyper_minnodesize, AUC = tuning_results)
 
 print(results)
 ```
@@ -469,53 +464,43 @@ print(results)
 
 `r hide("Click here to see the solution")`
 
+
 ```{r}
-library(randomForest)
-set.seed(42)
+library(ranger)
 data_obs = data_sub[!is.na(data_sub$survived),] 
+set.seed(42)
+
 cv = 3
-
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-
-# sample minnodesize values (must be integers)
 hyper_minnodesize = sample(300, 20)
 
-results = data.frame(
-  set = rep(NA, cv),
-  minnodesize = rep(NA, cv),
-  AUC = rep(NA, cv)
-)
+tuning_results =
+    sapply(1:length(hyper_minnodesize), function(k) {
+        auc_inner = NULL
+        for(j in 1:cv) {
+          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+          train_inner = data_obs[inner_split != j, ]
+          test_inner = data_obs[inner_split == j, ]
+          model = ranger(survived~.,data = train_inner, min.node.size = hyper_minnodesize[k], probability = TRUE)
+          predictions = predict(model, test_inner)$predictions[,2]
+          
+          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
+        }
+      return(mean(auc_inner))
+    })
 
-for(i in 1:cv) {
-  train_outer = data_obs[outer_split != i, ]
-  test_outer = data_obs[outer_split == i, ]
-  
-  tuning_results = 
-      sapply(1:length(hyper_minnodesize), function(k) {
-        model = randomForest(as.factor(survived)~., data = train_outer, nodesize = hyper_minnodesize[k] )
-        return(Metrics::auc(test_outer$survived, predict(model, newdata = test_outer, type = "prob")[,2]))
-      })
-  best_minnodesize = hyper_minnodesize[which.max(tuning_results)]
-  
-  results[i, 1] = i
-  results[i, 2] = best_minnodesize
-  results[i, 3] = max(tuning_results)
-}
+results = data.frame(minnodesize = hyper_minnodesize, AUC = tuning_results)
 
 print(results)
 ```
 
+
+
 Make predictions:
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
-prediction_ensemble = 
-  sapply(1:nrow(results), function(i) {
-  model = randomForest(as.factor(survived)~., data = data_obs, nodesize = results$minnodesize[i] )
-    return(predict(model, data_obs, type = "prob")[,2])
-  })
+model = ranger(survived~.,data = data_obs, min.node.size = results[which.max(results$AUC),1], probability = TRUE)
 
-# Single predictions from the ensemble model:
-write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titanic_ensemble.csv")
+write.csv(data.frame(y = predict(model, data_new)$predictions[,1]), file = "Max_titanic_rf.csv")
 ```
 
 `r unhide()`
@@ -574,33 +559,25 @@ outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
 hyper_depth = ...
 hyper_eta = ...
 
-results = data.frame(
-  set = rep(NA, cv),
-  depth = rep(NA, cv),
-  eta = rep(NA, cv),
-  AUC = rep(NA, cv)
-)
+tuning_results =
+    sapply(1:length(hyper_minnodesize), function(k) {
+        auc_inner = NULL
+        for(j in 1:cv) {
+          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+          train_inner = data_obs[inner_split != j, ]
+          test_inner = data_obs[inner_split == j, ]
+          
+          data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
+          
+          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k])
+          predictions = predict(model, newdata = as.matrix(test_inner)[,-1])
+          
+          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
+        }
+      return(mean(auc_inner))
+    })
 
-for(i in 1:cv) {
-  train_outer = data_obs[outer_split != i, ]
-  test_outer = data_obs[outer_split == i, ]
-  
-  tuning_results = 
-      sapply(1:length(hyper_depth), function(k) {
-        
-        # Cast data to xgboost data types
-        data_xg = xgb.DMatrix(data = as.matrix(train_outer[,-1]), label = train_outer$survived)
-        model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k])
-        predictions = predict(model, newdata = as.matrix(test_outer)[,-1])
-        
-        return(Metrics::auc(test_outer$survived, predictions)))
-      })
-  
-  results[i, 1] = i
-  results[i, 2] = hyper_depth[which.max(tuning_results)]
-  results[i, 3] = hyper_eta[which.max(tuning_results)]  
-  results[i, 4] = max(tuning_results)
-}
+results = data.frame(depth = hyper_depth, eta = hyper_eta, AUC = tuning_results)
 
 print(results)
 ```
@@ -620,51 +597,42 @@ outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
 hyper_depth = sample(200, 20)
 hyper_eta = runif(20, 0, 1)
 
-results = data.frame(
-  set = rep(NA, cv),
-  depth = rep(NA, cv),
-  eta = rep(NA, cv),
-  AUC = rep(NA, cv)
-)
 
-for(i in 1:cv) {
-  train_outer = data_obs[outer_split != i, ]
-  test_outer = data_obs[outer_split == i, ]
-  
-  tuning_results = 
-      sapply(1:length(hyper_depth), function(k) {
-        
-        # Cast data to xgboost data types
-        data_xg = xgb.DMatrix(data = as.matrix(train_outer[,-1]), label = train_outer$survived)
-        model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k])
-        predictions = predict(model, newdata = as.matrix(test_outer)[,-1])
-        
-        return(Metrics::auc(test_outer$survived, predictions))
-      })
-  
-  results[i, 1] = i
-  results[i, 2] = hyper_depth[which.max(tuning_results)]
-  results[i, 3] = hyper_eta[which.max(tuning_results)]  
-  results[i, 4] = max(tuning_results)
-}
+tuning_results =
+    sapply(1:length(hyper_minnodesize), function(k) {
+        auc_inner = NULL
+        for(j in 1:cv) {
+          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+          train_inner = data_obs[inner_split != j, ]
+          test_inner = data_obs[inner_split == j, ]
+          
+          data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
+          
+          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k])
+          predictions = predict(model, newdata = as.matrix(test_inner)[,-1])
+          
+          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
+        }
+      return(mean(auc_inner))
+    })
+
+results = data.frame(depth = hyper_depth, eta = hyper_eta, AUC = tuning_results)
 
 print(results)
+
 ```
 
 Make predictions:
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
-prediction_ensemble = 
-  sapply(1:nrow(results), function(i) {
+data_xg = xgb.DMatrix(data = as.matrix(data_obs[,-1]), label = data_obs$survived)
 
-      data_xg = xgb.DMatrix(data = as.matrix(data_obs[,-1]), label = data_obs$survived)
-      model = xgboost(data_xg, nrounds = 16L, eta = results$eta[i], max_depth = results$depth[i])
-      predictions = predict(model, newdata = as.matrix(data_new)[,-1])
-    return(predictions)
-  })
+model = xgboost(data_xg, nrounds = 16L, eta = results[which.max(results$AUC), 2], max_depth = results[which.max(results$AUC), 1])
+
+predictions = predict(model, newdata = as.matrix(data_new)[,-1])
 
 # Single predictions from the ensemble model:
-write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titanic_ensemble.csv")
+write.csv(data.frame(y = predictions), file = "Max_titanic_xgboost.csv")
 ```
 
 `r unhide()`
