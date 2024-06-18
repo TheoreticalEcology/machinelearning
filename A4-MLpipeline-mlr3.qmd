@@ -1,0 +1,541 @@
+---
+output: html_document
+editor_options:
+  chunk_output_type: console
+---
+
+# Machine learning framework - mlr3 {#workflow-mlr3}
+
+
+As we have seen today, many of the machine learning algorithms are distributed over several packages but the general machine learning pipeline is very similar for all models: feature engineering, feature selection, hyperparameter tuning and cross-validation.
+
+Machine learning frameworks such as `mlr3` or `tidymodels` provide a general interface for the ML pipeline, in particular the training and the hyperparameter tuning with nested CV. They support most ML packages/algorithms.
+
+## mlr3 {#sec-mlr}
+
+The key features of mlr3 are:
+
+-   All common machine learning packages are integrated into mlr3, you can easily switch between different machine learning algorithms.
+-   A common 'language'/workflow to specify machine learning pipelines.
+-   Support for different cross-validation strategies.
+-   Hyperparameter tuning for all supported machine learning algorithms.
+-   Ensemble models.
+
+Useful links:
+
+-   <a href="https://mlr3book.mlr-org.com/" target="_blank" rel="noopener">mlr3-book</a> (still in work)
+-   <a href="https://mlr3.mlr-org.com/" target="_blank" rel="noopener">mlr3 website</a>
+-   <a href="https://cheatsheets.mlr-org.com/mlr3.pdf" target="_blank" rel="noopener">mlr3 cheatsheet</a>
+
+### mlr3 - The Basic Workflow
+
+The mlr3 package actually consists of several packages for different tasks (e.g. mlr3tuning for hyperparameter tuning, mlr3pipelines for data preparation pipes). But let's start with the basic workflow:
+
+```{r chunk_chapter4_65, message=FALSE}
+library(EcoData)
+library(tidyverse)
+library(mlr3)
+library(mlr3learners)
+library(mlr3pipelines)
+library(mlr3tuning)
+library(mlr3measures)
+data(nasa)
+str(nasa)
+```
+
+Let's drop time, name and ID variable and create a classification task:
+
+```{r chunk_chapter4_66}
+data = nasa %>% select(-Orbit.Determination.Date,
+                       -Close.Approach.Date, -Name, -Neo.Reference.ID)
+data$Hazardous = as.factor(data$Hazardous)
+
+# Create a classification task.
+task = TaskClassif$new(id = "nasa", backend = data,
+                       target = "Hazardous", positive = "1")
+```
+
+Create a generic pipeline of data transformation (imputation $\rightarrow$ scaling $\rightarrow$ encoding of categorical variables):
+
+```{r chunk_chapter4_67}
+set.seed(123)
+
+# Let's create the preprocessing graph.
+preprocessing = po("imputeoor") %>>% po("scale") %>>% po("encode") 
+
+# Run the task.
+transformed_task = preprocessing$train(task)[[1]]
+
+transformed_task$missings()
+```
+
+We can even visualize the preprocessing graph:
+
+```{r chunk_chapter4_68}
+preprocessing$plot()
+```
+
+To test our model (glmnet) with 10-fold cross-validated, we will do:
+
+-   Specify the missing target rows as validation so that they will be ignored.
+-   Specify the cross-validation, the learner (the machine learning model we want to use), and the measurement (AUC).
+-   Run (benchmark) our model.
+
+```{r chunk_chapter4_69__mlr1}
+set.seed(123)
+
+transformed_task$data()[1,]
+transformed_task$set_row_roles((1:nrow(data))[is.na(data$Hazardous)],
+                               "holdout")
+
+cv10 = mlr3::rsmp("cv", folds = 10L)
+EN = lrn("classif.glmnet", predict_type = "prob")
+measurement =  msr("classif.auc")
+```
+
+```{r chunk_chapter4_70, eval=FALSE}
+result = mlr3::resample(transformed_task,
+                        EN, resampling = cv10, store_models = TRUE)
+
+# Calculate the average AUC of the holdouts.
+result$aggregate(measurement)
+```
+
+Very cool! Preprocessing + 10-fold cross-validation model evaluation in a few lines of code!
+
+Let's create the final predictions:
+
+```{r chunk_chapter4_71__mlr2, eval=FALSE}
+pred = sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task,
+row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
+dim(pred)
+predictions = apply(pred, 1, mean)
+```
+
+You could now submit the predictions <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">here</a>.
+
+But we are still not happy with the results, let's do some hyperparameter tuning!
+
+### mlr3 - Hyperparameter Tuning
+
+With mlr3, we can easily extend the above example to do hyperparameter tuning within nested cross-validation (the tuning has its own inner cross-validation).
+
+Print the hyperparameter space of our glmnet learner:
+
+```{r chunk_chapter4_72}
+EN$param_set
+```
+
+Define the hyperparameter space of the random forest:
+
+```{r chunk_chapter4_73__mlr3}
+library(paradox)
+
+EN_pars = 
+    paradox::ParamSet$new(
+      list(paradox::ParamDbl$new("alpha", lower = 0, upper = 1L),
+           paradox::ParamDbl$new("lambda", lower = 0, upper = 0.5 )) )
+print(EN_pars)
+```
+
+To set up the tuning pipeline we need:
+
+-   Inner cross-validation resampling object.
+-   Tuning criterion (e.g. AUC).
+-   Tuning method (e.g. random or block search).
+-   Tuning terminator (When should we stop tuning? E.g. after $n$ iterations).
+
+```{r chunk_chapter4_74__mlr4}
+set.seed(123)
+
+inner3 = mlr3::rsmp("cv", folds = 3L)
+measurement =  msr("classif.auc")
+tuner =  mlr3tuning::tnr("random_search") 
+terminator = mlr3tuning::trm("evals", n_evals = 5L)
+EN = lrn("classif.glmnet", predict_type = "prob")
+
+learner_tuner = AutoTuner$new(learner = EN, 
+                              measure = measurement, 
+                              tuner = tuner, 
+                              terminator = terminator,
+                              search_space = EN_pars,
+                              resampling = inner3)
+print(learner_tuner)
+```
+
+Now we can wrap it normally into the 10-fold cross-validated setup as done previously:
+
+```{r chunk_chapter4_75, echo=FALSE, results='hide'}
+set.seed(123)
+
+outer3 = mlr3::rsmp("cv", folds = 3L)
+result = mlr3::resample(transformed_task, learner_tuner,
+                        resampling = outer3, store_models = TRUE)
+
+```
+
+```{r}
+# Calculate the average AUC of the holdouts.
+result$aggregate(measurement)
+```
+
+Let's create the final predictions:
+
+```{r chunk_chapter4_76, eval=FALSE}
+pred = sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task,
+row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
+dim(pred)
+predictions = apply(pred, 1, mean)
+```
+
+## Exercises
+
+### Tuning Regularization
+
+::: callout-warning
+#### Question: Hyperparameter tuning - Titanic dataset
+
+Tune architecture
+
+-   Tune training parameters (learning rate, batch size) and regularization
+
+**Hints**
+
+cito has a feature to automatically tune hyperparameters under Cross Validation!
+
+-   passing `tune(...)` to a hyperparameter will tell cito to tune this specific hyperparameter
+-   the `tuning = config_tuning(...)` let you specify the cross-validation strategy and the number of hyperparameters that should be tested (steps = number of hyperparameter combinations that should be tried)
+-   after tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
+
+Minimal example with the iris dataset:
+
+```{r, eval=FALSE}
+library(cito)
+df = iris
+df[,1:4] = scale(df[,1:4])
+
+model_tuned = dnn(Species~., 
+                  loss = "softmax",
+                  data = iris,
+                  lambda = tune(lower = 0.0, upper = 0.2), # you can pass the "tune" function to a hyerparameter
+                  tuning = config_tuning(CV = 3, steps = 20L)
+                  )
+
+# tuning results
+model_tuned$tuning
+
+
+# model_tuned is now already the best model!
+```
+
+```{r}
+#| message: false
+library(EcoData)
+library(dplyr)
+library(missRanger)
+data(titanic_ml)
+data = titanic_ml
+data = 
+  data %>% select(survived, sex, age, fare, pclass)
+data[,-1] = missRanger(data[,-1], verbose = 0)
+
+data_sub =
+  data %>%
+    mutate(age = scales::rescale(age, c(0, 1)),
+           fare = scales::rescale(fare, c(0, 1))) %>%
+    mutate(sex = as.integer(sex) - 1L,
+           pclass = as.integer(pclass - 1L))
+data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
+data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
+
+
+model = dnn(survived~., 
+          hidden = c(10L, 10L), # change
+          activation = c("selu", "selu"), # change
+          loss = "binomial", 
+          lr = 0.05, #change
+          validation = 0.2,
+          lambda = 0.001, # change
+          alpha = 0.1, # change
+          lr_scheduler = config_lr_scheduler("reduce_on_plateau", patience = 10, factor = 0.9),
+          data = data_obs, epochs = 40L, verbose = TRUE, plot= TRUE)
+
+# Predictions:
+
+predictions = predict(model, newdata = data_new, type = "response") # change prediction type to response so that cito predicts probabilities
+
+write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv")
+```
+:::
+
+<!-- ::: {.callout-warning} -->
+
+<!-- #### Task: Tuning $\alpha$ and $\lambda$ -->
+
+<!-- 1.  Extend the code from above and tune $\alpha$ and $\lambda$ (via 10xCV) -->
+
+<!-- 2.  Train the model with best set of hyperparameters and submit your predictions -->
+
+<!-- Submit your predictions (<http://rhsbio7.uni-regensburg.de:8500/>), which model has a higher AUC?. -->
+
+<!-- **Important**: -->
+
+<!-- Submissions only work if your preditions are probabilities and a data.frame (which you can create via `write.csv(data.frame(y = predictions ), file = "Max_1.csv")` -->
+
+<!--  ) -->
+
+<!-- ```{r} -->
+
+<!-- library(EcoData) -->
+
+<!-- library(dplyr) -->
+
+<!-- library(missRanger) -->
+
+<!-- library(glmnet) -->
+
+<!-- library(glmnetUtils) -->
+
+<!-- data(titanic_ml) -->
+
+<!-- data = titanic_ml -->
+
+<!-- data =  -->
+
+<!--   data %>% select(survived, sex, age, fare, pclass) -->
+
+<!-- # missRanger uses a random forest to impute NAs (RF is trained on the data to predict values for the NAs) -->
+
+<!-- data[,-1] = missRanger(data[,-1], verbose = 0) -->
+
+<!-- data_sub = -->
+
+<!--   data %>% -->
+
+<!--     mutate(age = scales::rescale(age, c(0, 1)), -->
+
+<!--            fare = scales::rescale(fare, c(0, 1))) %>% -->
+
+<!--     mutate(sex = as.integer(sex) - 1L, -->
+
+<!--            pclass = as.integer(pclass - 1L)) -->
+
+<!-- data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end -->
+
+<!-- data_obs = data_sub[!is.na(data_sub$survived),] # data with known response -->
+
+<!-- ``` -->
+
+<!-- Bonus: -->
+
+<!-- -   Try different features -->
+
+<!-- -   Try cito -->
+
+<!-- -   Try different datasets (see @sec-datasets) -->
+
+<!-- Code template for a simple CV (for tuning $\lambda$): -->
+
+<!-- - Extend the following code so that $\alpha$ is also tuned! -->
+
+<!-- ```{r} -->
+
+<!-- set.seed(42) -->
+
+<!-- cv = 5 -->
+
+<!-- hyper_lambda = runif(20,0, 0.2) -->
+
+<!-- tuning_results =  -->
+
+<!--     sapply(1:length(hyper_lambda), function(k) { -->
+
+<!--         auc_inner = NULL -->
+
+<!--         for(j in 1:cv) { -->
+
+<!--           inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
+
+<!--           train_inner = data_obs[inner_split != j, ] -->
+
+<!--           test_inner = data_obs[inner_split == j, ] -->
+
+<!--           model = glmnet(survived~.,data = train_inner, lambda = hyper_lambda[k], family = "binomial") -->
+
+<!--           auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response")) -->
+
+<!--         } -->
+
+<!--       return(mean(auc_inner)) -->
+
+<!--     }) -->
+
+<!-- results = data.frame(lambda = hyper_lambda, AUC = tuning_results) -->
+
+<!-- print(results) -->
+
+<!-- ``` -->
+
+<!-- ::: -->
+
+<!-- `r hide("Click here to see the solution")` -->
+
+<!-- ```{r} -->
+
+<!-- set.seed(42) -->
+
+<!-- cv = 5 -->
+
+<!-- hyper_lambda = runif(20,0, 0.2) -->
+
+<!-- hyper_alpha = runif(20, 0, 1) -->
+
+<!-- tuning_results =  -->
+
+<!--     sapply(1:length(hyper_alpha), function(k) { -->
+
+<!--         auc_inner = NULL -->
+
+<!--         for(j in 1:cv) { -->
+
+<!--           inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
+
+<!--           train_inner = data_obs[inner_split != j, ] -->
+
+<!--           test_inner = data_obs[inner_split == j, ] -->
+
+<!--           model = glmnet(survived~.,data = train_inner, family = "binomial", alpha = hyper_alpha[k], lambda = hyper_lambda[k]) -->
+
+<!--           auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response")) -->
+
+<!--         } -->
+
+<!--       return(mean(auc_inner)) -->
+
+<!--     }) -->
+
+<!-- results = data.frame(lambda = hyper_lambda, alpha = hyper_alpha,  AUC = tuning_results) -->
+
+<!-- print(results) -->
+
+<!-- print(results[which.max(results$AUC),]) -->
+
+<!-- ``` -->
+
+<!-- Predictions: -->
+
+<!-- ```{r, results='hide', message=FALSE, warning=FALSE} -->
+
+<!-- model = glmnet(survived~.,data = data_obs, family = "binomial",alpha = results[which.max(results$AUC),2]) -->
+
+<!-- predictions = predict(model, data_new, alpha = results$alpha[i], s = results[which.max(results$AUC),1], type = "response")[,1] -->
+
+<!-- write.csv(data.frame(y = predictions, file = "Max_titanic_best_model.csv")) -->
+
+<!-- ``` -->
+
+<!-- `r unhide()` -->
+
+### Bonus: mlr3
+
+::: callout-warning
+#### Task: Use mlr3 for the titanic dataset
+
+1.  Use `mlr3` to tune glmnet for the titanic dataset using nested CV
+2.  Submit single predictions and multiple predictions
+
+If you need help, take a look at the solution, go through it line by line and try to understand it.
+:::
+
+`r hide("Click here to see the solution")`
+
+Prepare data
+
+```{r}
+data = titanic_ml %>% select(-name, -ticket, -name, -body)
+data$pclass = as.factor(data$pclass)
+data$sex = as.factor(data$sex)
+data$survived = as.factor(data$survived)
+
+# Change easy things manually:
+data$embarked[data$embarked == ""] = "S"  # Fill in "empty" values.
+data$embarked = droplevels(as.factor(data$embarked)) # Remove unused levels ("").
+data$cabin = (data$cabin != "") * 1 # Dummy code the availability of a cabin.
+data$fare[is.na(data$fare)] = mean(data$fare, na.rm = TRUE)
+levels(data$home.dest)[levels(data$home.dest) == ""] = "unknown"
+levels(data$boat)[levels(data$boat) == ""] = "none"
+
+# Create a classification task.
+task = TaskClassif$new(id = "titanic", backend = data,
+                       target = "survived", positive = "1")
+task$missings()
+
+# Let's create the preprocessing graph.
+preprocessing = po("imputeoor") %>>% po("scale") %>>% po("encode") 
+
+# Run the task.
+transformed_task = preprocessing$train(task)[[1]]
+
+transformed_task$set_row_roles((1:nrow(data))[is.na(data$survived)], "holdout")
+```
+
+Hyperparameter tuning:
+
+```{r, results='hide'}
+
+cv10 = mlr3::rsmp("cv", folds = 10L)
+
+inner3 = mlr3::rsmp("cv", folds = 3L)
+measurement =  msr("classif.auc")
+tuner =  mlr3tuning::tnr("random_search") 
+terminator = mlr3tuning::trm("evals", n_evals = 5L)
+EN = lrn("classif.glmnet", predict_type = "prob")
+EN_pars = 
+    paradox::ParamSet$new(
+      list(paradox::ParamDbl$new("alpha", lower = 0, upper = 1L),
+           paradox::ParamDbl$new("lambda", lower = 0, upper = 0.5 )) )
+
+learner_tuner = AutoTuner$new(learner = EN, 
+                              measure = measurement, 
+                              tuner = tuner, 
+                              terminator = terminator,
+                              search_space = EN_pars,
+                              resampling = inner3)
+
+
+result = mlr3::resample(transformed_task, learner_tuner,
+                        resampling = cv10, store_models = TRUE)
+```
+
+Evaluation:
+
+```{r}
+measurement =  msr("classif.auc")
+result$aggregate(measurement)
+```
+
+Predictions:
+
+We can extract a learner with optimized hyperparameters:
+
+```{r}
+model = result$learners[[1]]$learner$clone()
+model$param_set$values
+```
+
+And we can fit it then on the full data set:
+
+```{r}
+model$train(transformed_task)
+predictions = model$predict(transformed_task, row_ids = transformed_task$row_roles$holdout)
+predictions = predictions$prob[,1]
+head(predictions)
+```
+
+And submit to http://rhsbio7.uni-regensburg.de:8500
+
+```{r}
+write.csv(data.frame(y = predictions), file = "glmnet.csv")
+```
+
+`r unhide()`

@@ -200,6 +200,7 @@ Prepare the data:
 
 ```{r}
 library(EcoData)
+library(dplyr)
 
 data(plantPollinator_df)
 plant_poll = plantPollinator_df
@@ -212,10 +213,7 @@ plant_poll[, sapply(plant_poll, is.numeric)] = scale(plant_poll[, sapply(plant_p
 df = plant_poll[complete.cases(plant_poll),] # remove NAs
 
 # remove factors with only one level 
-df = df[,-12]
-
-# remove first two columns (species names)
-data_obs = df[,-(1:2)]
+data_obs = df %>% select(-crop, -insect, -season, -colour, -guild, -feeding, -composite)
 
 # change response to integer (because cito wants integer 0/1 for binomial data)
 data_obs$interaction = as.integer(data_obs$interaction) - 1 
@@ -231,7 +229,7 @@ newdata_imputed$interaction = NA
 
 Minimal example in cito:
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 library(cito)
 set.seed(42)
 model = dnn(interaction~., 
