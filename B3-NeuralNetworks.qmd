@@ -12,39 +12,9 @@ Artificial neural networks are biologically inspired, the idea is that inputs ar
 library(cito)
 ```
 
-cito allows us to fit fully-connected neural networks within one line of code. When we come to other tasks such as image recognition we have to use frameworks with higher flexibility such as keras or torch.
+## Loss
 
-Neural networks are harder to optimize (hey are optimized via backpropagation and gradient descent) and a few hyperparameters that control the optimization should be familiar:
-
-+----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| Hyperparameter | Meaning                                                                                                                                                                                                       | Range                     |
-+================+===============================================================================================================================================================================================================+===========================+
-| learning rate  | the step size of the parameter updating in the iterative optimization routine, if too high, the optimizer will step over good local optima, if too small, the optimizer will be stuck in a bad local optima   | \[0.00001, 0.5\]          |
-+----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| batch size     | NNs are optimized via stochastic gradient descent, i.e. only a batch of the data is used to update the parameters at a time                                                                                   | Depends on the data:      |
-|                |                                                                                                                                                                                                               |                           |
-|                |                                                                                                                                                                                                               | 10-250                    |
-+----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| epoch          | the data is fed into the optimization in batches, once the entire data set has been used in the optimization, the epoch is complete (so e.g. n = 100, batch size = 20, it takes 5 steps to complete an epoch) | 100+ (use early stopping) |
-+----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-
-Example:
-
-```{r}
-data = airquality[complete.cases(airquality),] # DNN cannot handle NAs!
-data = scale(data)
-
-model = dnn(Ozone~., 
-            hidden = c(10L, 10L), # Architecture, number of hidden layers and nodes in each layer
-            activation = c("selu", "selu"), # activation functions for the specific hidden layer
-            loss = "mse", lr = 0.01, data = data, epochs = 150L, verbose = FALSE)
-plot(model)
-summary(model)
-```
-
-The architecture of the NN can be specified by the `hidden` argument, it is a vector where the length corresponds to the number of hidden layers and value of entry to the number of hidden neurons in each layer (and the same applies for the `activation` argument that specifies the activation functions in the hidden layers). It is hard to make recommendations about the architecture, a kind of general rule is that the width of the hidden layers is more important than the depth of the NN.
-
-The loss function has to be adjusted to the response type:
+Tasks such as regression and classification are fundamentally different; the former has continuous responses, while the latter has a discrete response. In ML algorithms, these different tasks can be represented by different loss functions. Moreover, the tasks can differ even within regression or classification (e.g., in classification, we have binary classification (0 or 1) or multi-class classification (0, 1, or 2)). As a result, especially in DL, we have different specialized loss functions available for specific response types. The table below shows a list of supported loss functions in cito:
 
 +---------------------------+---------------------------------------+--------------------------------------------------+
 | Loss                      | Type                                  | Example                                          |
@@ -62,8 +32,54 @@ The loss function has to be adjusted to the response type:
 | poisson                   | Regression                            | Count data                                       |
 +---------------------------+---------------------------------------+--------------------------------------------------+
 
-::: callout-caution
-## Importance of the learning rate
+In the iris data, we model `Species` which has 3 response levels, so this is was what we call multilabel and it requires a softmax link and a cross-entropy loss function, in cito we specify that by using the `softmax` loss:
+
+```{r}
+#| message: false
+library(cito)
+model<- dnn(Species~., data = datasets::iris, loss = "softmax", verbose = FALSE)
+head(predict(model, type = "response"))
+
+```
+
+## Validation
+
+A holdout, or validation data, is important for detecting (and preventing) overfitting. In cito, we can directly tell the `dnn` function to automatically use a random subset of the data as validation data, which is validated after each epoch (each iteration of the optimization), allowing us to monitor the training:
+
+```{r}
+#| message: false
+data = airquality[complete.cases(airquality),] # DNN cannot handle NAs!
+data = scale(data)
+
+model = dnn(Ozone~., 
+            validation = 0.2,
+            loss = "mse",data = data, verbose = FALSE)
+
+```
+
+The validation argument ranges from 0 and 1 is the percent of the data that should be used for validation
+
+### Baseline loss
+
+Since training DNNs can be quite challenging, we provide in cito a baseline loss that is computed from an intercept-only model (e.g., just the mean of the response). And the absolute minimum performance our DNN should achieve is to outperform the baseline model!
+
+## Trainings parameter
+
+In DL, the optimization (the training of the DNN) is challenging as we have to optimize up to millions of parameters (which are not really identifiable, it is accepted that the optimization does not find a global minimum but just a good local minimum). We have a few important hyperparameters that affect only the optimization:
+
++----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+| Hyperparameter | Meaning                                                                                                                                                                                                       | Range                     |
++================+===============================================================================================================================================================================================================+===========================+
+| learning rate  | the step size of the parameter updating in the iterative optimization routine, if too high, the optimizer will step over good local optima, if too small, the optimizer will be stuck in a bad local optima   | \[0.00001, 0.5\]          |
++----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+| batch size     | NNs are optimized via stochastic gradient descent, i.e. only a batch of the data is used to update the parameters at a time                                                                                   | Depends on the data:      |
+|                |                                                                                                                                                                                                               |                           |
+|                |                                                                                                                                                                                                               | 10-250                    |
++----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+| epoch          | the data is fed into the optimization in batches, once the entire data set has been used in the optimization, the epoch is complete (so e.g. n = 100, batch size = 20, it takes 5 steps to complete an epoch) | 100+ (use early stopping) |
++----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+
+### Learning rate
 
 cito visualizes the training (see graphic). The reason for this is that the training can easily fail if the learning rate (lr) is poorly chosen. If the lr is too high, the optimizer "jumps" over good local optima, while it gets stuck in local optima if the lr is too small:
 
@@ -84,7 +100,6 @@ model = dnn(Ozone~.,
 ```
 
 If too low, the loss will be very wiggly but doesn't decrease.
-:::
 
 ::: callout-note
 ## Learning rate scheduler
@@ -102,6 +117,24 @@ model = dnn(Ozone~.,
             data = data, epochs = 150L, verbose = FALSE)
 ```
 :::
+
+## Architecture
+
+The architecture of the NN can be specified by the `hidden` argument, it is a vector where the length corresponds to the number of hidden layers and value of entry to the number of hidden neurons in each layer (and the same applies for the `activation` argument that specifies the activation functions in the hidden layers). It is hard to make recommendations about the architecture, a kind of general rule is that the width of the hidden layers is more important than the depth of the NN.
+
+Example:
+
+```{r}
+data = airquality[complete.cases(airquality),] # DNN cannot handle NAs!
+data = scale(data)
+
+model = dnn(Ozone~., 
+            hidden = c(10L, 10L), # Architecture, number of hidden layers and nodes in each layer
+            activation = c("selu", "selu"), # activation functions for the specific hidden layer
+            loss = "mse", lr = 0.01, data = data, epochs = 150L, verbose = FALSE)
+plot(model)
+summary(model)
+```
 
 ## Regularization
 
@@ -127,67 +160,16 @@ Be careful that you don't accidentally set all weights to 0 because of a too hig
 fields::image.plot(coef(model)[[1]][[1]]) # weights of the first layer
 ```
 
-## Exercise
-
-::: {.callout-warning}
-#### Question: Hyperparameter tuning - Titanic dataset
-
-Tune architecture
-
--   Play around with the architecture and try to improve the AUC on the submission server
-
-Bonus:
-
--   Tune the learning rate and the regularization for the titanic dataset! 
-
-```{r}
-#| message: false
-library(EcoData)
-library(dplyr)
-library(missRanger)
-data(titanic_ml)
-data = titanic_ml
-data = 
-  data %>% select(survived, sex, age, fare, pclass)
-data[,-1] = missRanger(data[,-1], verbose = 0)
-
-data_sub =
-  data %>%
-    mutate(age = scales::rescale(age, c(0, 1)),
-           fare = scales::rescale(fare, c(0, 1))) %>%
-    mutate(sex = as.integer(sex) - 1L,
-           pclass = as.integer(pclass - 1L))
-data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
-data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
-
-
-model = dnn(survived~., 
-          hidden = c(10L, 10L), # change
-          activation = c("selu", "selu"), # change
-          loss = "binomial", 
-          lr = 0.05, #change
-          validation = 0.2,
-          lambda = 0.001, # change
-          alpha = 0.1, # change
-          lr_scheduler = config_lr_scheduler("reduce_on_plateau", patience = 10, factor = 0.9),
-          data = data_obs, epochs = 40L, verbose = TRUE, plot= TRUE)
-
-# Predictions:
-
-predictions = predict(model, newdata = data_new, type = "response") # change prediction type to response so that cito predicts probabilities
-
-write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv")
-```
-
-**Hints**
+## Hyperparameter tuning
 
 cito has a feature to automatically tune hyperparameters under Cross Validation!
 
-- if you pass the function `tune(...)` to a hyperparameter, this hyperparameter will be automatically tuned
-- in the `tuning = config_tuning(...)` argument, you can specify the cross-validation strategy and the number of hyperparameters that shoudl be tested
-- after the tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
+-   if you pass the function `tune(...)` to a hyperparameter, this hyperparameter will be automatically tuned
+-   in the `tuning = config_tuning(...)` argument, you can specify the cross-validation strategy and the number of hyperparameters that shoudl be tested
+-   after the tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
 
 Minimal example with the iris dataset:
+
 ```{r}
 df = iris
 df[,1:4] = scale(df[,1:4])
@@ -196,7 +178,8 @@ model_tuned = dnn(Species~.,
                   loss = "softmax",
                   data = iris,
                   lambda = tune(lower = 0.0, upper = 0.2), # you can pass the "tune" function to a hyerparameter
-                  tuning = config_tuning(CV = 3, steps = 20L)
+                  tuning = config_tuning(CV = 3, steps = 20L),
+                  verbose = FALSE
                   )
 
 # tuning results
@@ -206,9 +189,9 @@ model_tuned$tuning
 # model_tuned is now already the best model!
 ```
 
-:::
+## Exercise
 
-::: {.callout-warning}
+::: callout-warning
 #### Question: Hyperparameter tuning - Plant-pollinator dataset
 
 see @sec-plantpoll for more information about the dataset.
@@ -217,65 +200,150 @@ Prepare the data:
 
 ```{r}
 library(EcoData)
-library(missRanger)
-library(dplyr)
+
 data(plantPollinator_df)
 plant_poll = plantPollinator_df
+summary(plant_poll)
 
-plant_poll_imputed = plant_poll %>% select(diameter,
-                                           corolla,
-                                           tongue,
-                                           body,
-                                           interaction,
-                                           colour, 
-                                           nectar,
-                                           feeding,
-                                           season)
-# Remove response variable interaction
-plant_poll_imputed = missRanger::missRanger(data = plant_poll_imputed %>%
-                                              select(-interaction), verbose = 0)
+# scale numeric features
+plant_poll[, sapply(plant_poll, is.numeric)] = scale(plant_poll[, sapply(plant_poll, is.numeric)])
 
-# scale numeric variables
-plant_poll_imputed[,sapply(plant_poll_imputed, is.numeric)] = scale(plant_poll_imputed[,sapply(plant_poll_imputed, is.numeric)])
+# remove NAs
+df = plant_poll[complete.cases(plant_poll),] # remove NAs
 
-# Add response back to the dataset after the imputatiob
-plant_poll_imputed$interaction = plant_poll$interaction
-plant_poll_imputed$colour = as.factor(plant_poll_imputed$colour)
-plant_poll_imputed$nectar = as.factor(plant_poll_imputed$nectar)
-plant_poll_imputed$feeding = as.factor(plant_poll_imputed$feeding)
-plant_poll_imputed$season = as.factor(plant_poll_imputed$season)
+# remove factors with only one level 
+df = df[,-12]
+
+# remove first two columns (species names)
+data_obs = df[,-(1:2)]
+
+# change response to integer (because cito wants integer 0/1 for binomial data)
+data_obs$interaction = as.integer(data_obs$interaction) - 1 
 
 
-data_new = plant_poll_imputed[is.na(plant_poll_imputed$interaction), ] # for which we want to make predictions at the end
-data_obs = plant_poll_imputed[!is.na(plant_poll_imputed$interaction), ]# data with known response
-dim(data_obs)
+
+# prepare the test data
+newdata = plantPollinator_df[is.na(plantPollinator_df$interaction), ]
+newdata_imputed = missRanger::missRanger(data = newdata[,-ncol(newdata)], verbose = 0) # fill NAs
+newdata_imputed$interaction = NA
+
 ```
 
-The dataset is large! More than 10,000 observations. For now, let's switch to a simple holdout strategy for validating our model (e.g. use 80% of the data to train the model and 20% of the data to validate your model.
+Minimal example in cito:
 
-Moreover:
+```{r, eval=FALSE}
+library(cito)
+set.seed(42)
+model = dnn(interaction~., 
+    hidden = c(50, 50), 
+    activation = "selu", 
+    loss = "binomial", 
+    lr = tune(values = seq(0.0001, 0.03, length.out = 10)),
+    batchsize = 100L, # increasing the batch size will reduce the runtime
+    data = data_obs, 
+    epochs = 2L, 
+    tuning = config_tuning(CV = 3, steps = 3))
 
-```{r}
-table(data_obs$interaction)
+
+print(model$tuning)
+
+# make final predictions
+predictions = predict(model, newdata_imputed, type = "response")[,1]
+
+# prepare submissions
+write.csv(data.frame(y = predictions), file = "my_submission.csv")
+
 ```
 
-The data is strongly imbalanced, i.e. many 0s but only a few 1. There are different strategies how to deal with that, for example oversampling the 1s or undersampling the 0s.
+<!-- ```{r} -->
 
-Undersampling the 0s:
+<!-- library(EcoData) -->
 
-```{r}
-data_obs = data_obs[c(sample(which(data_obs$interaction == 0), 1000), which(data_obs$interaction == 1)),]
-table(data_obs$interaction)
-data_obs$interaction = as.integer(data_obs$interaction)-1
-```
+<!-- library(missRanger) -->
+
+<!-- library(dplyr) -->
+
+<!-- data(plantPollinator_df) -->
+
+<!-- plant_poll = plantPollinator_df -->
+
+<!-- plant_poll_imputed = plant_poll %>% select(diameter, -->
+
+<!--                                            corolla, -->
+
+<!--                                            tongue, -->
+
+<!--                                            body, -->
+
+<!--                                            interaction, -->
+
+<!--                                            colour,  -->
+
+<!--                                            nectar, -->
+
+<!--                                            feeding, -->
+
+<!--                                            season) -->
+
+<!-- # Remove response variable interaction -->
+
+<!-- plant_poll_imputed = missRanger::missRanger(data = plant_poll_imputed %>% -->
+
+<!--                                               select(-interaction), verbose = 0) -->
+
+<!-- # scale numeric variables -->
+
+<!-- plant_poll_imputed[,sapply(plant_poll_imputed, is.numeric)] = scale(plant_poll_imputed[,sapply(plant_poll_imputed, is.numeric)]) -->
+
+<!-- # Add response back to the dataset after the imputation -->
+
+<!-- plant_poll_imputed$interaction = plant_poll$interaction -->
+
+<!-- plant_poll_imputed$colour = as.factor(plant_poll_imputed$colour) -->
+
+<!-- plant_poll_imputed$nectar = as.factor(plant_poll_imputed$nectar) -->
+
+<!-- plant_poll_imputed$feeding = as.factor(plant_poll_imputed$feeding) -->
+
+<!-- plant_poll_imputed$season = as.factor(plant_poll_imputed$season) -->
+
+<!-- data_new = plant_poll_imputed[is.na(plant_poll_imputed$interaction), ] # for which we want to make predictions at the end -->
+
+<!-- data_obs = plant_poll_imputed[!is.na(plant_poll_imputed$interaction), ]# data with known response -->
+
+<!-- dim(data_obs) -->
+
+<!-- ``` -->
+
+<!-- The dataset is large! More than 10,000 observations. For now, let's switch to a simple holdout strategy for validating our model (e.g. use 80% of the data to train the model and 20% of the data to validate your model. -->
+
+<!-- Moreover: -->
+
+<!-- ```{r} -->
+
+<!-- table(data_obs$interaction) -->
+
+<!-- ``` -->
+
+<!-- The data is strongly imbalanced, i.e. many 0s but only a few 1. There are different strategies how to deal with that, for example oversampling the 1s or undersampling the 0s. -->
+
+<!-- Undersampling the 0s: -->
+
+<!-- ```{r} -->
+
+<!-- data_obs = data_obs[c(sample(which(data_obs$interaction == 0), 1000), which(data_obs$interaction == 1)),] -->
+
+<!-- table(data_obs$interaction) -->
+
+<!-- data_obs$interaction = as.integer(data_obs$interaction)-1 -->
+
+<!-- ``` -->
 
 Your Tasks:
 
-- Use cito to tune a dnn on the data
-- Submit your predictions
-
+-   Use cito to tune learning parameters and the regularization
+-   Submit your predictions to <http://rhsbio7.uni-regensburg.de:8500/>
 :::
-
 
 `r hide("Click here to see the solution")`
 
@@ -294,7 +362,7 @@ model = dnn(interaction~.,
     batchsize = 100L, # increasing the batch size will reduce the runtime
     data = data_obs, 
     epochs = 100L, 
-    tuning = config_tuning(CV = 3, steps = 15, parallel = 5L))
+    tuning = config_tuning(CV = 3, steps = 15))
 
 
 print(model$tuning)
@@ -302,11 +370,11 @@ print(model$tuning)
 
 Make predictions:
 
-```{r, results='hide', warning=FALSE, message=FALSE}
+```{r, results='hide', warning=FALSE, message=FALSE,eval=FALSE}
 
-predictions = predict(model, newdata = data_new, type = "response")[,1]
+predictions = predict(model, newdata_imputed, type = "response")[,1]
 
-write.csv(data.frame(y = predictions), file = "Max_plant_poll_ensemble.csv")
+write.csv(data.frame(y = predictions), file = "Max_plant_.csv")
 ```
 
 `r unhide()`

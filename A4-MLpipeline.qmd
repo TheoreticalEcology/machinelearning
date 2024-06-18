@@ -297,7 +297,7 @@ head(data)
 
 ### Split data for final predictions
 
-To tune our hyperparameters and evaluate our models, we need to split the data as we learned in the CV section. Before doing so, however, we must split off the new observations (the outer test split) in the data set :
+To tune our hyperparameters and evaluate our models, we split the data into the training and testing data. The testing data are the observations where the response is NA:
 
 ```{r}
 summary(data_sub$survived)
@@ -322,57 +322,66 @@ Again, why is it important to tune hyperparameters? Hyperparameters (configurati
 
 :::
 
-We implement manually a CV to tune the $\lambda$. Let's start with a 5xCV and 20x different lambda values:
+We implement manually a CV to tune the learning rate. We start with a 3xCV and 10x different learning rates:
 
 ```{r}
-library(glmnet)
-library(glmnetUtils)
+library(cito)
 set.seed(42)
-cv = 5
-hyper_lambda = runif(20,0, 0.2)
-
-  
-tuning_results = 
-    sapply(1:length(hyper_lambda), function(k) {
-        auc_inner = NULL # save results from CV
-        for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
-      
-          model = glmnet(survived~.,data = train_inner, family = "binomial", lambda = hyper_lambda[k])
-          auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response"))
-        }
-      return(mean(auc_inner))
-    })
-results = data.frame(lambda = hyper_lambda, AUC = tuning_results)
-
-print(results)
+model = dnn(survived~.,
+            data = data_obs, 
+            loss = "binomial",
+            lr = tune(0.001, 0.1),
+            tuning = config_tuning(CV = 3, steps = 10)
+            )
+model$tuning
 ```
 
-The best (highest AUC) $\lambda$ is then:
-```{r}
-results[which.max(results$AUC),]
-```
+
+<!-- ```{r} -->
+<!-- library(glmnet) -->
+<!-- library(glmnetUtils) -->
+<!-- set.seed(42) -->
+<!-- cv = 5 -->
+<!-- hyper_lambda = runif(20,0, 0.2) -->
+
+
+<!-- tuning_results =  -->
+<!--     sapply(1:length(hyper_lambda), function(k) { -->
+<!--         auc_inner = NULL # save results from CV -->
+<!--         for(j in 1:cv) { -->
+<!--           inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
+<!--           train_inner = data_obs[inner_split != j, ] -->
+<!--           test_inner = data_obs[inner_split == j, ] -->
+
+<!--           model = glmnet(survived~.,data = train_inner, family = "binomial", lambda = hyper_lambda[k]) -->
+<!--           auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response")) -->
+<!--         } -->
+<!--       return(mean(auc_inner)) -->
+<!--     }) -->
+<!-- results = data.frame(lambda = hyper_lambda, AUC = tuning_results) -->
+
+<!-- print(results) -->
+<!-- ``` -->
+
+<!-- The best (highest AUC) $\lambda$ is then: -->
+<!-- ```{r} -->
+<!-- results[which.max(results$AUC),] -->
+<!-- ``` -->
 
 
 ## Predictions and Submission
 
-When we are satisfied with the performance of our model, we will create predictions for the new observations on the submission server. But first we will train now our model on the full observed dataset:
+When we are satisfied with the performance of our model, we will create predictions for the new observations on the submission server. cito directly returns the best model so we do not have to fit the final model.
 
-$\alpha = 0.915$ has the highest AUC, let's use it to train the model on the full dataset:
-
-```{r}
-model = glmnet(survived~.,data = data_obs, family = "binomial")
-```
-
-We cannot assess the performance for the new observations because the true survival ratio is unknown, however, we can now submit our predictions to the submission server at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a>.
+We submit our predictions to the submission server at <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a>.
 
 For the submission it is critical to change the predictions into a data.frame, select the second column (the probability to survive), and save it with the write.csv function:
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
+
 data_new = data_sub[is.na(data_sub$survived),]
-write.csv(data.frame(y = predict(model, data_new, s = results[which.max(results$AUC),1], type = "response")[,1] ), file = "Max_1.csv")
+predictions = predict(model, data_new, type = "response")[,1] 
+write.csv(data.frame(y = predictions), file = "Max_1.csv")
 ```
 
 
@@ -563,33 +572,56 @@ predictions = apply(pred, 1, mean)
 
 ### Tuning Regularization
 
+
 ::: {.callout-warning}
+#### Question: Hyperparameter tuning - Titanic dataset
 
-#### Task: Tuning $\alpha$ and $\lambda$
+Tune architecture
 
-1.  Extend the code from above and tune $\alpha$ and $\lambda$ (via 10xCV)
+-   Tune training parameters (learning rate, batch size) and regularization
 
-2.  Train the model with best set of hyperparameters and submit your predictions
 
-Submit your predictions (<http://rhsbio7.uni-regensburg.de:8500/>), which model has a higher AUC?.
+**Hints**
 
-**Important**:
+cito has a feature to automatically tune hyperparameters under Cross Validation!
 
-Submissions only work if your preditions are probabilities and a data.frame (which you can create via `write.csv(data.frame(y = predictions ), file = "Max_1.csv")`
- )
+- if you pass the function `tune(...)` to a hyperparameter, this hyperparameter will be automatically tuned
+- in the `tuning = config_tuning(...)` argument, you can specify the cross-validation strategy and the number of hyperparameters that shoudl be tested
+- after the tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
+
+Minimal example with the iris dataset:
+```{r, eval=FALSE}
+library(cito)
+df = iris
+df[,1:4] = scale(df[,1:4])
+
+model_tuned = dnn(Species~., 
+                  loss = "softmax",
+                  data = iris,
+                  lambda = tune(lower = 0.0, upper = 0.2), # you can pass the "tune" function to a hyerparameter
+                  tuning = config_tuning(CV = 3, steps = 20L)
+                  )
+
+# tuning results
+model_tuned$tuning
+
+
+# model_tuned is now already the best model!
+```
+
+
 
 ```{r}
+#| message: false
 library(EcoData)
 library(dplyr)
 library(missRanger)
-library(glmnet)
-library(glmnetUtils)
 data(titanic_ml)
 data = titanic_ml
 data = 
   data %>% select(survived, sex, age, fare, pclass)
-# missRanger uses a random forest to impute NAs (RF is trained on the data to predict values for the NAs)
 data[,-1] = missRanger(data[,-1], verbose = 0)
+
 data_sub =
   data %>%
     mutate(age = scales::rescale(age, c(0, 1)),
@@ -598,91 +630,149 @@ data_sub =
            pclass = as.integer(pclass - 1L))
 data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
 data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
-```
-
-Bonus:
-
--   Try different features
--   Try cito
--   Try different datasets (see @sec-datasets)
-
-Code template for a simple CV (for tuning $\lambda$):
-
-- Extend the following code so that $\alpha$ is also tuned!
 
 
-```{r}
-set.seed(42)
-cv = 5
-hyper_lambda = runif(20,0, 0.2)
+model = dnn(survived~., 
+          hidden = c(10L, 10L), # change
+          activation = c("selu", "selu"), # change
+          loss = "binomial", 
+          lr = 0.05, #change
+          validation = 0.2,
+          lambda = 0.001, # change
+          alpha = 0.1, # change
+          lr_scheduler = config_lr_scheduler("reduce_on_plateau", patience = 10, factor = 0.9),
+          data = data_obs, epochs = 40L, verbose = TRUE, plot= TRUE)
 
-  
-tuning_results = 
-    sapply(1:length(hyper_lambda), function(k) {
-        auc_inner = NULL
-      
-        for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
-      
-          model = glmnet(survived~.,data = train_inner, lambda = hyper_lambda[k], family = "binomial")
-          
-          
-          auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response"))
-        }
-      return(mean(auc_inner))
-    })
-results = data.frame(lambda = hyper_lambda, AUC = tuning_results)
+# Predictions:
 
-print(results)
+predictions = predict(model, newdata = data_new, type = "response") # change prediction type to response so that cito predicts probabilities
+
+write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv")
 ```
 
 :::
 
 
-`r hide("Click here to see the solution")`
+<!-- ::: {.callout-warning} -->
+
+<!-- #### Task: Tuning $\alpha$ and $\lambda$ -->
+
+<!-- 1.  Extend the code from above and tune $\alpha$ and $\lambda$ (via 10xCV) -->
+
+<!-- 2.  Train the model with best set of hyperparameters and submit your predictions -->
+
+<!-- Submit your predictions (<http://rhsbio7.uni-regensburg.de:8500/>), which model has a higher AUC?. -->
+
+<!-- **Important**: -->
+
+<!-- Submissions only work if your preditions are probabilities and a data.frame (which you can create via `write.csv(data.frame(y = predictions ), file = "Max_1.csv")` -->
+<!--  ) -->
+
+<!-- ```{r} -->
+<!-- library(EcoData) -->
+<!-- library(dplyr) -->
+<!-- library(missRanger) -->
+<!-- library(glmnet) -->
+<!-- library(glmnetUtils) -->
+<!-- data(titanic_ml) -->
+<!-- data = titanic_ml -->
+<!-- data =  -->
+<!--   data %>% select(survived, sex, age, fare, pclass) -->
+<!-- # missRanger uses a random forest to impute NAs (RF is trained on the data to predict values for the NAs) -->
+<!-- data[,-1] = missRanger(data[,-1], verbose = 0) -->
+<!-- data_sub = -->
+<!--   data %>% -->
+<!--     mutate(age = scales::rescale(age, c(0, 1)), -->
+<!--            fare = scales::rescale(fare, c(0, 1))) %>% -->
+<!--     mutate(sex = as.integer(sex) - 1L, -->
+<!--            pclass = as.integer(pclass - 1L)) -->
+<!-- data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end -->
+<!-- data_obs = data_sub[!is.na(data_sub$survived),] # data with known response -->
+<!-- ``` -->
+
+<!-- Bonus: -->
+
+<!-- -   Try different features -->
+<!-- -   Try cito -->
+<!-- -   Try different datasets (see @sec-datasets) -->
+
+<!-- Code template for a simple CV (for tuning $\lambda$): -->
+
+<!-- - Extend the following code so that $\alpha$ is also tuned! -->
+
+
+<!-- ```{r} -->
+<!-- set.seed(42) -->
+<!-- cv = 5 -->
+<!-- hyper_lambda = runif(20,0, 0.2) -->
+
+
+<!-- tuning_results =  -->
+<!--     sapply(1:length(hyper_lambda), function(k) { -->
+<!--         auc_inner = NULL -->
+
+<!--         for(j in 1:cv) { -->
+<!--           inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
+<!--           train_inner = data_obs[inner_split != j, ] -->
+<!--           test_inner = data_obs[inner_split == j, ] -->
+
+<!--           model = glmnet(survived~.,data = train_inner, lambda = hyper_lambda[k], family = "binomial") -->
+
+
+<!--           auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response")) -->
+<!--         } -->
+<!--       return(mean(auc_inner)) -->
+<!--     }) -->
+<!-- results = data.frame(lambda = hyper_lambda, AUC = tuning_results) -->
+
+<!-- print(results) -->
+<!-- ``` -->
+
+<!-- ::: -->
+
+
+<!-- `r hide("Click here to see the solution")` -->
 
 
 
-```{r}
-set.seed(42)
-cv = 5
-hyper_lambda = runif(20,0, 0.2)
-hyper_alpha = runif(20, 0, 1)
+<!-- ```{r} -->
+<!-- set.seed(42) -->
+<!-- cv = 5 -->
+<!-- hyper_lambda = runif(20,0, 0.2) -->
+<!-- hyper_alpha = runif(20, 0, 1) -->
 
-  
-tuning_results = 
-    sapply(1:length(hyper_alpha), function(k) {
-        auc_inner = NULL
-      
-        for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
-      
-          model = glmnet(survived~.,data = train_inner, family = "binomial", alpha = hyper_alpha[k], lambda = hyper_lambda[k])
-          
-          auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response"))
-        }
-      return(mean(auc_inner))
-    })
-results = data.frame(lambda = hyper_lambda, alpha = hyper_alpha,  AUC = tuning_results)
 
-print(results)
-print(results[which.max(results$AUC),])
-```
+<!-- tuning_results =  -->
+<!--     sapply(1:length(hyper_alpha), function(k) { -->
+<!--         auc_inner = NULL -->
 
-Predictions:
+<!--         for(j in 1:cv) { -->
+<!--           inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
+<!--           train_inner = data_obs[inner_split != j, ] -->
+<!--           test_inner = data_obs[inner_split == j, ] -->
 
-```{r, results='hide', message=FALSE, warning=FALSE}
-model = glmnet(survived~.,data = data_obs, family = "binomial",alpha = results[which.max(results$AUC),2])
-predictions = predict(model, data_new, alpha = results$alpha[i], s = results[which.max(results$AUC),1], type = "response")[,1]
+<!--           model = glmnet(survived~.,data = train_inner, family = "binomial", alpha = hyper_alpha[k], lambda = hyper_lambda[k]) -->
 
-write.csv(data.frame(y = predictions, file = "Max_titanic_best_model.csv"))
-```
+<!--           auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response")) -->
+<!--         } -->
+<!--       return(mean(auc_inner)) -->
+<!--     }) -->
+<!-- results = data.frame(lambda = hyper_lambda, alpha = hyper_alpha,  AUC = tuning_results) -->
 
-`r unhide()`
+<!-- print(results) -->
+<!-- print(results[which.max(results$AUC),]) -->
+<!-- ``` -->
+
+<!-- Predictions: -->
+
+<!-- ```{r, results='hide', message=FALSE, warning=FALSE} -->
+<!-- model = glmnet(survived~.,data = data_obs, family = "binomial",alpha = results[which.max(results$AUC),2]) -->
+<!-- predictions = predict(model, data_new, alpha = results$alpha[i], s = results[which.max(results$AUC),1], type = "response")[,1] -->
+
+<!-- write.csv(data.frame(y = predictions, file = "Max_titanic_best_model.csv")) -->
+<!-- ``` -->
+
+<!-- `r unhide()` -->
 
 ### Bonus: mlr3
 
