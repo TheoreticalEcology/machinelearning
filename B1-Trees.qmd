@@ -569,7 +569,7 @@ tuning_results =
           
           data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
           
-          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k])
+          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic")
           predictions = predict(model, newdata = as.matrix(test_inner)[,-1])
           
           auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
@@ -611,7 +611,7 @@ tuning_results =
           
           data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
           
-          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k])
+          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic")
           predictions = predict(model, newdata = as.matrix(test_inner)[,-1])
           
           auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
@@ -630,7 +630,7 @@ Make predictions:
 ```{r, results='hide', warning=FALSE, message=FALSE}
 data_xg = xgb.DMatrix(data = as.matrix(data_obs[,-1]), label = data_obs$survived)
 
-model = xgboost(data_xg, nrounds = 16L, eta = results[which.max(results$AUC), 2], max_depth = results[which.max(results$AUC), 1])
+model = xgboost(data_xg, nrounds = 16L, eta = results[which.max(results$AUC), 2], max_depth = results[which.max(results$AUC), 1], objective = "reg:logistic")
 
 predictions = predict(model, newdata = as.matrix(data_new)[,-1])
 
