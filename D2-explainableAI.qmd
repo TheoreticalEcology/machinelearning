@@ -10,7 +10,7 @@ editor_options:
 #| echo: false
 #| include: false
 #| results: false
-reticulate::use_condaenv("r-reticulate")
+reticulate::use_virtualenv("r-keras")
 library(tensorflow)
 library(raster)
 library(sp)
@@ -158,7 +158,6 @@ shapley = Shapley$new(predictor, x.interest = data[1,-1])
 shapley$plot()
 ```
 
-
 ## Uncertainties - the bootstrap
 
 Standard xAI method do not provide reliable uncertainties on the fitted curves. If you want uncertainties or p-values, the most common method is the bootstrap.
@@ -186,28 +185,63 @@ Note that the distinction between bootstrap and validation / cross-validation is
 
 ## Exercises
 
-
-::: {.callout-caution icon="false"}
+::: callout-warning
 #### xAI in cito
+
+Data preparation
+```{r}
+library(iml)
+library(cito)
+library(EcoData)
+library(cito)
+
+
+data = EcoData::elephant$occurenceData
+head(data)
+?EcoData::elephant
+
+# we will subsample data (absences) to reduce runtime
+data_sub = data[sample.int(nrow(data), 500),]
+
+```
+
 
 Cito includes a lot of xAI methods directly out of the box
 
 ```{r}
-dnn = model = dnn(Presence~., data = data, batchsize = 100L, 
-                  validation = 0.3, loss = "binomial", verbose = FALSE)
+model = dnn(Presence~., data = data_sub, batchsize = 200L,loss = "binomial", verbose = FALSE, lr = 0.15, epochs = 300)
 ```
 
-Try the following commands: 
+Try the following commands:
 
-summary(dnn)
-PDP(dnn)
-ALE(dnn)
+-   `summary(dnn, n_permute = 10)` 
+-   `PDP(dnn)` 
+-   `ALE(dnn)`
 
-Moreover, try to refit the modell with the option bootstrap = 5. This may take a short while. Observe how the xAI options change. 
+Moreover, try to refit the model with the option `bootstrap = 5`. This may take a short while. Observe how the xAI options change.
+
 :::
 
+`r hide("Click here to see the solution for RF")`
 
-::: {.callout-caution icon="false"}
+```{r}
+model = dnn(Presence~., data = data_sub, batchsize = 200L, bootstrap = 5L, loss = "binomial", verbose = FALSE, lr = 0.15, epochs = 300)
+```
+
+```{r}
+summary(model, n_permute = 10L)
+```
+
+```{r, eval=FALSE}
+PDP(model)
+ALE(model)
+```
+
+
+`r unhide()`
+
+
+::: callout-warning
 #### Question
 
 Use one of the non-image based data sets (preferably Wine, which is also described in the data sets section @sec-datasets but wasn't used yet, but you can also use Nasa or Titanic) and fit a random forest, dnn or a BRT using xgboost. Explore / interpret the fitted model using `iml` (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>).
@@ -329,7 +363,7 @@ plot(importance)
 `r unhide()`
 :::
 
-::: {.callout-caution icon="false"}
+::: callout-warning
 #### Question
 
 As we show in Section 13 of this chapter, a random forest will partition the importance of variables across collinear predictors, while a linear regression model (`lm()`) can identify which predictor is causally affecting the response (at least in theory, if all confounders are controlled). What about a boosted regression tree or an artificial neural network? Take the random forest example and add a boosted regression tree (easier, you can use e.g. <https://rdrr.io/cran/xgboost/man/xgb.importance.html>) or an artificial neural network and see if they are better than the random forest at identifying causal predictors.
@@ -366,7 +400,7 @@ Every method yields slightly different results, but the main ingredient is alcoh
 `r unhide()`
 :::
 
-::: {.callout-caution icon="false"}
+::: callout-warning
 #### Bonus Task
 
 If you're done with the previous tasks and have still time and appetite, improve the submissions for our competition, in particular for the Wine data set. Possible ideas:
