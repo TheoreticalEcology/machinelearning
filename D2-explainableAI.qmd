@@ -30,6 +30,7 @@ We will fit a random forest and use the iml package for xAI, see <a href="https:
 library(iml)
 library(ranger) # different random Forest package!
 library(EcoData)
+library(cito)
 set.seed(123)
 
 
@@ -67,7 +68,9 @@ Meaning of the bioclim variables:
 rf = ranger(as.factor(Presence) ~ ., data = data, probability = TRUE)
 ```
 
-xAI packages are written generic, i.e. they can handle almost all machine learning models. When we want to use them, we first have to create a predictor object, that holds the model and the data. The `iml` package uses R6 classes, that means new objects can be created by calling `Predictor$new()`. (Do not worry if you do not know what R6 classes are, just use the command.)
+The cito package has quite extensive xAI functionalities. However, ranger, as most other machine learning packages, has no extensive xAI functionalities. Thus, to do xAI with ranger, we have to use a generic xAI package that can handle almost all machine learning models.
+
+When we want to use such a generic package, we first have to create a predictor object, that holds the model and the data. The `iml` package uses R6 classes, that means new objects can be created by calling `Predictor$new()`. (Do not worry if you do not know what R6 classes are, just use the command.)
 
 We often have to warp our predict function inside a so called wrapper function so that the output of the predict function fits to iml (iml expects that the predict function returns a vector of predictions:
 
@@ -155,12 +158,59 @@ shapley = Shapley$new(predictor, x.interest = data[1,-1])
 shapley$plot()
 ```
 
+
+## Uncertainties - the bootstrap
+
+Standard xAI method do not provide reliable uncertainties on the fitted curves. If you want uncertainties or p-values, the most common method is the bootstrap.
+
+In a bootstrap, is instead of splitting up the data in test / validation, we sample from the data with replacement and fit the models repeatedly. The idea is to get an estimate about the variability we would expect if we created another dataset of the same size.
+
+```{r}
+k = 10 # bootstrap samples
+n = nrow(data)
+error = rep(NA, k)
+
+for(i in 1:k){
+  bootSample = sample.int(n, n, replace = TRUE)
+  rf = ranger(as.factor(Presence) ~ ., data = data[bootSample,], probability = TRUE)
+  error[i] = rf$prediction.error
+}
+
+hist(error, main = "uncertainty of in-sample error")
+```
+
+Note that the distinction between bootstrap and validation / cross-validation is as follows:
+
+-   Validation / cross-validation estimates out-of-sample predictive error
+-   Bootstrap estimates uncertainty / confidence interval on all model outputs (could be prediction and inference).
+
 ## Exercises
+
+
+::: {.callout-caution icon="false"}
+#### xAI in cito
+
+Cito includes a lot of xAI methods directly out of the box
+
+```{r}
+dnn = model = dnn(Presence~., data = data, batchsize = 100L, 
+                  validation = 0.3, loss = "binomial", verbose = FALSE)
+```
+
+Try the following commands: 
+
+summary(dnn)
+PDP(dnn)
+ALE(dnn)
+
+Moreover, try to refit the modell with the option bootstrap = 5. This may take a short while. Observe how the xAI options change. 
+:::
+
 
 ::: {.callout-caution icon="false"}
 #### Question
 
-Use one of the non-image based data sets (preferably Wine, which is also described in the data sets section @sec-datasets but wasn't used yet, but you can also use Nasa or Titanic) and fit a random forest or a BRT using xgboost. Explore / interpret the fitted model using `iml` (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>).
+Use one of the non-image based data sets (preferably Wine, which is also described in the data sets section @sec-datasets but wasn't used yet, but you can also use Nasa or Titanic) and fit a random forest, dnn or a BRT using xgboost. Explore / interpret the fitted model using `iml` (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>).
 
 Tip:
 
@@ -176,7 +226,6 @@ predict_wrapper = function(model, newdata) predict(model, data=newdata)$predicti
 # xgboost:
 predict_wrapper = function(model, newdata) predict(model, as.matrix(newdata))
 ```
-
 
 `r hide("Click here to see the solution for RF")`
 
@@ -227,11 +276,9 @@ as.matrix(comparison)
 
 Mind that feature importance, and the random forest's variable importance are related but not equal! Variable importance is a measure for determining importance while creating the forest (i.e. for fitting). Feature importance is a measure for how important a variable is for prediction.
 
-Maybe you want to see other explanation methods as well. Surely you can use the other techniques of this section on your own. 
+Maybe you want to see other explanation methods as well. Surely you can use the other techniques of this section on your own.
 
 `r unhide()`
-
-
 
 `r hide("Click here to see the solution for xgboost")`
 
@@ -279,10 +326,7 @@ plot(importance)
 
 ```
 
-
-
 `r unhide()`
-
 :::
 
 ::: {.callout-caution icon="false"}

@@ -92,31 +92,6 @@ for(i in 1:k){
 cor(pred, data$medv)
 ```
 
-### The bootstrap
-
-It doesn't really fit in here, but as we just introduced validation and cross-valation, we also want to introduce you to the bootstrap, which is next to cross-validation the other main resampling technique.
-
-In a bootstrap, is instead of splitting up the data in test / validation, we sample from the data with replacement and fit the models repeatedly. The idea is to get an estimate about the variability we would expect if we created another dataset of the same size.
-
-```{r}
-k = 10 # bootstrap samples
-pred = matrix(NA,k,n)
-dim(pred)
-
-for(i in 1:k){
-  bootSample = sample.int(n, n, replace = TRUE)
-  m1 = randomForest(medv~., data = data[bootSample,])
-  pred[i,] = predict(m1)
-}
-
-boxplot(pred[,1:10], main = "uncertainty predictions 1-10")
-```
-
-Basically, the distinction between bootstrap and validation / cross-validation is as follows:
-
--   Validation / cross-validation estimates out-of-sample predictive error
--   Bootstrap estimates uncertainty / confidence interval on all model outputs (could be prediction and inference).
-
 
 ## Optimizing the bias-variance trade-off
 
