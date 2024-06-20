@@ -468,74 +468,62 @@ To show this, we will use our flower data set. We have to define a generator obj
 ::: panel-tabset
 ## Keras
 
-```{r chunk_chapter5_25, eval=FALSE}
-library(tensorflow)
-library(keras)
+```{r chunk_chapter5_25, eval=TRUE}
+reticulate::use_virtualenv("r-keras")
 library(keras3)
+library(tensorflow)
+library(tfdatasets)
 
 data = EcoData::dataset_flower()
 train = data$train/255
 labels = data$labels
 
+
+# data augemention model
+aug = keras_model_sequential()
+aug |>
+  layer_random_flip() %>% 
+  layer_random_rotation(factor = 1.0)
+
+# Prepare datasets
+dataset = tfdatasets::tensor_slices_dataset(list(train, to_categorical(labels)))
+dataset <- dataset %>%
+  dataset_map(function(x, y) list(aug(x), y))
+
+batch_size <- 64
+
+train_ds <- dataset |>
+  dataset_batch(batch_size) |>
+  dataset_prefetch() %>% 
+  dataset_prefetch(buffer_size = tf$data$AUTOTUNE)
+
+# test!
+batch <- train_ds |>
+  dataset_take(1) |>
+  as_iterator() |>
+  iter_next()
+
+as.array(batch[[1]][1,,,]) |>
+  image_to_array() |>
+  as.raster() |>
+  plot()
+
+# model fitting
 model = keras_model_sequential(shape(80L, 80L, 3L))
-model |>
-  layer_conv_2d(filter = 16L, kernel_size = c(5L, 5L), activation = "relu") |>
-  layer_max_pooling_2d() |>
-  layer_conv_2d(filter = 32L, kernel_size = c(3L, 3L),
-                activation = "relu") |>
-  layer_max_pooling_2d() |>
-  layer_conv_2d(filter = 64L, kernel_size = c(3L, 3L),
-                strides = c(2L, 2L), activation = "relu") |>
-  layer_max_pooling_2d() |>
-  layer_flatten() |>
-  layer_dropout(0.5) |>
+model |> 
+  layer_conv_2d(filters = 4L, kernel_size = 2L) |> 
+  layer_max_pooling_2d() |> 
+  layer_flatten() |> 
   layer_dense(units = 5L, activation = "softmax")
 
-  
-# Data augmentation.
-aug = keras::image_data_generator(rotation_range = 90, 
-                           zoom_range = c(0.3), 
-                           horizontal_flip = TRUE, 
-                           vertical_flip = TRUE)
-
-# Data preparation / splitting.
-indices = sample.int(nrow(train), 0.1 * nrow(train))
-generator = keras::flow_images_from_data(train[-indices,,,],
-                                  k_one_hot(labels[-indices], num_classes = 5L),
-                                  generator = aug,
-                                  batch_size = 25L,
-                                  shuffle = TRUE)
-
-test = train[indices,,,]
-
-## Training loop with early stopping:
-
-# As we use an iterator (the generator), validation loss is not applicable.
-# An available metric is the normal loss.
-early = keras3::callback_early_stopping(patience = 2L, monitor = "loss")
 
 model |>
-	keras3::compile(loss = keras3::loss_categorical_crossentropy,
-	               optimizer = keras3::optimizer_adamax(learning_rate = 0.01))
+  keras3::compile(loss = keras3::loss_categorical_crossentropy,
+                  optimizer = keras3::optimizer_adamax(learning_rate = 0.01))
 
-model |>
-	fit(generator, epochs = 20L, batch_size = 25L,
-	    shuffle = TRUE, callbacks = c(early))
 
-# Predictions on the training set:
-pred = predict(model, data$train[-indices,,,]) |> apply(1, which.max) - 1
-Metrics::accuracy(pred, labels[-indices])
-table(pred)
+model %>% fit(train_ds, epochs = 2L)
 
-# Predictions on the holdout / test set:
-pred = predict(model, test) |> apply(1, which.max) - 1
-Metrics::accuracy(pred, labels[indices])
-table(pred)
-
-# If you want to predict on the holdout for submission, use:
-pred = predict(model, EcoData::dataset_flower()$test/255) |>
-  apply(1, which.max) - 1
-table(pred)
 ```
 
 Using data augmentation we can artificially increase the number of images.
