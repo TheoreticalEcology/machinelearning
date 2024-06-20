@@ -481,9 +481,12 @@ labels = data$labels
 
 # data augemention model
 aug = keras_model_sequential()
-aug |>
+aug %>% 
   layer_random_flip() %>% 
-  layer_random_rotation(factor = 1.0)
+  layer_random_rotation(factor = c(-0.5, 0.5)) %>% 
+  layer_random_brightness(factor = c(-0.5, 0.5), value_range = c(0, 1))
+aug
+
 
 # Prepare datasets
 dataset = tfdatasets::tensor_slices_dataset(list(train, to_categorical(labels)))
@@ -494,7 +497,6 @@ batch_size <- 64
 
 train_ds <- dataset |>
   dataset_batch(batch_size) |>
-  dataset_prefetch() %>% 
   dataset_prefetch(buffer_size = tf$data$AUTOTUNE)
 
 # test!
@@ -762,17 +764,35 @@ library(keras3)
 library(tensorflow)
 
 data = EcoData::dataset_flower()
-
-train = data$train/127.5 - 1 
-test = data$test/127.5 - 1
+train = data$train/255
 labels = data$labels
 
 
+# data augemention model
+aug = keras_model_sequential()
+aug %>% 
+  layer_random_flip() %>% 
+  layer_random_rotation(factor = c(-0.5, 0.5)) %>% 
+  layer_random_brightness(factor = c(-0.5, 0.5), value_range = c(0, 1))
+aug
+
+
+# Prepare datasets
+dataset = tfdatasets::tensor_slices_dataset(list(train, to_categorical(labels)))
+dataset <- dataset %>%
+  dataset_map(function(x, y) list(aug(x), y))
+
+batch_size <- 64
+
+train_ds <- dataset |>
+  dataset_batch(batch_size) |>
+  dataset_prefetch(buffer_size = tf$data$AUTOTUNE)
+
 # Transfer learning
 
 # weights were trained to imagenet
-pretrained_model = keras3::application_efficientnet_b1(include_top = FALSE,
-                                                      input_shape = c(80L, 80L, 3L))
+pretrained_model = keras3::application_convnext_small(include_top = FALSE,
+                                                       input_shape = c(80L, 80L, 3L))
 # pretrained_model
 
 keras3::freeze_weights(pretrained_model)
@@ -780,77 +800,23 @@ pretrained_model
 
 # Build model
 
-dnn = pretrained_model$output |> 
-  layer_flatten() |> 
-  layer_dropout(0.2) |> 
-  layer_dense(units = 5L, activation = "softmax")
-dnn
-
 model = keras_model(inputs = pretrained_model$input,
-                    outputs = dnn
-                    )
+                    outputs = pretrained_model$output |> 
+                      layer_flatten() |> 
+                      layer_dropout(0.2) |> 
+                      layer_dense(units = 5L, activation = "softmax")
+)
+model %>% freeze_weights(from = 1, to = length(model$layers)-1)
+
 model |>
   keras3::compile(loss = loss_categorical_crossentropy,
-                 optimizer = keras3::optimizer_rmsprop(learning_rate = 0.0005))
+                  optimizer = keras3::optimizer_rmsprop(learning_rate = 0.0005))
 
 
 model |> 
-  fit(x = train, y = k_one_hot(labels, 5L), validation_split = 0.2, epochs = 5L)
+  fit(train_ds, epochs = 5L)
 
 
 
-# Data augmentation
-# Transfer learning
-
-# weights were trained to imagenet
-pretrained_model = keras3::application_efficientnet_b1(include_top = FALSE,
-                                                      input_shape = c(80L, 80L, 3L))
-# pretrained_model
-
-keras3::freeze_weights(pretrained_model)
-pretrained_model
-
-# Build model
-
-dnn = pretrained_model$output |> 
-  layer_flatten() |> 
-  layer_dropout(0.2) |> 
-  layer_dense(units = 5L, activation = "softmax")
-dnn
-
-model = keras_model(inputs = pretrained_model$input,
-                    outputs = dnn
-)
-
-### Set up augmentation
-aug = keras::image_data_generator(rotation_range = 180, zoom_range = 0.4,
-                           width_shift_range = 0.2, height_shift_range = 0.2,
-                           vertical_flip = TRUE, horizontal_flip = TRUE)
-
-
-### Set up the data
-indices = sample.int(nrow(train), 0.1 * nrow(train)) # for validation
-generator = keras::flow_images_from_data(x = train[-indices,,,],
-                                  y = k_one_hot(labels[-indices], 5L),
-                                  generator = aug
-                                  )
-generator
-
-
-model |>
-  keras3::compile(loss = keras3::loss_categorical_crossentropy,
-                 optimizer = keras::optimizer_rmsprop(learning_rate = 0.0005))
-
-steps_per_epoch = nrow(train[-indices,,,]) /45
-steps_per_epoch = floor(steps_per_epoch)
-
-model %>% 
-  fit(generator, epochs = 5L, batch_size = 45L, steps_per_epoch = steps_per_epoch, 
-      validation_data = list(train[indices,,,], k_one_hot(labels[indices], 5L))
-      )
-
-pred = predict(model, test)
-pred = apply(pred, 1, which.max) - 1
-pred
 
 ```
