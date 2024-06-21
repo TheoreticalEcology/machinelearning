@@ -359,15 +359,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">Table of contents</h2>
-   
-  <ul>
-  <li><a href="#mnist---generative-adversarial-networks-based-on-deep-neural-networks" id="toc-mnist---generative-adversarial-networks-based-on-deep-neural-networks" class="nav-link active" data-scroll-target="#mnist---generative-adversarial-networks-based-on-deep-neural-networks"><span class="header-section-number">15.1</span> MNIST - Generative Adversarial Networks Based on Deep Neural Networks</a></li>
-  <li><a href="#flower---gan" id="toc-flower---gan" class="nav-link" data-scroll-target="#flower---gan"><span class="header-section-number">15.2</span> Flower - GAN</a></li>
-  <li><a href="#exercise" id="toc-exercise" class="nav-link" data-scroll-target="#exercise"><span class="header-section-number">15.3</span> Exercise</a></li>
-  </ul>
-<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/E2-GAN.qmd" class="toc-action">Edit this page</a></p></div></div></nav>
+        
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -404,441 +396,546 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   = -\frac{1}{N} \sum_{i = 1}^{N} y_{i} \cdot \mathrm{log} (\hat{y}_{i}) + (1 -y_{i}) \cdot \mathrm{log} \left( 1- \hat{y}_{i} \right)
 \]</span> High predicted probabilities of having the label for originally labeled data (1) yield a low loss as well as predicting a low probability of having the label for originally unlabeled data (0). Mind the properties of probabilities and the logarithm.</p>
 <p>A possible application of generative adversarial networks is to create pictures that look like real photographs e.g.&nbsp;<a href="https://thispersondoesnotexist.com/" target="_blank" rel="noopener">https://thispersondoesnotexist.com/</a>. Visit that site (several times)!. However, the application of generative adversarial networks today is much wider than just the creation of data. For example, generative adversarial networks can also be used to “augment” data, i.e.&nbsp;to create new data and thereby improve the fitted model.</p>
-<section id="mnist---generative-adversarial-networks-based-on-deep-neural-networks" class="level2" data-number="15.1">
-<h2 data-number="15.1" class="anchored" data-anchor-id="mnist---generative-adversarial-networks-based-on-deep-neural-networks"><span class="header-section-number">15.1</span> MNIST - Generative Adversarial Networks Based on Deep Neural Networks</h2>
-<p>We will now explore this on the MNIST data set.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set_random_seed</span>(321L, <span class="at">disable_gpu =</span> <span class="cn">FALSE</span>)  <span class="co"># Already sets R's random seed.</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>rotate <span class="ot">=</span> <span class="cf">function</span>(x){ <span class="fu">t</span>(<span class="fu">apply</span>(x, <span class="dv">2</span>, rev)) }</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>imgPlot <span class="ot">=</span> <span class="cf">function</span>(img, <span class="at">title =</span> <span class="st">""</span>){</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  col <span class="ot">=</span> <span class="fu">grey.colors</span>(<span class="dv">255</span>)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">image</span>(<span class="fu">rotate</span>(img), <span class="at">col =</span> col, <span class="at">xlab =</span> <span class="st">""</span>, <span class="at">ylab =</span> <span class="st">""</span>, <span class="at">axes =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">main =</span> <span class="fu">paste0</span>(<span class="st">"Label: "</span>, <span class="fu">as.character</span>(title)))</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>We don’t need the test set here.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">dataset_mnist</span>()</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data<span class="sc">$</span>train</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>train_x <span class="ot">=</span> <span class="fu">array</span>((train<span class="sc">$</span>x<span class="fl">-127.5</span>)<span class="sc">/</span><span class="fl">127.5</span>, <span class="fu">c</span>(<span class="fu">dim</span>(train<span class="sc">$</span>x)[<span class="dv">1</span>], 784L))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>We need a function to sample images for the discriminator.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> 32L</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>dataset <span class="ot">=</span> tf<span class="sc">$</span>data<span class="sc">$</span>Dataset<span class="sc">$</span><span class="fu">from_tensor_slices</span>(tf<span class="sc">$</span><span class="fu">constant</span>(train_x, <span class="st">"float32"</span>))</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>dataset<span class="sc">$</span><span class="fu">batch</span>(batch_size)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Create function that returns the generator model:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>get_generator <span class="ot">=</span> <span class="cf">function</span>(){</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  generator <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  generator <span class="sc">%&gt;%</span> </span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 200L, <span class="at">input_shape =</span> <span class="fu">c</span>(100L)) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_activation_leaky_relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 200L) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_activation_leaky_relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 784L, <span class="at">activation =</span> <span class="st">"tanh"</span>)</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(generator)</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Test the generator:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>generator <span class="ot">=</span> <span class="fu">get_generator</span>()</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>sample <span class="ot">=</span> tf<span class="sc">$</span>random<span class="sc">$</span><span class="fu">normal</span>(<span class="fu">c</span>(1L, 100L))</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">imgPlot</span>(<span class="fu">array</span>(<span class="fu">generator</span>(sample)<span class="sc">$</span><span class="fu">numpy</span>(), <span class="fu">c</span>(28L, 28L)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_24-1.png" width="100%" style="display: block; margin: auto;"></p>
-<p>In the discriminator, noise (random vector with 100 values) is passed through the network such that the output corresponds to the number of pixels of one MNIST image (784). We therefore define the discriminator function now.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>get_discriminator <span class="ot">=</span> <span class="cf">function</span>(){</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  discriminator <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  discriminator <span class="sc">%&gt;%</span> </span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 200L, <span class="at">input_shape =</span> <span class="fu">c</span>(784L)) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_activation_leaky_relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 100L) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_activation_leaky_relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 1L, <span class="at">activation =</span> <span class="st">"sigmoid"</span>)</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(discriminator)</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>And we also test the discriminator function.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>discriminator <span class="ot">=</span> <span class="fu">get_discriminator</span>()</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">discriminator</span>(<span class="fu">generator</span>(tf<span class="sc">$</span>random<span class="sc">$</span><span class="fu">normal</span>(<span class="fu">c</span>(1L, 100L))))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Helper function and hyperparameters</p>
 <div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-tf.Tensor([[0.5089391]], shape=(1, 1), dtype=float32)
-    
-    </code></pre>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>weights_init <span class="ot">=</span> <span class="cf">function</span>(m) {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">inherits</span>(m, <span class="st">"nn_conv_nd"</span>)) {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nn_init_normal_</span>(m<span class="sc">$</span>weight<span class="sc">$</span><span class="fu">data</span>(), <span class="fl">0.0</span>, <span class="fl">0.02</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  } </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">inherits</span>(m, <span class="st">"nn_batch_norm_"</span>)) {</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nn_init_normal_</span>(m<span class="sc">$</span>weight<span class="sc">$</span><span class="fu">data</span>(), <span class="fl">1.0</span>, <span class="fl">0.02</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nn_init_constant_</span>(m<span class="sc">$</span>bias<span class="sc">$</span><span class="fu">data</span>(), <span class="dv">0</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> <span class="dv">128</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>image_size <span class="ot">=</span> 80L</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>nc <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>nz <span class="ot">=</span> <span class="dv">100</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>ngf <span class="ot">=</span> 80L</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>ndf <span class="ot">=</span> 80L</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>lr <span class="ot">=</span> <span class="fl">0.01</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>device <span class="ot">=</span> <span class="st">"cpu"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<p>We also have to define the loss functions for both networks.We use the already known binary cross entropy. However, we have to encode the real and predicted values for the two networks individually.</p>
-<p>The discriminator will get two losses - one for identifying fake images as fake, and one for identifying real MNIST images as real images.</p>
-<p>The generator will just get one loss - was it able to deceive the discriminator?</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>ce <span class="ot">=</span> tf<span class="sc">$</span>keras<span class="sc">$</span>losses<span class="sc">$</span><span class="fu">BinaryCrossentropy</span>(<span class="at">from_logits =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>loss_discriminator <span class="ot">=</span> <span class="cf">function</span>(real, fake){</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  real_loss <span class="ot">=</span> <span class="fu">ce</span>(tf<span class="sc">$</span><span class="fu">ones_like</span>(real), real)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  fake_loss <span class="ot">=</span> <span class="fu">ce</span>(tf<span class="sc">$</span><span class="fu">zeros_like</span>(fake), fake)</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(real_loss <span class="sc">+</span> fake_loss)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>loss_generator <span class="ot">=</span> <span class="cf">function</span>(fake){</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">ce</span>(tf<span class="sc">$</span><span class="fu">ones_like</span>(fake), fake))</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Each network will get its own optimizer (in a GAN the networks are treated independently):</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>gen_opt <span class="ot">=</span> tf<span class="sc">$</span>keras<span class="sc">$</span>optimizers<span class="sc">$</span><span class="fu">RMSprop</span>(<span class="fl">1e-4</span>)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>disc_opt <span class="ot">=</span> tf<span class="sc">$</span>keras<span class="sc">$</span>optimizers<span class="sc">$</span><span class="fu">RMSprop</span>(<span class="fl">1e-4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>We have to write our own training loop here (we cannot use the fit function). In each iteration (for each batch) we will do the following (the GradientTape records computations to do automatic differentiation):</p>
-<ol type="1">
-<li>Sample noise.</li>
-<li>Generator creates images from the noise.</li>
-<li>Discriminator makes predictions for fake images and real images (response is a probability between [0,1]).</li>
-<li>Calculate loss for generator.</li>
-<li>Calculate loss for discriminator.</li>
-<li>Calculate gradients for weights and the loss.</li>
-<li>Update weights of generator.</li>
-<li>Update weights of discriminator.</li>
-<li>Return losses.</li>
-</ol>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>generator <span class="ot">=</span> <span class="fu">get_generator</span>()</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>discriminator <span class="ot">=</span> <span class="fu">get_discriminator</span>()</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>train_step <span class="ot">=</span> <span class="cf">function</span>(images){</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  noise <span class="ot">=</span> tf<span class="sc">$</span>random<span class="sc">$</span><span class="fu">normal</span>(<span class="fu">c</span>(128L, 100L))</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(tf<span class="sc">$</span><span class="fu">GradientTape</span>(<span class="at">persistent =</span> <span class="cn">TRUE</span>) <span class="sc">%as%</span> tape,</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    {</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>      gen_images <span class="ot">=</span> <span class="fu">generator</span>(noise)</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>      fake_output <span class="ot">=</span> <span class="fu">discriminator</span>(gen_images)</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>      real_output <span class="ot">=</span> <span class="fu">discriminator</span>(images)</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>      gen_loss <span class="ot">=</span> <span class="fu">loss_generator</span>(fake_output)</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      disc_loss <span class="ot">=</span> <span class="fu">loss_discriminator</span>(real_output, fake_output)</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  gen_grads <span class="ot">=</span> tape<span class="sc">$</span><span class="fu">gradient</span>(gen_loss, generator<span class="sc">$</span>weights)</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  disc_grads <span class="ot">=</span> tape<span class="sc">$</span><span class="fu">gradient</span>(disc_loss, discriminator<span class="sc">$</span>weights)</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span>(tape)</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  gen_opt<span class="sc">$</span><span class="fu">apply_gradients</span>(purrr<span class="sc">::</span><span class="fu">transpose</span>(<span class="fu">list</span>(gen_grads, generator<span class="sc">$</span>weights)))</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>  disc_opt<span class="sc">$</span><span class="fu">apply_gradients</span>(purrr<span class="sc">::</span><span class="fu">transpose</span>(<span class="fu">list</span>(disc_grads, discriminator<span class="sc">$</span>weights)))</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">c</span>(gen_loss, disc_loss))</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>train_step <span class="ot">=</span> tf<span class="sc">$</span><span class="st">`</span><span class="at">function</span><span class="st">`</span>(reticulate<span class="sc">::</span><span class="fu">py_func</span>(train_step))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Now we can finally train our networks in a training loop:</p>
-<ol type="1">
-<li>Create networks.</li>
-<li>Get batch of images.</li>
-<li>Run train_step function.</li>
-<li>Print losses.</li>
-<li>Repeat step 2-4 for number of epochs.</li>
-</ol>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> 128L</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>epochs <span class="ot">=</span> 20L</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>steps <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">nrow</span>(train_x)<span class="sc">/</span>batch_size)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>counter <span class="ot">=</span> <span class="dv">1</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>gen_loss <span class="ot">=</span> <span class="fu">c</span>()</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>disc_loss <span class="ot">=</span> <span class="fu">c</span>()</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>dataset2 <span class="ot">=</span> dataset<span class="sc">$</span><span class="fu">prefetch</span>(tf<span class="sc">$</span>data<span class="sc">$</span>AUTOTUNE)</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>epochs){</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  dat <span class="ot">=</span> reticulate<span class="sc">::</span><span class="fu">as_iterator</span>(dataset2<span class="sc">$</span><span class="fu">batch</span>(batch_size))</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  coro<span class="sc">::</span><span class="fu">loop</span>(</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(images <span class="cf">in</span> dat){</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>      losses <span class="ot">=</span> <span class="fu">train_step</span>(images)</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>      gen_loss <span class="ot">=</span> <span class="fu">c</span>(gen_loss, tf<span class="sc">$</span><span class="fu">reduce_sum</span>(losses[[<span class="dv">1</span>]])<span class="sc">$</span><span class="fu">numpy</span>())</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>      disc_loss <span class="ot">=</span> <span class="fu">c</span>(disc_loss, tf<span class="sc">$</span><span class="fu">reduce_sum</span>(losses[[<span class="dv">2</span>]])<span class="sc">$</span><span class="fu">numpy</span>())</span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>   </span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(e <span class="sc">%%</span> <span class="dv">5</span> <span class="sc">==</span> <span class="dv">0</span>){ <span class="co">#Print output every 5 steps.</span></span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"Gen: "</span>, <span class="fu">mean</span>(gen_loss), <span class="st">" Disc: "</span>, <span class="fu">mean</span>(disc_loss), <span class="st">" </span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  noise <span class="ot">=</span> tf<span class="sc">$</span>random<span class="sc">$</span><span class="fu">normal</span>(<span class="fu">c</span>(1L, 100L))</span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(e <span class="sc">%%</span> <span class="dv">10</span> <span class="sc">==</span> <span class="dv">0</span>){  <span class="co">#Plot image every 10 steps.</span></span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">imgPlot</span>(<span class="fu">array</span>(<span class="fu">generator</span>(noise)<span class="sc">$</span><span class="fu">numpy</span>(), <span class="fu">c</span>(28L, 28L)), <span class="st">"Gen"</span>)</span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Gen:  0.8095555  Disc:  1.10533  
-Gen:  0.8928918  Disc:  1.287504    
-    </code></pre>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Generator <span class="ot">=</span> <span class="fu">nn_module</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>() {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>main <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv_transpose2d</span>( nz, ngf <span class="sc">*</span> <span class="dv">4</span>, <span class="at">kernel_size =</span> <span class="dv">4</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="at">bias=</span><span class="cn">FALSE</span>),</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_batch_norm2d</span>(ngf <span class="sc">*</span> <span class="dv">4</span>),</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv_transpose2d</span>(ngf <span class="sc">*</span> <span class="dv">4</span>, ngf <span class="sc">*</span> <span class="dv">2</span>, <span class="at">kernel_size =</span> <span class="dv">5</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="at">bias=</span><span class="cn">FALSE</span>),</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_batch_norm2d</span>(ngf <span class="sc">*</span> <span class="dv">2</span>),</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv_transpose2d</span>( ngf <span class="sc">*</span> <span class="dv">2</span>, ngf , <span class="at">kernel_size =</span> <span class="dv">5</span>, <span class="dv">3</span>, <span class="dv">1</span>, <span class="at">bias=</span><span class="cn">FALSE</span>),</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_batch_norm2d</span>(ngf),</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv_transpose2d</span>( ngf, nc,  <span class="at">kernel_size =</span><span class="dv">6</span>, <span class="dv">3</span>, <span class="dv">2</span>, <span class="at">bias=</span><span class="cn">FALSE</span>),</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_sigmoid</span>()</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">forward =</span> <span class="cf">function</span>(input) self<span class="sc">$</span><span class="fu">main</span>(input)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>Flatten <span class="ot">=</span> </span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_module</span>(</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">forward =</span> <span class="cf">function</span>(input) <span class="fu">return</span>(input<span class="sc">$</span><span class="fu">view</span>(<span class="fu">list</span>(input<span class="sc">$</span><span class="fu">size</span>(1L), <span class="sc">-</span><span class="dv">1</span>)))</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>Discriminator <span class="ot">=</span> <span class="fu">nn_module</span>(</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>() {</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>main <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv2d</span>(nc, <span class="dv">40</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="at">bias=</span><span class="cn">FALSE</span>),</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_leaky_relu</span>(<span class="fl">0.2</span>),</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv2d</span>(<span class="dv">40</span>, <span class="dv">80</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="at">bias=</span><span class="cn">FALSE</span>),</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_batch_norm2d</span>(<span class="dv">80</span>),</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_leaky_relu</span>(<span class="fl">0.2</span>),</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv2d</span>(<span class="dv">80</span>, <span class="dv">80</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="at">bias=</span><span class="cn">FALSE</span>),</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_batch_norm2d</span>(<span class="dv">80</span>),</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_leaky_relu</span>(<span class="fl">0.2</span>),</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv2d</span>(<span class="dv">80</span>, <span class="dv">80</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="at">bias=</span><span class="cn">FALSE</span>),</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_batch_norm2d</span>(<span class="dv">80</span>),</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_leaky_relu</span>(<span class="fl">0.2</span>), </span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>      <span class="fu">Flatten</span>(),</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_linear</span>(<span class="dv">2000</span>, <span class="dv">1</span>),</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_sigmoid</span>()</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>  <span class="at">forward =</span> <span class="cf">function</span>(input) self<span class="sc">$</span><span class="fu">main</span>(input)</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>disc <span class="ot">=</span> <span class="fu">Discriminator</span>()</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>disc<span class="sc">$</span><span class="fu">apply</span>(weights_init)</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>gen <span class="ot">=</span> <span class="fu">Generator</span>()</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>gen<span class="sc">$</span><span class="fu">apply</span>(weights_init)</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>disc<span class="sc">$</span>main<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>gen<span class="sc">$</span>main<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>loss <span class="ot">=</span> nnf_binary_cross_entropy</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>fixed_noise <span class="ot">=</span> <span class="fu">torch_randn</span>(<span class="dv">64</span>, nz, <span class="dv">1</span>, <span class="dv">1</span>, <span class="at">device=</span>device)</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a><span class="co"># Establish convention for real and fake labels during training</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>real_label <span class="ot">=</span> <span class="fl">1.</span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>fake_label <span class="ot">=</span> <span class="fl">0.</span></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="co"># Setup Adam optimizers for both G and D</span></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>optimizerD <span class="ot">=</span> <span class="fu">optim_adam</span>(gen<span class="sc">$</span>parameters, <span class="at">lr=</span>lr)</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>optimizerG <span class="ot">=</span> <span class="fu">optim_adam</span>(disc<span class="sc">$</span>parameters, <span class="at">lr=</span>lr)</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> EcoData<span class="sc">::</span><span class="fu">dataset_flower</span>()</span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data<span class="sc">$</span>train<span class="sc">/</span><span class="dv">255</span></span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>labels <span class="ot">=</span> data<span class="sc">$</span>labels</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> <span class="fu">aperm</span>(train, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">3</span>))</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>dataset <span class="ot">=</span> torch<span class="sc">::</span><span class="fu">tensor_dataset</span>(<span class="fu">torch_tensor</span>(train))</span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>dataLoader <span class="ot">=</span> torch<span class="sc">::</span><span class="fu">dataloader</span>(dataset, <span class="at">batch_size =</span> 50L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>, <span class="at">pin_memory =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>) {</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>  errG_batch <span class="ot">=</span> errD_batch <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>  counter <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>  coro<span class="sc">::</span><span class="fu">loop</span>(<span class="cf">for</span> (b <span class="cf">in</span> dataLoader) {</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>    disc<span class="sc">$</span><span class="fu">zero_grad</span>()</span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>    gen<span class="sc">$</span><span class="fu">zero_grad</span>()</span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>    real <span class="ot">=</span> b[[<span class="dv">1</span>]]<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>    b_size <span class="ot">=</span> real<span class="sc">$</span><span class="fu">size</span>(1L)</span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>    label <span class="ot">=</span> <span class="fu">torch_full</span>(<span class="fu">c</span>(b_size), real_label, <span class="at">dtype=</span><span class="fu">torch_float</span>(), <span class="at">device=</span>device)</span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>    output <span class="ot">=</span> <span class="fu">disc</span>(real)<span class="sc">$</span><span class="fu">view</span>(<span class="fu">list</span>(<span class="sc">-</span><span class="dv">1</span>))</span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a>    errD_real <span class="ot">=</span> <span class="fu">nnf_binary_cross_entropy</span>(output, label, <span class="at">reduction =</span> <span class="st">"sum"</span>)</span>
+<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a>    noise <span class="ot">=</span> <span class="fu">torch_randn</span>(b_size, nz, <span class="dv">1</span>, <span class="dv">1</span>, <span class="at">device=</span>device)</span>
+<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a>    fake <span class="ot">=</span> <span class="fu">gen</span>(noise)</span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a>    label <span class="ot">=</span> <span class="fu">torch_full</span>(<span class="fu">c</span>(b_size), fake_label, <span class="at">dtype=</span><span class="fu">torch_float</span>(), <span class="at">device=</span>device)</span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a>    output <span class="ot">=</span> <span class="fu">disc</span>(fake<span class="sc">$</span><span class="fu">detach</span>())<span class="sc">$</span><span class="fu">view</span>(<span class="fu">list</span>(<span class="sc">-</span><span class="dv">1</span>))</span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>    errD_fake <span class="ot">=</span> <span class="fu">nnf_binary_cross_entropy</span>(output, label,<span class="at">reduction =</span> <span class="st">"sum"</span>)</span>
+<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a>    errD <span class="ot">=</span> errD_real <span class="sc">+</span> errD_fake</span>
+<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a>    errD<span class="sc">$</span><span class="fu">backward</span>()</span>
+<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a>    optimizerD<span class="sc">$</span><span class="fu">step</span>()</span>
+<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a>    <span class="co">#optimizerD$zero_grad()</span></span>
+<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a>    gen<span class="sc">$</span><span class="fu">zero_grad</span>()</span>
+<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a>    fake <span class="ot">=</span> <span class="fu">gen</span>(noise)</span>
+<span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a>    output <span class="ot">=</span> <span class="fu">disc</span>(fake)<span class="sc">$</span><span class="fu">view</span>(<span class="fu">list</span>(<span class="sc">-</span>1L))</span>
+<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a>    errG <span class="ot">=</span> <span class="fu">nnf_binary_cross_entropy</span>(output, <span class="fl">1.0</span><span class="sc">-</span>label, <span class="at">reduction =</span> <span class="st">"sum"</span>)</span>
+<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a>    errG<span class="sc">$</span><span class="fu">backward</span>()</span>
+<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a>    <span class="co">#optimizerD$step()</span></span>
+<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>    optimizerG<span class="sc">$</span><span class="fu">step</span>()</span>
+<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a>    errG_batch[counter] <span class="ot">&lt;-</span> errG<span class="sc">$</span><span class="fu">item</span>()</span>
+<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a>    errD_batch[counter] <span class="ot">&lt;-</span> errD<span class="sc">$</span><span class="fu">item</span>()</span>
+<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a>    counter <span class="ot">=</span> counter <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Epoch: "</span>, e, <span class="st">" loss D: "</span>, <span class="fu">mean</span>(errD_batch), <span class="st">" loss G: "</span>, <span class="fu">mean</span>(errG_batch), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-120"><a href="#cb2-120" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">gen</span>(noise)</span>
+<span id="cb2-121"><a href="#cb2-121" aria-hidden="true" tabindex="-1"></a>images <span class="ot">=</span> <span class="fu">as_array</span>(predictions<span class="sc">$</span><span class="fu">cpu</span>())</span>
+<span id="cb2-122"><a href="#cb2-122" aria-hidden="true" tabindex="-1"></a>images <span class="ot">=</span> <span class="fu">aperm</span>(images, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>))</span>
+<span id="cb2-123"><a href="#cb2-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-124"><a href="#cb2-124" aria-hidden="true" tabindex="-1"></a>oldpar <span class="ot">=</span> <span class="fu">par</span>()</span>
+<span id="cb2-125"><a href="#cb2-125" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">5</span>), <span class="at">mar =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">4</span>), <span class="at">oma =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">4</span>))</span>
+<span id="cb2-126"><a href="#cb2-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-127"><a href="#cb2-127" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>) {</span>
+<span id="cb2-128"><a href="#cb2-128" aria-hidden="true" tabindex="-1"></a>  images[i,,,]  <span class="sc">%&gt;%</span></span>
+<span id="cb2-129"><a href="#cb2-129" aria-hidden="true" tabindex="-1"></a>    keras3<span class="sc">::</span><span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb2-130"><a href="#cb2-130" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-131"><a href="#cb2-131" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot</span>()</span>
+<span id="cb2-132"><a href="#cb2-132" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_30-1.png" width="100%" style="display: block; margin: auto;"></p>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Gen:  0.9071119  Disc:  1.314586  
-Gen:  0.9514963  Disc:  1.31548 
-    </code></pre>
-</div>
-</div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_30-2.png" width="100%" style="display: block; margin: auto;"></p>
-</section>
-<section id="flower---gan" class="level2" data-number="15.2">
-<h2 data-number="15.2" class="anchored" data-anchor-id="flower---gan"><span class="header-section-number">15.2</span> Flower - GAN</h2>
-<p>We can now also do the same for the flower data set. We will write this completely on our own following the steps also done for the MNIST data set.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> EcoData<span class="sc">::</span><span class="fu">dataset_flower</span>()</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> (data<span class="sc">$</span>train<span class="fl">-127.5</span>)<span class="sc">/</span><span class="fl">127.5</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> (data<span class="sc">$</span>test<span class="fl">-127.5</span>)<span class="sc">/</span><span class="fl">127.5</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>train_x <span class="ot">=</span> abind<span class="sc">::</span><span class="fu">abind</span>(<span class="fu">list</span>(train, test), <span class="at">along =</span> 1L)</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>dataset <span class="ot">=</span> tf<span class="sc">$</span>data<span class="sc">$</span>Dataset<span class="sc">$</span><span class="fu">from_tensor_slices</span>(tf<span class="sc">$</span><span class="fu">constant</span>(train_x, <span class="st">"float32"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Define the generator model and test it:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>get_generator <span class="ot">=</span> <span class="cf">function</span>(){</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  generator <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  generator <span class="sc">%&gt;%</span> </span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 20L<span class="sc">*</span>20L<span class="sc">*</span>128L, <span class="at">input_shape =</span> <span class="fu">c</span>(100L),</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">use_bias =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_activation_leaky_relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_reshape</span>(<span class="fu">c</span>(20L, 20L, 128L)) <span class="sc">%&gt;%</span> </span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.3</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_conv_2d_transpose</span>(<span class="at">filters =</span> 256L, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L, 3L),</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>                            <span class="at">padding =</span> <span class="st">"same"</span>, <span class="at">strides =</span> <span class="fu">c</span>(1L, 1L),</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>                            <span class="at">use_bias =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_activation_leaky_relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.3</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_conv_2d_transpose</span>(<span class="at">filters =</span> 128L, <span class="at">kernel_size =</span> <span class="fu">c</span>(5L, 5L),</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>                            <span class="at">padding =</span> <span class="st">"same"</span>, <span class="at">strides =</span> <span class="fu">c</span>(1L, 1L),</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>                            <span class="at">use_bias =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_activation_leaky_relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.3</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_conv_2d_transpose</span>(<span class="at">filters =</span> 64L, <span class="at">kernel_size =</span> <span class="fu">c</span>(5L, 5L),</span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>                            <span class="at">padding =</span> <span class="st">"same"</span>, <span class="at">strides =</span> <span class="fu">c</span>(2L, 2L),</span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>                            <span class="at">use_bias =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_activation_leaky_relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.3</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_conv_2d_transpose</span>(<span class="at">filters =</span> 3L, <span class="at">kernel_size =</span> <span class="fu">c</span>(5L, 5L),</span>
-<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>                            <span class="at">padding =</span> <span class="st">"same"</span>, <span class="at">strides =</span> <span class="fu">c</span>(2L, 2L),</span>
-<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>                            <span class="at">activation =</span> <span class="st">"tanh"</span>, <span class="at">use_bias =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(generator)</span>
-<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>generator <span class="ot">=</span> <span class="fu">get_generator</span>()</span>
-<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>image <span class="ot">=</span> <span class="fu">generator</span>(tf<span class="sc">$</span>random<span class="sc">$</span><span class="fu">normal</span>(<span class="fu">c</span>(1L,100L)))<span class="sc">$</span><span class="fu">numpy</span>()[<span class="dv">1</span>,,,]</span>
-<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>image <span class="ot">=</span> scales<span class="sc">::</span><span class="fu">rescale</span>(image, <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">255</span>))</span>
-<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>image <span class="sc">%&gt;%</span> </span>
-<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">/</span><span class="st">`</span>(., <span class="dv">255</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_32-1.png" width="100%" style="display: block; margin: auto;"></p>
-<p>Define the discriminator and test it:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>get_discriminator <span class="ot">=</span> <span class="cf">function</span>(){</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  discriminator <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  discriminator <span class="sc">%&gt;%</span> </span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 64L, <span class="at">kernel_size =</span> <span class="fu">c</span>(5L, 5L),</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">strides =</span> <span class="fu">c</span>(2L, 2L), <span class="at">padding =</span> <span class="st">"same"</span>,</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">input_shape =</span> <span class="fu">c</span>(80L, 80L, 3L)) <span class="sc">%&gt;%</span></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_activation_leaky_relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.3</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 128L, <span class="at">kernel_size =</span> <span class="fu">c</span>(5L, 5L),</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>                  <span class="at">strides =</span> <span class="fu">c</span>(2L, 2L), <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_activation_leaky_relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.3</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 256L, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L, 3L),</span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>                  <span class="at">strides =</span> <span class="fu">c</span>(2L, 2L), <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_activation_leaky_relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dropout</span>(<span class="fl">0.3</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_flatten</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">layer_dense</span>(<span class="at">units =</span> 1L, <span class="at">activation =</span> <span class="st">"sigmoid"</span>)</span>
-<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(discriminator)</span>
-<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>discriminator <span class="ot">=</span> <span class="fu">get_discriminator</span>()</span>
-<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>discriminator</span>
-<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a><span class="fu">discriminator</span>(<span class="fu">generator</span>(tf<span class="sc">$</span>random<span class="sc">$</span><span class="fu">normal</span>(<span class="fu">c</span>(1L, 100L))))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">'</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="st">Model: "sequential_13"</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="st">__________________________________________________________________________________________</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="st"> Layer (type)                           Output Shape                        Param #       </span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="st">==========================================================================================</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="st"> conv2d_21 (Conv2D)                     (None, 40, 40, 64)                  4864          </span></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="st"> leaky_re_lu_14 (LeakyReLU)             (None, 40, 40, 64)                  0             </span></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="st"> dropout_6 (Dropout)                    (None, 40, 40, 64)                  0             </span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="st"> conv2d_20 (Conv2D)                     (None, 20, 20, 128)                 204928        </span></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="st"> leaky_re_lu_13 (LeakyReLU)             (None, 20, 20, 128)                 0             </span></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="st"> dropout_5 (Dropout)                    (None, 20, 20, 128)                 0             </span></span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="st"> conv2d_19 (Conv2D)                     (None, 10, 10, 256)                 295168        </span></span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="st"> leaky_re_lu_12 (LeakyReLU)             (None, 10, 10, 256)                 0             </span></span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="st"> dropout_4 (Dropout)                    (None, 10, 10, 256)                 0             </span></span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="st"> flatten_3 (Flatten)                    (None, 25600)                       0             </span></span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a><span class="st"> dense_25 (Dense)                       (None, 1)                           25601         </span></span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a><span class="st">==========================================================================================</span></span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a><span class="st">Total params: 530,561</span></span>
-<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a><span class="st">Trainable params: 530,561</span></span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a><span class="st">Non-trainable params: 0</span></span>
-<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a><span class="st">__________________________________________________________________________________________</span></span>
-<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a><span class="st">tf.Tensor([[0.49996078]], shape=(1, 1), dtype=float32)    </span></span>
-<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a><span class="st">    '</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Model: "sequential_13"
-__________________________________________________________________________________________
- Layer (type)                           Output Shape                        Param #       
-==========================================================================================
- conv2d_21 (Conv2D)                     (None, 40, 40, 64)                  4864          
- leaky_re_lu_14 (LeakyReLU)             (None, 40, 40, 64)                  0             
- dropout_6 (Dropout)                    (None, 40, 40, 64)                  0             
- conv2d_20 (Conv2D)                     (None, 20, 20, 128)                 204928        
- leaky_re_lu_13 (LeakyReLU)             (None, 20, 20, 128)                 0             
- dropout_5 (Dropout)                    (None, 20, 20, 128)                 0             
- conv2d_19 (Conv2D)                     (None, 10, 10, 256)                 295168        
- leaky_re_lu_12 (LeakyReLU)             (None, 10, 10, 256)                 0             
- dropout_4 (Dropout)                    (None, 10, 10, 256)                 0             
- flatten_3 (Flatten)                    (None, 25600)                       0             
- dense_25 (Dense)                       (None, 1)                           25601         
-==========================================================================================
-Total params: 530,561
-Trainable params: 530,561
-Non-trainable params: 0
-__________________________________________________________________________________________
-
-tf.Tensor([[0.49996078]], shape=(1, 1), dtype=float32)    
-    </code></pre>
-</div>
-</div>
-<p>Loss functions:</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>ce <span class="ot">=</span> tf<span class="sc">$</span>keras<span class="sc">$</span>losses<span class="sc">$</span><span class="fu">BinaryCrossentropy</span>(<span class="at">from_logits =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">label_smoothing =</span> <span class="fl">0.1</span>)</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>loss_discriminator <span class="ot">=</span> <span class="cf">function</span>(real, fake){</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  real_loss <span class="ot">=</span> <span class="fu">ce</span>(tf<span class="sc">$</span><span class="fu">ones_like</span>(real), real)</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  fake_loss <span class="ot">=</span> <span class="fu">ce</span>(tf<span class="sc">$</span><span class="fu">zeros_like</span>(fake), fake)</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(real_loss<span class="sc">+</span>fake_loss)</span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>loss_generator <span class="ot">=</span> <span class="cf">function</span>(fake){</span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">ce</span>(tf<span class="sc">$</span><span class="fu">ones_like</span>(fake), fake))</span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Optimizers (two, each for one network):</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>gen_opt <span class="ot">=</span> tf<span class="sc">$</span>keras<span class="sc">$</span>optimizers<span class="sc">$</span><span class="fu">RMSprop</span>(<span class="fl">1e-4</span>)</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>disc_opt <span class="ot">=</span> tf<span class="sc">$</span>keras<span class="sc">$</span>optimizers<span class="sc">$</span><span class="fu">RMSprop</span>(<span class="fl">1e-4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Define functions for the generator and discriminator:</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>generator <span class="ot">=</span> <span class="fu">get_generator</span>()</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>discriminator <span class="ot">=</span> <span class="fu">get_discriminator</span>()</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>train_step <span class="ot">=</span> <span class="cf">function</span>(images){</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  noise <span class="ot">=</span> tf<span class="sc">$</span>random<span class="sc">$</span><span class="fu">normal</span>(<span class="fu">c</span>(32L, 100L))</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(tf<span class="sc">$</span><span class="fu">GradientTape</span>(<span class="at">persistent =</span> <span class="cn">TRUE</span>) <span class="sc">%as%</span> tape,</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    {</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>      gen_images <span class="ot">=</span> <span class="fu">generator</span>(noise)</span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>      real_output <span class="ot">=</span> <span class="fu">discriminator</span>(images)</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>      fake_output <span class="ot">=</span> <span class="fu">discriminator</span>(gen_images)</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>      gen_loss <span class="ot">=</span> <span class="fu">loss_generator</span>(fake_output)</span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>      disc_loss <span class="ot">=</span> <span class="fu">loss_discriminator</span>(real_output, fake_output)</span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>  gen_grads <span class="ot">=</span> tape<span class="sc">$</span><span class="fu">gradient</span>(gen_loss, generator<span class="sc">$</span>weights)</span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>  disc_grads <span class="ot">=</span> tape<span class="sc">$</span><span class="fu">gradient</span>(disc_loss, discriminator<span class="sc">$</span>weights)</span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span>(tape)</span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>  gen_opt<span class="sc">$</span><span class="fu">apply_gradients</span>(purrr<span class="sc">::</span><span class="fu">transpose</span>(<span class="fu">list</span>(gen_grads,</span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>                                                generator<span class="sc">$</span>weights)))</span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>  disc_opt<span class="sc">$</span><span class="fu">apply_gradients</span>(purrr<span class="sc">::</span><span class="fu">transpose</span>(<span class="fu">list</span>(disc_grads,</span>
-<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>                                                 discriminator<span class="sc">$</span>weights)))</span>
-<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">c</span>(gen_loss, disc_loss))</span>
-<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>train_step <span class="ot">=</span> tf<span class="sc">$</span><span class="st">`</span><span class="at">function</span><span class="st">`</span>(reticulate<span class="sc">::</span><span class="fu">py_func</span>(train_step))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Training:</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> 32L</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>epochs <span class="ot">=</span> 30L</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>steps <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">dim</span>(train_x)[<span class="dv">1</span>]<span class="sc">/</span>batch_size)</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>counter <span class="ot">=</span> <span class="dv">1</span></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>gen_loss <span class="ot">=</span> <span class="fu">c</span>()</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>disc_loss <span class="ot">=</span> <span class="fu">c</span>()</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>dataset <span class="ot">=</span> dataset<span class="sc">$</span><span class="fu">prefetch</span>(tf<span class="sc">$</span>data<span class="sc">$</span>AUTOTUNE)</span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>epochs){</span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  dat <span class="ot">=</span> reticulate<span class="sc">::</span><span class="fu">as_iterator</span>(dataset<span class="sc">$</span><span class="fu">batch</span>(batch_size))</span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  coro<span class="sc">::</span><span class="fu">loop</span>(</span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(images <span class="cf">in</span> dat){</span>
-<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>      losses <span class="ot">=</span> <span class="fu">train_step</span>(images)</span>
-<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>      gen_loss <span class="ot">=</span> <span class="fu">c</span>(gen_loss, tf<span class="sc">$</span><span class="fu">reduce_sum</span>(losses[[<span class="dv">1</span>]])<span class="sc">$</span><span class="fu">numpy</span>())</span>
-<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>      disc_loss <span class="ot">=</span> <span class="fu">c</span>(disc_loss, tf<span class="sc">$</span><span class="fu">reduce_sum</span>(losses[[<span class="dv">2</span>]])<span class="sc">$</span><span class="fu">numpy</span>())</span>
-<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>   </span>
-<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>  noise <span class="ot">=</span> tf<span class="sc">$</span>random<span class="sc">$</span><span class="fu">normal</span>(<span class="fu">c</span>(1L, 100L))</span>
-<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>  image <span class="ot">=</span> <span class="fu">generator</span>(noise)<span class="sc">$</span><span class="fu">numpy</span>()[<span class="dv">1</span>,,,]</span>
-<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>  image <span class="ot">=</span> scales<span class="sc">::</span><span class="fu">rescale</span>(image, <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">255</span>))</span>
-<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(e <span class="sc">%%</span> <span class="dv">15</span> <span class="sc">==</span> <span class="dv">0</span>){</span>
-<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>    image <span class="sc">%&gt;%</span> </span>
-<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>      <span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">/</span><span class="st">`</span>(., <span class="dv">255</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>        <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>        <span class="fu">plot</span>()</span>
-<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a>   </span>
-<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(e <span class="sc">%%</span> <span class="dv">10</span> <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">cat</span>(<span class="st">"Gen: "</span>, <span class="fu">mean</span>(gen_loss), <span class="st">" Disc: "</span>, <span class="fu">mean</span>(disc_loss), <span class="st">" </span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Gen:  1.651127  Disc:  0.8720699    
-    </code></pre>
-</div>
-</div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_37-1.png" width="100%" style="display: block; margin: auto;"></p>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Gen:  1.303061  Disc:  1.037192 
-    </code></pre>
-</div>
-</div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_37-2.png" width="100%" style="display: block; margin: auto;"></p>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Gen:  1.168868  Disc:  1.100166
-    </code></pre>
-</div>
-</div>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>noise <span class="ot">=</span> tf<span class="sc">$</span>random<span class="sc">$</span><span class="fu">normal</span>(<span class="fu">c</span>(1L, 100L))</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>image <span class="ot">=</span> <span class="fu">generator</span>(noise)<span class="sc">$</span><span class="fu">numpy</span>()[<span class="dv">1</span>,,,]</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>image <span class="ot">=</span> scales<span class="sc">::</span><span class="fu">rescale</span>(image, <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">255</span>))</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>image <span class="sc">%&gt;%</span> </span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">/</span><span class="st">`</span>(., <span class="dv">255</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_38-1.png" width="100%" style="display: block; margin: auto;"></p>
-<p>More images:</p>
+<!-- ## MNIST - Generative Adversarial Networks Based on Deep Neural Networks -->
+<!-- We will now explore this on the MNIST data set. -->
+<!-- ``` r -->
+<!-- library(keras) -->
+<!-- library(tensorflow) -->
+<!-- set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed. -->
+<!-- rotate = function(x){ t(apply(x, 2, rev)) } -->
+<!-- imgPlot = function(img, title = ""){ -->
+<!--   col = grey.colors(255) -->
+<!--   image(rotate(img), col = col, xlab = "", ylab = "", axes = FALSE, -->
+<!--         main = paste0("Label: ", as.character(title))) -->
+<!-- } -->
+<!-- ``` -->
+<!-- We don't need the test set here. -->
+<!-- ``` r -->
+<!-- data = dataset_mnist() -->
+<!-- train = data$train -->
+<!-- train_x = array((train$x-127.5)/127.5, c(dim(train$x)[1], 784L)) -->
+<!-- ``` -->
+<!-- We need a function to sample images for the discriminator. -->
+<!-- ``` r -->
+<!-- batch_size = 32L -->
+<!-- dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32")) -->
+<!-- dataset$batch(batch_size) -->
+<!-- ``` -->
+<!-- Create function that returns the generator model: -->
+<!-- ``` r -->
+<!-- get_generator = function(){ -->
+<!--   generator = keras_model_sequential() -->
+<!--   generator %>%  -->
+<!--   layer_dense(units = 200L, input_shape = c(100L)) %>%  -->
+<!--   layer_activation_leaky_relu() %>%  -->
+<!--   layer_dense(units = 200L) %>%  -->
+<!--   layer_activation_leaky_relu() %>%  -->
+<!--   layer_dense(units = 784L, activation = "tanh") -->
+<!--   return(generator) -->
+<!-- } -->
+<!-- ``` -->
+<!-- Test the generator: -->
+<!-- ``` r -->
+<!-- generator = get_generator() -->
+<!-- sample = tf$random$normal(c(1L, 100L)) -->
+<!-- imgPlot(array(generator(sample)$numpy(), c(28L, 28L))) -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_24-1.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- In the discriminator, noise (random vector with 100 values) is passed through the network such that the output corresponds to the number of pixels of one MNIST image (784). We therefore define the discriminator function now. -->
+<!-- ``` r -->
+<!-- get_discriminator = function(){ -->
+<!--   discriminator = keras_model_sequential() -->
+<!--   discriminator %>%  -->
+<!--   layer_dense(units = 200L, input_shape = c(784L)) %>%  -->
+<!--   layer_activation_leaky_relu() %>%  -->
+<!--   layer_dense(units = 100L) %>%  -->
+<!--   layer_activation_leaky_relu() %>%  -->
+<!--   layer_dense(units = 1L, activation = "sigmoid") -->
+<!--   return(discriminator) -->
+<!-- } -->
+<!-- ``` -->
+<!-- And we also test the discriminator function. -->
+<!-- ``` r -->
+<!-- discriminator = get_discriminator() -->
+<!-- discriminator(generator(tf$random$normal(c(1L, 100L)))) -->
+<!-- ``` -->
+<!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+<!-- cat(" -->
+<!-- tf.Tensor([[0.5089391]], shape=(1, 1), dtype=float32) -->
+<!--     ") -->
+<!-- ``` -->
+<!-- We also have to define the loss functions for both networks.We use the already known binary cross entropy. However, we have to encode the real and predicted values for the two networks individually. -->
+<!-- The discriminator will get two losses - one for identifying fake images as fake, and one for identifying real MNIST images as real images. -->
+<!-- The generator will just get one loss - was it able to deceive the discriminator? -->
+<!-- ``` r -->
+<!-- ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE) -->
+<!-- loss_discriminator = function(real, fake){ -->
+<!--   real_loss = ce(tf$ones_like(real), real) -->
+<!--   fake_loss = ce(tf$zeros_like(fake), fake) -->
+<!--   return(real_loss + fake_loss) -->
+<!-- } -->
+<!-- loss_generator = function(fake){ -->
+<!--   return(ce(tf$ones_like(fake), fake)) -->
+<!-- } -->
+<!-- ``` -->
+<!-- Each network will get its own optimizer (in a GAN the networks are treated independently): -->
+<!-- ``` r -->
+<!-- gen_opt = tf$keras$optimizers$RMSprop(1e-4) -->
+<!-- disc_opt = tf$keras$optimizers$RMSprop(1e-4) -->
+<!-- ``` -->
+<!-- We have to write our own training loop here (we cannot use the fit function). In each iteration (for each batch) we will do the following (the GradientTape records computations to do automatic differentiation): -->
+<!-- 1.  Sample noise. -->
+<!-- 2.  Generator creates images from the noise. -->
+<!-- 3.  Discriminator makes predictions for fake images and real images (response is a probability between \[0,1\]). -->
+<!-- 4.  Calculate loss for generator. -->
+<!-- 5.  Calculate loss for discriminator. -->
+<!-- 6.  Calculate gradients for weights and the loss. -->
+<!-- 7.  Update weights of generator. -->
+<!-- 8.  Update weights of discriminator. -->
+<!-- 9.  Return losses. -->
+<!-- ``` r -->
+<!-- generator = get_generator() -->
+<!-- discriminator = get_discriminator() -->
+<!-- train_step = function(images){ -->
+<!--   noise = tf$random$normal(c(128L, 100L)) -->
+<!--   with(tf$GradientTape(persistent = TRUE) %as% tape, -->
+<!--     { -->
+<!--       gen_images = generator(noise) -->
+<!--       fake_output = discriminator(gen_images) -->
+<!--       real_output = discriminator(images) -->
+<!--       gen_loss = loss_generator(fake_output) -->
+<!--       disc_loss = loss_discriminator(real_output, fake_output) -->
+<!--     } -->
+<!--   ) -->
+<!--   gen_grads = tape$gradient(gen_loss, generator$weights) -->
+<!--   disc_grads = tape$gradient(disc_loss, discriminator$weights) -->
+<!--   rm(tape) -->
+<!--   gen_opt$apply_gradients(purrr::transpose(list(gen_grads, generator$weights))) -->
+<!--   disc_opt$apply_gradients(purrr::transpose(list(disc_grads, discriminator$weights))) -->
+<!--   return(c(gen_loss, disc_loss)) -->
+<!-- } -->
+<!-- train_step = tf$`function`(reticulate::py_func(train_step)) -->
+<!-- ``` -->
+<!-- Now we can finally train our networks in a training loop: -->
+<!-- 1.  Create networks. -->
+<!-- 2.  Get batch of images. -->
+<!-- 3.  Run train_step function. -->
+<!-- 4.  Print losses. -->
+<!-- 5.  Repeat step 2-4 for number of epochs. -->
+<!-- ``` r -->
+<!-- batch_size = 128L -->
+<!-- epochs = 20L -->
+<!-- steps = as.integer(nrow(train_x)/batch_size) -->
+<!-- counter = 1 -->
+<!-- gen_loss = c() -->
+<!-- disc_loss = c() -->
+<!-- dataset2 = dataset$prefetch(tf$data$AUTOTUNE) -->
+<!-- for(e in 1:epochs){ -->
+<!--   dat = reticulate::as_iterator(dataset2$batch(batch_size)) -->
+<!--   coro::loop( -->
+<!--     for(images in dat){ -->
+<!--       losses = train_step(images) -->
+<!--       gen_loss = c(gen_loss, tf$reduce_sum(losses[[1]])$numpy()) -->
+<!--       disc_loss = c(disc_loss, tf$reduce_sum(losses[[2]])$numpy()) -->
+<!--     } -->
+<!--   ) -->
+<!--   if(e %% 5 == 0){ #Print output every 5 steps. -->
+<!--     cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n") -->
+<!--   } -->
+<!--   noise = tf$random$normal(c(1L, 100L)) -->
+<!--   if(e %% 10 == 0){  #Plot image every 10 steps. -->
+<!--     imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen") -->
+<!--   } -->
+<!-- } -->
+<!-- ``` -->
+<!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+<!-- cat(" -->
+<!-- Gen:  0.8095555  Disc:  1.10533   -->
+<!-- Gen:  0.8928918  Disc:  1.287504     -->
+<!--     ") -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_30-1.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+<!-- cat(" -->
+<!-- Gen:  0.9071119  Disc:  1.314586   -->
+<!-- Gen:  0.9514963  Disc:  1.31548  -->
+<!--     ") -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_30-2.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- ## Flower - GAN -->
+<!-- We can now also do the same for the flower data set. We will write this completely on our own following the steps also done for the MNIST data set. -->
+<!-- ``` r -->
+<!-- library(keras) -->
+<!-- library(tidyverse) -->
+<!-- library(tensorflow) -->
+<!-- library(EcoData) -->
+<!-- data = EcoData::dataset_flower() -->
+<!-- train = (data$train-127.5)/127.5 -->
+<!-- test = (data$test-127.5)/127.5 -->
+<!-- train_x = abind::abind(list(train, test), along = 1L) -->
+<!-- dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32")) -->
+<!-- ``` -->
+<!-- Define the generator model and test it: -->
+<!-- ``` r -->
+<!-- get_generator = function(){ -->
+<!--   generator = keras_model_sequential() -->
+<!--   generator %>%  -->
+<!--     layer_dense(units = 20L*20L*128L, input_shape = c(100L), -->
+<!--                 use_bias = FALSE) %>%  -->
+<!--     layer_activation_leaky_relu() %>%  -->
+<!--     layer_reshape(c(20L, 20L, 128L)) %>%  -->
+<!--     layer_dropout(0.3) %>%  -->
+<!--     layer_conv_2d_transpose(filters = 256L, kernel_size = c(3L, 3L), -->
+<!--                             padding = "same", strides = c(1L, 1L), -->
+<!--                             use_bias = FALSE) %>%  -->
+<!--     layer_activation_leaky_relu() %>%  -->
+<!--     layer_dropout(0.3) %>%  -->
+<!--     layer_conv_2d_transpose(filters = 128L, kernel_size = c(5L, 5L), -->
+<!--                             padding = "same", strides = c(1L, 1L), -->
+<!--                             use_bias = FALSE) %>%  -->
+<!--     layer_activation_leaky_relu() %>%  -->
+<!--     layer_dropout(0.3) %>%  -->
+<!--     layer_conv_2d_transpose(filters = 64L, kernel_size = c(5L, 5L), -->
+<!--                             padding = "same", strides = c(2L, 2L), -->
+<!--                             use_bias = FALSE) %>% -->
+<!--     layer_activation_leaky_relu() %>%  -->
+<!--     layer_dropout(0.3) %>%  -->
+<!--     layer_conv_2d_transpose(filters = 3L, kernel_size = c(5L, 5L), -->
+<!--                             padding = "same", strides = c(2L, 2L), -->
+<!--                             activation = "tanh", use_bias = FALSE) -->
+<!--   return(generator) -->
+<!-- } -->
+<!-- generator = get_generator() -->
+<!-- image = generator(tf$random$normal(c(1L,100L)))$numpy()[1,,,] -->
+<!-- image = scales::rescale(image, to = c(0, 255)) -->
+<!-- image %>%  -->
+<!--   image_to_array() %>% -->
+<!--   `/`(., 255) %>% -->
+<!--   as.raster() %>% -->
+<!--   plot() -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_32-1.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- Define the discriminator and test it: -->
+<!-- ``` r -->
+<!-- get_discriminator = function(){ -->
+<!--   discriminator = keras_model_sequential() -->
+<!--   discriminator %>%  -->
+<!--     layer_conv_2d(filters = 64L, kernel_size = c(5L, 5L), -->
+<!--                   strides = c(2L, 2L), padding = "same", -->
+<!--                   input_shape = c(80L, 80L, 3L)) %>% -->
+<!--     layer_activation_leaky_relu() %>%  -->
+<!--     layer_dropout(0.3) %>%  -->
+<!--     layer_conv_2d(filters = 128L, kernel_size = c(5L, 5L), -->
+<!--                   strides = c(2L, 2L), padding = "same") %>%  -->
+<!--     layer_activation_leaky_relu() %>%  -->
+<!--     layer_dropout(0.3) %>%  -->
+<!--     layer_conv_2d(filters = 256L, kernel_size = c(3L, 3L), -->
+<!--                   strides = c(2L, 2L), padding = "same") %>%  -->
+<!--     layer_activation_leaky_relu() %>%  -->
+<!--     layer_dropout(0.3) %>%  -->
+<!--     layer_flatten() %>%  -->
+<!--     layer_dense(units = 1L, activation = "sigmoid") -->
+<!--   return(discriminator) -->
+<!-- } -->
+<!-- discriminator = get_discriminator() -->
+<!-- discriminator -->
+<!-- discriminator(generator(tf$random$normal(c(1L, 100L)))) -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- cat(' -->
+<!-- Model: "sequential_13" -->
+<!-- __________________________________________________________________________________________ -->
+<!--  Layer (type)                           Output Shape                        Param #        -->
+<!-- ========================================================================================== -->
+<!--  conv2d_21 (Conv2D)                     (None, 40, 40, 64)                  4864           -->
+<!--  leaky_re_lu_14 (LeakyReLU)             (None, 40, 40, 64)                  0              -->
+<!--  dropout_6 (Dropout)                    (None, 40, 40, 64)                  0              -->
+<!--  conv2d_20 (Conv2D)                     (None, 20, 20, 128)                 204928         -->
+<!--  leaky_re_lu_13 (LeakyReLU)             (None, 20, 20, 128)                 0              -->
+<!--  dropout_5 (Dropout)                    (None, 20, 20, 128)                 0              -->
+<!--  conv2d_19 (Conv2D)                     (None, 10, 10, 256)                 295168         -->
+<!--  leaky_re_lu_12 (LeakyReLU)             (None, 10, 10, 256)                 0              -->
+<!--  dropout_4 (Dropout)                    (None, 10, 10, 256)                 0              -->
+<!--  flatten_3 (Flatten)                    (None, 25600)                       0              -->
+<!--  dense_25 (Dense)                       (None, 1)                           25601          -->
+<!-- ========================================================================================== -->
+<!-- Total params: 530,561 -->
+<!-- Trainable params: 530,561 -->
+<!-- Non-trainable params: 0 -->
+<!-- __________________________________________________________________________________________ -->
+<!-- tf.Tensor([[0.49996078]], shape=(1, 1), dtype=float32)     -->
+<!--     ') -->
+<!-- ``` -->
+<!-- Loss functions: -->
+<!-- ``` r -->
+<!-- ce = tf$keras$losses$BinaryCrossentropy(from_logits = FALSE, -->
+<!--                                         label_smoothing = 0.1) -->
+<!-- loss_discriminator = function(real, fake){ -->
+<!--   real_loss = ce(tf$ones_like(real), real) -->
+<!--   fake_loss = ce(tf$zeros_like(fake), fake) -->
+<!--   return(real_loss+fake_loss) -->
+<!-- } -->
+<!-- loss_generator = function(fake){ -->
+<!--   return(ce(tf$ones_like(fake), fake)) -->
+<!-- } -->
+<!-- ``` -->
+<!-- Optimizers (two, each for one network): -->
+<!-- ``` r -->
+<!-- gen_opt = tf$keras$optimizers$RMSprop(1e-4) -->
+<!-- disc_opt = tf$keras$optimizers$RMSprop(1e-4) -->
+<!-- ``` -->
+<!-- Define functions for the generator and discriminator: -->
+<!-- ``` r -->
+<!-- generator = get_generator() -->
+<!-- discriminator = get_discriminator() -->
+<!-- train_step = function(images){ -->
+<!--   noise = tf$random$normal(c(32L, 100L)) -->
+<!--   with(tf$GradientTape(persistent = TRUE) %as% tape, -->
+<!--     { -->
+<!--       gen_images = generator(noise) -->
+<!--       real_output = discriminator(images) -->
+<!--       fake_output = discriminator(gen_images) -->
+<!--       gen_loss = loss_generator(fake_output) -->
+<!--       disc_loss = loss_discriminator(real_output, fake_output) -->
+<!--     } -->
+<!--   ) -->
+<!--   gen_grads = tape$gradient(gen_loss, generator$weights) -->
+<!--   disc_grads = tape$gradient(disc_loss, discriminator$weights) -->
+<!--   rm(tape) -->
+<!--   gen_opt$apply_gradients(purrr::transpose(list(gen_grads, -->
+<!--                                                 generator$weights))) -->
+<!--   disc_opt$apply_gradients(purrr::transpose(list(disc_grads, -->
+<!--                                                  discriminator$weights))) -->
+<!--   return(c(gen_loss, disc_loss)) -->
+<!-- } -->
+<!-- train_step = tf$`function`(reticulate::py_func(train_step)) -->
+<!-- ``` -->
+<!-- Training: -->
+<!-- ``` r -->
+<!-- batch_size = 32L -->
+<!-- epochs = 30L -->
+<!-- steps = as.integer(dim(train_x)[1]/batch_size) -->
+<!-- counter = 1 -->
+<!-- gen_loss = c() -->
+<!-- disc_loss = c() -->
+<!-- dataset = dataset$prefetch(tf$data$AUTOTUNE) -->
+<!-- for(e in 1:epochs){ -->
+<!--   dat = reticulate::as_iterator(dataset$batch(batch_size)) -->
+<!--   coro::loop( -->
+<!--     for(images in dat){ -->
+<!--       losses = train_step(images) -->
+<!--       gen_loss = c(gen_loss, tf$reduce_sum(losses[[1]])$numpy()) -->
+<!--       disc_loss = c(disc_loss, tf$reduce_sum(losses[[2]])$numpy()) -->
+<!--     } -->
+<!--   ) -->
+<!--   noise = tf$random$normal(c(1L, 100L)) -->
+<!--   image = generator(noise)$numpy()[1,,,] -->
+<!--   image = scales::rescale(image, to = c(0, 255)) -->
+<!--   if(e %% 15 == 0){ -->
+<!--     image %>%  -->
+<!--       image_to_array() %>% -->
+<!--         `/`(., 255) %>% -->
+<!--         as.raster() %>% -->
+<!--         plot() -->
+<!--   } -->
+<!--   if(e %% 10 == 0) cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n") -->
+<!-- } -->
+<!-- ``` -->
+<!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+<!-- cat(' -->
+<!-- Gen:  1.651127  Disc:  0.8720699     -->
+<!--     ') -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_37-1.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+<!-- cat(' -->
+<!-- Gen:  1.303061  Disc:  1.037192  -->
+<!--     ') -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_37-2.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+<!-- cat(' -->
+<!-- Gen:  1.168868  Disc:  1.100166 -->
+<!--     ') -->
+<!-- ``` -->
+<!-- ``` r -->
+<!-- noise = tf$random$normal(c(1L, 100L)) -->
+<!-- image = generator(noise)$numpy()[1,,,] -->
+<!-- image = scales::rescale(image, to = c(0, 255)) -->
+<!-- image %>%  -->
+<!--   image_to_array() %>% -->
+<!--   `/`(., 255) %>% -->
+<!--   as.raster() %>% -->
+<!--   plot() -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_38-1.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- More images: -->
 <p><img src="images/flower2.png" width="150%" height="150%" style="display: block; margin: auto;"><img src="images/flower3.png" width="150%" height="150%" style="display: block; margin: auto;"><img src="images/flower4.png" width="150%" height="150%" style="display: block; margin: auto;"><img src="images/flower5.png" width="150%" height="150%" style="display: block; margin: auto;"></p>
-</section>
-<section id="exercise" class="level2" data-number="15.3">
-<h2 data-number="15.3" class="anchored" data-anchor-id="exercise"><span class="header-section-number">15.3</span> Exercise</h2>
-<div class="callout callout-style-default callout-caution no-icon callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Question
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Go through the R examples on generative adversarial networks (<a href="#sec-GAN"><span>Chapter&nbsp;15</span></a>) and compare the flower example with the MNIST example - where are the differences - and why?</p>
-<p>The MNIST example uses a “simple” deep neural network which is sufficient for a classification that easy. The flower example uses a much more expensive convolutional neural network to classify the images.</p>
-</div>
-</div>
+<!-- ## Exercise -->
+<!-- ::: {.callout-caution icon="false"} -->
+<!-- #### Question -->
+<!-- Go through the R examples on generative adversarial networks (@sec-GAN) and compare the flower example with the MNIST example - where are the differences - and why? -->
+<!-- The MNIST example uses a "simple" deep neural network which is sufficient for a classification that easy. The flower example uses a much more expensive convolutional neural network to classify the images. -->
+<!-- ::: -->
 
 
-</section>
 
 </main> <!-- /main -->
 <script>
@@ -1411,4 +1508,4 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 
-</body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/E2-GAN.qmd" class="toc-action">Edit this page</a></p></div></div></div></div></footer></body></html>

@@ -98,8 +98,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="include/webex.css">
 <meta name="citation_title" content="[14]{.chapter-number}&nbsp; [Autoencoder]{.chapter-title}">
@@ -363,10 +361,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#autoencoder---deep-neural-network-mnist" id="toc-autoencoder---deep-neural-network-mnist" class="nav-link active" data-scroll-target="#autoencoder---deep-neural-network-mnist"><span class="header-section-number">14.1</span> Autoencoder - Deep Neural Network MNIST</a></li>
-  <li><a href="#autoencoder---mnist-convolutional-neural-networks" id="toc-autoencoder---mnist-convolutional-neural-networks" class="nav-link" data-scroll-target="#autoencoder---mnist-convolutional-neural-networks"><span class="header-section-number">14.2</span> Autoencoder - MNIST Convolutional Neural Networks</a></li>
-  <li><a href="#sec-VAE" id="toc-sec-VAE" class="nav-link" data-scroll-target="#sec-VAE"><span class="header-section-number">14.3</span> Variational Autoencoder (VAE)</a></li>
-  <li><a href="#exercise" id="toc-exercise" class="nav-link" data-scroll-target="#exercise"><span class="header-section-number">14.4</span> Exercise</a></li>
+  <li><a href="#autoencoder---convolutional-neural-networks-for-flower" id="toc-autoencoder---convolutional-neural-networks-for-flower" class="nav-link active" data-scroll-target="#autoencoder---convolutional-neural-networks-for-flower"><span class="header-section-number">14.1</span> Autoencoder - Convolutional Neural Networks for Flower</a></li>
+  <li><a href="#sec-VAE" id="toc-sec-VAE" class="nav-link" data-scroll-target="#sec-VAE"><span class="header-section-number">14.2</span> Variational Autoencoder (VAE)</a></li>
   </ul>
 <div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/E1-Autoencoder.qmd" class="toc-action">Edit this page</a></p></div></div></nav>
     </div>
@@ -390,365 +386,629 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>Autoencoders (AE) can be used for unsupervised learning. The idea is similar to data compression: The first part of the network compresses (encodes) the data to a low dimensional space (e.g.&nbsp;2-4 dimensions) and the second part of the network decompresses (decodes) and learns to reconstruct the data (think of a hourglass).</p>
-<p>Why is this useful? The method is similar to a dimension reduction technique (e.g.&nbsp;PCA) but with the advantage that we don’t have to make any distributional assumptions (but see PCA). For instance, we could first train an autoencoder on genomic expression data with thousands of features, compress them into 2-4 dimensions, and then use them for clustering.</p>
-<section id="autoencoder---deep-neural-network-mnist" class="level2" data-number="14.1">
-<h2 data-number="14.1" class="anchored" data-anchor-id="autoencoder---deep-neural-network-mnist"><span class="header-section-number">14.1</span> Autoencoder - Deep Neural Network MNIST</h2>
-<p>We now will write an autoencoder for the MNIST data set.</p>
-<p>Let’s start with the (usual) MNIST example:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
+<!-- Autoencoders (AE) can be used for unsupervised learning. The idea is similar to data compression: The first part of the network compresses (encodes) the data to a low dimensional space (e.g. 2-4 dimensions) and the second part of the network decompresses (decodes) and learns to reconstruct the data (think of a hourglass). -->
+<!-- Why is this useful? The method is similar to a dimension reduction technique (e.g. PCA) but with the advantage that we don't have to make any distributional assumptions (but see PCA). For instance, we could first train an autoencoder on genomic expression data with thousands of features, compress them into 2-4 dimensions, and then use them for clustering. -->
+<!-- ## Autoencoder - Deep Neural Network Flower -->
+<!-- We now will write an autoencoder for the MNIST data set. -->
+<!-- Let's start with the (usual) MNIST example: -->
+<!-- ``` r -->
+<!-- library(keras) -->
+<!-- library(tensorflow) -->
+<!-- data = keras::dataset_mnist() -->
+<!-- ``` -->
+<!-- We don't need the labels here, our images will be the inputs and at the same time the outputs of our final autoencoder. -->
+<!-- ``` r -->
+<!-- rotate = function(x){ t(apply(x, 2, rev)) } -->
+<!-- imgPlot = function(img, title = ""){ -->
+<!--   col = grey.colors(255) -->
+<!--   if(title != ""){ main = paste0("Label: ", as.character(title)) } -->
+<!--   else{ main = "" } -->
+<!--   image(rotate(img), col = col, xlab = "", ylab = "", axes = FALSE, main = main) -->
+<!-- } -->
+<!-- train = data[[1]] -->
+<!-- test = data[[2]] -->
+<!-- train_x = array(train[[1]]/255, c(dim(train[[1]])[1], 784L)) -->
+<!-- test_x = array(test[[1]]/255, c(dim(test[[1]])[1], 784L)) -->
+<!-- ``` -->
+<!-- Our encoder: image (784 dimensions) $\rightarrow$ 2 dimensions -->
+<!-- ``` r -->
+<!-- down_size_model = keras_model_sequential() -->
+<!-- down_size_model %>%  -->
+<!--   layer_dense(units = 100L, input_shape = c(784L), activation = "relu") %>%  -->
+<!--   layer_dense(units = 20L, activation = "relu") %>%  -->
+<!--   layer_dense(units = 2L, activation = "linear") -->
+<!-- ``` -->
+<!-- Our decoder: 2 dimensions $\rightarrow$ 784 dimensions (our image) -->
+<!-- ``` r -->
+<!-- up_size_model = keras_model_sequential() -->
+<!-- up_size_model %>%  -->
+<!--   layer_dense(units = 20L, input_shape = c(2L), activation = "relu") %>%  -->
+<!--   layer_dense(units = 100L, activation = "relu") %>%  -->
+<!--   layer_dense(units = 784L, activation = "sigmoid") -->
+<!-- ``` -->
+<!-- We can use the non-sequential model type to connect the two models. (We did the same in the transfer learning chapter.) -->
+<!-- ``` r -->
+<!-- autoencoder = keras_model(inputs = down_size_model$input,  -->
+<!--                           outputs = up_size_model(down_size_model$output)) -->
+<!-- autoencoder$compile(loss = loss_binary_crossentropy, -->
+<!--                     optimizer = optimizer_adamax(0.01)) -->
+<!-- summary(autoencoder) -->
+<!-- ``` -->
+<!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+<!-- cat(" -->
+<!-- Model: -->
+<!-- __________________________________________________________________________________________ -->
+<!--  Layer (type)                           Output Shape                        Param #        -->
+<!-- ========================================================================================== -->
+<!--  dense_2_input (InputLayer)             [(None, 784)]                       0              -->
+<!--  dense_2 (Dense)                        (None, 100)                         78500          -->
+<!--  dense_1 (Dense)                        (None, 20)                          2020           -->
+<!--  dense (Dense)                          (None, 2)                           42             -->
+<!--  sequential_1 (Sequential)              (None, 784)                         81344          -->
+<!-- ========================================================================================== -->
+<!-- Total params: 161,906 -->
+<!-- Trainable params: 161,906 -->
+<!-- Non-trainable params: 0 -->
+<!-- __________________________________________________________________________________________     -->
+<!--     ") -->
+<!-- ``` -->
+<!-- We will now show an example of an image before and after the unfitted autoencoder, so we see that we have to train the autoencoder. -->
+<!-- ``` r -->
+<!-- image = autoencoder(train_x[1,,drop = FALSE]) -->
+<!-- imgPlot(array(train_x[1,,drop = FALSE], c(28, 28)), title = "Before") -->
+<!-- imgPlot(array(image$numpy(), c(28, 28)), title = "After") -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_6__AEmnistoutput-1.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- Fit the autoencoder (inputs == outputs!): -->
+<!-- ``` r -->
+<!-- library(tensorflow) -->
+<!-- library(keras) -->
+<!-- set_random_seed(123L, disable_gpu = FALSE)  # Already sets R's random seed. -->
+<!-- autoencoder %>%  -->
+<!--   fit(x = train_x, y = train_x, epochs = 5L, batch_size = 128L) -->
+<!-- ``` -->
+<!-- Visualization of the latent variables: -->
+<!-- ``` r -->
+<!-- pred_dim = down_size_model(test_x) -->
+<!-- reconstr_pred = up_size_model(pred_dim) -->
+<!-- imgPlot(array(reconstr_pred[10,]$numpy(), dim = c(28L, 28L)), title = "") -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_8__AEvisualization-1.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- ``` r -->
+<!-- ownColors = c("limegreen", "purple", "yellow", "grey", "orange", -->
+<!--               "black", "red", "navy", "sienna", "springgreen") -->
+<!-- oldpar = par(mfrow = c(1, 1)) -->
+<!-- plot(pred_dim$numpy()[,1], pred_dim$numpy()[,2], col = ownColors[test[[2]]+1L]) -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_9__AEvisualizationContinuation-1.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- The picture above shows the 2-dimensional encoded values of the numbers in the MNIST data set and the number they are depicting via the respective color. -->
+<section id="autoencoder---convolutional-neural-networks-for-flower" class="level2" data-number="14.1">
+<h2 data-number="14.1" class="anchored" data-anchor-id="autoencoder---convolutional-neural-networks-for-flower"><span class="header-section-number">14.1</span> Autoencoder - Convolutional Neural Networks for Flower</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(coro)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> keras<span class="sc">::</span><span class="fu">dataset_mnist</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>We don’t need the labels here, our images will be the inputs and at the same time the outputs of our final autoencoder.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>rotate <span class="ot">=</span> <span class="cf">function</span>(x){ <span class="fu">t</span>(<span class="fu">apply</span>(x, <span class="dv">2</span>, rev)) }</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>Flatten <span class="ot">=</span> </span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_module</span>(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">forward =</span> <span class="cf">function</span>(input) <span class="fu">return</span>(input<span class="sc">$</span><span class="fu">view</span>(<span class="fu">list</span>(input<span class="sc">$</span><span class="fu">size</span>(1L), <span class="sc">-</span><span class="dv">1</span>)))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>UnFlatten <span class="ot">=</span> </span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_module</span>(</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">forward =</span> <span class="cf">function</span>(input, <span class="at">size=</span><span class="dv">1152</span>) <span class="fu">return</span>( input<span class="sc">$</span><span class="fu">view</span>(<span class="fu">list</span>(input<span class="sc">$</span><span class="fu">size</span>(1L), size, 1L, 1L)))</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>AE <span class="ot">=</span> <span class="fu">nn_module</span>(</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(<span class="at">image_channels =</span> 3L, <span class="at">h_dim=</span><span class="dv">1152</span>, <span class="at">z_dim=</span>2L) {</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>encoder <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv2d</span>(image_channels, <span class="dv">16</span>, <span class="at">kernel_size=</span><span class="dv">4</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv2d</span>(<span class="dv">16</span>, <span class="dv">32</span>, <span class="at">kernel_size=</span><span class="dv">4</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv2d</span>(<span class="dv">32</span>, <span class="dv">64</span>, <span class="at">kernel_size=</span><span class="dv">4</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv2d</span>(<span class="dv">64</span>, <span class="dv">128</span>, <span class="at">kernel_size=</span><span class="dv">4</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">Flatten</span>()</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>fc1 <span class="ot">=</span> <span class="fu">nn_linear</span>(h_dim, z_dim)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>fc2 <span class="ot">=</span> <span class="fu">nn_linear</span>(z_dim, h_dim)</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>decoder <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">UnFlatten</span>(),</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv_transpose2d</span>(h_dim, <span class="dv">128</span>, <span class="at">kernel_size=</span><span class="dv">6</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv_transpose2d</span>(<span class="dv">128</span>, <span class="dv">64</span>, <span class="at">kernel_size=</span><span class="dv">6</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv_transpose2d</span>(<span class="dv">64</span>, <span class="dv">32</span>, <span class="at">kernel_size=</span><span class="dv">7</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv_transpose2d</span>(<span class="dv">32</span>, image_channels, <span class="at">kernel_size=</span><span class="dv">8</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_sigmoid</span>(),</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>  <span class="at">encode =</span> <span class="cf">function</span>( x) {</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    h <span class="ot">=</span> self<span class="sc">$</span><span class="fu">encoder</span>(x)</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(self<span class="sc">$</span><span class="fu">fc1</span>(h))</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>  <span class="at">decode =</span> <span class="cf">function</span>(z) {</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">=</span> self<span class="sc">$</span><span class="fu">fc2</span>(z)</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">=</span> self<span class="sc">$</span><span class="fu">decoder</span>(z)</span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(z)</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>  <span class="at">forward =</span> <span class="cf">function</span>(input) {</span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>    results <span class="ot">=</span> self<span class="sc">$</span><span class="fu">encode</span>(input)</span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">=</span> self<span class="sc">$</span><span class="fu">decode</span>(results)</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(z)</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ae <span class="ot">=</span> <span class="fu">AE</span>()</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>imgPlot <span class="ot">=</span> <span class="cf">function</span>(img, <span class="at">title =</span> <span class="st">""</span>){</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  col <span class="ot">=</span> <span class="fu">grey.colors</span>(<span class="dv">255</span>)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(title <span class="sc">!=</span> <span class="st">""</span>){ main <span class="ot">=</span> <span class="fu">paste0</span>(<span class="st">"Label: "</span>, <span class="fu">as.character</span>(title)) }</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span>{ main <span class="ot">=</span> <span class="st">""</span> }</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">image</span>(<span class="fu">rotate</span>(img), <span class="at">col =</span> col, <span class="at">xlab =</span> <span class="st">""</span>, <span class="at">ylab =</span> <span class="st">""</span>, <span class="at">axes =</span> <span class="cn">FALSE</span>, <span class="at">main =</span> main)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>device <span class="ot">=</span> <span class="st">"cuda:0"</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> EcoData<span class="sc">::</span><span class="fu">dataset_flower</span>()</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data<span class="sc">$</span>train<span class="sc">/</span><span class="dv">255</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>labels <span class="ot">=</span> data<span class="sc">$</span>labels</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data[[<span class="dv">1</span>]]</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> data[[<span class="dv">2</span>]]</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>train_x <span class="ot">=</span> <span class="fu">array</span>(train[[<span class="dv">1</span>]]<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(train[[<span class="dv">1</span>]])[<span class="dv">1</span>], 784L))</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>test_x <span class="ot">=</span> <span class="fu">array</span>(test[[<span class="dv">1</span>]]<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(test[[<span class="dv">1</span>]])[<span class="dv">1</span>], 784L))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Our encoder: image (784 dimensions) <span class="math inline">\(\rightarrow\)</span> 2 dimensions</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>down_size_model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>down_size_model <span class="sc">%&gt;%</span> </span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 100L, <span class="at">input_shape =</span> <span class="fu">c</span>(784L), <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 20L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 2L, <span class="at">activation =</span> <span class="st">"linear"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Our decoder: 2 dimensions <span class="math inline">\(\rightarrow\)</span> 784 dimensions (our image)</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>up_size_model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>up_size_model <span class="sc">%&gt;%</span> </span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 20L, <span class="at">input_shape =</span> <span class="fu">c</span>(2L), <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 100L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 784L, <span class="at">activation =</span> <span class="st">"sigmoid"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>We can use the non-sequential model type to connect the two models. (We did the same in the transfer learning chapter.)</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>autoencoder <span class="ot">=</span> <span class="fu">keras_model</span>(<span class="at">inputs =</span> down_size_model<span class="sc">$</span>input, </span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">outputs =</span> <span class="fu">up_size_model</span>(down_size_model<span class="sc">$</span>output))</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>autoencoder<span class="sc">$</span><span class="fu">compile</span>(<span class="at">loss =</span> loss_binary_crossentropy,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">optimizer =</span> <span class="fu">optimizer_adamax</span>(<span class="fl">0.01</span>))</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(autoencoder)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Model:
-__________________________________________________________________________________________
- Layer (type)                           Output Shape                        Param #       
-==========================================================================================
- dense_2_input (InputLayer)             [(None, 784)]                       0             
- dense_2 (Dense)                        (None, 100)                         78500         
- dense_1 (Dense)                        (None, 20)                          2020          
- dense (Dense)                          (None, 2)                           42            
- sequential_1 (Sequential)              (None, 784)                         81344         
-==========================================================================================
-Total params: 161,906
-Trainable params: 161,906
-Non-trainable params: 0
-__________________________________________________________________________________________    
-    </code></pre>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>ae<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>ae<span class="sc">$</span>encoder<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>ae<span class="sc">$</span>decoder<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>ae<span class="sc">$</span>fc1<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>ae<span class="sc">$</span>fc2<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> <span class="fu">aperm</span>(train, <span class="at">perm =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">3</span>))</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>dataset <span class="ot">=</span> torch<span class="sc">::</span><span class="fu">tensor_dataset</span>(<span class="fu">torch_tensor</span>(train))</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>dataLoader <span class="ot">=</span> torch<span class="sc">::</span><span class="fu">dataloader</span>(dataset, <span class="at">batch_size =</span> 50L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>, <span class="at">pin_memory =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>optimizer <span class="ot">=</span> <span class="fu">optim_adam</span>(ae<span class="sc">$</span>parameters, <span class="at">lr=</span><span class="fl">0.01</span>) </span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">200</span>) {</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  batch_losses <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  counter <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  coro<span class="sc">::</span><span class="fu">loop</span>(<span class="cf">for</span> (b <span class="cf">in</span> dataLoader) {</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    optimizer<span class="sc">$</span><span class="fu">zero_grad</span>()</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    batch <span class="ot">=</span> b[[<span class="dv">1</span>]]<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    pred <span class="ot">=</span> <span class="fu">ae</span>(batch)</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    loss <span class="ot">=</span> <span class="fu">nnf_binary_cross_entropy</span>(pred, batch)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    loss<span class="sc">$</span><span class="fu">backward</span>()</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    optimizer<span class="sc">$</span><span class="fu">step</span>()</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    batch_losses[counter] <span class="ot">&lt;-</span> loss<span class="sc">$</span><span class="fu">item</span>()</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    counter <span class="ot">=</span> counter <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Epoch: "</span>, e, <span class="st">" loss: "</span>, <span class="fu">mean</span>(batch_losses), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<p>We will now show an example of an image before and after the unfitted autoencoder, so we see that we have to train the autoencoder.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>image <span class="ot">=</span> <span class="fu">autoencoder</span>(train_x[<span class="dv">1</span>,,<span class="at">drop =</span> <span class="cn">FALSE</span>])</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">imgPlot</span>(<span class="fu">array</span>(train_x[<span class="dv">1</span>,,<span class="at">drop =</span> <span class="cn">FALSE</span>], <span class="fu">c</span>(<span class="dv">28</span>, <span class="dv">28</span>)), <span class="at">title =</span> <span class="st">"Before"</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">imgPlot</span>(<span class="fu">array</span>(image<span class="sc">$</span><span class="fu">numpy</span>(), <span class="fu">c</span>(<span class="dv">28</span>, <span class="dv">28</span>)), <span class="at">title =</span> <span class="st">"After"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_6__AEmnistoutput-1.png" width="100%" style="display: block; margin: auto;"></p>
-<p>Fit the autoencoder (inputs == outputs!):</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set_random_seed</span>(123L, <span class="at">disable_gpu =</span> <span class="cn">FALSE</span>)  <span class="co"># Already sets R's random seed.</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>autoencoder <span class="sc">%&gt;%</span> </span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit</span>(<span class="at">x =</span> train_x, <span class="at">y =</span> train_x, <span class="at">epochs =</span> 5L, <span class="at">batch_size =</span> 128L)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Visualization of the latent variables:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>pred_dim <span class="ot">=</span> <span class="fu">down_size_model</span>(test_x)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>reconstr_pred <span class="ot">=</span> <span class="fu">up_size_model</span>(pred_dim)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">imgPlot</span>(<span class="fu">array</span>(reconstr_pred[<span class="dv">10</span>,]<span class="sc">$</span><span class="fu">numpy</span>(), <span class="at">dim =</span> <span class="fu">c</span>(28L, 28L)), <span class="at">title =</span> <span class="st">""</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_8__AEvisualization-1.png" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ownColors <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"limegreen"</span>, <span class="st">"purple"</span>, <span class="st">"yellow"</span>, <span class="st">"grey"</span>, <span class="st">"orange"</span>,</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>              <span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"navy"</span>, <span class="st">"sienna"</span>, <span class="st">"springgreen"</span>)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>oldpar <span class="ot">=</span> <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pred_dim<span class="sc">$</span><span class="fu">numpy</span>()[,<span class="dv">1</span>], pred_dim<span class="sc">$</span><span class="fu">numpy</span>()[,<span class="dv">2</span>], <span class="at">col =</span> ownColors[test[[<span class="dv">2</span>]]<span class="sc">+</span>1L])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_9__AEvisualizationContinuation-1.png" width="100%" style="display: block; margin: auto;"></p>
-<p>The picture above shows the 2-dimensional encoded values of the numbers in the MNIST data set and the number they are depicting via the respective color.</p>
+<!-- We can also use convolutional neural networks instead or on the side of deep neural networks: Prepare data: -->
+<!-- ``` r -->
+<!-- data = tf$keras$datasets$mnist$load_data() -->
+<!-- train = data[[1]] -->
+<!-- train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L)) -->
+<!-- test_x = array(data[[2]][[1]]/255, c(dim(data[[2]][[1]]/255), 1L)) -->
+<!-- ``` -->
+<!-- Then define the downsize model: -->
+<!-- ``` r -->
+<!-- down_size_model = keras_model_sequential() -->
+<!-- down_size_model %>%  -->
+<!--   layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L, 3L), input_shape = c(28L, 28L, 1L), padding = "same") %>%  -->
+<!--   layer_max_pooling_2d(, padding = "same") %>%  -->
+<!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+<!--   layer_max_pooling_2d(, padding = "same") %>%  -->
+<!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+<!--   layer_max_pooling_2d(, padding = "same") %>%  -->
+<!--   layer_flatten() %>%  -->
+<!--   layer_dense(units = 2L, activation = "linear") -->
+<!-- ``` -->
+<!-- Define the upsize model: -->
+<!-- ``` r -->
+<!-- up_size_model = keras_model_sequential() -->
+<!-- up_size_model %>%  -->
+<!--   layer_dense(units = 128L, activation = "relu", input_shape = c(2L)) %>%  -->
+<!--   layer_reshape(target_shape = c(4L, 4L, 8L)) %>%  -->
+<!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+<!--   layer_upsampling_2d() %>%  -->
+<!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+<!--   layer_upsampling_2d() %>%  -->
+<!--   layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L,3L)) %>%  -->
+<!--   layer_upsampling_2d() %>%  -->
+<!--   layer_conv_2d(filters = 1, activation = "sigmoid", kernel_size = c(3L,3L), padding = "same") -->
+<!-- ``` -->
+<!-- Combine the two models and fit it: -->
+<!-- ``` r -->
+<!-- library(tensorflow) -->
+<!-- library(keras) -->
+<!-- set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed. -->
+<!-- autoencoder = tf$keras$models$Model(inputs = down_size_model$input, -->
+<!--                                     outputs = up_size_model(down_size_model$output)) -->
+<!-- autoencoder %>% compile(loss = loss_binary_crossentropy, -->
+<!--                     optimizer = optimizer_rmsprop(0.001)) -->
+<!-- autoencoder %>%  fit(x = tf$constant(train_x), y = tf$constant(train_x), -->
+<!--                       epochs = 50L, batch_size = 64L) -->
+<!-- ``` -->
+<!-- Test it: -->
+<!-- ``` r -->
+<!-- pred_dim = down_size_model(tf$constant(test_x, "float32")) -->
+<!-- reconstr_pred = autoencoder(tf$constant(test_x, "float32")) -->
+<!-- imgPlot(reconstr_pred[10,,,]$numpy()[,,1]) -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_14-1.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- ``` r -->
+<!-- ownColors = c("limegreen", "purple", "yellow", "grey", "orange", -->
+<!--               "black", "red", "navy", "sienna", "springgreen") -->
+<!-- plot(pred_dim[,1]$numpy(), pred_dim[,2]$numpy(), col = ownColors[test[[2]]+1L]) -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_14-2.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- ``` r -->
+<!-- ## Generate new images! -->
+<!-- new = matrix(c(10, 10), 1, 2) -->
+<!-- imgPlot(array(up_size_model(new)$numpy(), c(28L, 28L))) -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_14-3.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- ``` r -->
+<!-- new = matrix(c(5, 5), 1, 2) -->
+<!-- imgPlot(array(up_size_model(new)$numpy(), c(28L, 28L))) -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_14-4.png" width="100%" style="display: block; margin: auto;"/> -->
 </section>
-<section id="autoencoder---mnist-convolutional-neural-networks" class="level2" data-number="14.2">
-<h2 data-number="14.2" class="anchored" data-anchor-id="autoencoder---mnist-convolutional-neural-networks"><span class="header-section-number">14.2</span> Autoencoder - MNIST Convolutional Neural Networks</h2>
-<p>We can also use convolutional neural networks instead or on the side of deep neural networks: Prepare data:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> tf<span class="sc">$</span>keras<span class="sc">$</span>datasets<span class="sc">$</span>mnist<span class="sc">$</span><span class="fu">load_data</span>()</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data[[<span class="dv">1</span>]]</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>train_x <span class="ot">=</span> <span class="fu">array</span>(train[[<span class="dv">1</span>]]<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(train[[<span class="dv">1</span>]]), 1L))</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>test_x <span class="ot">=</span> <span class="fu">array</span>(data[[<span class="dv">2</span>]][[<span class="dv">1</span>]]<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(data[[<span class="dv">2</span>]][[<span class="dv">1</span>]]<span class="sc">/</span><span class="dv">255</span>), 1L))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Then define the downsize model:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>down_size_model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>down_size_model <span class="sc">%&gt;%</span> </span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 16L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L, 3L), <span class="at">input_shape =</span> <span class="fu">c</span>(28L, 28L, 1L), <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_max_pooling_2d</span>(, <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 8L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L), <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_max_pooling_2d</span>(, <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 8L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L), <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_max_pooling_2d</span>(, <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_flatten</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 2L, <span class="at">activation =</span> <span class="st">"linear"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Define the upsize model:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>up_size_model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>up_size_model <span class="sc">%&gt;%</span> </span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 128L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">input_shape =</span> <span class="fu">c</span>(2L)) <span class="sc">%&gt;%</span> </span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_reshape</span>(<span class="at">target_shape =</span> <span class="fu">c</span>(4L, 4L, 8L)) <span class="sc">%&gt;%</span> </span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 8L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L), <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_upsampling_2d</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 8L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L), <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_upsampling_2d</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 16L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L)) <span class="sc">%&gt;%</span> </span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_upsampling_2d</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> <span class="dv">1</span>, <span class="at">activation =</span> <span class="st">"sigmoid"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L), <span class="at">padding =</span> <span class="st">"same"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Combine the two models and fit it:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set_random_seed</span>(321L, <span class="at">disable_gpu =</span> <span class="cn">FALSE</span>)  <span class="co"># Already sets R's random seed.</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>autoencoder <span class="ot">=</span> tf<span class="sc">$</span>keras<span class="sc">$</span>models<span class="sc">$</span><span class="fu">Model</span>(<span class="at">inputs =</span> down_size_model<span class="sc">$</span>input,</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">outputs =</span> <span class="fu">up_size_model</span>(down_size_model<span class="sc">$</span>output))</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>autoencoder <span class="sc">%&gt;%</span> <span class="fu">compile</span>(<span class="at">loss =</span> loss_binary_crossentropy,</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>                    <span class="at">optimizer =</span> <span class="fu">optimizer_rmsprop</span>(<span class="fl">0.001</span>))</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>autoencoder <span class="sc">%&gt;%</span>  <span class="fu">fit</span>(<span class="at">x =</span> tf<span class="sc">$</span><span class="fu">constant</span>(train_x), <span class="at">y =</span> tf<span class="sc">$</span><span class="fu">constant</span>(train_x),</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>                      <span class="at">epochs =</span> 50L, <span class="at">batch_size =</span> 64L)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Test it:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>pred_dim <span class="ot">=</span> <span class="fu">down_size_model</span>(tf<span class="sc">$</span><span class="fu">constant</span>(test_x, <span class="st">"float32"</span>))</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>reconstr_pred <span class="ot">=</span> <span class="fu">autoencoder</span>(tf<span class="sc">$</span><span class="fu">constant</span>(test_x, <span class="st">"float32"</span>))</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">imgPlot</span>(reconstr_pred[<span class="dv">10</span>,,,]<span class="sc">$</span><span class="fu">numpy</span>()[,,<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_14-1.png" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>ownColors <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"limegreen"</span>, <span class="st">"purple"</span>, <span class="st">"yellow"</span>, <span class="st">"grey"</span>, <span class="st">"orange"</span>,</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>              <span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"navy"</span>, <span class="st">"sienna"</span>, <span class="st">"springgreen"</span>)</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pred_dim[,<span class="dv">1</span>]<span class="sc">$</span><span class="fu">numpy</span>(), pred_dim[,<span class="dv">2</span>]<span class="sc">$</span><span class="fu">numpy</span>(), <span class="at">col =</span> ownColors[test[[<span class="dv">2</span>]]<span class="sc">+</span>1L])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_14-2.png" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Generate new images!</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>new <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">10</span>), <span class="dv">1</span>, <span class="dv">2</span>)</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">imgPlot</span>(<span class="fu">array</span>(<span class="fu">up_size_model</span>(new)<span class="sc">$</span><span class="fu">numpy</span>(), <span class="fu">c</span>(28L, 28L)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_14-3.png" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>new <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">5</span>), <span class="dv">1</span>, <span class="dv">2</span>)</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">imgPlot</span>(<span class="fu">array</span>(<span class="fu">up_size_model</span>(new)<span class="sc">$</span><span class="fu">numpy</span>(), <span class="fu">c</span>(28L, 28L)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_14-4.png" width="100%" style="display: block; margin: auto;"></p>
-</section>
-<section id="sec-VAE" class="level2" data-number="14.3">
-<h2 data-number="14.3" class="anchored" data-anchor-id="sec-VAE"><span class="header-section-number">14.3</span> Variational Autoencoder (VAE)</h2>
+<section id="sec-VAE" class="level2" data-number="14.2">
+<h2 data-number="14.2" class="anchored" data-anchor-id="sec-VAE"><span class="header-section-number">14.2</span> Variational Autoencoder (VAE)</h2>
 <p>The difference between a variational and a normal autoencoder is that a variational autoencoder assumes a distribution for the latent variables (latent variables cannot be observed and are composed of other variables) and the parameters of this distribution are learned. Thus new objects can be generated by inserting valid (!) (with regard to the assumed distribution) “seeds” to the decoder. To achieve the property that more or less randomly chosen points in the low dimensional latent space are meaningful and yield suitable results after decoding, the latent space/training process must be regularized. In this process, the input to the VAE is encoded to a distribution in the latent space rather than a single point.</p>
-<p>For building variational autoencoders, we will use TensorFlow probability, but first, we need to split the data again.</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tfprobability)</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> tf<span class="sc">$</span>keras<span class="sc">$</span>datasets<span class="sc">$</span>mnist<span class="sc">$</span><span class="fu">load_data</span>()</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data[[<span class="dv">1</span>]]</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>train_x <span class="ot">=</span> <span class="fu">array</span>(train[[<span class="dv">1</span>]]<span class="sc">/</span><span class="dv">255</span>, <span class="fu">c</span>(<span class="fu">dim</span>(train[[<span class="dv">1</span>]]), 1L))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>We will use TensorFlow probability to define priors for our latent variables.</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tfprobability)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>tfp <span class="ot">=</span> reticulate<span class="sc">::</span><span class="fu">import</span>(<span class="st">"tensorflow_probability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Build the two networks:</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>encoded <span class="ot">=</span> 2L</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>prior <span class="ot">=</span> <span class="fu">tfd_independent</span>(<span class="fu">tfd_normal</span>(<span class="fu">c</span>(<span class="fl">0.0</span>, <span class="fl">0.0</span>), <span class="fl">1.0</span>), 1L)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>up_size_model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>up_size_model <span class="sc">%&gt;%</span> </span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 128L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">input_shape =</span> <span class="fu">c</span>(2L)) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_reshape</span>(<span class="at">target_shape =</span> <span class="fu">c</span>(4L, 4L, 8L)) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 8L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L), <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_upsampling_2d</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 8L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L), <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_upsampling_2d</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 16L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L)) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_upsampling_2d</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> <span class="dv">1</span>, <span class="at">activation =</span> <span class="st">"sigmoid"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L), <span class="at">padding =</span> <span class="st">"same"</span>)</span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>down_size_model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>down_size_model <span class="sc">%&gt;%</span> </span>
-<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 16L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L, 3L), <span class="at">input_shape =</span> <span class="fu">c</span>(28L, 28L, 1L), <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_max_pooling_2d</span>(, <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 8L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L), <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_max_pooling_2d</span>(, <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_conv_2d</span>(<span class="at">filters =</span> 8L, <span class="at">activation =</span> <span class="st">"relu"</span>, <span class="at">kernel_size =</span> <span class="fu">c</span>(3L,3L), <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_max_pooling_2d</span>(, <span class="at">padding =</span> <span class="st">"same"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_flatten</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> 4L, <span class="at">activation =</span> <span class="st">"linear"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_independent_normal</span>(2L,</span>
-<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a>                           <span class="at">activity_regularizer =</span></span>
-<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>                             tfp<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">KLDivergenceRegularizer</span>(<span class="at">distribution_b =</span> prior))</span>
-<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a>VAE <span class="ot">=</span> <span class="fu">keras_model</span>(<span class="at">inputs =</span> down_size_model<span class="sc">$</span>inputs,</span>
-<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outputs =</span> <span class="fu">up_size_model</span>(down_size_model<span class="sc">$</span>outputs))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Compile and fit model:</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set_random_seed</span>(321L, <span class="at">disable_gpu =</span> <span class="cn">FALSE</span>)  <span class="co"># Already sets R's random seed.</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>loss_binary <span class="ot">=</span> <span class="cf">function</span>(true, pred){</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">loss_binary_crossentropy</span>(true, pred) <span class="sc">*</span> <span class="fl">28.0</span> <span class="sc">*</span> <span class="fl">28.0</span>)</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>VAE <span class="sc">%&gt;%</span> <span class="fu">compile</span>(<span class="at">loss =</span> loss_binary, <span class="at">optimizer =</span> <span class="fu">optimizer_adamax</span>())</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>VAE <span class="sc">%&gt;%</span> <span class="fu">fit</span>(train_x, train_x, <span class="at">epochs =</span> 50L)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>And show that it works:</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>dist <span class="ot">=</span> <span class="fu">down_size_model</span>(train_x[<span class="dv">1</span><span class="sc">:</span><span class="dv">2000</span>,,,,<span class="at">drop =</span> <span class="cn">FALSE</span>])</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>images <span class="ot">=</span> <span class="fu">up_size_model</span>(dist<span class="sc">$</span><span class="fu">sample</span>()[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,])</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>ownColors <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"limegreen"</span>, <span class="st">"purple"</span>, <span class="st">"yellow"</span>, <span class="st">"grey"</span>, <span class="st">"orange"</span>,</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>              <span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"navy"</span>, <span class="st">"sienna"</span>, <span class="st">"springgreen"</span>)</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>oldpar <span class="ot">=</span> <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="fu">imgPlot</span>(images[<span class="dv">1</span>,,,<span class="dv">1</span>]<span class="sc">$</span><span class="fu">numpy</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-1.png" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(dist<span class="sc">$</span><span class="fu">mean</span>()<span class="sc">$</span><span class="fu">numpy</span>()[,<span class="dv">1</span>], dist<span class="sc">$</span><span class="fu">mean</span>()<span class="sc">$</span><span class="fu">numpy</span>()[,<span class="dv">2</span>], <span class="at">col =</span> ownColors[train[[<span class="dv">2</span>]]<span class="sc">+</span>1L])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-2.png" width="100%" style="display: block; margin: auto;"></p>
-</section>
-<section id="exercise" class="level2" data-number="14.4">
-<h2 data-number="14.4" class="anchored" data-anchor-id="exercise"><span class="header-section-number">14.4</span> Exercise</h2>
-<div class="callout callout-style-default callout-caution no-icon callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Question
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Read section <a href="#sec-VAE"><span>Section&nbsp;14.3</span></a> on variational autoencoders and try to transfer the examples with MNIST to our flower data set (so from black-white images to colored images).</p>
-<div class="webex-solution">
-<button>
-Click here to see the solution
-</button>
-<p>Split the data:</p>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tfprobability)</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set_random_seed</span>(321L, <span class="at">disable_gpu =</span> <span class="cn">FALSE</span>)  <span class="co"># Already sets R's random seed.</span></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> EcoData<span class="sc">::</span><span class="fu">dataset_flower</span>()</span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> data<span class="sc">$</span>test<span class="sc">/</span><span class="dv">255</span></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data<span class="sc">$</span>train<span class="sc">/</span><span class="dv">255</span></span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Build the variational autoencoder:</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>encoded <span class="ot">=</span> 10L</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>prior <span class="ot">=</span> tfp<span class="sc">$</span>distributions<span class="sc">$</span><span class="fu">Independent</span>(</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  tfp<span class="sc">$</span>distributions<span class="sc">$</span><span class="fu">Normal</span>(<span class="at">loc=</span>tf<span class="sc">$</span><span class="fu">zeros</span>(encoded), <span class="at">scale =</span> <span class="fl">1.</span>),</span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">reinterpreted_batch_ndims =</span> 1L</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>down_size_model <span class="ot">=</span> tf<span class="sc">$</span>keras<span class="sc">$</span>models<span class="sc">$</span><span class="fu">Sequential</span>(<span class="fu">list</span>(</span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">InputLayer</span>(<span class="at">input_shape =</span> <span class="fu">c</span>(80L, 80L, 3L)),</span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Conv2D</span>(<span class="at">filters =</span> 32L, <span class="at">activation =</span> tf<span class="sc">$</span>nn<span class="sc">$</span>leaky_relu,</span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>                         <span class="at">kernel_size =</span> 5L, <span class="at">strides =</span> 1L),</span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Conv2D</span>(<span class="at">filters =</span> 32L, <span class="at">activation =</span> tf<span class="sc">$</span>nn<span class="sc">$</span>leaky_relu,</span>
-<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>                         <span class="at">kernel_size =</span> 5L, <span class="at">strides =</span> 2L),</span>
-<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Conv2D</span>(<span class="at">filters =</span> 64L, <span class="at">activation =</span> tf<span class="sc">$</span>nn<span class="sc">$</span>leaky_relu,</span>
-<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>                         <span class="at">kernel_size =</span> 5L, <span class="at">strides =</span> 1L),</span>
-<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Conv2D</span>(<span class="at">filters =</span> 64L, <span class="at">activation =</span> tf<span class="sc">$</span>nn<span class="sc">$</span>leaky_relu,</span>
-<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>                         <span class="at">kernel_size =</span> 5L, <span class="at">strides =</span> 2L),</span>
-<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Conv2D</span>(<span class="at">filters =</span> 128L, <span class="at">activation =</span> tf<span class="sc">$</span>nn<span class="sc">$</span>leaky_relu,</span>
-<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>                         <span class="at">kernel_size =</span> 7L, <span class="at">strides =</span> 1L),</span>
-<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Flatten</span>(),</span>
-<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Dense</span>(<span class="at">units =</span> tfp<span class="sc">$</span>layers<span class="sc">$</span>MultivariateNormalTriL<span class="sc">$</span><span class="fu">params_size</span>(encoded),</span>
-<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>                        <span class="at">activation =</span> <span class="cn">NULL</span>),</span>
-<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>  tfp<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">MultivariateNormalTriL</span>(</span>
-<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>    encoded, </span>
-<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">activity_regularizer =</span> tfp<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">KLDivergenceRegularizer</span>(prior, <span class="at">weight =</span> <span class="fl">0.0002</span>)</span>
-<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>))</span>
-<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>up_size_model <span class="ot">=</span> tf<span class="sc">$</span>keras<span class="sc">$</span>models<span class="sc">$</span><span class="fu">Sequential</span>(<span class="fu">list</span>(</span>
-<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">InputLayer</span>(<span class="at">input_shape =</span> encoded),</span>
-<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Dense</span>(<span class="at">units =</span> 8192L, <span class="at">activation =</span> <span class="st">"relu"</span>),</span>
-<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Reshape</span>(<span class="at">target_shape =</span>  <span class="fu">c</span>(8L, 8L, 128L)),</span>
-<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Conv2DTranspose</span>(<span class="at">filters =</span> 128L, <span class="at">kernel_size =</span> 7L,</span>
-<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">activation =</span> tf<span class="sc">$</span>nn<span class="sc">$</span>leaky_relu, <span class="at">strides =</span> 1L,</span>
-<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">use_bias =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Conv2DTranspose</span>(<span class="at">filters =</span> 64L, <span class="at">kernel_size =</span> 5L,</span>
-<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">activation =</span> tf<span class="sc">$</span>nn<span class="sc">$</span>leaky_relu, <span class="at">strides =</span> 2L,</span>
-<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">use_bias =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Conv2DTranspose</span>(<span class="at">filters =</span> 64L, <span class="at">kernel_size =</span> 5L,</span>
-<span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">activation =</span> tf<span class="sc">$</span>nn<span class="sc">$</span>leaky_relu, <span class="at">strides =</span> 1L,</span>
-<span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">use_bias =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Conv2DTranspose</span>(<span class="at">filters =</span> 32L, <span class="at">kernel_size =</span> 5L,</span>
-<span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">activation =</span> tf<span class="sc">$</span>nn<span class="sc">$</span>leaky_relu, <span class="at">strides =</span> 2L,</span>
-<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">use_bias =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Conv2DTranspose</span>(<span class="at">filters =</span> 32L, <span class="at">kernel_size =</span> 5L,</span>
-<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">activation =</span> tf<span class="sc">$</span>nn<span class="sc">$</span>leaky_relu, <span class="at">strides =</span> 1L,</span>
-<span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">use_bias =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb26-47"><a href="#cb26-47" aria-hidden="true" tabindex="-1"></a>  tf<span class="sc">$</span>keras<span class="sc">$</span>layers<span class="sc">$</span><span class="fu">Conv2DTranspose</span>(<span class="at">filters =</span> 3L, <span class="at">kernel_size =</span> <span class="fu">c</span>(4L, 4L),</span>
-<span id="cb26-48"><a href="#cb26-48" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">activation =</span> <span class="st">"sigmoid"</span>, <span class="at">strides =</span> <span class="fu">c</span>(1L, 1L),</span>
-<span id="cb26-49"><a href="#cb26-49" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">use_bias =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb26-50"><a href="#cb26-50" aria-hidden="true" tabindex="-1"></a>))</span>
-<span id="cb26-51"><a href="#cb26-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-52"><a href="#cb26-52" aria-hidden="true" tabindex="-1"></a>VAE <span class="ot">=</span> tf<span class="sc">$</span>keras<span class="sc">$</span>models<span class="sc">$</span><span class="fu">Model</span>(<span class="at">inputs =</span> down_size_model<span class="sc">$</span>inputs, </span>
-<span id="cb26-53"><a href="#cb26-53" aria-hidden="true" tabindex="-1"></a>                            <span class="at">outputs =</span> <span class="fu">up_size_model</span>(down_size_model<span class="sc">$</span>outputs))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Helper functions:</p>
 <div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-summary(VAE)
-Model: "model_3"
-__________________________________________________________________________________________
- Layer (type)                           Output Shape                        Param #       
-==========================================================================================
- input_1 (InputLayer)                   [(None, 80, 80, 3)]                 0             
- conv2d_14 (Conv2D)                     (None, 76, 76, 32)                  2432          
- conv2d_15 (Conv2D)                     (None, 36, 36, 32)                  25632         
- conv2d_16 (Conv2D)                     (None, 32, 32, 64)                  51264         
- conv2d_17 (Conv2D)                     (None, 14, 14, 64)                  102464        
- conv2d_18 (Conv2D)                     (None, 8, 8, 128)                   401536        
- flatten_2 (Flatten)                    (None, 8192)                        0             
- dense_10 (Dense)                       (None, 65)                          532545        
- multivariate_normal_tri_l (Multivariat  ((None, 10),                       0             
- eNormalTriL)                            (None, 10))                                      
- sequential_7 (Sequential)              (None, 80, 80, 3)                   1278464       
-==========================================================================================
-Total params: 2,394,337
-Trainable params: 2,394,337
-Non-trainable params: 0
-__________________________________________________________________________________________    
-    </code></pre>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> EcoData<span class="sc">::</span><span class="fu">dataset_flower</span>()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> data<span class="sc">$</span>train<span class="sc">/</span><span class="dv">255</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>labels <span class="ot">=</span> data<span class="sc">$</span>labels</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> <span class="fu">aperm</span>(train, <span class="at">perm =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(coro)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>Flatten <span class="ot">=</span> </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_module</span>(</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">forward =</span> <span class="cf">function</span>(input) <span class="fu">return</span>(input<span class="sc">$</span><span class="fu">view</span>(<span class="fu">list</span>(input<span class="sc">$</span><span class="fu">size</span>(1L), <span class="sc">-</span><span class="dv">1</span>)))</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>UnFlatten <span class="ot">=</span> </span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_module</span>(</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">forward =</span> <span class="cf">function</span>(input, <span class="at">size=</span><span class="dv">1152</span>) <span class="fu">return</span>( input<span class="sc">$</span><span class="fu">view</span>(<span class="fu">list</span>(input<span class="sc">$</span><span class="fu">size</span>(1L), size, 1L, 1L)))</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>VAE <span class="ot">=</span> <span class="fu">nn_module</span>(</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(<span class="at">image_channels =</span> 3L, <span class="at">h_dim=</span><span class="dv">1152</span>, <span class="at">z_dim=</span>30L) {</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>encoder <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv2d</span>(image_channels, <span class="dv">16</span>, <span class="at">kernel_size=</span><span class="dv">4</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv2d</span>(<span class="dv">16</span>, <span class="dv">32</span>, <span class="at">kernel_size=</span><span class="dv">4</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv2d</span>(<span class="dv">32</span>, <span class="dv">64</span>, <span class="at">kernel_size=</span><span class="dv">4</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv2d</span>(<span class="dv">64</span>, <span class="dv">128</span>, <span class="at">kernel_size=</span><span class="dv">4</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">Flatten</span>()</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>fc1 <span class="ot">=</span> <span class="fu">nn_linear</span>(h_dim, z_dim)</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>fc2 <span class="ot">=</span> <span class="fu">nn_linear</span>(h_dim, z_dim)</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>fc3 <span class="ot">=</span> <span class="fu">nn_linear</span>(z_dim, h_dim)</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>decoder <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">UnFlatten</span>(),</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv_transpose2d</span>(h_dim, <span class="dv">128</span>, <span class="at">kernel_size=</span><span class="dv">6</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv_transpose2d</span>(<span class="dv">128</span>, <span class="dv">64</span>, <span class="at">kernel_size=</span><span class="dv">6</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv_transpose2d</span>(<span class="dv">64</span>, <span class="dv">32</span>, <span class="at">kernel_size=</span><span class="dv">7</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_conv_transpose2d</span>(<span class="dv">32</span>, image_channels, <span class="at">kernel_size=</span><span class="dv">8</span>, <span class="at">stride=</span><span class="dv">2</span>),</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_sigmoid</span>(),</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>  <span class="at">sample_from_normal =</span> <span class="cf">function</span>(mu, logvar) {</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>    std <span class="ot">=</span> (logvar<span class="sc">$</span><span class="fu">mul</span>(<span class="fl">0.5</span>)<span class="sc">$</span><span class="fu">exp_</span>())<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> mu<span class="sc">$</span>device)</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>    esp <span class="ot">=</span> <span class="fu">torch_randn</span>(mu<span class="sc">$</span><span class="fu">size</span>())<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> mu<span class="sc">$</span>device)</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">=</span> mu <span class="sc">+</span> std <span class="sc">*</span> esp</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(z)  </span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>  <span class="at">get_mu_and_sample =</span> <span class="cf">function</span>(h) {</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>    mu <span class="ot">=</span> self<span class="sc">$</span><span class="fu">fc1</span>(h)</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>    logvar <span class="ot">=</span> self<span class="sc">$</span><span class="fu">fc2</span>(h)</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>    samples <span class="ot">=</span> self<span class="sc">$</span><span class="fu">sample_from_normal</span>(mu, logvar)</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(samples, mu, logvar))</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>  <span class="at">encode =</span> <span class="cf">function</span>( x) {</span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>    h <span class="ot">=</span> self<span class="sc">$</span><span class="fu">encoder</span>(x)</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>    results <span class="ot">=</span> self<span class="sc">$</span><span class="fu">get_mu_and_sample</span>(h)</span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(results) <span class="co">#z, mu, logvar</span></span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>  <span class="at">decode =</span> <span class="cf">function</span>(z) {</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">=</span> self<span class="sc">$</span><span class="fu">fc3</span>(z)</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">=</span> self<span class="sc">$</span><span class="fu">decoder</span>(z)</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(z)</span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>  <span class="at">forward =</span> <span class="cf">function</span>(input) {</span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>    results <span class="ot">=</span> self<span class="sc">$</span><span class="fu">encode</span>(input)</span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">=</span> results[[<span class="dv">1</span>]]</span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>    mu <span class="ot">=</span> results[[<span class="dv">2</span>]]</span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>    logvar <span class="ot">=</span> results[[<span class="dv">3</span>]]</span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">=</span> self<span class="sc">$</span><span class="fu">decode</span>(z)</span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(z, mu, logvar))</span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>vae <span class="ot">=</span> <span class="fu">VAE</span>()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>device <span class="ot">=</span> <span class="st">"cpu"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>vae<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>vae<span class="sc">$</span>encoder<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>vae<span class="sc">$</span>decoder<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>vae<span class="sc">$</span>fc1<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>vae<span class="sc">$</span>fc2<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>vae<span class="sc">$</span>fc3<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Try untrained VAE:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>preditions <span class="ot">=</span> <span class="fu">as_array</span>(<span class="fu">vae</span>(<span class="fu">torch_tensor</span>(train[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,,,]))[[<span class="dv">1</span>]])</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>preditions <span class="ot">=</span> <span class="fu">aperm</span>(preditions, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>preditions[<span class="dv">1</span>,,,]  <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  keras3<span class="sc">::</span><span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Train VAE:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Loss function:</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>loss_function <span class="ot">=</span> <span class="cf">function</span>(reconstructed, x, mu, logvar){</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  loss_bce <span class="ot">=</span> <span class="fu">nnf_binary_cross_entropy</span>(reconstructed, x, <span class="at">reduction =</span> <span class="st">"sum"</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Kullback–Leibler divergence / Normal prior on our latent dimensions!</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  KLD <span class="ot">=</span> <span class="sc">-</span><span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">torch_mean</span>(<span class="dv">1</span> <span class="sc">+</span> logvar <span class="sc">-</span> mu<span class="sc">$</span><span class="fu">pow</span>(<span class="dv">2</span>) <span class="sc">-</span> logvar<span class="sc">$</span><span class="fu">exp</span>())</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(loss_bce<span class="sc">+</span>KLD)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>dataset <span class="ot">=</span> torch<span class="sc">::</span><span class="fu">tensor_dataset</span>(<span class="fu">torch_tensor</span>(train))</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>dataLoader <span class="ot">=</span> torch<span class="sc">::</span><span class="fu">dataloader</span>(dataset, <span class="at">batch_size =</span> 50L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>, <span class="at">pin_memory =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>optimizer <span class="ot">=</span> <span class="fu">optim_adam</span>(vae<span class="sc">$</span>parameters, <span class="at">lr=</span><span class="fl">0.001</span>) </span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">200</span>) {</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  batch_losses <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  counter <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  coro<span class="sc">::</span><span class="fu">loop</span>(<span class="cf">for</span> (b <span class="cf">in</span> dataLoader) {</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    optimizer<span class="sc">$</span><span class="fu">zero_grad</span>()</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    batch <span class="ot">=</span> b[[<span class="dv">1</span>]]<span class="sc">$</span><span class="fu">to</span>(<span class="at">device =</span> device)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    pred <span class="ot">=</span> <span class="fu">vae</span>(batch)</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    loss <span class="ot">=</span> <span class="fu">loss_function</span>(pred[[<span class="dv">1</span>]], batch, pred[[<span class="dv">2</span>]], pred[[<span class="dv">3</span>]])</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    loss<span class="sc">$</span><span class="fu">backward</span>()</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    optimizer<span class="sc">$</span><span class="fu">step</span>()</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    batch_losses[counter] <span class="ot">&lt;-</span> loss<span class="sc">$</span><span class="fu">item</span>()</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    counter <span class="ot">=</span> counter <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Epoch: "</span>, e, <span class="st">" loss: "</span>, <span class="fu">mean</span>(batch_losses), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Sample from our Decoder:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>images <span class="ot">=</span> vae<span class="sc">$</span><span class="fu">decode</span>(<span class="fu">torch_rand</span>(<span class="fu">c</span>(20L, 30L))<span class="sc">$</span><span class="fu">to</span>( <span class="at">device =</span> device)) <span class="sc">$</span><span class="fu">cpu</span>()</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>images <span class="ot">=</span> <span class="fu">as_array</span>(images<span class="sc">$</span><span class="fu">cpu</span>())</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>images <span class="ot">=</span> <span class="fu">aperm</span>(images, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>images[<span class="dv">1</span>,,,]  <span class="sc">%&gt;%</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  keras3<span class="sc">::</span><span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Example images (from the above trained VAE):</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="E1-Autoencoder_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Compile and train model:</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>be <span class="ot">=</span> <span class="cf">function</span>(true, pred){</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(tf<span class="sc">$</span>losses<span class="sc">$</span><span class="fu">binary_crossentropy</span>(true, pred) <span class="sc">*</span> <span class="fl">80.0</span> <span class="sc">*</span> <span class="fl">80.0</span>)</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>VAE<span class="sc">$</span><span class="fu">compile</span>(<span class="at">loss =</span> be,</span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">optimizer =</span> tf<span class="sc">$</span>keras<span class="sc">$</span>optimizers<span class="sc">$</span><span class="fu">Adamax</span>(<span class="at">learning_rate =</span> <span class="fl">0.0003</span>))</span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>VAE<span class="sc">$</span><span class="fu">fit</span>(<span class="at">x =</span> train, <span class="at">y =</span> train, <span class="at">epochs =</span> 50L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>, <span class="at">batch_size =</span> 20L)</span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>dist <span class="ot">=</span> <span class="fu">down_size_model</span>(train[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,,,])</span>
-<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>images <span class="ot">=</span> <span class="fu">up_size_model</span>( dist<span class="sc">$</span><span class="fu">sample</span>()[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,] )</span>
-<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>oldpar <span class="ot">=</span> <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">1</span>), <span class="at">mar =</span> <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">4</span>))</span>
-<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>scales<span class="sc">::</span><span class="fu">rescale</span>(images[<span class="dv">1</span>,,,]<span class="sc">$</span><span class="fu">numpy</span>(), <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">255</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">/</span><span class="st">`</span>(., <span class="dv">255</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>()</span>
-<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>scales<span class="sc">::</span><span class="fu">rescale</span>(images[<span class="dv">2</span>,,,]<span class="sc">$</span><span class="fu">numpy</span>(), <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">255</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">/</span><span class="st">`</span>(., <span class="dv">255</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>()</span>
-<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>scales<span class="sc">::</span><span class="fu">rescale</span>(images[<span class="dv">3</span>,,,]<span class="sc">$</span><span class="fu">numpy</span>(), <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">255</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">image_to_array</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">/</span><span class="st">`</span>(., <span class="dv">255</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.raster</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><img src="09-GAN_files/figure-html/chunk_chapter7_task_2__VAEflower-1.png" width="100%" style="display: block; margin: auto;"></p>
+<!-- ``` r -->
+<!-- library(tfprobability) -->
+<!-- data = tf$keras$datasets$mnist$load_data() -->
+<!-- train = data[[1]] -->
+<!-- train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L)) -->
+<!-- ``` -->
+<!-- We will use TensorFlow probability to define priors for our latent variables. -->
+<!-- ``` r -->
+<!-- library(tfprobability) -->
+<!-- tfp = reticulate::import("tensorflow_probability") -->
+<!-- ``` -->
+<!-- Build the two networks: -->
+<!-- ``` r -->
+<!-- encoded = 2L -->
+<!-- prior = tfd_independent(tfd_normal(c(0.0, 0.0), 1.0), 1L) -->
+<!-- up_size_model = keras_model_sequential() -->
+<!-- up_size_model %>%  -->
+<!--   layer_dense(units = 128L, activation = "relu", input_shape = c(2L)) %>%  -->
+<!--   layer_reshape(target_shape = c(4L, 4L, 8L)) %>%  -->
+<!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+<!--   layer_upsampling_2d() %>%  -->
+<!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+<!--   layer_upsampling_2d() %>%  -->
+<!--   layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L,3L)) %>%  -->
+<!--   layer_upsampling_2d() %>%  -->
+<!--   layer_conv_2d(filters = 1, activation = "sigmoid", kernel_size = c(3L,3L), padding = "same") -->
+<!-- down_size_model = keras_model_sequential() -->
+<!-- down_size_model %>%  -->
+<!--   layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L, 3L), input_shape = c(28L, 28L, 1L), padding = "same") %>%  -->
+<!--   layer_max_pooling_2d(, padding = "same") %>%  -->
+<!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+<!--   layer_max_pooling_2d(, padding = "same") %>%  -->
+<!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+<!--   layer_max_pooling_2d(, padding = "same") %>%  -->
+<!--   layer_flatten() %>%  -->
+<!--   layer_dense(units = 4L, activation = "linear") %>%  -->
+<!--   layer_independent_normal(2L, -->
+<!--                            activity_regularizer = -->
+<!--                              tfp$layers$KLDivergenceRegularizer(distribution_b = prior)) -->
+<!-- VAE = keras_model(inputs = down_size_model$inputs, -->
+<!--                   outputs = up_size_model(down_size_model$outputs)) -->
+<!-- ``` -->
+<!-- Compile and fit model: -->
+<!-- ``` r -->
+<!-- library(tensorflow) -->
+<!-- library(keras) -->
+<!-- set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed. -->
+<!-- loss_binary = function(true, pred){ -->
+<!--   return(loss_binary_crossentropy(true, pred) * 28.0 * 28.0) -->
+<!-- } -->
+<!-- VAE %>% compile(loss = loss_binary, optimizer = optimizer_adamax()) -->
+<!-- VAE %>% fit(train_x, train_x, epochs = 50L) -->
+<!-- ``` -->
+<!-- And show that it works: -->
+<!-- ``` r -->
+<!-- dist = down_size_model(train_x[1:2000,,,,drop = FALSE]) -->
+<!-- images = up_size_model(dist$sample()[1:5,]) -->
+<!-- ownColors = c("limegreen", "purple", "yellow", "grey", "orange", -->
+<!--               "black", "red", "navy", "sienna", "springgreen") -->
+<!-- oldpar = par(mfrow = c(1, 1)) -->
+<!-- imgPlot(images[1,,,1]$numpy()) -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-1.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- ``` r -->
+<!-- plot(dist$mean()$numpy()[,1], dist$mean()$numpy()[,2], col = ownColors[train[[2]]+1L]) -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-2.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- ## Exercise -->
+<!-- ::: {.callout-caution icon="false"} -->
+<!-- #### Question -->
+<!-- Read section @sec-VAE on variational autoencoders and try to transfer the examples with MNIST to our flower data set (so from black-white images to colored images). -->
+<!-- 
+<div class='webex-solution'><button>Click here to see the solution</button>
+ -->
+<!-- Split the data: -->
+<!-- ``` r -->
+<!-- library(keras) -->
+<!-- library(tensorflow) -->
+<!-- library(tfprobability) -->
+<!-- set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed. -->
+<!-- data = EcoData::dataset_flower() -->
+<!-- test = data$test/255 -->
+<!-- train = data$train/255 -->
+<!-- rm(data) -->
+<!-- ``` -->
+<!-- Build the variational autoencoder: -->
+<!-- ``` r -->
+<!-- encoded = 10L -->
+<!-- prior = tfp$distributions$Independent( -->
+<!--   tfp$distributions$Normal(loc=tf$zeros(encoded), scale = 1.), -->
+<!--   reinterpreted_batch_ndims = 1L -->
+<!-- ) -->
+<!-- down_size_model = tf$keras$models$Sequential(list( -->
+<!--   tf$keras$layers$InputLayer(input_shape = c(80L, 80L, 3L)), -->
+<!--   tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu, -->
+<!--                          kernel_size = 5L, strides = 1L), -->
+<!--   tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu, -->
+<!--                          kernel_size = 5L, strides = 2L), -->
+<!--   tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu, -->
+<!--                          kernel_size = 5L, strides = 1L), -->
+<!--   tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu, -->
+<!--                          kernel_size = 5L, strides = 2L), -->
+<!--   tf$keras$layers$Conv2D(filters = 128L, activation = tf$nn$leaky_relu, -->
+<!--                          kernel_size = 7L, strides = 1L), -->
+<!--   tf$keras$layers$Flatten(), -->
+<!--   tf$keras$layers$Dense(units = tfp$layers$MultivariateNormalTriL$params_size(encoded), -->
+<!--                         activation = NULL), -->
+<!--   tfp$layers$MultivariateNormalTriL( -->
+<!--     encoded,  -->
+<!--     activity_regularizer = tfp$layers$KLDivergenceRegularizer(prior, weight = 0.0002) -->
+<!--   ) -->
+<!-- )) -->
+<!-- up_size_model = tf$keras$models$Sequential(list( -->
+<!--   tf$keras$layers$InputLayer(input_shape = encoded), -->
+<!--   tf$keras$layers$Dense(units = 8192L, activation = "relu"), -->
+<!--   tf$keras$layers$Reshape(target_shape =  c(8L, 8L, 128L)), -->
+<!--   tf$keras$layers$Conv2DTranspose(filters = 128L, kernel_size = 7L, -->
+<!--                                   activation = tf$nn$leaky_relu, strides = 1L, -->
+<!--                                   use_bias = FALSE), -->
+<!--   tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L, -->
+<!--                                   activation = tf$nn$leaky_relu, strides = 2L, -->
+<!--                                   use_bias = FALSE), -->
+<!--   tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L, -->
+<!--                                   activation = tf$nn$leaky_relu, strides = 1L, -->
+<!--                                   use_bias = FALSE), -->
+<!--   tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L, -->
+<!--                                   activation = tf$nn$leaky_relu, strides = 2L, -->
+<!--                                   use_bias = FALSE), -->
+<!--   tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L, -->
+<!--                                   activation = tf$nn$leaky_relu, strides = 1L, -->
+<!--                                   use_bias = FALSE), -->
+<!--   tf$keras$layers$Conv2DTranspose(filters = 3L, kernel_size = c(4L, 4L), -->
+<!--                                   activation = "sigmoid", strides = c(1L, 1L), -->
+<!--                                   use_bias = FALSE) -->
+<!-- )) -->
+<!-- VAE = tf$keras$models$Model(inputs = down_size_model$inputs,  -->
+<!--                             outputs = up_size_model(down_size_model$outputs)) -->
+<!-- ``` -->
+<!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+<!-- cat(' -->
+<!-- summary(VAE) -->
+<!-- Model: "model_3" -->
+<!-- __________________________________________________________________________________________ -->
+<!--  Layer (type)                           Output Shape                        Param #        -->
+<!-- ========================================================================================== -->
+<!--  input_1 (InputLayer)                   [(None, 80, 80, 3)]                 0              -->
+<!--  conv2d_14 (Conv2D)                     (None, 76, 76, 32)                  2432           -->
+<!--  conv2d_15 (Conv2D)                     (None, 36, 36, 32)                  25632          -->
+<!--  conv2d_16 (Conv2D)                     (None, 32, 32, 64)                  51264          -->
+<!--  conv2d_17 (Conv2D)                     (None, 14, 14, 64)                  102464         -->
+<!--  conv2d_18 (Conv2D)                     (None, 8, 8, 128)                   401536         -->
+<!--  flatten_2 (Flatten)                    (None, 8192)                        0              -->
+<!--  dense_10 (Dense)                       (None, 65)                          532545         -->
+<!--  multivariate_normal_tri_l (Multivariat  ((None, 10),                       0              -->
+<!--  eNormalTriL)                            (None, 10))                                       -->
+<!--  sequential_7 (Sequential)              (None, 80, 80, 3)                   1278464        -->
+<!-- ========================================================================================== -->
+<!-- Total params: 2,394,337 -->
+<!-- Trainable params: 2,394,337 -->
+<!-- Non-trainable params: 0 -->
+<!-- __________________________________________________________________________________________     -->
+<!--     ') -->
+<!-- ``` -->
+<!-- Compile and train model: -->
+<!-- ``` r -->
+<!-- be = function(true, pred){ -->
+<!--   return(tf$losses$binary_crossentropy(true, pred) * 80.0 * 80.0) -->
+<!-- } -->
+<!-- VAE$compile(loss = be, -->
+<!--             optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.0003)) -->
+<!-- VAE$fit(x = train, y = train, epochs = 50L, shuffle = TRUE, batch_size = 20L) -->
+<!-- dist = down_size_model(train[1:10,,,]) -->
+<!-- images = up_size_model( dist$sample()[1:5,] ) -->
+<!-- oldpar = par(mfrow = c(3, 1), mar = rep(1, 4)) -->
+<!-- scales::rescale(images[1,,,]$numpy(), to = c(0, 255)) %>%  -->
+<!--   image_to_array() %>% -->
+<!--   `/`(., 255) %>% -->
+<!--   as.raster() %>% -->
+<!--   plot() -->
+<!-- scales::rescale(images[2,,,]$numpy(), to = c(0, 255)) %>%  -->
+<!--   image_to_array() %>% -->
+<!--   `/`(., 255) %>% -->
+<!--   as.raster() %>% -->
+<!--   plot() -->
+<!-- scales::rescale(images[3,,,]$numpy(), to = c(0, 255)) %>%  -->
+<!--   image_to_array() %>% -->
+<!--   `/`(., 255) %>% -->
+<!--   as.raster() %>% -->
+<!--   plot() -->
+<!-- ``` -->
+<!-- <img src="09-GAN_files/figure-html/chunk_chapter7_task_2__VAEflower-1.png" width="100%" style="display: block; margin: auto;"/> -->
+<!-- 
 </div>
-</div>
-</div>
+ -->
+<!-- ::: -->
 
 
 </section>
