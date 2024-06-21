@@ -143,6 +143,34 @@ library(torch)
 
 <!-- The picture above shows the 2-dimensional encoded values of the numbers in the MNIST data set and the number they are depicting via the respective color. -->
 
+Simple autoencoder of the iris dataset:
+
+```{r}
+library(cito)
+
+df = iris
+df[,1:4] = scale(df[,1:4])
+
+autoencoder = dnn(cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) ~ Sepal.Length+Sepal.Width+Petal.Length+Petal.Width, hidden = c(10L, 5L, 2L, 5L, 10L), data = df, lr = 0.1, verbose = FALSE)
+
+autoencoder$net
+
+predictions = 
+as.matrix(df[,1:4]) %>% 
+  torch_tensor() %>% 
+  autoencoder$net$`0`() %>% 
+  autoencoder$net$`1`() %>% 
+  autoencoder$net$`2`() %>% 
+  autoencoder$net$`3`() %>% 
+  autoencoder$net$`4`() %>% 
+  as.matrix()
+
+
+plot(predictions, col = iris$Species)
+```
+
+
+
 ## Autoencoder - Convolutional Neural Networks for Flower
 
 ```{r, eval=FALSE}

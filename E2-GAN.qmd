@@ -63,7 +63,10 @@ lr = 0.01
 device = "cpu"
 ```
 
+Our Models:
 
+- Generator creates images from noise
+- Discriminator classifies images into fake and real
 
 ```{r,eval=FALSE}
 
@@ -113,6 +116,27 @@ Discriminator = nn_module(
   forward = function(input) self$main(input)
 )
 
+```
+
+Prepare data:
+
+```{r, eval=FALSE}
+data = EcoData::dataset_flower()
+train = data$train/255
+labels = data$labels
+train = aperm(train, c(1, 4, 2, 3))
+
+
+dataset = torch::tensor_dataset(torch_tensor(train))
+dataLoader = torch::dataloader(dataset, batch_size = 50L, shuffle = TRUE, pin_memory = TRUE)
+
+```
+
+
+
+Create our models and initialize optimizers:
+
+```{r,eval=FALSE}
 
 disc = Discriminator()
 disc$apply(weights_init)
@@ -134,14 +158,12 @@ optimizerD = optim_adam(gen$parameters, lr=lr)
 optimizerG = optim_adam(disc$parameters, lr=lr)
 
 
-data = EcoData::dataset_flower()
-train = data$train/255
-labels = data$labels
-train = aperm(train, c(1, 4, 2, 3))
+
+```
 
 
-dataset = torch::tensor_dataset(torch_tensor(train))
-dataLoader = torch::dataloader(dataset, batch_size = 50L, shuffle = TRUE, pin_memory = TRUE)
+```{r,eval=FALSE}
+
 
 for(e in 1:1000) {
   errG_batch = errD_batch = NULL
