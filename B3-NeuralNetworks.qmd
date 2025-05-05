@@ -14,16 +14,23 @@ library(cito)
 
 ## Loss
 
-Tasks such as regression and classification are fundamentally different; the former has continuous responses, while the latter has a discrete response. In ML algorithms, these different tasks can be represented by different loss functions. Moreover, the tasks can differ even within regression or classification (e.g., in classification, we have binary classification (0 or 1) or multi-class classification (0, 1, or 2)). As a result, especially in DL, we have different specialized loss functions available for specific response types. The table below shows a list of supported loss functions in cito:
+Tasks such as regression and classification are fundamentally different; the former has continuous responses, while the latter has a discrete response. In ML algorithms, these different tasks can be represented by different loss functions (Classical ML algorithms also use loss functions but often they are automatically inferred, also neural networks are much more versatile, supporting more loss functions). Moreover, the tasks can differ even within regression or classification (e.g., in classification, we have binary classification (0 or 1) or multi-class classification (0, 1, or 2)). As a result, especially in DL, we have different specialized loss functions available for specific response types. The table below shows a list of supported loss functions in cito:
 
-| Loss | Type | Example |
-|----|----|----|
-| mse (mean squared error) | Regression | Numeric values |
-| mae (mean absolute error) | Regression | Numeric values, often used for skewed data |
-| softmax | Classification, multi-label | Species |
-| cross-entropy | Classification, binary or multi-class | Survived/non-survived, Multi-species/communities |
-| binomial | Classification, binary or multi-class | Binomial likelihood |
-| poisson | Regression | Count data |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| Loss                      | Type                                  | Example                                          |
++===========================+=======================================+==================================================+
+| mse (mean squared error)  | Regression                            | Numeric values                                   |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| mae (mean absolute error) | Regression                            | Numeric values, often used for skewed data       |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| softmax                   | Classification, multi-label           | Species                                          |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| cross-entropy             | Classification, binary or multi-class | Survived/non-survived, Multi-species/communities |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| binomial                  | Classification, binary or multi-class | Binomial likelihood                              |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| poisson                   | Regression                            | Count data                                       |
++---------------------------+---------------------------------------+--------------------------------------------------+
 
 In the iris data, we model `Species` which has 3 response levels, so this is was what we call multilabel and it requires a softmax link and a cross-entropy loss function, in cito we specify that by using the `softmax` loss:
 
@@ -185,7 +192,87 @@ model_tuned$tuning
 ## Exercise
 
 ::: callout-warning
+#### Question: Hyperparameter tuning dnn - Titanic dataset
+
+Tune architecture
+
+-   Tune training parameters (learning rate, batch size) and regularization
+
+**Hints**
+
+cito has a feature to automatically tune hyperparameters under Cross Validation!
+
+-   passing `tune(...)` to a hyperparameter will tell cito to tune this specific hyperparameter
+-   the `tuning = config_tuning(...)` let you specify the cross-validation strategy and the number of hyperparameters that should be tested (steps = number of hyperparameter combinations that should be tried)
+-   after tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
+
+Minimal example with the iris dataset:
+
+```{r, eval=FALSE}
+library(cito)
+df = iris
+df[,1:4] = scale(df[,1:4])
+
+model_tuned = dnn(Species~.,
+                  loss = "softmax",
+                  data = iris,
+                  lambda = tune(lower = 0.0, upper = 0.2), # you can pass the "tune" function to a hyerparameter
+                  tuning = config_tuning(CV = 3, steps = 20L)
+                  )
+
+# tuning results
+model_tuned$tuning
+
+
+# model_tuned is now already the best model!
+```
+
+```{r,eval=FALSE}
+#| message: false
+library(EcoData)
+library(dplyr)
+library(missRanger)
+data(titanic_ml)
+data = titanic_ml
+data =
+  data %>% select(survived, sex, age, fare, pclass)
+data[,-1] = missRanger(data[,-1], verbose = 0)
+
+data_sub =
+  data %>%
+    mutate(age = scales::rescale(age, c(0, 1)),
+           fare = scales::rescale(fare, c(0, 1))) %>%
+    mutate(sex = as.integer(sex) - 1L,
+           pclass = as.integer(pclass - 1L))
+data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
+data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
+
+
+model = dnn(survived~.,
+          hidden = c(10L, 10L), # change
+          activation = c("selu", "selu"), # change
+          loss = "binomial",
+          lr = 0.05, #change
+          validation = 0.2,
+          lambda = 0.001, # change
+          alpha = 0.1, # change
+          lr_scheduler = config_lr_scheduler("reduce_on_plateau", patience = 10, factor = 0.9),
+          data = data_obs, epochs = 40L, verbose = FALSE, plot= TRUE)
+
+# Predictions:
+
+predictions = predict(model, newdata = data_new, type = "response") # change prediction type to response so that cito predicts probabilities
+
+write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv")
+```
+:::
+
+
+::: callout-warning
 #### Question: Hyperparameter tuning - Plant-pollinator dataset
+
+The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower). We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>.
+
 
 see @sec-plantpoll for more information about the dataset.
 
@@ -222,7 +309,7 @@ newdata_imputed$interaction = NA
 
 Minimal example in cito:
 
-```{r, eval=TRUE}
+```{r, eval=FALSE}
 library(cito)
 set.seed(42)
 model = dnn(interaction~., 

@@ -45,8 +45,8 @@ To overcome this weakness, a random forest uses an ensemble of regression/classi
 
 There are two randomization steps with the random forest that are responsible for their success:
 
--   Bootstrap samples for each tree (we will sample observations with replacement from the data set. For the phone this is like not everyone has experience about each phone).
--   At each split, we will sample a subset of predictors that is then considered as potential splitting criterion (for the phone this is like that not everyone has the same decision criteria). Annotation: While building a decision tree (random forests consist of many decision trees), one splits the data at some point according to their features. For example if you have females and males, big and small people in a crowd, you con split this crowd by gender and then by size or by size and then by gender to build a decision tree.
+-   **Bootstrap samples** for each tree (we will sample observations with replacement from the data set. For the phone this is like not everyone has experience about each phone).
+-   At each split, we will **sample a subset of predictors** that is then considered as potential splitting criterion (for the phone this is like that not everyone has the same decision criteria). Annotation: While building a decision tree (random forests consist of many decision trees), one splits the data at some point according to their features. For example if you have females and males, big and small people in a crowd, you con split this crowd by gender and then by size or by size and then by gender to build a decision tree.
 
 Applying the random forest follows the same principle as for the methods before: We visualize the data (we have already done this so often for the airquality data set, thus we skip it here), fit the algorithm and then plot the outcomes.
 
@@ -72,11 +72,11 @@ rf$importance
 
 There are several important hyperparameters in a random forest that we can tune to get better results:
 
-| Hyperparameter    | Explanation                                                                                                                              |
-|--------------|----------------------------------------------------------|
-| mtry              | Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data). |
-| minimum node size | Minimal number of observations allowed in a node (before the branching is canceled)                                                      |
-| max depth         | Maximum number of tree depth                                                                                                             |
+| Hyperparameter | Explanation |
+|-----------------|-------------------------------------------------------|
+| mtry | Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data). |
+| minimum node size | Minimal number of observations allowed in a node (before the branching is canceled) |
+| max depth | Maximum number of tree depth |
 
 ## Boosted Regression Trees
 
@@ -145,20 +145,17 @@ If we do three-folded cross-validation, we actually fit three different boosted 
 
 Important hyperparameters:
 
-| Hyperparameter | Explanation                                                                  |
-|----------------|--------------------------------------------------------|
-| eta            | learning rate (weighting of the sequential trees)                            |
-| max depth      | maximal depth in the trees (small = low complexity, large = high complexity) |
-| subsample      | subsample ratio of the data (bootstrap ratio)                                |
-| lambda         | regularization strength of the individual trees                              |
-| max tree       | maximal number of trees in the ensemble                                      |
-
-
+| Hyperparameter | Explanation |
+|------------------|------------------------------------------------------|
+| eta | learning rate (weighting of the sequential trees) |
+| max depth | maximal depth in the trees (small = low complexity, large = high complexity) |
+| subsample | subsample ratio of the data (bootstrap ratio) |
+| lambda | regularization strength of the individual trees |
+| max tree | maximal number of trees in the ensemble |
 
 ## Exercise - Trees
 
-
-::: {.callout-warning}
+::: callout-warning
 #### Question: Regression Trees
 
 We will use the following code snippet to understand the hyperparameter mincut and thus the predictive performance.
@@ -180,8 +177,6 @@ sqrt(mean((data$Ozone - pred)^2)) # RMSE
 ```
 
 Try different mincut parameters and see what happens. (Compare the root mean squared error for different mincut parameters and explain what you see. Compare predictions for different mincut parameters and explain what happens.) What was wrong in the snippet above?
-
-
 :::
 
 `r hide("Click here to see the solution")`
@@ -211,10 +206,9 @@ for(i in c(1, 2, 3, 5, 10, 15, 25, 50, 54, 55, 56, 57, 75, 100)){ doTask(i) }
 
 Approximately at mincut = 15, prediction is the best (mind overfitting). After mincut = 56, the prediction has no information at all and the RMSE stays constant.
 
-Mind the complete cases of the airquality data set, that was the error. 
-`r unhide()`
+Mind the complete cases of the airquality data set, that was the error. `r unhide()`
 
-::: {.callout-warning}
+::: callout-warning
 #### Question: Random forest
 
 We will use the following code snippet to explore a random forest:
@@ -236,7 +230,6 @@ lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 ```
 
 Try different values for the nodesize describe how the predictions depend on this parameter.
-
 :::
 
 `r hide("Click here to see the solution")`
@@ -268,7 +261,7 @@ Nodesize affects the complexity. In other words: The bigger the nodesize, the sm
 
 `r unhide()`
 
-::: {.callout-warning}
+::: callout-warning
 #### Question: Boosted regression trees
 
 ```{r chunk_chapter4_task_25, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
@@ -316,8 +309,6 @@ saveGIF(
 Run the code above and play with different values for **max_depth** and describe what you see!
 
 Tip: have a look at the boosting.gif.
-
-
 :::
 
 `r hide("Click here to see the solution")`
@@ -377,18 +368,16 @@ Just some examples:
 -   ![](./images/boosting_6_0.7.gif){width="370"}
 -   ![](./images/boosting_20_0.9.gif){width="370"}
 
-
 `r unhide()`
 
-
-::: {.callout-warning}
+:::: callout-warning
 #### Question: Hyperparameter tuning of random forest
 
-| Hyperparameter    | Explanation                                                                                                                              |
-|--------------|----------------------------------------------------------|
-| mtry              | Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data). |
-| minimum node size | Minimal number of observations allowed in a node (before the branching is canceled)                                                      |
-| max depth         | Maximum number of tree depth                                                                                                             |
+| Hyperparameter | Explanation |
+|-----------------|-------------------------------------------------------|
+| mtry | Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data). |
+| minimum node size | Minimal number of observations allowed in a node (before the branching is canceled) |
+| max depth | Maximum number of tree depth |
 
 Combing back to the titanic dataset from the morning, we want to optimize min node size in our RF using a simple CV.
 
@@ -458,12 +447,9 @@ results = data.frame(minnodesize = hyper_minnodesize, AUC = tuning_results)
 print(results)
 ```
 :::
-
-
-:::
+::::
 
 `r hide("Click here to see the solution")`
-
 
 ```{r}
 library(ranger)
@@ -493,8 +479,6 @@ results = data.frame(minnodesize = hyper_minnodesize, AUC = tuning_results)
 print(results)
 ```
 
-
-
 Make predictions:
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
@@ -505,20 +489,18 @@ write.csv(data.frame(y = predict(model, data_new)$predictions[,1]), file = "Max_
 
 `r unhide()`
 
-::: {.callout-warning}
+:::: callout-warning
 #### Question: Hyperparameter tuning of boosted regression trees
 
 Important hyperparameters:
 
-| Hyperparameter | Explanation                                                                  |
-|----------------|--------------------------------------------------------|
-| eta            | learning rate (weighting of the sequential trees)                            |
-| max depth      | maximal depth in the trees (small = low complexity, large = high complexity) |
-| subsample      | subsample ratio of the data (bootstrap ratio)                                |
-| lambda         | regularization strength of the individual trees                              |
-| max tree       | maximal number of trees in the ensemble                                      |
-
-
+| Hyperparameter | Explanation |
+|------------------|------------------------------------------------------|
+| eta | learning rate (weighting of the sequential trees) |
+| max depth | maximal depth in the trees (small = low complexity, large = high complexity) |
+| subsample | subsample ratio of the data (bootstrap ratio) |
+| lambda | regularization strength of the individual trees |
+| max tree | maximal number of trees in the ensemble |
 
 Combing back to the titanic dataset from the morning, we want to optimize max depth and the eta parameter in xgboost.
 
@@ -582,9 +564,7 @@ results = data.frame(depth = hyper_depth, eta = hyper_eta, AUC = tuning_results)
 print(results)
 ```
 :::
-
-:::
-
+::::
 
 `r hide("Click here to see the solution")`
 
@@ -640,17 +620,15 @@ write.csv(data.frame(y = predictions), file = "Max_titanic_xgboost.csv")
 
 `r unhide()`
 
-
-::: {.callout-warning}
+::: callout-warning
 #### Bonus: Implement a BRT on your own!
 
 You can easily implement a BRT or boosted linear model using the rpart package or the lm function.
-
 :::
 
 `r hide("Click here to see the solution")`
 
-Go through the code line by line and try to understand it. Ask, if you have any questions you cannot solve.
+Go through the code line by line and try to understand it. Ask, if you have any questions:
 
 ```{r, echo = FALSE}
 library(tree)
@@ -720,4 +698,3 @@ plot(data[,2], pred, xlab = "observed", ylab = "predicted")
 ```
 
 `r unhide()`
-
