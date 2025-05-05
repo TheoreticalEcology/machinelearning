@@ -12,6 +12,31 @@ Artificial neural networks are biologically inspired, the idea is that inputs ar
 library(cito)
 ```
 
+## Fitting (deep) neural networks with the cito package
+
+Deep neural networks are currently the state of the art in unsupervised learning. Their ability to model different types of data (e.g. graphs, images) is one of the reasons for their rise in recent years. However,  requires extensive (programming) knowledge of the underlying deep learning frameworks (e.g. TensorFlow or PyTorch), which we will teach you in two days. For tabular data, we can use packages like cito, which work similarly to regression functions like lm and allow us to train deep neural networks in one line of code:
+
+```{r}
+library(cito)
+nn.fit<- dnn(Species~., data = datasets::iris, loss = "softmax", verbose = FALSE, plot = FALSE)
+```
+
+cito also supports many of the S3 methods that are available for statistical models, e.g. the summary function:
+```{r}
+summary(nn.fit)
+```
+
+Variable importance can also be computed for non-tree algorithms (although it is slightly different, more on that on Thursday). The feature importance reports the importance of the features for distinguishing the three species, the average conditional effects are an approximation of the linear effects, and the standard deviation of the conditional effects is a measure of the non-linearity of these three variables.
+
+We can also plot the underlying neural network:
+
+```{r}
+plot(nn.fit)
+```
+
+The network starts with the input layer, 4 nodes for our four features, then two hidden layers, each with 50 nodes, and a final layer with 3 output nodes for our three levels of the species variable. The lines between the nodes are the connections between the nodes, and the lines actually represent the weights optimised during training (some connections are almost invisible, meaning they are close to 0).
+
+
 ## Loss
 
 Tasks such as regression and classification are fundamentally different; the former has continuous responses, while the latter has a discrete response. In ML algorithms, these different tasks can be represented by different loss functions (Classical ML algorithms also use loss functions but often they are automatically inferred, also neural networks are much more versatile, supporting more loss functions). Moreover, the tasks can differ even within regression or classification (e.g., in classification, we have binary classification (0 or 1) or multi-class classification (0, 1, or 2)). As a result, especially in DL, we have different specialized loss functions available for specific response types. The table below shows a list of supported loss functions in cito:
@@ -217,7 +242,8 @@ model_tuned = dnn(Species~.,
                   loss = "softmax",
                   data = iris,
                   lambda = tune(lower = 0.0, upper = 0.2), # you can pass the "tune" function to a hyerparameter
-                  tuning = config_tuning(CV = 3, steps = 20L)
+                  tuning = config_tuning(CV = 3, steps = 20L),
+                  burnin = Inf
                   )
 
 # tuning results
@@ -256,6 +282,7 @@ model = dnn(survived~.,
           validation = 0.2,
           lambda = 0.001, # change
           alpha = 0.1, # change
+          burnin = Inf,
           lr_scheduler = config_lr_scheduler("reduce_on_plateau", patience = 10, factor = 0.9),
           data = data_obs, epochs = 40L, verbose = FALSE, plot= TRUE)
 
@@ -320,7 +347,7 @@ model = dnn(interaction~.,
     batchsize = 100L, # increasing the batch size will reduce the runtime
     data = data_obs, 
     epochs = 200L, 
-    burnin = 200L,
+    burnin = Inf,
     tuning = config_tuning(CV = 3, steps = 10))
 
 
@@ -441,6 +468,7 @@ model = dnn(interaction~.,
     batchsize = 100L, # increasing the batch size will reduce the runtime
     data = data_obs, 
     epochs = 100L, 
+    burnin = Inf,
     tuning = config_tuning(CV = 3, steps = 15))
 
 

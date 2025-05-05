@@ -8,7 +8,7 @@ editor_options:
 
 ## Classification and Regression Trees
 
-Tree-based models in general use a series of if-then rules to generate predictions from one or more decision trees. In this lecture, we will explore regression and classification trees by the example of the airquality data set. There is one important hyperparameter for regression trees: "minsplit".
+Tree-based algorithms use a series of if-then rules to generate predictions from one or more decision trees. In this lecture, we will explore regression and classification trees by the example of the airquality data set. There is one important hyperparameter for regression trees: "minsplit".
 
 -   It controls the depth of tree (see the help of rpart for a description).
 -   It controls the complexity of the tree and can thus also be seen as a regularization parameter.
@@ -41,7 +41,7 @@ The angular form of the prediction line is typical for regression trees and is a
 
 ## Random Forest
 
-To overcome this weakness, a random forest uses an ensemble of regression/classification trees. Thus, the random forest is in principle nothing else than a normal regression/classification tree, but it uses the idea of the *"wisdom of the crowd"* : By asking many people (regression/classification trees) one can make a more informed decision (prediction/classification). When you want to buy a new phone for example you also wouldn't go directly into the shop, but search in the internet and ask your friends and family.
+To overcome this weakness, a random forest uses an ensemble of regression/classification trees. In principle, a random forest is nothing more than a normal regression/classification tree, but it uses the idea of "wisdom of the crowd": by asking many people (regression/classification trees), you can make a more informed decision (prediction/classification). For example, if you wanted to buy a new phone, you wouldn't go directly to the store, but you would search the Internet and ask your friends and family.
 
 There are two randomization steps with the random forest that are responsible for their success:
 
@@ -64,7 +64,7 @@ plot(Ozone~Temp, data = data)
 lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 ```
 
-One advantage of random forests is that we will get an importance of variables. At each split in each tree, the improvement in the split-criterion is the importance measure attributed to the splitting variable, and is accumulated over all the trees in the forest separately for each variable. Thus the variable importance shows us how important a variable is averaged over all trees.
+One advantage of random forest is that we get an importance of the variables. For each split in each tree, the improvement in the split criterion is the measure of importance attributed to the split variable, and is accumulated over all trees in the forest separately for each variable. Thus, the variable importance tells us how important a variable is averaged across all trees.
 
 ```{r chunk_chapter4_26}
 rf$importance
@@ -80,14 +80,12 @@ There are several important hyperparameters in a random forest that we can tune 
 
 ## Boosted Regression Trees
 
-Random forests fit hundreds of trees independent of each other. Here, the idea of a boosted regression tree comes in. Maybe we could learn from the errors the previous weak learners made and thus enhance the performance of the algorithm.
-
-A boosted regression tree (BRT) starts with a simple regression tree (weak learner) and then sequentially fits additional trees to improve the results. There are two different strategies to do so:
+A boosted regression tree (BRT) starts with a simple regression tree (weak learner) and then sequentially fits additional trees to improve the results. There are two different strategies to do this:
 
 -   *AdaBoost*: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.
--   *Gradient boosting* (state of the art): Each sequential model will be fit on the residual errors of the previous model (strongly simplified, the actual algorithm is very complex).
+-   *Gradient boosting* (state of the art): Each sequential model will be fit on the residual errors of the previous model (strongly simplified, the actual algorithm is complex).
 
-We can fit a boosted regression tree using xgboost, but before we have to transform the data into a xgb.Dmatrix (which is a xgboost specific data type, the package sadly doesn't support R matrices or data.frames).
+We can fit a boosted regression tree using xgboost, but before we have to transform the data into a `xgb.Dmatrix` (which is a xgboost specific data type, the package sadly doesn't support R matrices or data.frames).
 
 ```{r chunk_chapter4_27, cache=TRUE, results='hide', message=FALSE, warning=FALSE}
 library(xgboost)
@@ -370,6 +368,219 @@ Just some examples:
 
 `r unhide()`
 
+
+:::: callout-warning
+#### Question: Hyperparameter tuning of boosted regression trees
+
+Important hyperparameters:
+
+| Hyperparameter | Explanation |
+|------------------|------------------------------------------------------|
+| eta | learning rate (weighting of the sequential trees) |
+| max depth | maximal depth in the trees (small = low complexity, large = high complexity) |
+| subsample | subsample ratio of the data (bootstrap ratio) |
+| lambda | regularization strength of the individual trees |
+| max tree | maximal number of trees in the ensemble |
+
+Combing back to the titanic dataset from the morning, we want to optimize max depth and the eta parameter in xgboost.
+
+Prepare the data:
+
+```{r}
+library(EcoData)
+library(dplyr)
+library(missRanger)
+data(titanic_ml)
+data = titanic_ml
+data = 
+  data %>% select(survived, sex, age, fare, pclass)
+data[,-1] = missRanger(data[,-1], verbose = 0)
+
+data_sub =
+  data %>%
+    mutate(age = scales::rescale(age, c(0, 1)),
+           fare = scales::rescale(fare, c(0, 1))) %>%
+    mutate(sex = as.integer(sex) - 1L,
+           pclass = as.integer(pclass - 1L))
+data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
+data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
+```
+
+::: {.callout-tip collapse="true" appearance="minimal"}
+## Code template
+
+```{r, eval=FALSE}
+library(xgboost)
+set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+cv = 3
+
+outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+
+# sample minnodesize values (must be integers)
+hyper_depth = ...
+hyper_eta = ...
+
+tuning_results =
+    sapply(1:length(hyper_minnodesize), function(k) {
+        auc_inner = NULL
+        for(j in 1:cv) {
+          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+          train_inner = data_obs[inner_split != j, ]
+          test_inner = data_obs[inner_split == j, ]
+          
+          data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
+          
+          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic")
+          predictions = predict(model, newdata = as.matrix(test_inner)[,-1])
+          
+          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
+        }
+      return(mean(auc_inner))
+    })
+
+results = data.frame(depth = hyper_depth, eta = hyper_eta, AUC = tuning_results)
+
+print(results)
+```
+:::
+::::
+
+`r hide("Click here to see the solution")`
+
+```{r}
+library(xgboost)
+set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+cv = 3
+
+outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+
+# sample minnodesize values (must be integers)
+hyper_depth = sample(200, 20)
+hyper_eta = runif(20, 0, 1)
+
+
+tuning_results =
+    sapply(1:length(hyper_depth), function(k) {
+        auc_inner = NULL
+        for(j in 1:cv) {
+          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+          train_inner = data_obs[inner_split != j, ]
+          test_inner = data_obs[inner_split == j, ]
+          
+          data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
+          
+          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic", verbose = 0)
+          predictions = predict(model, newdata = as.matrix(test_inner)[,-1])
+          
+          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
+        }
+      return(mean(auc_inner))
+    })
+
+results = data.frame(depth = hyper_depth, eta = hyper_eta, AUC = tuning_results)
+
+print(results)
+
+```
+
+Make predictions:
+
+```{r, results='hide', warning=FALSE, message=FALSE}
+data_xg = xgb.DMatrix(data = as.matrix(data_obs[,-1]), label = data_obs$survived)
+
+model = xgboost(data_xg, nrounds = 16L, eta = results[which.max(results$AUC), 2], max_depth = results[which.max(results$AUC), 1], objective = "reg:logistic")
+
+predictions = predict(model, newdata = as.matrix(data_new)[,-1])
+
+# Single predictions from the ensemble model:
+write.csv(data.frame(y = predictions), file = "Max_titanic_xgboost.csv")
+```
+
+`r unhide()`
+
+::: callout-warning
+#### Bonus: Implement a BRT on your own!
+
+You can easily implement a BRT or boosted linear model using the rpart package or the lm function.
+:::
+
+`r hide("Click here to see the solution")`
+
+Go through the code line by line and try to understand it. Ask, if you have any questions:
+
+```{r, echo = FALSE}
+library(tree)
+#### Helper function for single tree fit.
+get_model_tree = function(x, y, ...){
+  control = tree.control(nobs = length(x), ...)
+  model = tree(y~., data.frame(x = x, y = y), control = control)
+  pred = predict(model, newdata = data.frame(x = x, y = y))
+  return(list(model = model, pred = pred))
+}
+
+#### Helper function for single linear model fit.
+get_model_linear = function(x, y, ...){
+  data = data.frame(x = x, y = y)
+  models = lapply(paste0("y~", colnames(data.frame(x = x))), function(f) lm(as.formula(f), data = data))
+  model = models[[which.max(abs(sapply(models, coef)[2,]))]]
+  pred = predict(model, newdata = data.frame(x = x, y = y))
+  return(list(model = model, pred = pred))
+}
+
+#### Boost function.
+get_boosting_model = function(x, y, n_trees, bootstrap = NULL, colsample = NULL, eta = 1., booster = "tree", ...){
+  pred = NULL
+  m_list = list()
+  if(booster == "tree") get_model = get_model_tree
+  else get_model = get_model_linear
+  for(i in 1:n_trees){
+    if(i == 1){
+      m = get_model(x, y, ...)
+      pred = m$pred
+    }else{
+      if(!is.null(bootstrap)) indices = sample.int(length(y), bootstrap*length(y), replace = TRUE)
+      else indices = 1:length(y)
+      if(!is.null(colsample)) indices_cols = sample.int(ncol(x), colsample*ncol(x), replace = FALSE)
+      else indices_cols = 1:ncol(x)
+      y_res = y[indices] - pred[indices]
+      m = get_model(x[indices,indices_cols,drop=FALSE], y_res, ...)
+      pred = pred + eta*predict(m$model, newdata = data.frame(x = x))
+    }
+    m_list[[i]] = m$model
+  }
+  model_list = list()
+  model_list$model = m_list 
+  model_list$eta = eta
+  class(model_list) = "naiveBRT"
+  return(model_list)
+}
+
+predict.naiveBRT = function(model, newdata) {
+    N = model$N
+    if(is.null(N)) N = length(model$model)
+    eta = model$eta
+    
+    if(N != 1 ) return(rowSums(matrix(c(1, rep(eta, N-1)), nrow(newdata), N, byrow = TRUE) * sapply(1:N, function(k) predict(model$model[[k]], newdata = data.frame(x = newdata)))))
+    else return(predict(model$model[[1]], newdata = data.frame(x = newdata)))
+  }
+```
+
+Let's try it:
+
+```{r}
+data = model.matrix(~. , data = airquality)
+
+model = get_boosting_model(x = data[,-2], y = data[,2], n_trees = 5L )
+pred = predict(model, newdata = data[,-2])
+plot(data[,2], pred, xlab = "observed", ylab = "predicted")
+```
+
+`r unhide()`
+
+
+
 :::: callout-warning
 #### Question: Hyperparameter tuning of random forest
 
@@ -485,216 +696,6 @@ Make predictions:
 model = ranger(survived~.,data = data_obs, min.node.size = results[which.max(results$AUC),1], probability = TRUE)
 
 write.csv(data.frame(y = predict(model, data_new)$predictions[,1]), file = "Max_titanic_rf.csv")
-```
-
-`r unhide()`
-
-:::: callout-warning
-#### Question: Hyperparameter tuning of boosted regression trees
-
-Important hyperparameters:
-
-| Hyperparameter | Explanation |
-|------------------|------------------------------------------------------|
-| eta | learning rate (weighting of the sequential trees) |
-| max depth | maximal depth in the trees (small = low complexity, large = high complexity) |
-| subsample | subsample ratio of the data (bootstrap ratio) |
-| lambda | regularization strength of the individual trees |
-| max tree | maximal number of trees in the ensemble |
-
-Combing back to the titanic dataset from the morning, we want to optimize max depth and the eta parameter in xgboost.
-
-Prepare the data:
-
-```{r}
-library(EcoData)
-library(dplyr)
-library(missRanger)
-data(titanic_ml)
-data = titanic_ml
-data = 
-  data %>% select(survived, sex, age, fare, pclass)
-data[,-1] = missRanger(data[,-1], verbose = 0)
-
-data_sub =
-  data %>%
-    mutate(age = scales::rescale(age, c(0, 1)),
-           fare = scales::rescale(fare, c(0, 1))) %>%
-    mutate(sex = as.integer(sex) - 1L,
-           pclass = as.integer(pclass - 1L))
-data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
-data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
-```
-
-::: {.callout-tip collapse="true" appearance="minimal"}
-## Code template
-
-```{r, eval=FALSE}
-library(xgboost)
-set.seed(42)
-data_obs = data_sub[!is.na(data_sub$survived),] 
-cv = 3
-
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-
-# sample minnodesize values (must be integers)
-hyper_depth = ...
-hyper_eta = ...
-
-tuning_results =
-    sapply(1:length(hyper_minnodesize), function(k) {
-        auc_inner = NULL
-        for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
-          
-          data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
-          
-          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic")
-          predictions = predict(model, newdata = as.matrix(test_inner)[,-1])
-          
-          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
-        }
-      return(mean(auc_inner))
-    })
-
-results = data.frame(depth = hyper_depth, eta = hyper_eta, AUC = tuning_results)
-
-print(results)
-```
-:::
-::::
-
-`r hide("Click here to see the solution")`
-
-```{r}
-library(xgboost)
-set.seed(42)
-data_obs = data_sub[!is.na(data_sub$survived),] 
-cv = 3
-
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-
-# sample minnodesize values (must be integers)
-hyper_depth = sample(200, 20)
-hyper_eta = runif(20, 0, 1)
-
-
-tuning_results =
-    sapply(1:length(hyper_minnodesize), function(k) {
-        auc_inner = NULL
-        for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
-          
-          data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
-          
-          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic")
-          predictions = predict(model, newdata = as.matrix(test_inner)[,-1])
-          
-          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
-        }
-      return(mean(auc_inner))
-    })
-
-results = data.frame(depth = hyper_depth, eta = hyper_eta, AUC = tuning_results)
-
-print(results)
-
-```
-
-Make predictions:
-
-```{r, results='hide', warning=FALSE, message=FALSE}
-data_xg = xgb.DMatrix(data = as.matrix(data_obs[,-1]), label = data_obs$survived)
-
-model = xgboost(data_xg, nrounds = 16L, eta = results[which.max(results$AUC), 2], max_depth = results[which.max(results$AUC), 1], objective = "reg:logistic")
-
-predictions = predict(model, newdata = as.matrix(data_new)[,-1])
-
-# Single predictions from the ensemble model:
-write.csv(data.frame(y = predictions), file = "Max_titanic_xgboost.csv")
-```
-
-`r unhide()`
-
-::: callout-warning
-#### Bonus: Implement a BRT on your own!
-
-You can easily implement a BRT or boosted linear model using the rpart package or the lm function.
-:::
-
-`r hide("Click here to see the solution")`
-
-Go through the code line by line and try to understand it. Ask, if you have any questions:
-
-```{r, echo = FALSE}
-library(tree)
-#### Helper function for single tree fit.
-get_model_tree = function(x, y, ...){
-  control = tree.control(nobs = length(x), ...)
-  model = tree(y~., data.frame(x = x, y = y), control = control)
-  pred = predict(model, newdata = data.frame(x = x, y = y))
-  return(list(model = model, pred = pred))
-}
-
-#### Helper function for single linear model fit.
-get_model_linear = function(x, y, ...){
-  data = data.frame(x = x, y = y)
-  models = lapply(paste0("y~", colnames(data.frame(x = x))), function(f) lm(as.formula(f), data = data))
-  model = models[[which.max(abs(sapply(models, coef)[2,]))]]
-  pred = predict(model, newdata = data.frame(x = x, y = y))
-  return(list(model = model, pred = pred))
-}
-
-#### Boost function.
-get_boosting_model = function(x, y, n_trees, bootstrap = NULL, colsample = NULL, eta = 1., booster = "tree", ...){
-  pred = NULL
-  m_list = list()
-  if(booster == "tree") get_model = get_model_tree
-  else get_model = get_model_linear
-  for(i in 1:n_trees){
-    if(i == 1){
-      m = get_model(x, y, ...)
-      pred = m$pred
-    }else{
-      if(!is.null(bootstrap)) indices = sample.int(length(y), bootstrap*length(y), replace = TRUE)
-      else indices = 1:length(y)
-      if(!is.null(colsample)) indices_cols = sample.int(ncol(x), colsample*ncol(x), replace = FALSE)
-      else indices_cols = 1:ncol(x)
-      y_res = y[indices] - pred[indices]
-      m = get_model(x[indices,indices_cols,drop=FALSE], y_res, ...)
-      pred = pred + eta*predict(m$model, newdata = data.frame(x = x))
-    }
-    m_list[[i]] = m$model
-  }
-  model_list = list()
-  model_list$model = m_list 
-  model_list$eta = eta
-  class(model_list) = "naiveBRT"
-  return(model_list)
-}
-
-predict.naiveBRT = function(model, newdata) {
-    N = model$N
-    if(is.null(N)) N = length(model$model)
-    eta = model$eta
-    
-    if(N != 1 ) return(rowSums(matrix(c(1, rep(eta, N-1)), nrow(newdata), N, byrow = TRUE) * sapply(1:N, function(k) predict(model$model[[k]], newdata = data.frame(x = newdata)))))
-    else return(predict(model$model[[1]], newdata = data.frame(x = newdata)))
-  }
-```
-
-Let's try it:
-
-```{r}
-data = model.matrix(~. , data = airquality)
-
-model = get_boosting_model(x = data[,-2], y = data[,2], n_trees = 5L )
-pred = predict(model, newdata = data[,-2])
-plot(data[,2], pred, xlab = "observed", ylab = "predicted")
 ```
 
 `r unhide()`
