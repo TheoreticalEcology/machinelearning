@@ -10,28 +10,24 @@ editor_options:
 
 You probably remember from statistics that a more complex model always fits the training data better. The decisive question, however, is if it also works better on new (independent) data. Technically, we call this the **out-of-sample error**, as opposed to the i**n-sample error**, which is the error on the training data.
 
-Error can be measured in different ways, but usually we calculate some kind of accuracy (especially for classification tasks) or how much variance is explained by our model (regression tasks). We also distinguish between the error used to train the model and the error used to validate the model. The error used internally by the ML algorithms to train the model is what we usually call the loss. The smaller the loss, the smaller the error of the model, and vice versa for larger losses. We can also use losses to validate the models, but losses are often uninterpretable as they are often in the range \[0, Inf\[ and they cannot be generalized to other datasets because they are often data specific. Therefore, in practice, we usually use interpretable losses during validation that can be also used to compare the models over different datasets (Model A achieves 80% accuarcy on dataset A and 70% accuracy on dataset B), also called validation metrics, here is an overview of some common validation metrics and their interpretation:
+Error can be measured in different ways, but usually we calculate some **kind of accuracy** (especially for classification tasks) or how much variance is explained by our model (regression tasks). We also distinguish between the error used to train the model and the error used to validate the model. The error used internally by the ML algorithms to train the model is what we usually call the loss. The smaller the loss, the smaller the error of the model, and vice versa for larger losses.
+
+While we can use losses to validate the model, losses are often not interpretable as they are often in the range $[0, \infty[$ and they cannot be generalized to other datasets because they are often data specific. Therefore, in practice, we usually use **interpretable losses, validation metrics,** during validation that can be also used to compare the models over different datasets (Model A achieves 80% accuarcy on dataset A and 70% accuracy on dataset B), here is an overview of some common validation metrics and their interpretation:
 
 Validation metrics for classification tasks:
 
 | Validation Metric | Range | Classification Types | Explanation |
-|----|----|----|----|
-| **A**rea **U**nder the **C**urve (AUC) | $$
-[0, 1] 
-$$ | Binary Classification Tasks (e.g. Titanic Dataset, survived or died) | The ability of our models to distinguish between 0 and 1. Requires probability predictions. An AUC of 0.5 means that the algorithm is making random predictions. Lower than 0.5 –\> worse than random |
-| Accuracy | $$
-[0, 1] 
-$$ | All types of classifications (including multiclass tasks) | The accuracy of our models, how many of the predicted classes are correct. The baseline accuracy depends on the distributions of the classes (if one class occurs 99% in the data, a random model that will only predict this class, will achieve already a very high accuracy |
+|------------------|------------------|------------------|------------------|
+| **A**rea **U**nder the **C**urve (AUC) | $[0, 1]$ | Binary Classification Tasks (e.g. Titanic Dataset, survived or died) | The ability of our models to distinguish between 0 and 1. Requires probability predictions. An AUC of 0.5 means that the algorithm is making random predictions. Lower than 0.5 –\> worse than random |
+| Accuracy | $[0, 1]$ | All types of classifications (including multiclass tasks) | The accuracy of our models, how many of the predicted classes are correct. The baseline accuracy depends on the distributions of the classes (if one class occurs 99% in the data, a random model that will only predict this class, will achieve already a very high accuracy |
 
 Validation metrics for regression tasks:
 
 | Validation Metric | Range | Explanation |
-|----|----|----|
-| $$
-R^2
-$$ | [0, 1]  | How much variance is explained by our model. We usually use the sum of squares $$R^2$$ |
-| **R**oot **m**ean **s**quared **e**rror (RMSE) | [0, Inf]   | RMSE is not a really interpretable but it is still used as a common validation metrics (is also used as a loss to train models). The RMSE reports how much variance is unexplained (so smaller RMSE is better). However, RMSE is not really comparable between different data sets. |
-|  |  |  |
+|------------------------|------------------------|------------------------|
+| $R^2$ | $[0, 1]$ | How much variance is explained by our model. We usually use the sum of squares $R^2$ |
+| Correlation factors (Pearson or Spearman) | $[-1, 1]$ | Measures correlation between predictions and observations. Spearman (rank correlation factor) can be useful for skewed distributed responses (or non-normal distributed responses, such as count data). |
+| **R**oot **m**ean **s**quared **e**rror (RMSE) | $[0, \infty[$ | RMSE is not a really interpretable but it is still used as a common validation metrics (is also used as a loss to train models). The RMSE reports how much variance is unexplained (so smaller RMSE is better). However, RMSE is not really comparable between different data sets. |
 
 ### Splitting off validation data
 
@@ -121,9 +117,9 @@ cor(pred, data$medv)
 
 What we have just seen in the previous chapter is an example of the bias-variance trade-off. The idea is that we look at the error of the model on new test data. The total error comes from 2 contributions:
 
--   Bias = systematic error that comes from the fact that the model is not flexible enough, related to underfitting
+-   Bias = **systematic error** that comes from the fact that the model is not flexible enough, related to underfitting
 
--   Variance = stochastic error that comes from that fact that estimates of the model parameters get more uncertain when we add complexity
+-   Variance = **statistical error** that comes from that fact that estimates of the model parameters get more uncertain when we add complexity
 
 Optimizing the bias-variance trade-off means adjusting the complexity of the model which can be achieved by:
 
@@ -383,47 +379,55 @@ cor(finalPred,
     data[validation,]$medv)
 ```
 
-## Exercise - Predicting species interactions
+## Exercise - Predicting survival rate in the titanic dataset
 
-The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower). We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>.
+<!-- The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower). We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>. -->
+
+The titanic dataset is a collection of data about the titanic passengers and their survival status. The goal is to train a model that can predict whether a passenger survives or not based on their features (e.g. their passenger class)
 
 You can also find a small explanation of he dataset in the Appendix of the book @sec-plantpoll .
 
 ::: callout-warning
-### Task: Tune random orest model for the Plant-Pollinator dataset
+### Task: Tune random orest model for the Titanic dataset
 
-Tune the **min.node.size** hyperparameter, from the randomForest help:
+Tune the **nodesize** hyperparameter, from the randomForest help:
 
-min.node.size = Minimum size of terminal nodes. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
+nodesize = Minimum size of terminal nodes. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
 
 **Nodesize determines the complexity of the individual trees (we will talk about the exact working tomorrow)**
 
 **1. Prepare data**
 
 ```{r}
-library(ranger) # alternative faster random forest implementation
+library(randomForest) # alternative faster random forest implementation
 library(EcoData)
 
-data(plantPollinator_df)
-plant_poll = plantPollinator_df
-summary(plant_poll)
+data(titanic_ml)
+titanic_df = titanic_ml
+summary(titanic_df)
+
+# fill NA
+titanic_df[,-2] = missRanger::missRanger(titanic_df[,-2], verbose = 0)
+
+# remove name column, too many levels
+titanic_df = subset(titanic_df, select = c(-name, -home.dest, -ticket, -cabin))
+
+# change response to factor
+titanic_df$survived = as.factor(titanic_df$survived)
 
 # remove NAs
-df = plant_poll[complete.cases(plant_poll),] # remove NAs
+df = titanic_df[complete.cases(titanic_df),] # remove NAs
 
-# remove first two columns (species names)
-df = df[,-(1:2)]
 
 # Example:
-rf = ranger(interaction~., 
-            data = df[1:500,], 
-            min.node.size = 20, 
-            probability = TRUE) # we want our model to predict probabilities!
+rf = randomForest(survived~., 
+                  data = df[1:300,], 
+                  min.node.size = 20) # we want our model to predict probabilities!
 
 # the predict function of the ranger will return an object, the actual predictions
 # are inside a matrix with the name predictions
-pred = predict(rf, data = df[-(1:500),])$predictions[,2] 
-Metrics::auc(as.integer(df[-(1:500),]$interaction)-1, pred)
+pred = predict(rf, newdata = df[-(1:300),], type = "prob")[,2]
+Metrics::auc(as.integer(df[-(1:300),]$survived)-1, pred)
 
 ```
 
@@ -431,15 +435,15 @@ Metrics::auc(as.integer(df[-(1:500),]$interaction)-1, pred)
 
 **3. Tune min.node.size under nested Cross-Validation on the training split from step 2**
 
-\*\* 4. Create submissions \*\*
+**4. Create submissions**
+
+We separated data from the original dataset. Observations with NA in the survived column are held back by us to simulate a real-world scenario where you have training data to train your model, and then use the model in production on new data where you now have information about the response variable. After tuning your model on the training data (again, where the response variable is not NA) and you are happy with your model, you can make predictions for the observations where the response is unknown and upload the predictions to our server (http://rhsbio7.uni-regensburg.de:8500/, ignore the unsecure warning and UR VPN is required). The server will report your final performance and compare it with other predictions):
 
 How to create your submission file:
 
 ```{r}
-newdata = plantPollinator_df[is.na(plantPollinator_df$interaction), ]
-newdata_imputed = missRanger::missRanger(data = newdata[,-ncol(newdata)], verbose = 0) # fill NAs
-newdata_imputed$interaction = NA
-predictions = predict(rf, data = newdata_imputed)$predictions[,2]
+newdata = titanic_df[is.na(titanic_df$survived), ]
+predictions = predict(rf, newdata = newdata, type = "prob")[,2]
 
 write.csv(data.frame(y = predictions), file = "rf_max.csv")
 ```
@@ -456,7 +460,7 @@ dat = df[-validation,]
 
 # inner split
 nI = nrow(dat)
-hyperparameter = data.frame(min.node.size = seq(10, 500, by = 1))
+hyperparameter = data.frame(nodesize = seq(10, 500, by = 25))
 m = nrow(hyperparameter)
 k = 5 # folds
 split = sample.int(k, nI, replace = T)
@@ -465,37 +469,40 @@ split = sample.int(k, nI, replace = T)
 # making predictions for all hyperparameters / splits
 pred = matrix(NA, nI, m)
 for(l in 1:m){
+  # loop over the hyperparameters and do CV for each hyperparameter
   for(i in 1:k){
-    m1 = ranger(interaction~., data = dat[split != i,], min.node.size = hyperparameter$min.node.size[l], probability = TRUE)
-    pred[split == i,l] = predict(m1, data = dat[split == i,])$predictions[,2]
+    m1 = randomForest(survived~., data = dat[split != i,], nodesize = hyperparameter$nodesize[l])
+    pred[split == i,l] = predict(m1, newdata = dat[split == i,], type = "prob")[,2]
   }
 }
 
 # getting best hyperparameter option on test
-innerLoss = function(x) Metrics::auc(dat$interaction, x)
+innerLoss = function(x) Metrics::auc(dat$survived, x)
 res = apply(pred, 2, innerLoss)
 choice = which.max(res) 
 
 # fitting model again with best hyperparameters 
 # and all test / validation data 
-mFinal = ranger(interaction~., data = dat, mtry = hyperparameter$min.node.size[choice], probability = TRUE)
+mFinal = randomForest(survived~., data = dat, nodesize = hyperparameter$nodesize[choice])
 
 # testing final prediction on validation data 
-finalPred = predict(mFinal, data = df[validation,])$predictions[,2]
+finalPred = predict(mFinal, newdata = df[validation,], type = "prob")[,2]
 
-Metrics::auc(df[validation,]$interaction, finalPred)
+Metrics::auc(df[validation,]$survived, finalPred)
 ```
 
 Create submissions:
 
 ```{r}
-newdata = plantPollinator_df[is.na(plantPollinator_df$interaction), ]
-newdata_imputed = missRanger::missRanger(data = newdata[,-ncol(newdata)], verbose = 0)
-newdata_imputed$interaction = NA
-predictions = predict(mFinal, data = newdata_imputed)$predictions[,2]
+newdata = titanic_df[is.na(titanic_df$survived), ]
+predictions = predict(rf, newdata = newdata, type = "prob")[,2]
 
 write.csv(data.frame(y = predictions), file = "rf_max.csv")
 ```
+
+And upload the csv file
+
+**Important**: The predictions must be probabilities and have the same number of observations, this is why we impute the NA in the features, otherwise these observations would be dropped. 
 
 `r unhide()`
 
