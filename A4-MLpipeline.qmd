@@ -105,7 +105,7 @@ You can find it in GRIPS (datasets.RData in the data set and submission section)
 :::
 
 ::: callout-important
-### Motivation - We need a model that can predict the survival probability of new passengers.
+### Motivation - We want a model to predict the survival probability of new passengers.
 
 We have split the data set into training and an outer test/prediction data sets (the test/prediction split has one column less than the train split, as the response for the test/outer split is unknown).
 
@@ -399,81 +399,81 @@ write.csv(data.frame(y = predictions), file = "Max_1.csv")
 
 ## Exercises
 
-::: callout-warning
-#### Question: Hyperparameter tuning dnn - Titanic dataset
+<!-- ::: callout-warning -->
+<!-- #### Question: Hyperparameter tuning dnn - Titanic dataset -->
 
-Tune architecture
+<!-- Tune architecture -->
 
--   Tune training parameters (learning rate, batch size) and regularization
+<!-- -   Tune training parameters (learning rate, batch size) and regularization -->
 
-**Hints**
+<!-- **Hints** -->
 
-cito has a feature to automatically tune hyperparameters under Cross Validation!
+<!-- cito has a feature to automatically tune hyperparameters under Cross Validation! -->
 
--   passing `tune(...)` to a hyperparameter will tell cito to tune this specific hyperparameter
--   the `tuning = config_tuning(...)` let you specify the cross-validation strategy and the number of hyperparameters that should be tested (steps = number of hyperparameter combinations that should be tried)
--   after tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
+<!-- -   passing `tune(...)` to a hyperparameter will tell cito to tune this specific hyperparameter -->
+<!-- -   the `tuning = config_tuning(...)` let you specify the cross-validation strategy and the number of hyperparameters that should be tested (steps = number of hyperparameter combinations that should be tried) -->
+<!-- -   after tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model -->
 
-Minimal example with the iris dataset:
+<!-- Minimal example with the iris dataset: -->
 
-```{r, eval=FALSE}
-library(cito)
-df = iris
-df[,1:4] = scale(df[,1:4])
+<!-- ```{r, eval=FALSE} -->
+<!-- library(cito) -->
+<!-- df = iris -->
+<!-- df[,1:4] = scale(df[,1:4]) -->
 
-model_tuned = dnn(Species~., 
-                  loss = "softmax",
-                  data = iris,
-                  lambda = tune(lower = 0.0, upper = 0.2), # you can pass the "tune" function to a hyerparameter
-                  tuning = config_tuning(CV = 3, steps = 20L)
-                  )
+<!-- model_tuned = dnn(Species~.,  -->
+<!--                   loss = "softmax", -->
+<!--                   data = iris, -->
+<!--                   lambda = tune(lower = 0.0, upper = 0.2), # you can pass the "tune" function to a hyerparameter -->
+<!--                   tuning = config_tuning(CV = 3, steps = 20L) -->
+<!--                   ) -->
 
-# tuning results
-model_tuned$tuning
-
-
-# model_tuned is now already the best model!
-```
-
-```{r}
-#| message: false
-library(EcoData)
-library(dplyr)
-library(missRanger)
-data(titanic_ml)
-data = titanic_ml
-data = 
-  data %>% select(survived, sex, age, fare, pclass)
-data[,-1] = missRanger(data[,-1], verbose = 0)
-
-data_sub =
-  data %>%
-    mutate(age = scales::rescale(age, c(0, 1)),
-           fare = scales::rescale(fare, c(0, 1))) %>%
-    mutate(sex = as.integer(sex) - 1L,
-           pclass = as.integer(pclass - 1L))
-data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
-data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
+<!-- # tuning results -->
+<!-- model_tuned$tuning -->
 
 
-model = dnn(survived~., 
-          hidden = c(10L, 10L), # change
-          activation = c("selu", "selu"), # change
-          loss = "binomial", 
-          lr = 0.05, #change
-          validation = 0.2,
-          lambda = 0.001, # change
-          alpha = 0.1, # change
-          lr_scheduler = config_lr_scheduler("reduce_on_plateau", patience = 10, factor = 0.9),
-          data = data_obs, epochs = 40L, verbose = FALSE, plot= TRUE)
+<!-- # model_tuned is now already the best model! -->
+<!-- ``` -->
 
-# Predictions:
+<!-- ```{r} -->
+<!-- #| message: false -->
+<!-- library(EcoData) -->
+<!-- library(dplyr) -->
+<!-- library(missRanger) -->
+<!-- data(titanic_ml) -->
+<!-- data = titanic_ml -->
+<!-- data =  -->
+<!--   data %>% select(survived, sex, age, fare, pclass) -->
+<!-- data[,-1] = missRanger(data[,-1], verbose = 0) -->
 
-predictions = predict(model, newdata = data_new, type = "response") # change prediction type to response so that cito predicts probabilities
+<!-- data_sub = -->
+<!--   data %>% -->
+<!--     mutate(age = scales::rescale(age, c(0, 1)), -->
+<!--            fare = scales::rescale(fare, c(0, 1))) %>% -->
+<!--     mutate(sex = as.integer(sex) - 1L, -->
+<!--            pclass = as.integer(pclass - 1L)) -->
+<!-- data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end -->
+<!-- data_obs = data_sub[!is.na(data_sub$survived),] # data with known response -->
 
-write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv")
-```
-:::
+
+<!-- model = dnn(survived~.,  -->
+<!--           hidden = c(10L, 10L), # change -->
+<!--           activation = c("selu", "selu"), # change -->
+<!--           loss = "binomial",  -->
+<!--           lr = 0.05, #change -->
+<!--           validation = 0.2, -->
+<!--           lambda = 0.001, # change -->
+<!--           alpha = 0.1, # change -->
+<!--           lr_scheduler = config_lr_scheduler("reduce_on_plateau", patience = 10, factor = 0.9), -->
+<!--           data = data_obs, epochs = 40L, verbose = FALSE, plot= TRUE) -->
+
+<!-- # Predictions: -->
+
+<!-- predictions = predict(model, newdata = data_new, type = "response") # change prediction type to response so that cito predicts probabilities -->
+
+<!-- write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv") -->
+<!-- ``` -->
+<!-- ::: -->
 
 <!-- ::: {.callout-warning} -->
 
@@ -647,12 +647,12 @@ write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv")
 #### Question: Hyperparameter tuning rf
 
 | Hyperparameter | Explanation |
-|----|----|
+|-----------------|-------------------------------------------------------|
 | mtry | Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data). |
 | minimum node size | Minimal number of observations allowed in a node (before the branching is canceled) |
 | max depth | Maximum number of tree depth |
 
-Combing back to the titanic dataset from the morning, we want to optimize min node size in our RF using a simple CV.
+Coming back to the titanic dataset from the morning, we want to optimize nodesize, max depth, and mtry in our RF using a simple CV.
 
 Prepare the data:
 
@@ -663,13 +663,17 @@ library(missRanger)
 data(titanic_ml)
 data = titanic_ml
 data = 
-  data %>% select(survived, sex, age, fare, pclass)
-data[,-1] = missRanger(data[,-1], verbose = 0)
+  data |> select(survived, sex, age, fare, pclass)
+
+# data imputation without the response variable!
+data[,-1] = missRanger(data[,-1], verbose = 0) 
+
+data$survived = as.factor(data$survived)
 
 data_sub =
-  data %>%
+  data |> 
     mutate(age = scales::rescale(age, c(0, 1)),
-           fare = scales::rescale(fare, c(0, 1))) %>%
+           fare = scales::rescale(fare, c(0, 1))) |> 
     mutate(sex = as.integer(sex) - 1L,
            pclass = as.integer(pclass - 1L))
 data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
@@ -682,22 +686,19 @@ data_obs$survived = as.factor(data_obs$survived)
 
 -   adjust the '`type`' argument in the `predict(…)` method (the default is to predict classes)
 -   when predicting probabilities, the randomForest will return a matrix, a column for each class, we are interested in the probability of surviving (so the second column)
-
-**Bonus:**
-
--   tune min node size (and mtry)
--   use more features
+-   tune nodesize, mtry, and maxnodes
+-   use more features and do feature engineering!
 
 ::: {.callout-tip collapse="true" appearance="minimal"}
 ## Code template
 
 ```{r, eval=FALSE}
-library(ranger)
+library(randomForest)
 data_obs = data_sub[!is.na(data_sub$survived),] 
 set.seed(42)
 
 cv = 3
-hyper_minnodesize = ...
+hyper_minnodesize = ... # 
 
 tuning_results =
     sapply(1:length(hyper_minnodesize), function(k) {
@@ -707,8 +708,8 @@ tuning_results =
           train_inner = data_obs[inner_split != j, ]
           test_inner = data_obs[inner_split == j, ]
           
-          model = ranger(survived~.,data = train_inner, min.node.size = hyper_minnodesize[k], probability = TRUE)
-          predictions = predict(model, test_inner)$predictions[,2]
+          model = randomForest(survived~.,data = train_inner, nodesize = hyper_minnodesize[k])
+          predictions = predict(model, newdata=test_inner, type = "prob")[,2]
           
           auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
         }
@@ -725,12 +726,13 @@ print(results)
 `r hide("Click here to see the solution")`
 
 ```{r}
-library(ranger)
+library(randomForest)
 data_obs = data_sub[!is.na(data_sub$survived),] 
 set.seed(42)
 
 cv = 3
 hyper_minnodesize = sample(300, 20)
+hyper_mtry = sample(4, 20, replace = TRUE)
 
 tuning_results =
     sapply(1:length(hyper_minnodesize), function(k) {
@@ -739,156 +741,164 @@ tuning_results =
           inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
           train_inner = data_obs[inner_split != j, ]
           test_inner = data_obs[inner_split == j, ]
-          model = ranger(survived~.,data = train_inner, min.node.size = hyper_minnodesize[k], probability = TRUE)
-          predictions = predict(model, test_inner)$predictions[,2]
+          model = randomForest(survived~.,data = train_inner, 
+                               nodesize = hyper_minnodesize[k], 
+                               mtry = hyper_mtry[k])
+          predictions = predict(model, test_inner, type="prob")[,2]
           
           auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
         }
       return(mean(auc_inner))
     })
 
-results = data.frame(minnodesize = hyper_minnodesize, AUC = tuning_results)
+results = data.frame(minnodesize = hyper_minnodesize, mtry = hyper_mtry, AUC = tuning_results)
 
 print(results)
+
+# highest AUC / best hyperparameters
+best_hyper = results[which.max(results$AUC),]
+print(best_hyper)
 ```
 
-Make predictions:
+Make predictions for the submission server:
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
-model = ranger(survived~.,data = data_obs, min.node.size = results[which.max(results$AUC),1], probability = TRUE)
+model = randomForest(survived~.,data = data_obs, 
+                     nodesize = best_hyper[1,1], 
+                     mtry = best_hyper[1,2])
 
-write.csv(data.frame(y = predict(model, data_new)$predictions[,1]), file = "Max_titanic_rf.csv")
+write.csv(data.frame(y = predict(model, newdata=data_new, type="prob")[,2]), file = "Max_titanic_rf.csv")
 ```
 
 `r unhide()`
 
-:::: callout-warning
-#### Question: Hyperparameter tuning BRT
+<!-- :::: callout-warning -->
+<!-- #### Question: Hyperparameter tuning BRT -->
 
-Important hyperparameters:
+<!-- Important hyperparameters: -->
 
-| Hyperparameter | Explanation |
-|----|----|
-| eta | learning rate (weighting of the sequential trees) |
-| max depth | maximal depth in the trees (small = low complexity, large = high complexity) |
-| subsample | subsample ratio of the data (bootstrap ratio) |
-| lambda | regularization strength of the individual trees |
-| max tree | maximal number of trees in the ensemble |
+<!-- | Hyperparameter | Explanation | -->
+<!-- |------------------|------------------------------------------------------| -->
+<!-- | eta | learning rate (weighting of the sequential trees) | -->
+<!-- | max depth | maximal depth in the trees (small = low complexity, large = high complexity) | -->
+<!-- | subsample | subsample ratio of the data (bootstrap ratio) | -->
+<!-- | lambda | regularization strength of the individual trees | -->
+<!-- | max tree | maximal number of trees in the ensemble | -->
 
-Combing back to the titanic dataset from the morning, we want to optimize max depth and the eta parameter in xgboost.
+<!-- Combing back to the titanic dataset from the morning, we want to optimize max depth and the eta parameter in xgboost. -->
 
-Prepare the data:
+<!-- Prepare the data: -->
 
-```{r}
-library(EcoData)
-library(dplyr)
-library(missRanger)
-data(titanic_ml)
-data = titanic_ml
-data = 
-  data %>% select(survived, sex, age, fare, pclass)
-data[,-1] = missRanger(data[,-1], verbose = 0)
+<!-- ```{r} -->
+<!-- library(EcoData) -->
+<!-- library(dplyr) -->
+<!-- library(missRanger) -->
+<!-- data(titanic_ml) -->
+<!-- data = titanic_ml -->
+<!-- data =  -->
+<!--   data %>% select(survived, sex, age, fare, pclass) -->
+<!-- data[,-1] = missRanger(data[,-1], verbose = 0) -->
 
-data_sub =
-  data %>%
-    mutate(age = scales::rescale(age, c(0, 1)),
-           fare = scales::rescale(fare, c(0, 1))) %>%
-    mutate(sex = as.integer(sex) - 1L,
-           pclass = as.integer(pclass - 1L))
-data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
-data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
-```
+<!-- data_sub = -->
+<!--   data %>% -->
+<!--     mutate(age = scales::rescale(age, c(0, 1)), -->
+<!--            fare = scales::rescale(fare, c(0, 1))) %>% -->
+<!--     mutate(sex = as.integer(sex) - 1L, -->
+<!--            pclass = as.integer(pclass - 1L)) -->
+<!-- data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end -->
+<!-- data_obs = data_sub[!is.na(data_sub$survived),] # data with known response -->
+<!-- ``` -->
 
-::: {.callout-tip collapse="true" appearance="minimal"}
-## Code template
+<!-- ::: {.callout-tip collapse="true" appearance="minimal"} -->
+<!-- ## Code template -->
 
-```{r, eval=FALSE}
-library(xgboost)
-set.seed(42)
-data_obs = data_sub[!is.na(data_sub$survived),] 
-cv = 3
+<!-- ```{r, eval=FALSE} -->
+<!-- library(xgboost) -->
+<!-- set.seed(42) -->
+<!-- data_obs = data_sub[!is.na(data_sub$survived),]  -->
+<!-- cv = 3 -->
 
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+<!-- outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
 
-# sample minnodesize values (must be integers)
-hyper_depth = ...
-hyper_eta = ...
+<!-- # sample minnodesize values (must be integers) -->
+<!-- hyper_depth = ... -->
+<!-- hyper_eta = ... -->
 
-tuning_results =
-    sapply(1:length(hyper_eta), function(k) {
-        auc_inner = NULL
-        for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
-          
-          data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
-          
-          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic")
-          predictions = predict(model, newdata = as.matrix(test_inner)[,-1])
-          
-          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
-        }
-      return(mean(auc_inner))
-    })
+<!-- tuning_results = -->
+<!--     sapply(1:length(hyper_eta), function(k) { -->
+<!--         auc_inner = NULL -->
+<!--         for(j in 1:cv) { -->
+<!--           inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
+<!--           train_inner = data_obs[inner_split != j, ] -->
+<!--           test_inner = data_obs[inner_split == j, ] -->
 
-results = data.frame(depth = hyper_depth, eta = hyper_eta, AUC = tuning_results)
+<!--           data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived) -->
 
-print(results)
-```
-:::
-::::
+<!--           model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic") -->
+<!--           predictions = predict(model, newdata = as.matrix(test_inner)[,-1]) -->
 
-`r hide("Click here to see the solution")`
+<!--           auc_inner[j]= Metrics::auc(test_inner$survived, predictions) -->
+<!--         } -->
+<!--       return(mean(auc_inner)) -->
+<!--     }) -->
 
-```{r}
-library(xgboost)
-set.seed(42)
-data_obs = data_sub[!is.na(data_sub$survived),] 
-cv = 3
+<!-- results = data.frame(depth = hyper_depth, eta = hyper_eta, AUC = tuning_results) -->
 
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+<!-- print(results) -->
+<!-- ``` -->
+<!-- ::: -->
+<!-- :::: -->
 
-# sample minnodesize values (must be integers)
-hyper_depth = sample(200, 20)
-hyper_eta = runif(20, 0, 1)
+<!-- `r hide("Click here to see the solution")` -->
+
+<!-- ```{r} -->
+<!-- library(xgboost) -->
+<!-- set.seed(42) -->
+<!-- data_obs = data_sub[!is.na(data_sub$survived),]  -->
+<!-- cv = 3 -->
+
+<!-- outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
+
+<!-- # sample minnodesize values (must be integers) -->
+<!-- hyper_depth = sample(200, 20) -->
+<!-- hyper_eta = runif(20, 0, 1) -->
 
 
-tuning_results =
-    sapply(1:length(hyper_eta), function(k) {
-        auc_inner = NULL
-        for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
-          
-          data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
-          
-          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic")
-          predictions = predict(model, newdata = as.matrix(test_inner)[,-1])
-          
-          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
-        }
-      return(mean(auc_inner))
-    })
+<!-- tuning_results = -->
+<!--     sapply(1:length(hyper_eta), function(k) { -->
+<!--         auc_inner = NULL -->
+<!--         for(j in 1:cv) { -->
+<!--           inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
+<!--           train_inner = data_obs[inner_split != j, ] -->
+<!--           test_inner = data_obs[inner_split == j, ] -->
 
-results = data.frame(depth = hyper_depth, eta = hyper_eta, AUC = tuning_results)
+<!--           data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived) -->
 
-print(results)
+<!--           model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic") -->
+<!--           predictions = predict(model, newdata = as.matrix(test_inner)[,-1]) -->
 
-```
+<!--           auc_inner[j]= Metrics::auc(test_inner$survived, predictions) -->
+<!--         } -->
+<!--       return(mean(auc_inner)) -->
+<!--     }) -->
 
-Make predictions:
+<!-- results = data.frame(depth = hyper_depth, eta = hyper_eta, AUC = tuning_results) -->
 
-```{r, results='hide', warning=FALSE, message=FALSE}
-data_xg = xgb.DMatrix(data = as.matrix(data_obs[,-1]), label = data_obs$survived)
+<!-- print(results) -->
 
-model = xgboost(data_xg, nrounds = 16L, eta = results[which.max(results$AUC), 2], max_depth = results[which.max(results$AUC), 1], objective = "reg:logistic")
+<!-- ``` -->
 
-predictions = predict(model, newdata = as.matrix(data_new)[,-1])
+<!-- Make predictions: -->
 
-# Single predictions from the ensemble model:
-write.csv(data.frame(y = predictions), file = "Max_titanic_xgboost.csv")
-```
+<!-- ```{r, results='hide', warning=FALSE, message=FALSE} -->
+<!-- data_xg = xgb.DMatrix(data = as.matrix(data_obs[,-1]), label = data_obs$survived) -->
 
-`r unhide()`
+<!-- model = xgboost(data_xg, nrounds = 16L, eta = results[which.max(results$AUC), 2], max_depth = results[which.max(results$AUC), 1], objective = "reg:logistic") -->
+
+<!-- predictions = predict(model, newdata = as.matrix(data_new)[,-1]) -->
+
+<!-- # Single predictions from the ensemble model: -->
+<!-- write.csv(data.frame(y = predictions), file = "Max_titanic_xgboost.csv") -->
+<!-- ``` -->
+
+<!-- `r unhide()` -->

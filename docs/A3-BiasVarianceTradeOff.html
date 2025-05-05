@@ -371,7 +371,7 @@ window.Quarto = {
   <li><a href="#tuning-with-a-train-test-split" id="toc-tuning-with-a-train-test-split" class="nav-link" data-scroll-target="#tuning-with-a-train-test-split"><span class="header-section-number">3.3.2</span> Tuning with a train / test split</a></li>
   <li><a href="#nested-cross-validation" id="toc-nested-cross-validation" class="nav-link" data-scroll-target="#nested-cross-validation"><span class="header-section-number">3.3.3</span> Nested (cross)-validation</a></li>
   </ul></li>
-  <li><a href="#exercise---predicting-survival-rate-in-the-titanic-dataset" id="toc-exercise---predicting-survival-rate-in-the-titanic-dataset" class="nav-link" data-scroll-target="#exercise---predicting-survival-rate-in-the-titanic-dataset"><span class="header-section-number">3.4</span> Exercise - Predicting survival rate in the titanic dataset</a></li>
+  <li><a href="#exercise---predicting-survival-rate-of-titanic-passengers" id="toc-exercise---predicting-survival-rate-of-titanic-passengers" class="nav-link" data-scroll-target="#exercise---predicting-survival-rate-of-titanic-passengers"><span class="header-section-number">3.4</span> Exercise - Predicting survival rate of titanic passengers</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/A3-BiasVarianceTradeOff.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
@@ -941,11 +941,20 @@ min 0.0105    78   23.80 3.247      12
 </div>
 </section>
 </section>
-<section id="exercise---predicting-survival-rate-in-the-titanic-dataset" class="level2" data-number="3.4">
-<h2 data-number="3.4" class="anchored" data-anchor-id="exercise---predicting-survival-rate-in-the-titanic-dataset"><span class="header-section-number">3.4</span> Exercise - Predicting survival rate in the titanic dataset</h2>
+<section id="exercise---predicting-survival-rate-of-titanic-passengers" class="level2" data-number="3.4">
+<h2 data-number="3.4" class="anchored" data-anchor-id="exercise---predicting-survival-rate-of-titanic-passengers"><span class="header-section-number">3.4</span> Exercise - Predicting survival rate of titanic passengers</h2>
 <!-- The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower). We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>. -->
-<p>The titanic dataset is a collection of data about the titanic passengers and their survival status. The goal is to train a model that can predict whether a passenger survives or not based on their features (e.g.&nbsp;their passenger class)</p>
-<p>You can also find a small explanation of he dataset in the Appendix of the book <a href="Appendix-Datasets.html#sec-plantpoll" class="quarto-xref"><span>Section A.3</span></a> .</p>
+<p>The titanic dataset is a collection of data about the titanic passengers and their survival status. The goal is to train a model that can predict whether a passenger survives or not based on their features (e.g.&nbsp;their passenger class):</p>
+<ul>
+<li>Response variable: <code>survived</code> survival status of the passengers</li>
+</ul>
+<!-- -->
+<ul>
+<li>Features: all other variables</li>
+</ul>
+<p>You can also find a small explanation of the dataset in the Appendix of the book.</p>
+<p>In the following exercise we will also use a new technique called data imputation:</p>
+<p>Most ML algorithms (including statistical models) <strong>cannot handle missing data</strong>, observations with NAs would normally be dropped from the dataset. To prevent that, we use data imputation to fill NAs in the dataset. In short, we use an algorithm, e.g.&nbsp;random forest, loop over the columns, treat these columns as response variables, train the RF on this column and then make predictions for the NAs in this column. By doing this, we can fill in the NAs in our data set. <strong>However, exclude the actual response variable (here survival) from the data imputation, otherwise it would be data leakage!</strong></p>
 <div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1001,7 +1010,7 @@ Task: Tune random orest model for the Titanic dataset
  Paris, France       :  9  
  (Other)             :639  </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fill NA</span></span>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co"># data imputation - fill NA using the missRanger package column 2 is our response variable</span></span>
 <span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>titanic_df[,<span class="sc">-</span><span class="dv">2</span>] <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(titanic_df[,<span class="sc">-</span><span class="dv">2</span>], <span class="at">verbose =</span> <span class="dv">0</span>)</span>
 <span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a><span class="co"># remove name column, too many levels</span></span>
@@ -1028,16 +1037,39 @@ Task: Tune random orest model for the Titanic dataset
 </div>
 </div>
 <p><strong>2. Create an outer split</strong></p>
-<p><strong>3. Tune min.node.size under nested Cross-Validation on the training split from step 2</strong></p>
+<p><strong>3. Tune nodesize under nested Cross-Validation on the training split from step 2</strong></p>
 <p><strong>4. Create submissions</strong></p>
-<p>We separated data from the original dataset. Observations with NA in the survived column are held back by us to simulate a real-world scenario where you have training data to train your model, and then use the model in production on new data where you now have information about the response variable. After tuning your model on the training data (again, where the response variable is not NA) and you are happy with your model, you can make predictions for the observations where the response is unknown and upload the predictions to our server (http://rhsbio7.uni-regensburg.de:8500/, ignore the unsecure warning and UR VPN is required). The server will report your final performance and compare it with other predictions):</p>
+<p><strong>We separated data from the original dataset</strong>. Observations with NA in the survived column are held back by us to simulate a real-world scenario where you have training data to train your model, and then use the model in production on new data where you have no information about the response variable.</p>
+<p>So, 654 observations will serve as training data:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Training data data:</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(titanic_ml<span class="sc">$</span>survived))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 654</code></pre>
+</div>
+</div>
+<p>And 655 observations will serve as validation data:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Outer test/validation data:</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(titanic_ml<span class="sc">$</span>survived))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 655</code></pre>
+</div>
+</div>
+<p>The goal is to tune/train your model (under k-Cross Validation) on the training data and make predictions for the validation data;</p>
+<p>After tuning your model on the training data (again, where the response variable is not NA) and you are happy with your model, you can make predictions for the observations where the response is unknown and upload the predictions to our server (<a href="http://rhsbio7.uni-regensburg.de:8500/" class="uri">http://rhsbio7.uni-regensburg.de:8500/</a>, ignore the unsecure warning and UR VPN is required). The server will report your final performance and compare it with other predictions):</p>
 <p>How to create your submission file:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>newdata <span class="ot">=</span> titanic_df[<span class="fu">is.na</span>(titanic_df<span class="sc">$</span>survived), ]</span>
-<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">predict</span>(rf, <span class="at">newdata =</span> newdata, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
-<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> predictions), <span class="at">file =</span> <span class="st">"rf_max.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>newdata <span class="ot">=</span> titanic_df[<span class="fu">is.na</span>(titanic_df<span class="sc">$</span>survived), ]</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">predict</span>(rf, <span class="at">newdata =</span> newdata, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> predictions), <span class="at">file =</span> <span class="st">"rf_max.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p><strong>Important</strong>:</p>
+<ol type="1">
+<li>The predictions must be probabilities</li>
+<li>Predictions must the same number of observations as in the raw titanic_ml$response == NA column, this is why we impute the NA in the features, otherwise these observations would be dropped. So <code>nrow(data.frame(y = predictions)) == 655</code></li>
+</ol>
 </div>
 </div>
 <div class="webex-solution">
@@ -1045,56 +1077,60 @@ Task: Tune random orest model for the Titanic dataset
 Click here to see the solution
 </button>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">nrow</span>(df)</span>
-<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a><span class="co"># outer split</span></span>
-<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>validation <span class="ot">=</span> <span class="fu">sample.int</span>(n, <span class="fu">round</span>(<span class="fl">0.2</span><span class="sc">*</span>n))</span>
-<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> df[<span class="sc">-</span>validation,]</span>
-<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a><span class="co"># inner split</span></span>
-<span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a>nI <span class="ot">=</span> <span class="fu">nrow</span>(dat)</span>
-<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a>hyperparameter <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">nodesize =</span> <span class="fu">seq</span>(<span class="dv">10</span>, <span class="dv">500</span>, <span class="at">by =</span> <span class="dv">25</span>))</span>
-<span id="cb60-10"><a href="#cb60-10" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="fu">nrow</span>(hyperparameter)</span>
-<span id="cb60-11"><a href="#cb60-11" aria-hidden="true" tabindex="-1"></a>k <span class="ot">=</span> <span class="dv">5</span> <span class="co"># folds</span></span>
-<span id="cb60-12"><a href="#cb60-12" aria-hidden="true" tabindex="-1"></a>split <span class="ot">=</span> <span class="fu">sample.int</span>(k, nI, <span class="at">replace =</span> T)</span>
-<span id="cb60-13"><a href="#cb60-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-14"><a href="#cb60-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-15"><a href="#cb60-15" aria-hidden="true" tabindex="-1"></a><span class="co"># making predictions for all hyperparameters / splits</span></span>
-<span id="cb60-16"><a href="#cb60-16" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, nI, m)</span>
-<span id="cb60-17"><a href="#cb60-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(l <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>m){</span>
-<span id="cb60-18"><a href="#cb60-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># loop over the hyperparameters and do CV for each hyperparameter</span></span>
-<span id="cb60-19"><a href="#cb60-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>k){</span>
-<span id="cb60-20"><a href="#cb60-20" aria-hidden="true" tabindex="-1"></a>    m1 <span class="ot">=</span> <span class="fu">randomForest</span>(survived<span class="sc">~</span>., <span class="at">data =</span> dat[split <span class="sc">!=</span> i,], <span class="at">nodesize =</span> hyperparameter<span class="sc">$</span>nodesize[l])</span>
-<span id="cb60-21"><a href="#cb60-21" aria-hidden="true" tabindex="-1"></a>    pred[split <span class="sc">==</span> i,l] <span class="ot">=</span> <span class="fu">predict</span>(m1, <span class="at">newdata =</span> dat[split <span class="sc">==</span> i,], <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
-<span id="cb60-22"><a href="#cb60-22" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb60-23"><a href="#cb60-23" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb60-24"><a href="#cb60-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-25"><a href="#cb60-25" aria-hidden="true" tabindex="-1"></a><span class="co"># getting best hyperparameter option on test</span></span>
-<span id="cb60-26"><a href="#cb60-26" aria-hidden="true" tabindex="-1"></a>innerLoss <span class="ot">=</span> <span class="cf">function</span>(x) Metrics<span class="sc">::</span><span class="fu">auc</span>(dat<span class="sc">$</span>survived, x)</span>
-<span id="cb60-27"><a href="#cb60-27" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">2</span>, innerLoss)</span>
-<span id="cb60-28"><a href="#cb60-28" aria-hidden="true" tabindex="-1"></a>choice <span class="ot">=</span> <span class="fu">which.max</span>(res) </span>
-<span id="cb60-29"><a href="#cb60-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-30"><a href="#cb60-30" aria-hidden="true" tabindex="-1"></a><span class="co"># fitting model again with best hyperparameters </span></span>
-<span id="cb60-31"><a href="#cb60-31" aria-hidden="true" tabindex="-1"></a><span class="co"># and all test / validation data </span></span>
-<span id="cb60-32"><a href="#cb60-32" aria-hidden="true" tabindex="-1"></a>mFinal <span class="ot">=</span> <span class="fu">randomForest</span>(survived<span class="sc">~</span>., <span class="at">data =</span> dat, <span class="at">nodesize =</span> hyperparameter<span class="sc">$</span>nodesize[choice])</span>
-<span id="cb60-33"><a href="#cb60-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-34"><a href="#cb60-34" aria-hidden="true" tabindex="-1"></a><span class="co"># testing final prediction on validation data </span></span>
-<span id="cb60-35"><a href="#cb60-35" aria-hidden="true" tabindex="-1"></a>finalPred <span class="ot">=</span> <span class="fu">predict</span>(mFinal, <span class="at">newdata =</span> df[validation,], <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
-<span id="cb60-36"><a href="#cb60-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-37"><a href="#cb60-37" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">auc</span>(df[validation,]<span class="sc">$</span>survived, finalPred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">nrow</span>(df)</span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a><span class="co"># outer split</span></span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>validation <span class="ot">=</span> <span class="fu">sample.int</span>(n, <span class="fu">round</span>(<span class="fl">0.2</span><span class="sc">*</span>n))</span>
+<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> df[<span class="sc">-</span>validation,]</span>
+<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a><span class="co"># inner split</span></span>
+<span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a>nI <span class="ot">=</span> <span class="fu">nrow</span>(dat)</span>
+<span id="cb64-9"><a href="#cb64-9" aria-hidden="true" tabindex="-1"></a>hyperparameter <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">nodesize =</span> <span class="fu">seq</span>(<span class="dv">10</span>, <span class="dv">500</span>, <span class="at">by =</span> <span class="dv">25</span>))</span>
+<span id="cb64-10"><a href="#cb64-10" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="fu">nrow</span>(hyperparameter)</span>
+<span id="cb64-11"><a href="#cb64-11" aria-hidden="true" tabindex="-1"></a>k <span class="ot">=</span> <span class="dv">5</span> <span class="co"># folds</span></span>
+<span id="cb64-12"><a href="#cb64-12" aria-hidden="true" tabindex="-1"></a>split <span class="ot">=</span> <span class="fu">sample.int</span>(k, nI, <span class="at">replace =</span> T)</span>
+<span id="cb64-13"><a href="#cb64-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-14"><a href="#cb64-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-15"><a href="#cb64-15" aria-hidden="true" tabindex="-1"></a><span class="co"># making predictions for all hyperparameters / splits</span></span>
+<span id="cb64-16"><a href="#cb64-16" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, nI, m)</span>
+<span id="cb64-17"><a href="#cb64-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(l <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>m){</span>
+<span id="cb64-18"><a href="#cb64-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># loop over the hyperparameters and do CV for each hyperparameter</span></span>
+<span id="cb64-19"><a href="#cb64-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>k){</span>
+<span id="cb64-20"><a href="#cb64-20" aria-hidden="true" tabindex="-1"></a>    m1 <span class="ot">=</span> <span class="fu">randomForest</span>(survived<span class="sc">~</span>., <span class="at">data =</span> dat[split <span class="sc">!=</span> i,], <span class="at">nodesize =</span> hyperparameter<span class="sc">$</span>nodesize[l])</span>
+<span id="cb64-21"><a href="#cb64-21" aria-hidden="true" tabindex="-1"></a>    pred[split <span class="sc">==</span> i,l] <span class="ot">=</span> <span class="fu">predict</span>(m1, <span class="at">newdata =</span> dat[split <span class="sc">==</span> i,], <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
+<span id="cb64-22"><a href="#cb64-22" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb64-23"><a href="#cb64-23" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb64-24"><a href="#cb64-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-25"><a href="#cb64-25" aria-hidden="true" tabindex="-1"></a><span class="co"># getting best hyperparameter option on test</span></span>
+<span id="cb64-26"><a href="#cb64-26" aria-hidden="true" tabindex="-1"></a>innerLoss <span class="ot">=</span> <span class="cf">function</span>(x) Metrics<span class="sc">::</span><span class="fu">auc</span>(dat<span class="sc">$</span>survived, x)</span>
+<span id="cb64-27"><a href="#cb64-27" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">2</span>, innerLoss)</span>
+<span id="cb64-28"><a href="#cb64-28" aria-hidden="true" tabindex="-1"></a>choice <span class="ot">=</span> <span class="fu">which.max</span>(res) </span>
+<span id="cb64-29"><a href="#cb64-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-30"><a href="#cb64-30" aria-hidden="true" tabindex="-1"></a><span class="co"># fitting model again with best hyperparameters </span></span>
+<span id="cb64-31"><a href="#cb64-31" aria-hidden="true" tabindex="-1"></a><span class="co"># and all test / validation data </span></span>
+<span id="cb64-32"><a href="#cb64-32" aria-hidden="true" tabindex="-1"></a>mFinal <span class="ot">=</span> <span class="fu">randomForest</span>(survived<span class="sc">~</span>., <span class="at">data =</span> dat, <span class="at">nodesize =</span> hyperparameter<span class="sc">$</span>nodesize[choice])</span>
+<span id="cb64-33"><a href="#cb64-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-34"><a href="#cb64-34" aria-hidden="true" tabindex="-1"></a><span class="co"># testing final prediction on validation data </span></span>
+<span id="cb64-35"><a href="#cb64-35" aria-hidden="true" tabindex="-1"></a>finalPred <span class="ot">=</span> <span class="fu">predict</span>(mFinal, <span class="at">newdata =</span> df[validation,], <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
+<span id="cb64-36"><a href="#cb64-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-37"><a href="#cb64-37" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">auc</span>(df[validation,]<span class="sc">$</span>survived, finalPred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.8265476</code></pre>
 </div>
 </div>
 <p>Create submissions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>newdata <span class="ot">=</span> titanic_df[<span class="fu">is.na</span>(titanic_df<span class="sc">$</span>survived), ]</span>
-<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">predict</span>(rf, <span class="at">newdata =</span> newdata, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> predictions), <span class="at">file =</span> <span class="st">"rf_max.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>newdata <span class="ot">=</span> titanic_df[<span class="fu">is.na</span>(titanic_df<span class="sc">$</span>survived), ]</span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">predict</span>(rf, <span class="at">newdata =</span> newdata, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> predictions), <span class="at">file =</span> <span class="st">"rf_max.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>And upload the csv file</p>
-<p><strong>Important</strong>: The predictions must be probabilities and have the same number of observations, this is why we impute the NA in the features, otherwise these observations would be dropped.</p>
+<p><strong>Important</strong>:</p>
+<ol type="1">
+<li>The predictions must be probabilities</li>
+<li>Predictions must the same number of observations as in the raw titanic_ml$response == NA column, this is why we impute the NA in the features, otherwise these observations would be dropped.</li>
+</ol>
 </div>
 </section>
 <section id="references" class="level2 unnumbered">

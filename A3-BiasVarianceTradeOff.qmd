@@ -379,13 +379,23 @@ cor(finalPred,
     data[validation,]$medv)
 ```
 
-## Exercise - Predicting survival rate in the titanic dataset
+## Exercise - Predicting survival rate of titanic passengers
 
 <!-- The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower). We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>. -->
 
-The titanic dataset is a collection of data about the titanic passengers and their survival status. The goal is to train a model that can predict whether a passenger survives or not based on their features (e.g. their passenger class)
+The titanic dataset is a collection of data about the titanic passengers and their survival status. The goal is to train a model that can predict whether a passenger survives or not based on their features (e.g. their passenger class):
 
-You can also find a small explanation of he dataset in the Appendix of the book @sec-plantpoll .
+-   Response variable: `survived` survival status of the passengers
+
+<!-- -->
+
+-   Features: all other variables
+
+You can also find a small explanation of the dataset in the Appendix of the book.
+
+In the following exercise we will also use a new technique called data imputation:
+
+Most ML algorithms (including statistical models) **cannot handle missing data**, observations with NAs would normally be dropped from the dataset. To prevent that, we use data imputation to fill NAs in the dataset. In short, we use an algorithm, e.g. random forest, loop over the columns, treat these columns as response variables, train the RF on this column and then make predictions for the NAs in this column. By doing this, we can fill in the NAs in our data set. **However, exclude the actual response variable (here survival) from the data imputation, otherwise it would be data leakage!**
 
 ::: callout-warning
 ### Task: Tune random orest model for the Titanic dataset
@@ -406,7 +416,7 @@ data(titanic_ml)
 titanic_df = titanic_ml
 summary(titanic_df)
 
-# fill NA
+# data imputation - fill NA using the missRanger package column 2 is our response variable
 titanic_df[,-2] = missRanger::missRanger(titanic_df[,-2], verbose = 0)
 
 # remove name column, too many levels
@@ -433,11 +443,29 @@ Metrics::auc(as.integer(df[-(1:300),]$survived)-1, pred)
 
 **2. Create an outer split**
 
-**3. Tune min.node.size under nested Cross-Validation on the training split from step 2**
+**3. Tune nodesize under nested Cross-Validation on the training split from step 2**
 
 **4. Create submissions**
 
-We separated data from the original dataset. Observations with NA in the survived column are held back by us to simulate a real-world scenario where you have training data to train your model, and then use the model in production on new data where you now have information about the response variable. After tuning your model on the training data (again, where the response variable is not NA) and you are happy with your model, you can make predictions for the observations where the response is unknown and upload the predictions to our server (http://rhsbio7.uni-regensburg.de:8500/, ignore the unsecure warning and UR VPN is required). The server will report your final performance and compare it with other predictions):
+**We separated data from the original dataset**. Observations with NA in the survived column are held back by us to simulate a real-world scenario where you have training data to train your model, and then use the model in production on new data where you have no information about the response variable.
+
+So, 654 observations will serve as training data:
+
+```{r}
+# Training data data:
+sum(!is.na(titanic_ml$survived))
+```
+
+And 655 observations will serve as validation data:
+
+```{r}
+# Outer test/validation data:
+sum(is.na(titanic_ml$survived))
+```
+
+The goal is to tune/train your model (under k-Cross Validation) on the training data and make predictions for the validation data;
+
+After tuning your model on the training data (again, where the response variable is not NA) and you are happy with your model, you can make predictions for the observations where the response is unknown and upload the predictions to our server (<http://rhsbio7.uni-regensburg.de:8500/>, ignore the unsecure warning and UR VPN is required). The server will report your final performance and compare it with other predictions):
 
 How to create your submission file:
 
@@ -447,6 +475,11 @@ predictions = predict(rf, newdata = newdata, type = "prob")[,2]
 
 write.csv(data.frame(y = predictions), file = "rf_max.csv")
 ```
+
+**Important**:
+
+1.  The predictions must be probabilities
+2.  Predictions must the same number of observations as in the raw titanic_ml\$response == NA column, this is why we impute the NA in the features, otherwise these observations would be dropped. So `nrow(data.frame(y = predictions)) == 655`
 :::
 
 `r hide("Click here to see the solution")`
@@ -502,7 +535,10 @@ write.csv(data.frame(y = predictions), file = "rf_max.csv")
 
 And upload the csv file
 
-**Important**: The predictions must be probabilities and have the same number of observations, this is why we impute the NA in the features, otherwise these observations would be dropped. 
+**Important**:
+
+1.  The predictions must be probabilities
+2.  Predictions must the same number of observations as in the raw titanic_ml\$response == NA column, this is why we impute the NA in the features, otherwise these observations would be dropped.
 
 `r unhide()`
 
