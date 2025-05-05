@@ -4,13 +4,13 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Introduction to ML
+# Introduction to Machine Learning
 
-ML is about building an algorithm that can perform a certain tasks. The general steps in an ML are:
+**Machine Learning (ML)** is about training an algorithm that can perform certain tasks. The general steps to get the trained model include:
 
-1.  Get some data
+1.  Get some data (observations/training data)
 2.  Establish something that should be done with such data (= task)
-3.  Find an algorithm that can perform the task
+3.  Find an (ML) algorithm that can perform the task
 4.  Operationalize the goal by an error metric (=loss) that is to be minimized
 5.  Train the algorithm to achieve a small loss on the data
 6.  Test the performance of the algorithm
@@ -26,24 +26,24 @@ ML is about building an algorithm that can perform a certain tasks. The general 
 6.  could predict(m) to data or hold-out
 :::
 
-Our task in the course will now be to better understand
+The goal of this course is that you can answer the following questions:
 
 -   What are tasks that we can tackle?
--   What algorithm exist and how can they be set up / tuned / modified
+-   What algorithm exist and how can they be set up / tuned / modified?
 -   How to define the loss and wow to best train the algorithms?
 -   How to do the performance evaluation
 
-## ML Tasks
+## Machine Learning Tasks
 
-There are three types of machine learning tasks:
+Typically we can define roughly three types of ML tasks:
 
 -   Supervised learning
 -   Unsupervised learning
 -   Reinforcement learning
 
-**Supervised learning**, you train algorithms to predict something (classes or values = regression) from some other data (= features), and you provide it with correct examples of the execution of the task (called training data). A linear regression is an example of supervised learning.
+**Supervised learning**, you train algorithms to predict something (classes = classification or values = regression) from some other data (= features), and you provide it with correct examples of the execution of the task (called training data). A linear regression is an example of supervised learning. Given $y = f(x)$ with $x$ our input feature (e.g. precipitation), $y$ our response (growth), and $f$ an unknown function that maps $x \rightarrow y$ . The goal of supervised learning is to train a ML algorithm to approximate $f$ given observed $(x_i, y_i)$ pairs.
 
-**Unsupervised learning**, on the other hand, is when you provide the features, but no examples of the correct execution of the task. Clustering techniques are examples of unsupervised learning
+**Unsupervised learning**, on the other hand, is when you provide the features, but no examples of the correct execution of the task. Clustering techniques are examples of unsupervised learning. (In the example above, $y$ would be unknown).
 
 **Reinforcement learning** is a technique that mimics a game-like situation. The algorithm finds a solution through trial and error, receiving either rewards or penalties for each action. As in games, the goal is to maximize the rewards. We will talk more about this technique on the last day of the course.
 
@@ -88,7 +88,6 @@ segments(100.5, 0, 100.5, 5, col = "black", lwd = 2)
 ```
 
 The observations are from 3 species and indeed those species tend to have different traits, meaning that the observations form 3 clusters.
-
 
 ```{r chunk-chapter3-2"}
 pairs(traits, pch = as.integer(species), col = colors[as.integer(species)])
@@ -156,9 +155,13 @@ plot(1:10, iris.kmeans1to10, type = "b", pch = 19, frame = FALSE,
 
 Often, one is interested in sparse models. Furthermore, higher k than necessary tends to overfitting. At the kink in the picture, the sum of squares dropped enough and k is still low enough. But keep in mind, this is only a rule of thumb and might be wrong in some special cases.
 
+::: column-margin
+Information criteria such as AIC or BIC can be also used to select the number of clusters and control complexity.
+:::
+
 ## Supervised Learning
 
-The two most prominent branches of supervised learning are regression and classification. The basic distinction between the two is that classification is about predicting a categorical variable, and regression is about predicting a continuous variable. 
+The two most prominent branches of supervised learning are regression and classification. The basic distinction between the two is that classification is about predicting a categorical variable, and regression is about predicting a continuous variable.
 
 ### Regression
 
@@ -188,13 +191,11 @@ print(m1)
 ```
 
 ::: column-margin
-
 In statistics we would use a linear regression model:
 
 ```{r}
 mLM = lm(Sepal.Length~., data = iris)
 ```
-
 :::
 
 As many other ML algorithms, the RF is not interpretable, so we don't get coefficients that connect the variables to the response. But, at least we get the variable importance which is similar to an anova, telling us which variables were the most important ones:
@@ -204,13 +205,11 @@ varImpPlot(m1)
 ```
 
 ::: column-margin
-
 Our liner model would report linear effects, however, the lm cannot keep up with the flexibility of a random forest!
 
 ```{r}
 coef(mLM)
 ```
-
 :::
 
 And the finally, we can use the model to make predictions using the predict method:
@@ -282,10 +281,9 @@ reprtree:::plot.getTree(m1, iris)
 
 Confusion matrix:
 
-```{r chunk_chapter3_34, results='hide'}
+```{r chunk_chapter3_34,echo=FALSE}
 knitr::kable(table(predict(m1), iris$Species))
 ```
-
 
 ## Exercise - Supervised Learning
 
@@ -301,53 +299,57 @@ cat("Using a random forest on the iris dataset, which parameter would be more im
 ```
 
 ::: callout-warning
-#### Task: First deep neural network
+#### Task: Fit random forest
 
 Deep neural networks are currently the state of the art in unsupervised learning. Their ability to model different types of data (e.g. graphs, images) is one of the reasons for their rise in recent years. However, their use beyond tabular data (tabular data == features have specific meanings) requires extensive (programming) knowledge of the underlying deep learning frameworks (e.g. TensorFlow or PyTorch), which we will teach you in two days. For tabular data, we can use packages like cito, which work similarly to regression functions like lm and allow us to train deep neural networks in one line of code.
 
 A demonstration with the iris dataset:
 
 ```{r, results='hide'}
-library(cito)
+library(randomForest)
 
-# always scale your features when using DNNs
+# scale your features if possible (some ML algorithms converge faster with scaled features)
 iris_scaled = iris
 iris_scaled[,1:4] = scale(iris_scaled[,1:4])
 
-# the default architecture is 3 hidden layers, each with 10 hidden nodes (we will talk on Wednesday more about the architecture)
-# Similar to a lm/glm we have to specify the response/loss family, for multi-target (3 species) we use the softmax loss function
-model = dnn(Species~., lr = 0.1,data = iris_scaled, loss = "softmax", verbose = FALSE)
+
+model = randomForest(Species~., data = iris_scaled)
 ```
 
-DNNs are not interpretable, i.e. no coefficients (slopes) that tell us how the features affect the response, however, similar to the RF, we can calculate a 'variable importance' which is similar to an anova:
+RandomForest is not based on a specific data generating model and thus we will not get effect estimates that tell us how the input features affect the response:
 
 ```{r}
-summary(model)
+# no summary method available
+print(model) 
 ```
+
+The confusion matrix explains where (for which species) the model makes wrong predictions / classifications on the OOB splits (OOB = out of bag). Each tree in the random forest is trained on a bootstrap of the data (bootstrap = sample with replacement from the original data, on average, each bootstrap will have 66% of the original data). Observations not used in a specific bootstrap are then used to validate the specific tree, bootstrap errors are at the end averaged for the n trees in the random forest.
+
+While we don't get effect estimates as in a `lm`, we get the variable importance which reports how important the specific predictors are:
+
+```{r}
+varImpPlot(model)
+```
+
 
 Predictions
 
 ```{r}
-head(predict(model, type = "response"))
+head(predict(model))
 ```
 
-We get three columns, one for each species, and they are probabilities.
-
-```{r}
-plot(iris$Sepal.Length, iris$Sepal.Width, col = apply(predict(model, type = "response"), 1, which.max))
-```
+The model predicts the species class for each observation
 
 Performance:
 
 ```{r}
-table(apply(predict(model), 1, which.max), as.integer(iris$Species))
+table(predict(model), as.integer(iris$Species))
 ```
 
 **Task:**
 
 -   predict `Sepal.Length` instead of `Species` (classification -\> regression)
--   Use the 'mse' loss function
--   Plot predicted vs observed
+-   Plot predicted vs observed (usually used to asses the goodness of the predictions, if the model is good, predicted and observed values should be on one diagonal line)
 
 :::
 
@@ -355,18 +357,22 @@ table(apply(predict(model), 1, which.max), as.integer(iris$Species))
 
 Regression:
 
-losses such as "mse" (mean squared error) or the "msa" (mean absolute error) are used for regression tasks
+Random Forest automatically infers the type of the task, so we don't have to change much:
 
 ```{r, results='hide'}
-model = dnn(Sepal.Length~., lr = 0.1,data = iris_scaled, loss = "mse")
+model = randomForest(Sepal.Length~., data = iris_scaled)
 ```
 
+The OOB error is now "% Var explained" which is very similar to a $R^2$: 
 ```{r}
-summary(model)
+print(model)
 ```
 
+Plot observed vs predicted:
+
 ```{r}
-plot(iris_scaled$Sepal.Length, predict(model))
+plot(iris_scaled$Sepal.Length, predict(model), xlim = c(-3, 3), ylim = c(-3, 3))
+abline(a = c(0, 1))
 ```
 
 Calculate $R^2$:

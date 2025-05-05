@@ -6,9 +6,32 @@ editor_options:
 
 # Managing algorithmic complexity
 
-## Estimating predictive error
+## Estimating error on the validation data
 
-You probably remember from statistics that a more complex model always fits the training data better. The decisive question, however, is if it also works better on new (independent) data. Technically, we call this the out-of-sample error, as opposed to the in-sample error, which is the error on the training data.
+You probably remember from statistics that a more complex model always fits the training data better. The decisive question, however, is if it also works better on new (independent) data. Technically, we call this the **out-of-sample error**, as opposed to the i**n-sample error**, which is the error on the training data.
+
+Error can be measured in different ways, but usually we calculate some kind of accuracy (especially for classification tasks) or how much variance is explained by our model (regression tasks). We also distinguish between the error used to train the model and the error used to validate the model. The error used internally by the ML algorithms to train the model is what we usually call the loss. The smaller the loss, the smaller the error of the model, and vice versa for larger losses. We can also use losses to validate the models, but losses are often uninterpretable as they are often in the range \[0, Inf\[ and they cannot be generalized to other datasets because they are often data specific. Therefore, in practice, we usually use interpretable losses during validation that can be also used to compare the models over different datasets (Model A achieves 80% accuarcy on dataset A and 70% accuracy on dataset B), also called validation metrics, here is an overview of some common validation metrics and their interpretation:
+
+Validation metrics for classification tasks:
+
+| Validation Metric | Range | Classification Types | Explanation |
+|----|----|----|----|
+| **A**rea **U**nder the **C**urve (AUC) | $$
+[0, 1] 
+$$ | Binary Classification Tasks (e.g. Titanic Dataset, survived or died) | The ability of our models to distinguish between 0 and 1. Requires probability predictions. An AUC of 0.5 means that the algorithm is making random predictions. Lower than 0.5 –\> worse than random |
+| Accuracy | $$
+[0, 1] 
+$$ | All types of classifications (including multiclass tasks) | The accuracy of our models, how many of the predicted classes are correct. The baseline accuracy depends on the distributions of the classes (if one class occurs 99% in the data, a random model that will only predict this class, will achieve already a very high accuracy |
+
+Validation metrics for regression tasks:
+
+| Validation Metric | Range | Explanation |
+|----|----|----|
+| $$
+R^2
+$$ | [0, 1]  | How much variance is explained by our model. We usually use the sum of squares $$R^2$$ |
+| **R**oot **m**ean **s**quared **e**rror (RMSE) | [0, Inf]   | RMSE is not a really interpretable but it is still used as a common validation metrics (is also used as a loss to train models). The RMSE reports how much variance is unexplained (so smaller RMSE is better). However, RMSE is not really comparable between different data sets. |
+|  |  |  |
 
 ### Splitting off validation data
 
@@ -92,7 +115,6 @@ for(i in 1:k){
 cor(pred, data$medv)
 ```
 
-
 ## Optimizing the bias-variance trade-off
 
 ### The bias-variance trade-off
@@ -102,7 +124,6 @@ What we have just seen in the previous chapter is an example of the bias-varianc
 -   Bias = systematic error that comes from the fact that the model is not flexible enough, related to underfitting
 
 -   Variance = stochastic error that comes from that fact that estimates of the model parameters get more uncertain when we add complexity
-
 
 Optimizing the bias-variance trade-off means adjusting the complexity of the model which can be achieved by:
 
@@ -410,7 +431,7 @@ Metrics::auc(as.integer(df[-(1:500),]$interaction)-1, pred)
 
 **3. Tune min.node.size under nested Cross-Validation on the training split from step 2**
 
-** 4. Create submissions **
+\*\* 4. Create submissions \*\*
 
 How to create your submission file:
 
@@ -422,10 +443,7 @@ predictions = predict(rf, data = newdata_imputed)$predictions[,2]
 
 write.csv(data.frame(y = predictions), file = "rf_max.csv")
 ```
-
-
 :::
-
 
 `r hide("Click here to see the solution")`
 
@@ -468,8 +486,8 @@ finalPred = predict(mFinal, data = df[validation,])$predictions[,2]
 Metrics::auc(df[validation,]$interaction, finalPred)
 ```
 
-
 Create submissions:
+
 ```{r}
 newdata = plantPollinator_df[is.na(plantPollinator_df$interaction), ]
 newdata_imputed = missRanger::missRanger(data = newdata[,-ncol(newdata)], verbose = 0)
@@ -479,9 +497,6 @@ predictions = predict(mFinal, data = newdata_imputed)$predictions[,2]
 write.csv(data.frame(y = predictions), file = "rf_max.csv")
 ```
 
-
 `r unhide()`
 
-
 ## References {.unnumbered}
-

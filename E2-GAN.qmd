@@ -164,8 +164,7 @@ optimizerG = optim_adam(disc$parameters, lr=lr)
 
 ```{r,eval=FALSE}
 
-
-for(e in 1:1000) {
+for(e in 1:100) {
   errG_batch = errD_batch = NULL
   counter = 1
   coro::loop(for (b in dataLoader) {
@@ -180,33 +179,50 @@ for(e in 1:1000) {
     label = torch_full(c(b_size), real_label, dtype=torch_float(), device=device)
     
     output = disc(real)$view(list(-1))
-    errD_real = nnf_binary_cross_entropy(output, label, reduction = "sum")
+    errD_real = nnf_binary_cross_entropy(output, label)
     
     noise = torch_randn(b_size, nz, 1, 1, device=device)
     fake = gen(noise)
     label = torch_full(c(b_size), fake_label, dtype=torch_float(), device=device)
     output = disc(fake$detach())$view(list(-1))
-    errD_fake = nnf_binary_cross_entropy(output, label,reduction = "sum")
+    errD_fake = nnf_binary_cross_entropy(output, label)
     
     errD = errD_real + errD_fake
     errD$backward()
-    optimizerD$step()
+    #optimizerD$step()
     #optimizerD$zero_grad()
     
     
-    gen$zero_grad()
-    fake = gen(noise)
+    #gen$zero_grad()
+    #fake = gen(noise)
     output = disc(fake)$view(list(-1L))
-    errG = nnf_binary_cross_entropy(output, 1.0-label, reduction = "sum")
+    label = torch_full(c(b_size), real_label, dtype=torch_float(), device=device)
+    errG = nnf_binary_cross_entropy(output, label)
     errG$backward()
     #optimizerD$step()
     optimizerG$step()
+    optimizerD$step()
     
     errG_batch[counter] <- errG$item()
     errD_batch[counter] <- errD$item()
     counter = counter + 1
   })
   cat("Epoch: ", e, " loss D: ", mean(errD_batch), " loss G: ", mean(errG_batch), "\n")
+  
+  if(e %% 5 == 0) {
+    predictions = gen(noise)
+    images = as_array(predictions$cpu())
+    images = aperm(images, c(1, 3, 4, 2))
+    
+    oldpar = par()
+    par(mfrow = c(4, 5), mar = rep(0, 4), oma = rep(0, 4))
+    
+    for(i in 1:20) {
+      images[i,,,]  %>%
+        as.raster() %>%
+        plot()
+    }
+  }
 }
 predictions = gen(noise)
 images = as_array(predictions$cpu())

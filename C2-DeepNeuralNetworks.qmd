@@ -10,6 +10,7 @@ editor_options:
 #| echo: false
 #| include: false
 #| results: false
+#| eval: false
 reticulate::use_virtualenv("r-keras")
 library(tensorflow)
 tf
@@ -22,7 +23,7 @@ Keras is a powerful framework for building and training neural networks with jus
 
 The goal of this lesson is to familiarize you with Keras. If you have TensorFlow installed, you can find Keras inside TensorFlow: tf.keras. However, the RStudio team has built an R package on top of tf.keras that is more convenient to use. To load the Keras package, type
 
-```{r chunk_chapter3_61}
+```{r chunk_chapter3_61, eval=FALSE}
 library(keras3)
 # or library(torch)
 ```
@@ -31,7 +32,7 @@ library(keras3)
 
 We build a small classifier to predict the three species of the iris data set. Load the necessary packages and data sets:
 
-```{r chunk_chapter3_62}
+```{r chunk_chapter3_62, eval=FALSE}
 library(keras3)
 library(tensorflow)
 library(torch)
@@ -43,14 +44,14 @@ head(iris)
 
 For neural networks, it is beneficial to scale the predictors (scaling = centering and standardization, see ?scale). We also split our data into predictors (X) and response (Y = the three species).
 
-```{r chunk_chapter3_63, cache=TRUE}
+```{r chunk_chapter3_63, cache=TRUE, eval=FALSE}
 X = scale(iris[,1:4])
 Y = iris[,5]
 ```
 
 Additionally, Keras/TensorFlow cannot handle factors and we have to create contrasts (one-hot encoding). To do so, we have to specify the number of categories. This can be tricky for a beginner, because in other programming languages like Python and C++, arrays start at zero. Thus, when we would specify 3 as number of classes for our three species, we would have the classes 0,1,2,3. Keep this in mind.
 
-```{r chunk_chapter3_64, cache=TRUE}
+```{r chunk_chapter3_64, cache=TRUE, eval=FALSE}
 Y = keras3::to_categorical(as.integer(Y) - 1L, 3)
 head(Y) # 3 columns, one for each level of the response.
 ```
@@ -62,7 +63,7 @@ After having prepared the data, we start now with the typical workflow in keras.
 ::: panel-tabset
 ## Keras
 
-```{r chunk_chapter3_65, cache=TRUE}
+```{r chunk_chapter3_65, cache=TRUE, eval=FALSE}
 model = keras_model_sequential(shape(4L))
 ```
 
@@ -82,11 +83,11 @@ The shape of the input is the number of predictors (here 4) and the shape of the
 ::: panel-tabset
 ## Keras
 
-```{r chunk_chapter3_66, cache=TRUE}
+```{r chunk_chapter3_66, cache=TRUE, eval=FALSE}
 model |>
   layer_dense(units = 20L, activation = "relu") |>
-  layer_dense(units = 20L) |>
-  layer_dense(units = 20L) |>
+  layer_dense(units = 20L, activation = "relu") |>
+  layer_dense(units = 20L, activation = "relu") |>
   layer_dense(units = 3L, activation = "softmax") 
 ```
 
@@ -94,7 +95,7 @@ model |>
 
 The Torch syntax is very similar, we will give a list of layers to the "nn_sequential" function. Here, we have to specify the softmax activation function as an extra layer:
 
-```{r chunk_chapter3_67}
+```{r chunk_chapter3_67, eval=FALSE}
 model_torch = 
   nn_sequential(
     nn_linear(4L, 20L),
@@ -115,7 +116,7 @@ We will learn about other options later, so for now, do not worry about the "**l
 ::: panel-tabset
 ## Keras
 
-```{r chunk_chapter3_68, cache=TRUE}
+```{r chunk_chapter3_68, cache=TRUE, eval=FALSE}
 model |>
   compile(loss = keras3::loss_categorical_crossentropy,
           keras3::optimizer_adamax(learning_rate = 0.001))
@@ -127,7 +128,7 @@ plot(model)
 
 Specify optimizer and the parameters which will be trained (in our case the parameters of the network):
 
-```{r chunk_chapter3_69}
+```{r chunk_chapter3_69, eval=FALSE}
 optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 ```
 :::
@@ -137,7 +138,7 @@ optimizer_torch = optim_adam(params = model_torch$parameters, lr = 0.001)
 ::: panel-tabset
 ## Keras
 
-```{r chunk_chapter3_70, cache=TRUE}
+```{r chunk_chapter3_70, cache=TRUE, eval=FALSE}
 library(tensorflow)
 library(keras3)
 
@@ -150,7 +151,7 @@ model_history =
 
 ## Torch
 
-In Torch, we jump directly to the training loop, however, here we have to write our own training loop:
+In Torch, we jump directly to the training loop which we have to write on our own:
 
 1.  Get a batch of data.
 2.  Predict on batch.
@@ -159,7 +160,7 @@ In Torch, we jump directly to the training loop, however, here we have to write 
 5.  Update weights.
 6.  Go to step 1 and repeat.
 
-```{r chunk_chapter3_71}
+```{r chunk_chapter3_71, eval=FALSE}
 library(torch)
 torch_manual_seed(321L)
 set.seed(123)
@@ -203,13 +204,13 @@ for(i in 1:steps){
 ::: panel-tabset
 ## Keras
 
-```{r chunk_chapter3_72, cache=TRUE, message=FALSE, warning=FALSE}
+```{r chunk_chapter3_72, cache=TRUE, message=FALSE, warning=FALSE, eval=FALSE}
 plot(model_history)
 ```
 
 ## Torch
 
-```{r chunk_chapter3_73}
+```{r chunk_chapter3_73, eval=FALSE}
 plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
 ```
 :::
@@ -219,26 +220,26 @@ plot(log_losses, xlab = "steps", ylab = "loss", las = 1)
 ::: panel-tabset
 ## Keras
 
-```{r chunk_chapter3_74, cache=TRUE}
+```{r chunk_chapter3_74, cache=TRUE, eval=FALSE}
 predictions = predict(model, X) # Probabilities for each class.
 ```
 
 Get probabilities:
 
-```{r chunk_chapter3_75, cache=TRUE}
+```{r chunk_chapter3_75, cache=TRUE, eval=FALSE}
 head(predictions) # Quasi-probabilities for each species.
 ```
 
 For each plant, we want to know for which species we got the highest probability:
 
-```{r chunk_chapter3_76, cache=TRUE}
+```{r chunk_chapter3_76, cache=TRUE, eval=FALSE}
 preds = apply(predictions, 1, which.max) 
 print(preds)
 ```
 
 ## Torch
 
-```{r chunk_chapter3_77, cache=TRUE}
+```{r chunk_chapter3_77, cache=TRUE, eval=FALSE}
 model_torch$eval()
 preds_torch = model_torch(torch_tensor(X))
 preds_torch = apply(preds_torch, 1, which.max) 
@@ -251,20 +252,20 @@ print(preds_torch)
 ::: panel-tabset
 ## Keras
 
-```{r chunk_chapter3_78, cache=TRUE}
+```{r chunk_chapter3_78, cache=TRUE, eval=FALSE}
 mean(preds == as.integer(iris$Species))
 ```
 
 ## Torch
 
-```{r chunk_chapter3_78_torch, cache=TRUE}
+```{r chunk_chapter3_78_torch, cache=TRUE, eval=FALSE}
 mean(preds_torch == as.integer(iris$Species))
 ```
 :::
 
 **8. Plot predictions, to see if we have done a good job:**
 
-```{r chunk_chapter3_79, cache=TRUE}
+```{r chunk_chapter3_79, cache=TRUE, eval=FALSE}
 oldpar = par(mfrow = c(1, 2))
 plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species,
      main = "Observed")
@@ -277,7 +278,7 @@ So you see, building a neural network is very easy with Keras or Torch and you c
 
 ## Exercise
 
-::: {.callout-warning}
+:::: callout-warning
 #### Task: Regression with keras
 
 We now build a regression for the airquality data set with Keras/Torch. We want to predict the variable "Ozone" (continuous).
@@ -291,7 +292,7 @@ Tasks:
 
 Before we start, load and prepare the data set:
 
-```{r chunk_chapter3_task_26, eval=TRUE}
+```{r chunk_chapter3_task_26, eval=FALSE}
 library(tensorflow)
 library(keras3)
 
@@ -361,7 +362,7 @@ model |>
 
 5.  **Compile the model**
 
-```{r chunk_chapter3_task_29, eval=TRUE, purl=FALSE}
+```{r chunk_chapter3_task_29, eval=FALSE, purl=FALSE}
 model |>
   compile(loss = keras3::loss_mean_squared_error, optimizer_adamax(learning_rate = 0.05))
 ```
@@ -403,7 +404,7 @@ pred_keras = predict(model, x)
 
 9.  **Compare your Keras model to a linear model:**
 
-```{r chunk_chapter3_task_30, eval=TRUE, purl=FALSE}
+```{r chunk_chapter3_task_30, eval=FALSE, purl=FALSE}
 fit = lm(Ozone ~ ., data = data)
 pred_lm = predict(fit, data)
 rmse_lm = mean(sqrt((y - pred_lm)^2))
@@ -416,7 +417,7 @@ print(rmse_keras)
 
 Before we start, load and prepare the data set:
 
-```{r chunk_chapter3_task_26_torch, eval=TRUE}
+```{r chunk_chapter3_task_26_torch, eval=FALSE}
 library(torch)
 
 data = airquality
@@ -463,7 +464,7 @@ model_torch =
 
 `r hide("Solution")`
 
-```{r}
+```{r, eval=FALSE}
 library(torch)
 
 model_torch = 
@@ -606,15 +607,15 @@ print(rmse_lm)
 print(rmse_torch)
 ```
 :::
-:::
+::::
 
-::: {.callout-warning}
+::: callout-warning
 #### Task: Titanic dataset
 
 Build a Keras DNN for the titanic dataset
 :::
 
-::: {.callout-warning}
+::::: callout-warning
 #### Bonus Task: More details on the inner working of Keras
 
 The next task differs for Torch and Keras users. Keras users will learn more about the inner working of training while Torch users will learn how to simplify and generalize the training loop.
@@ -900,7 +901,7 @@ Remarks:
 -   Mind the different input and output layer numbers.
 -   The loss function increases randomly, because different subsets of the data were drawn. This is a downside of stochastic gradient descent.
 -   A positive thing about stochastic gradient descent is, that local valleys or hills may be left and global ones can be found instead.
-:::
+:::::
 
 ## Underlying mathematical concepts - optional {#basicMath}
 

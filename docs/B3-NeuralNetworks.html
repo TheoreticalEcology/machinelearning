@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.450">
+<meta name="generator" content="quarto-1.6.37">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Machine Learning and Deep Learning with R - 7&nbsp; Artificial Neural Networks</title>
+<title>7&nbsp; Artificial Neural Networks – Machine Learning and Deep Learning with R</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -22,7 +22,7 @@ ul.task-list li input[type="checkbox"] {
 }
 /* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -33,7 +33,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -71,19 +71,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-29e2c20b02301cfff04dc8050bf30c7e.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-43df0d6f53b733b42d37fa7808e17715.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-83a8ad1aaea65c9a121a74ba6090cc4e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-4ea8b931ddde2b266e468ba8229b5370.min.css" rel="prefetch" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -92,18 +98,46 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="include/webex.css">
 <meta name="citation_title" content="[7]{.chapter-number}&nbsp; [Artificial Neural Networks]{.chapter-title}">
-<meta name="citation_fulltext_html_url" content="https://TheoreticalEcology.github.io/machinelearning//B3-NeuralNetworks.html">
+<meta name="citation_fulltext_html_url" content="https://TheoreticalEcology.github.io/machinelearning/B3-NeuralNetworks.html">
 <meta name="citation_language" content="en">
 <meta name="citation_reference" content="citation_title=Regularization and variable selection via the elastic net;,citation_author=Hui Zou;,citation_author=Trevor Hastie;,citation_publication_date=2005;,citation_cover_date=2005;,citation_year=2005;,citation_issue=2;,citation_volume=67;,citation_journal_title=Journal of the royal statistical society: series B (statistical methodology);,citation_publisher=Wiley Online Library;">
 <meta name="citation_reference" content="citation_title=Model averaging in ecology: A review of bayesian, information-theoretic, and tactical approaches for predictive inference;,citation_author=Carsten F Dormann;,citation_author=Justin M Calabrese;,citation_author=Gurutzeta Guillera-Arroita;,citation_author=Eleni Matechou;,citation_author=Volker Bahn;,citation_author=Kamil Bartoń;,citation_author=Colin M Beale;,citation_author=Simone Ciuti;,citation_author=Jane Elith;,citation_author=Katharina Gerstner;,citation_author=others;,citation_publication_date=2018;,citation_cover_date=2018;,citation_year=2018;,citation_issue=4;,citation_volume=88;,citation_journal_title=Ecological Monographs;,citation_publisher=Wiley Online Library;">
@@ -118,13 +152,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./B1-Trees.html">Understanding ML Algorithms</a></li><li class="breadcrumb-item"><a href="./B3-NeuralNetworks.html"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Artificial Neural Networks</span></a></li></ol></nav>
-      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-      </a>
-      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./B1-Trees.html">Understanding ML Algorithms</a></li><li class="breadcrumb-item"><a href="./B3-NeuralNetworks.html"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Artificial Neural Networks</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
     </div>
@@ -133,30 +167,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Machine Learning and Deep Learning with R</a> 
         <div class="sidebar-tools-main tools-wide">
-    <a href="https://github.com/TheoreticalEcology/machinelearning" rel="" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+    <a href="https://github.com/TheoreticalEcology/machinelearning" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
     <div class="dropdown">
-      <a href="" title="Share" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Share"><i class="bi bi-share"></i></a>
+      <a href="" title="Share" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label="Share"><i class="bi bi-share"></i></a>
       <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
           <li>
             <a class="dropdown-item sidebar-tools-main-item" href="https://twitter.com/intent/tweet?url=|url|">
-              <i class="bi bi-bi-twitter pe-1"></i>
+              <i class="bi bi-twitter pe-1"></i>
             Twitter
             </a>
           </li>
           <li>
             <a class="dropdown-item sidebar-tools-main-item" href="https://www.facebook.com/sharer/sharer.php?u=|url|">
-              <i class="bi bi-bi-facebook pe-1"></i>
+              <i class="bi bi-facebook pe-1"></i>
             Facebook
             </a>
           </li>
           <li>
             <a class="dropdown-item sidebar-tools-main-item" href="https://www.linkedin.com/sharing/share-offsite/?url=|url|">
-              <i class="bi bi-bi-linkedin pe-1"></i>
+              <i class="bi bi-linkedin pe-1"></i>
             LinkedIn
             </a>
           </li>
@@ -187,9 +221,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
  <span class="menu-text">Machine Learning Basics</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -197,7 +231,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./A2-MachineLearningTasks.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Introduction to ML</span></span></a>
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Introduction to Machine Learning</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -216,9 +250,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
  <span class="menu-text">Understanding ML Algorithms</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -245,9 +279,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
  <span class="menu-text">Explainable AI and causal ML</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -268,71 +302,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
- <span class="menu-text">Deep Learning</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./C2-DeepNeuralNetworks.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Deep Neural Networks (DNN)</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./C3-ConvolutionalNeuralNetworks.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Convolutional Neural Networks (CNN)</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./C4-RecurrentNeuralNetworks.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Recurrent Neural Networks (RNN)</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./C5-GNN.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Graph Neural Networks (GNNs)</span></span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
- <span class="menu-text">Generative modelling with DL</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./E1-Autoencoder.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Autoencoder</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./E2-GAN.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Generative Adversarial Networks (GANs)</span></span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
- <span class="menu-text">Appendices</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./Appendix-Datasets.html" class="sidebar-item-text sidebar-link">
@@ -341,14 +317,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./C1-TensorFlow.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Introduction to TensorFlow and Keras</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="./A4-MLpipeline-mlr3.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Machine learning framework - mlr3</span></span></a>
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Machine learning framework - mlr3</span></span></a>
   </div>
 </li>
       </ul>
@@ -356,7 +326,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </ul>
     </div>
 </nav>
-<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -377,12 +347,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#hyperparameter-tuning" id="toc-hyperparameter-tuning" class="nav-link" data-scroll-target="#hyperparameter-tuning"><span class="header-section-number">7.6</span> Hyperparameter tuning</a></li>
   <li><a href="#exercise" id="toc-exercise" class="nav-link" data-scroll-target="#exercise"><span class="header-section-number">7.7</span> Exercise</a></li>
   </ul>
-<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/B3-NeuralNetworks.qmd" class="toc-action">Edit this page</a></p></div></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/B3-NeuralNetworks.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./B1-Trees.html">Understanding ML Algorithms</a></li><li class="breadcrumb-item"><a href="./B3-NeuralNetworks.html"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Artificial Neural Networks</span></a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Artificial Neural Networks</span></h1>
 </div>
@@ -397,7 +367,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
   
 
+
 </header>
+
 
 <p>Artificial neural networks are biologically inspired, the idea is that inputs are processed by weights, the neurons, the signals then accumulate at hidden nodes (axioms), and only if the sum of activations of several neurons exceed a certain threshold, the signal will be passed on.</p>
 <div class="cell">
@@ -406,11 +378,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="loss" class="level2" data-number="7.1">
 <h2 data-number="7.1" class="anchored" data-anchor-id="loss"><span class="header-section-number">7.1</span> Loss</h2>
 <p>Tasks such as regression and classification are fundamentally different; the former has continuous responses, while the latter has a discrete response. In ML algorithms, these different tasks can be represented by different loss functions. Moreover, the tasks can differ even within regression or classification (e.g., in classification, we have binary classification (0 or 1) or multi-class classification (0, 1, or 2)). As a result, especially in DL, we have different specialized loss functions available for specific response types. The table below shows a list of supported loss functions in cito:</p>
-<table class="table">
+<table class="caption-top table">
 <colgroup>
-<col style="width: 23%">
 <col style="width: 33%">
-<col style="width: 42%">
+<col style="width: 33%">
+<col style="width: 33%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -457,17 +429,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cito)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>model<span class="ot">&lt;-</span> <span class="fu">dnn</span>(Species<span class="sc">~</span>., <span class="at">data =</span> datasets<span class="sc">::</span>iris, <span class="at">loss =</span> <span class="st">"softmax"</span>, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">predict</span>(model, <span class="at">type =</span> <span class="st">"response"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        setosa  versicolor    virginica
-[1,] 0.9956944 0.004305612 5.349870e-11
-[2,] 0.9916688 0.008331116 2.680886e-10
-[3,] 0.9944936 0.005506448 1.437312e-10
-[4,] 0.9900427 0.009957277 6.517569e-10
-[5,] 0.9960542 0.003945861 5.230870e-11
-[6,] 0.9940950 0.005904986 1.127888e-10</code></pre>
+[1,] 0.9953473 0.004652707 2.029756e-09
+[2,] 0.9909436 0.009056463 5.258887e-09
+[3,] 0.9936430 0.006356917 4.035239e-09
+[4,] 0.9881236 0.011876365 1.218137e-08
+[5,] 0.9956356 0.004364472 2.162502e-09
+[6,] 0.9944533 0.005546797 3.669612e-09</code></pre>
 </div>
 </div>
 </section>
@@ -482,7 +458,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">validation =</span> <span class="fl">0.2</span>,</span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"mse"</span>,<span class="at">data =</span> data, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>The validation argument ranges from 0 and 1 is the percent of the data that should be used for validation</p>
@@ -494,7 +474,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="trainings-parameter" class="level2" data-number="7.3">
 <h2 data-number="7.3" class="anchored" data-anchor-id="trainings-parameter"><span class="header-section-number">7.3</span> Trainings parameter</h2>
 <p>In DL, the optimization (the training of the DNN) is challenging as we have to optimize up to millions of parameters (which are not really identifiable, it is accepted that the optimization does not find a global minimum but just a good local minimum). We have a few important hyperparameters that affect only the optimization:</p>
-<table class="table">
+<table class="caption-top table">
 <colgroup>
 <col style="width: 6%">
 <col style="width: 81%">
@@ -531,18 +511,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>cito visualizes the training (see graphic). The reason for this is that the training can easily fail if the learning rate (lr) is poorly chosen. If the lr is too high, the optimizer “jumps” over good local optima, while it gets stuck in local optima if the lr is too small:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">dnn</span>(Ozone<span class="sc">~</span>., </span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(10L, 10L), </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(<span class="dv">10</span>L, <span class="dv">10</span>L), </span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">activation =</span> <span class="fu">c</span>(<span class="st">"selu"</span>, <span class="st">"selu"</span>), </span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"mse"</span>, <span class="at">lr =</span> <span class="fl">0.4</span>, <span class="at">data =</span> data, <span class="at">epochs =</span> 150L, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"mse"</span>, <span class="at">lr =</span> <span class="fl">0.4</span>, <span class="at">data =</span> data, <span class="at">epochs =</span> <span class="dv">150</span>L, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>If too high, the training will either directly fail (because the loss jumps to infinity) or the loss will be very wiggly and doesn’t decrease over the number of epochs.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">dnn</span>(Ozone<span class="sc">~</span>., </span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(10L, 10L), </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(<span class="dv">10</span>L, <span class="dv">10</span>L), </span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">activation =</span> <span class="fu">c</span>(<span class="st">"selu"</span>, <span class="st">"selu"</span>), </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"mse"</span>, <span class="at">lr =</span> <span class="fl">0.0001</span>, <span class="at">data =</span> data, <span class="at">epochs =</span> 150L, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"mse"</span>, <span class="at">lr =</span> <span class="fl">0.0001</span>, <span class="at">data =</span> data, <span class="at">epochs =</span> <span class="dv">150</span>L, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>If too low, the loss will be very wiggly but doesn’t decrease.</p>
@@ -559,15 +543,19 @@ Learning rate scheduler
 <p>Adjusting / reducing the learning rate during training is a common approach in neural networks. The idea is to start with a larger learning rate and then steadily decrease it during training (either systematically or based on specific properties):</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">dnn</span>(Ozone<span class="sc">~</span>., </span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(10L, 10L), </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(<span class="dv">10</span>L, <span class="dv">10</span>L), </span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">activation =</span> <span class="fu">c</span>(<span class="st">"selu"</span>, <span class="st">"selu"</span>), </span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"mse"</span>, </span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr =</span> <span class="fl">0.1</span>,</span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr_scheduler =</span> <span class="fu">config_lr_scheduler</span>(<span class="st">"step"</span>, <span class="at">step_size =</span> <span class="dv">30</span>, <span class="at">gamma =</span> <span class="fl">0.1</span>),</span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>            <span class="co"># reduce learning all 30 epochs (new lr = 0.1* old lr)</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> data, <span class="at">epochs =</span> 150L, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> data, <span class="at">epochs =</span> <span class="dv">150</span>L, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </div>
@@ -583,15 +571,23 @@ Learning rate scheduler
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> <span class="fu">scale</span>(data)</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">dnn</span>(Ozone<span class="sc">~</span>., </span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(10L, 10L), <span class="co"># Architecture, number of hidden layers and nodes in each layer</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(<span class="dv">10</span>L, <span class="dv">10</span>L), <span class="co"># Architecture, number of hidden layers and nodes in each layer</span></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">activation =</span> <span class="fu">c</span>(<span class="st">"selu"</span>, <span class="st">"selu"</span>), <span class="co"># activation functions for the specific hidden layer</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"mse"</span>, <span class="at">lr =</span> <span class="fl">0.01</span>, <span class="at">data =</span> data, <span class="at">epochs =</span> 150L, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"mse"</span>, <span class="at">lr =</span> <span class="fl">0.01</span>, <span class="at">data =</span> data, <span class="at">epochs =</span> <span class="dv">150</span>L, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -599,27 +595,27 @@ Learning rate scheduler
 
 Feature Importance:
   variable importance_1
-1  Solar.R     1.395183
-2     Wind     2.399698
-3     Temp     3.587700
-4    Month     1.073583
-5      Day     1.124274
+1  Solar.R   0.39272015
+2     Wind   1.34235307
+3     Temp   2.50278543
+4    Month   0.06798741
+5      Day   0.06056165
 
 Average Conditional Effects:
-         Response_1
-Solar.R  0.17920597
-Wind    -0.33835856
-Temp     0.49624949
-Month   -0.05472599
-Day      0.07795687
+          Response_1
+Solar.R  0.141647578
+Wind    -0.324789073
+Temp     0.475246439
+Month   -0.044992425
+Day      0.002305523
 
 Standard Deviation of Conditional Effects:
         Response_1
-Solar.R 0.10734868
-Wind    0.25713754
-Temp    0.29069498
-Month   0.06664078
-Day     0.08592126</code></pre>
+Solar.R 0.12450153
+Wind    0.22640057
+Temp    0.33263911
+Month   0.06075035
+Day     0.07985760</code></pre>
 </div>
 </div>
 </section>
@@ -628,7 +624,7 @@ Day     0.08592126</code></pre>
 <p>We can use <span class="math inline">\(\lambda\)</span> and <span class="math inline">\(\alpha\)</span> to set L1 and L2 regularization on the weights in our NN:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">dnn</span>(Ozone<span class="sc">~</span>., </span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(10L, 10L), </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">hidden =</span> <span class="fu">c</span>(<span class="dv">10</span>L, <span class="dv">10</span>L), </span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">activation =</span> <span class="fu">c</span>(<span class="st">"selu"</span>, <span class="st">"selu"</span>), </span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss =</span> <span class="st">"mse"</span>, </span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr =</span> <span class="fl">0.01</span>,</span>
@@ -636,9 +632,13 @@ Day     0.08592126</code></pre>
 <span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">alpha =</span> <span class="fl">0.5</span>,</span>
 <span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">lr_scheduler =</span> <span class="fu">config_lr_scheduler</span>(<span class="st">"step"</span>, <span class="at">step_size =</span> <span class="dv">30</span>, <span class="at">gamma =</span> <span class="fl">0.1</span>),</span>
 <span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>            <span class="co"># reduce learning all 30 epochs (new lr = 0.1* old lr)</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> data, <span class="at">epochs =</span> 150L, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> data, <span class="at">epochs =</span> <span class="dv">150</span>L, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -646,34 +646,38 @@ Day     0.08592126</code></pre>
 
 Feature Importance:
   variable importance_1
-1  Solar.R     1.185922
-2     Wind     1.946549
-3     Temp     2.801965
-4    Month     1.129728
-5      Day     1.066972
+1  Solar.R   0.21106196
+2     Wind   1.07161411
+3     Temp   1.92506614
+4    Month   0.06314532
+5      Day   0.04080895
 
 Average Conditional Effects:
          Response_1
-Solar.R  0.17293910
-Wind    -0.35702771
-Temp     0.50822308
-Month   -0.12243401
-Day      0.09675976
+Solar.R  0.17067198
+Wind    -0.38978363
+Temp     0.52132124
+Month   -0.10150491
+Day      0.07348041
 
 Standard Deviation of Conditional Effects:
         Response_1
-Solar.R 0.04150010
-Wind    0.08836144
-Temp    0.11741846
-Month   0.05096023
-Day     0.03556525</code></pre>
+Solar.R 0.06444016
+Wind    0.12400474
+Temp    0.15750357
+Month   0.05725124
+Day     0.04331244</code></pre>
 </div>
 </div>
 <p>Be careful that you don’t accidentally set all weights to 0 because of a too high regularization. We check the weights of the first layer:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fields<span class="sc">::</span><span class="fu">image.plot</span>(<span class="fu">coef</span>(model)[[<span class="dv">1</span>]][[<span class="dv">1</span>]]) <span class="co"># weights of the first layer</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="B3-NeuralNetworks_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -694,7 +698,7 @@ Day     0.03556525</code></pre>
 <span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">loss =</span> <span class="st">"softmax"</span>,</span>
 <span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> iris,</span>
 <span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>                  <span class="at">lambda =</span> <span class="fu">tune</span>(<span class="at">lower =</span> <span class="fl">0.0</span>, <span class="at">upper =</span> <span class="fl">0.2</span>), <span class="co"># you can pass the "tune" function to a hyerparameter</span></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">tuning =</span> <span class="fu">config_tuning</span>(<span class="at">CV =</span> <span class="dv">3</span>, <span class="at">steps =</span> 20L),</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">tuning =</span> <span class="fu">config_tuning</span>(<span class="at">CV =</span> <span class="dv">3</span>, <span class="at">steps =</span> <span class="dv">20</span>L),</span>
 <span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">verbose =</span> <span class="cn">FALSE</span></span>
 <span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>                  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -705,28 +709,28 @@ Fitting final model...</code></pre>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>model_tuned<span class="sc">$</span>tuning</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 20 × 5
-   steps  test train models lambda
-   &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;   &lt;dbl&gt;
- 1     1  75.2     0 NA     0.0869
- 2     2 Inf       0 NA     0.136 
- 3     3 Inf       0 NA     0.132 
- 4     4  93.5     0 NA     0.126 
- 5     5  77.9     0 NA     0.0765
- 6     6  52.3     0 NA     0.0418
- 7     7  32.7     0 NA     0.0239
- 8     8 Inf       0 NA     0.148 
- 9     9  73.1     0 NA     0.0703
-10    10  53.8     0 NA     0.0414
-11    11 Inf       0 NA     0.130 
-12    12  27.9     0 NA     0.0196
-13    13  90.6     0 NA     0.131 
-14    14 Inf       0 NA     0.179 
-15    15  25.5     0 NA     0.0154
-16    16 Inf       0 NA     0.170 
-17    17 Inf       0 NA     0.140 
-18    18  76.3     0 NA     0.0749
-19    19 Inf       0 NA     0.163 
-20    20 Inf       0 NA     0.187 </code></pre>
+   steps  test train models  lambda
+   &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;    &lt;dbl&gt;
+ 1     1 144.      0 NA     0.139  
+ 2     2  76.9     0 NA     0.0649 
+ 3     3 174.      0 NA     0.185  
+ 4     4 174.      0 NA     0.181  
+ 5     5 148.      0 NA     0.142  
+ 6     6 175.      0 NA     0.164  
+ 7     7 174.      0 NA     0.195  
+ 8     8  83.6     0 NA     0.0813 
+ 9     9 174.      0 NA     0.187  
+10    10  63.9     0 NA     0.0494 
+11    11 174.      0 NA     0.176  
+12    12  27.0     0 NA     0.0174 
+13    13  90.0     0 NA     0.119  
+14    14  59.3     0 NA     0.0480 
+15    15  90.8     0 NA     0.112  
+16    16  14.3     0 NA     0.00118
+17    17 174.      0 NA     0.173  
+18    18  89.6     0 NA     0.0970 
+19    19 174.      0 NA     0.171  
+20    20  59.0     0 NA     0.0480 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_tuned is now already the best model!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -743,7 +747,7 @@ Question: Hyperparameter tuning - Plant-pollinator dataset
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>see <a href="Appendix-Datasets.html#sec-plantpoll"><span>Section&nbsp;A.3</span></a> for more information about the dataset.</p>
+<p>see <a href="Appendix-Datasets.html#sec-plantpoll" class="quarto-xref"><span>Section A.3</span></a> for more information about the dataset.</p>
 <p>Prepare the data:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
@@ -835,10 +839,10 @@ Attaching package: 'dplyr'</code></pre>
 <span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">activation =</span> <span class="st">"selu"</span>, </span>
 <span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">loss =</span> <span class="st">"binomial"</span>, </span>
 <span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">lr =</span> <span class="fu">tune</span>(<span class="at">values =</span> <span class="fu">seq</span>(<span class="fl">0.0001</span>, <span class="fl">0.03</span>, <span class="at">length.out =</span> <span class="dv">10</span>)),</span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">batchsize =</span> 100L, <span class="co"># increasing the batch size will reduce the runtime</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">batchsize =</span> <span class="dv">100</span>L, <span class="co"># increasing the batch size will reduce the runtime</span></span>
 <span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> data_obs, </span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">epochs =</span> 200L, </span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">burnin =</span> 200L,</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">epochs =</span> <span class="dv">200</span>L, </span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">burnin =</span> <span class="dv">200</span>L,</span>
 <span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">tuning =</span> <span class="fu">config_tuning</span>(<span class="at">CV =</span> <span class="dv">3</span>, <span class="at">steps =</span> <span class="dv">10</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Starting hyperparameter tuning...
@@ -849,15 +853,15 @@ Fitting final model...</code></pre>
 <pre><code># A tibble: 10 × 5
    steps  test train models      lr
    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;    &lt;dbl&gt;
- 1     1  307.     0 NA     0.0267 
- 2     2  304.     0 NA     0.03   
- 3     3  316.     0 NA     0.0101 
- 4     4  Inf      0 NA     0.00342
- 5     5  306.     0 NA     0.0234 
+ 1     1  304.     0 NA     0.0267 
+ 2     2  303.     0 NA     0.03   
+ 3     3  317.     0 NA     0.0101 
+ 4     4  328.     0 NA     0.00342
+ 5     5  308.     0 NA     0.0234 
  6     6  315.     0 NA     0.0134 
- 7     7  314.     0 NA     0.0134 
- 8     8  307.     0 NA     0.0200 
- 9     9  304.     0 NA     0.03   
+ 7     7  318.     0 NA     0.0134 
+ 8     8  309.     0 NA     0.0200 
+ 9     9  305.     0 NA     0.03   
 10    10  Inf      0 NA     0.00342</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># make final predictions</span></span>
@@ -899,14 +903,12 @@ Fitting final model...</code></pre>
 <!-- The dataset is large! More than 10,000 observations. For now, let's switch to a simple holdout strategy for validating our model (e.g. use 80% of the data to train the model and 20% of the data to validate your model. -->
 <!-- Moreover: -->
 <!-- ```{r} -->
-
 <!-- table(data_obs$interaction) -->
 <!-- ``` -->
 <!-- The data is strongly imbalanced, i.e. many 0s but only a few 1. There are different strategies how to deal with that, for example oversampling the 1s or undersampling the 0s. -->
 <!-- Undersampling the 0s: -->
 <!-- ```{r} -->
 <!-- data_obs = data_obs[c(sample(which(data_obs$interaction == 0), 1000), which(data_obs$interaction == 1)),] -->
-
 <!-- table(data_obs$interaction) -->
 <!-- data_obs$interaction = as.integer(data_obs$interaction)-1 -->
 <!-- ``` -->
@@ -932,9 +934,9 @@ Click here to see the solution
 <span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">lr =</span> <span class="fu">tune</span>(<span class="at">values =</span> <span class="fu">seq</span>(<span class="fl">0.0001</span>, <span class="fl">0.03</span>, <span class="at">length.out =</span> <span class="dv">10</span>)),</span>
 <span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">lambda =</span> <span class="fu">tune</span>(<span class="at">values =</span> <span class="fu">seq</span>(<span class="fl">0.0001</span>, <span class="fl">0.1</span>, <span class="at">length.out =</span> <span class="dv">10</span>)),</span>
 <span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fu">tune</span>(),</span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">batchsize =</span> 100L, <span class="co"># increasing the batch size will reduce the runtime</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">batchsize =</span> <span class="dv">100</span>L, <span class="co"># increasing the batch size will reduce the runtime</span></span>
 <span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> data_obs, </span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">epochs =</span> 100L, </span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">epochs =</span> <span class="dv">100</span>L, </span>
 <span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">tuning =</span> <span class="fu">config_tuning</span>(<span class="at">CV =</span> <span class="dv">3</span>, <span class="at">steps =</span> <span class="dv">15</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Starting hyperparameter tuning...
@@ -945,21 +947,21 @@ Fitting final model...</code></pre>
 <pre><code># A tibble: 15 × 7
    steps  test train models lambda  alpha      lr
    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;   &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;
- 1     1   Inf     0 NA     0.0889 0.197  0.00674
- 2     2   Inf     0 NA     0.1    0.501  0.0134 
- 3     3   Inf     0 NA     0.0334 0.825  0.0200 
- 4     4   Inf     0 NA     0.0112 0.0921 0.0134 
- 5     5   Inf     0 NA     0.0778 0.470  0.0234 
- 6     6   Inf     0 NA     0.0445 0.881  0.0134 
- 7     7   Inf     0 NA     0.0445 0.436  0.00674
- 8     8   Inf     0 NA     0.0667 0.277  0.0200 
- 9     9   Inf     0 NA     0.1    0.0571 0.0001 
-10    10   Inf     0 NA     0.0112 0.885  0.0234 
-11    11   Inf     0 NA     0.0112 0.148  0.0234 
-12    12   Inf     0 NA     0.0667 0.317  0.0167 
-13    13   Inf     0 NA     0.0001 0.681  0.00342
-14    14   Inf     0 NA     0.1    0.283  0.0001 
-15    15   Inf     0 NA     0.0556 0.425  0.0101 </code></pre>
+ 1     1  395.     0 NA     0.0889 0.197  0.00674
+ 2     2  357.     0 NA     0.1    0.501  0.0134 
+ 3     3  332.     0 NA     0.0334 0.825  0.0200 
+ 4     4  334.     0 NA     0.0112 0.0921 0.0134 
+ 5     5  338.     0 NA     0.0778 0.470  0.0234 
+ 6     6  331.     0 NA     0.0445 0.881  0.0134 
+ 7     7  355.     0 NA     0.0445 0.436  0.00674
+ 8     8  340.     0 NA     0.0667 0.277  0.0200 
+ 9     9  567.     0 NA     0.1    0.0571 0.0001 
+10    10  322.     0 NA     0.0112 0.885  0.0234 
+11    11  333.     0 NA     0.0112 0.148  0.0234 
+12    12  344.     0 NA     0.0667 0.317  0.0167 
+13    13  335.     0 NA     0.0001 0.681  0.00342
+14    14  578.     0 NA     0.1    0.283  0.0001 
+15    15  358.     0 NA     0.0556 0.425  0.0101 </code></pre>
 </div>
 </div>
 <p>Make predictions:</p>
@@ -1223,6 +1225,33 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       }
     }
   }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
   const toggleColorMode = (alternate) => {
     // Switch the stylesheets
     const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
@@ -1289,13 +1318,15 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return localAlternateSentinel;
     }
   }
-  let localAlternateSentinel = 'default';
+  const darkModeDefault = false;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
   // Dark / light mode switch
   window.quartoToggleColorScheme = () => {
     // Read the current dark / light value 
     let toAlternate = !hasAlternateSentinel();
     toggleColorMode(toAlternate);
     setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
   };
   // Ensure there is a toggle, if there isn't float one in the top right
   if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
@@ -1330,18 +1361,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -1373,11 +1393,48 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
-  function tippyHover(el, contentFn) {
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/TheoreticalEcology\.github\.io\/machinelearning\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -1387,8 +1444,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -1400,7 +1466,129 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -1444,6 +1632,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -1469,6 +1658,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -1530,12 +1745,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./B2-Distance.html" class="pagination-link">
+      <a href="./B2-Distance.html" class="pagination-link" aria-label="Distance-based Algorithms">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Distance-based Algorithms</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./D2-explainableAI.html" class="pagination-link">
+      <a href="./D2-explainableAI.html" class="pagination-link" aria-label="Explainable AI">
         <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Explainable AI</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
@@ -1544,4 +1759,5 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 
-</body></html>
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/B3-NeuralNetworks.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>

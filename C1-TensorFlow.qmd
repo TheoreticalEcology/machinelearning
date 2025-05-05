@@ -67,7 +67,7 @@ TensorFlow has two data containers (structures):
 
 To get started with TensorFlow, we have to load the library and check if the installation worked.
 
-```{r chunk_chapter3_44}
+```{r chunk_chapter3_44, eval=FALSE}
 library(tensorflow)
 library(keras3)
 
@@ -84,7 +84,7 @@ Don't worry about weird messages (they will only appear once at the start of the
 
 We now can define the variables and do some math with them:
 
-```{r chunk_chapter3_45}
+```{r chunk_chapter3_45, eval=FALSE}
 a = tf$constant(5)
 b = tf$constant(10)
 print(a)
@@ -98,7 +98,7 @@ Normal R methods such as print() are provided by the R package "tensorflow".
 
 The TensorFlow library (created by the RStudio team) built R methods for all common operations:
 
-```{r chunk_chapter3_46}
+```{r chunk_chapter3_46, eval=FALSE}
 `+.tensorflow.tensor` = function(a, b){ return(tf$add(a,b)) }
 # Mind the backticks.
 (a+b)
@@ -106,14 +106,14 @@ The TensorFlow library (created by the RStudio team) built R methods for all com
 
 Their operators also automatically transform R numbers into constant tensors when attempting to add a tensor to an R number:
 
-```{r chunk_chapter3_47}
+```{r chunk_chapter3_47, eval=FALSE}
 d = c + 5  # 5 is automatically converted to a tensor.
 print(d)
 ```
 
 TensorFlow containers are objects, what means that they are not just simple variables of type numeric (class(5)), but they instead have so called methods. Methods are changing the state of a class (which for most of our purposes here is the values of the object). For instance, there is a method to transform the tensor object back to an R object:
 
-```{r chunk_chapter3_48}
+```{r chunk_chapter3_48, eval=FALSE}
 class(d)
 class(d$numpy())
 class(as.matrix(d))
@@ -148,7 +148,7 @@ c = m / b # Doesn't work! We try to divide float32/float64.
 
 So what went wrong here? We tried to divide a float32 by a float64 number, but we can only divide numbers of the same type!
 
-```{r chunk_chapter3_50, eval=TRUE}
+```{r chunk_chapter3_50, , eval=FALSE}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = "float64")
 b = tf$constant(2.0, dtype = "float64")
@@ -157,7 +157,7 @@ c = m / b # Now it works.
 
 We can also specify the type of the object by providing an object e.g. tf\$float64.
 
-```{r chunk_chapter3_51}
+```{r chunk_chapter3_51, eval=FALSE}
 r_matrix = matrix(runif(10*10), 10, 10)
 m = tf$constant(r_matrix, dtype = tf$float64)
 ```
@@ -201,7 +201,7 @@ tf$math$reduce_max(y) # Float!
 
 Rewrite the following expressions (a to g) in TensorFlow:
 
-```{r chunk_chapter3_task_6, eval=TRUE}
+```{r chunk_chapter3_task_6, eval=FALSE}
 x = 100:1
 y = as.double(100:1)
 
@@ -237,7 +237,7 @@ mean_R(y) == mean(y)	# Test for equality.
 
 `r hide("Click here to see the solution")`
 
-```{r chunk_chapter3_task_7, eval=TRUE, include=TRUE}
+```{r chunk_chapter3_task_7, eval=FALSE, include=TRUE}
 library(tensorflow)
 library(keras)
 
@@ -292,7 +292,7 @@ mean_TF(y) == mean(y)
 
 This exercise compares the speed of R to TensorFlow. The first exercise is to rewrite the following function in TensorFlow:
 
-```{r chunk_chapter3_task_8, eval=TRUE}
+```{r chunk_chapter3_task_8, eval=FALSE}
 do_something_R = function(x = matrix(0.0, 10L, 10L)){
   mean_per_row = apply(x, 1, mean)
   result = x - mean_per_row
@@ -337,7 +337,7 @@ microbenchmark::microbenchmark(
 
 `r hide("Click here to see the solution")`
 
-```{r chunk_chapter3_task_12, eval=TRUE, include=TRUE}
+```{r chunk_chapter3_task_12, eval=FALSE, include=TRUE}
 do_something_TF = function(x = matrix(0.0, 10L, 10L)){
   x = tf$constant(x)  # Remember, this is a local copy!
   mean_per_row = tf$reduce_mean(x, axis = 0L)
@@ -346,7 +346,7 @@ do_something_TF = function(x = matrix(0.0, 10L, 10L)){
 }
 ```
 
-```{r chunk_chapter3_task_13, eval=TRUE, include=TRUE}
+```{r chunk_chapter3_task_13, eval=FALSE, include=TRUE}
 test = matrix(0.0, 100L, 100L)
 microbenchmark::microbenchmark(do_something_R(test), do_something_TF(test))
 
@@ -366,7 +366,7 @@ Why is R faster (the first time)?
 
 <br/>
 
-```{r chunk_chapter3_task_14, eval=TRUE, include=TRUE}
+```{r chunk_chapter3_task_14, eval=FALSE, include=TRUE}
 test = matrix(0.0, 1000L, 500L)
 testTF = tf$constant(test)
 
@@ -384,7 +384,7 @@ microbenchmark::microbenchmark(
 
 Google to find out how to write the following expressions in TensorFlow:
 
-```{r chunk_chapter3_task_15, eval=TRUE}
+```{r chunk_chapter3_task_15, eval=FALSE}
 A = matrix(c(1, 2, 0, 0, 2, 0, 2, 5, 3), 3, 3)
 
 # i)
@@ -405,7 +405,7 @@ det(A)
 
 `r hide("Click here to see the solution")`
 
-```{r chunk_chapter3_task_16, eval=TRUE, include=TRUE}
+```{r chunk_chapter3_task_16, eval=FALSE, include=TRUE}
 library(tensorflow)
 library(keras3)
 
@@ -438,19 +438,19 @@ TensorFlow supports automatic differentiation (analytical and not numerical!). L
 
 Let's do this in TensorFlow. Define the function:
 
-```{r chunk_chapter3_task_17, eval=TRUE}
+```{r chunk_chapter3_task_17, eval=FALSE}
 f = function(x){ return(5.0 * tf$square(x) + 3.0) }
 ```
 
 We want to calculate the derivative for $x = 2.0$:
 
-```{r chunk_chapter3_task_18, eval=TRUE}
+```{r chunk_chapter3_task_18, eval=FALSE}
 x = tf$constant(2.0)
 ```
 
 To do automatic differentiation, we have to forward $x$ through the function within the tf\$GradientTape() environment. We have also have to tell TensorFlow which value to "watch":
 
-```{r chunk_chapter3_task_19, eval=TRUE}
+```{r chunk_chapter3_task_19, eval=FALSE}
 with(tf$GradientTape() %as% tape,
   {
     tape$watch(x)
@@ -461,13 +461,13 @@ with(tf$GradientTape() %as% tape,
 
 To print the gradient:
 
-```{r chunk_chapter3_task_20, eval=TRUE}
+```{r chunk_chapter3_task_20, eval=FALSE}
 (tape$gradient(y, x))
 ```
 
 We can also calculate the second order derivative $f''(x) = 10$:
 
-```{r chunk_chapter3_task_21, eval=TRUE}
+```{r chunk_chapter3_task_21, eval=FALSE}
 with(tf$GradientTape() %as% first,
   {
     first$watch(x)
@@ -490,7 +490,7 @@ A more advanced example: *Linear regression*
 
 In this case we first simulate data following $\boldsymbol{y} = \boldsymbol{X} \boldsymbol{w} + \boldsymbol{\epsilon}$ ($\boldsymbol{\epsilon}$ follows a normal distribution == error).
 
-```{r chunk_chapter3_task_22, eval=TRUE}
+```{r chunk_chapter3_task_22, eval=FALSE}
 x = matrix(round(runif(500, -2, 2), 3), 100, 5)
 w = round(rnorm(5, 2, 1), 3)
 y = x %*% w + round(rnorm(100, 0, 0.25), 4)
@@ -498,7 +498,7 @@ y = x %*% w + round(rnorm(100, 0, 0.25), 4)
 
 In R we would do the following to fit a linear regression model:
 
-```{r chunk_chapter3_task_23, eval=TRUE}
+```{r chunk_chapter3_task_23, eval=FALSE}
 summary(lm(y~x))
 ```
 
@@ -506,7 +506,7 @@ Let's build our own model in TensorFlow. Here, we use now the variable data cont
 
 The input (predictors, independent variables or features, $\boldsymbol{X}$) and the observed (response, $\boldsymbol{y}$) are constant and will not be learned/optimized.
 
-```{r chunk_chapter3_task_24, eval=TRUE}
+```{r chunk_chapter3_task_24, eval=FALSE}
 library(tensorflow)
 library(keras3)
 
@@ -550,7 +550,7 @@ Play around with the simulation, increase/decrease the number of weights, add an
 
 `r hide("Click here to see the solution")`
 
-```{r chunk_chapter3_task_25, eval=TRUE, include=TRUE, warning=FALSE}
+```{r chunk_chapter3_task_25, eval=FALSE, include=TRUE, warning=FALSE}
 library(tensorflow)
 library(keras3)
 
@@ -605,7 +605,7 @@ Useful links:
 
 To get started with Torch, we have to load the library and check if the installation worked.
 
-```{r chunk_chapter3_53}
+```{r chunk_chapter3_53, eval=FALSE}
 library(torch)
 ```
 
@@ -613,13 +613,13 @@ library(torch)
 
 Unlike TensorFlow, Torch doesn't have two data containers for mutable and immutable variables. All variables are initialized via the torch_tensor function:
 
-```{r chunk_chapter3_54}
+```{r chunk_chapter3_54, eval=FALSE}
 a = torch_tensor(1.)
 ```
 
 To mark variables as mutable (and to track their operations for automatic differentiation) we have to set the argument 'requires_grad' to true in the torch_tensor function:
 
-```{r chunk_chapter3_55}
+```{r chunk_chapter3_55, eval=FALSE}
 mutable = torch_tensor(5, requires_grad = TRUE) # tf$Variable(...)
 immutable = torch_tensor(5, requires_grad = FALSE) # tf$constant(...)
 ```
@@ -628,7 +628,7 @@ immutable = torch_tensor(5, requires_grad = FALSE) # tf$constant(...)
 
 We now can define the variables and do some math with them:
 
-```{r chunk_chapter3_56}
+```{r chunk_chapter3_56, eval=FALSE}
 a = torch_tensor(5.)
 b = torch_tensor(10.)
 print(a)
@@ -639,7 +639,7 @@ print(c)
 
 The R-Torch package provides all common R methods (an advantage over TensorFlow).
 
-```{r chunk_chapter3_57}
+```{r chunk_chapter3_57, eval=FALSE}
 a = torch_tensor(5.)
 b = torch_tensor(10.)
 print(a+b)
@@ -649,14 +649,14 @@ print(a*b)
 
 Their operators also automatically transform R numbers into tensors when attempting to add a tensor to a R number:
 
-```{r chunk_chapter3_58}
+```{r chunk_chapter3_58, eval=FALSE}
 d = a + 5  # 5 is automatically converted to a tensor.
 print(d)
 ```
 
 As for TensorFlow, we have to explicitly transform the tensors back to R:
 
-```{r chunk_chapter3_59}
+```{r chunk_chapter3_59, eval=FALSE}
 class(d)
 class(as.numeric(d))
 ```
@@ -683,7 +683,7 @@ During the course we will try to provide the corresponding PyTorch code snippets
 
 Rewrite the following expressions (a to g) in torch:
 
-```{r chunk_chapter3_task_torch_6, eval=TRUE}
+```{r chunk_chapter3_task_torch_6, eval=FALSE}
 x = 100:1
 y = as.double(100:1)
 
@@ -719,7 +719,7 @@ mean_R(y) == mean(y)	# Test for equality.
 
 `r hide("Click here to see the solution")`
 
-```{r chunk_chapter3_task_torch_7, eval=TRUE, include=TRUE}
+```{r chunk_chapter3_task_torch_7, eval=FALSE, include=TRUE}
 library(torch)
 
 
@@ -781,7 +781,7 @@ mean_Torch(y) == mean(y)
 
 `r hide("Click here to see the solution")` This exercise compares the speed of R to torch The first exercise is to rewrite the following function in torch:
 
-```{r chunk_chapter3_task_torch_8, eval=TRUE}
+```{r chunk_chapter3_task_torch_8, eval=FALSE}
 do_something_R = function(x = matrix(0.0, 10L, 10L)){
   mean_per_row = apply(x, 1, mean)
   result = x - mean_per_row
@@ -826,7 +826,7 @@ microbenchmark::microbenchmark(
 
 `r hide("Click here to see the solution")`
 
-```{r chunk_chapter3_task_torch_12, eval=TRUE, include=TRUE}
+```{r chunk_chapter3_task_torch_12, eval=FALSE, include=TRUE}
 do_something_torch = function(x = matrix(0.0, 10L, 10L)){
   x = torch_tensor(x)  # Remember, this is a local copy!
   mean_per_row = torch_mean(x, dim = 1)
@@ -835,7 +835,7 @@ do_something_torch = function(x = matrix(0.0, 10L, 10L)){
 }
 ```
 
-```{r chunk_chapter3_task_torch_13, eval=TRUE, include=TRUE}
+```{r chunk_chapter3_task_torch_13, eval=FALSE, include=TRUE}
 test = matrix(0.0, 100L, 100L)
 microbenchmark::microbenchmark(do_something_R(test), do_something_torch(test))
 
@@ -873,7 +873,7 @@ microbenchmark::microbenchmark(
 
 Google to find out how to write the following tasks in torch:
 
-```{r chunk_chapter3_task_torch_15, eval=TRUE}
+```{r chunk_chapter3_task_torch_15, eval=FALSE}
 A = matrix(c(1, 2, 0, 0, 2, 0, 2, 5, 3), 3, 3)
 
 # i)
@@ -894,7 +894,7 @@ det(A)
 
 `r hide("Click here to see the solution")`
 
-```{r chunk_chapter3_task_torch_16, eval=TRUE, include=TRUE}
+```{r chunk_chapter3_task_torch_16, eval=FALSE, include=TRUE}
 library(torch)
 
 A = matrix(c(1., 2., 0., 0., 2., 0., 2., 5., 3.), 3, 3)
@@ -926,19 +926,19 @@ Torch supports automatic differentiation (analytical and not numerical!). Let's 
 
 Let's do this in torch Define the function:
 
-```{r chunk_chapter3_task_torch_17, eval=TRUE}
+```{r chunk_chapter3_task_torch_17, eval=FALSE}
 f = function(x){ return(5.0 * torch_pow(x, 2.) + 3.0) }
 ```
 
 We want to calculate the derivative for $x = 2.0$:
 
-```{r chunk_chapter3_task_torch_18, eval=TRUE}
+```{r chunk_chapter3_task_torch_18, eval=FALSE}
 x = torch_tensor(2.0, requires_grad = TRUE)
 ```
 
 To do automatic differentiation, we have to forward $x$ through the function and call the \$backward() method of the result:
 
-```{r chunk_chapter3_task_torch_19, eval=TRUE}
+```{r chunk_chapter3_task_torch_19, eval=FALSE}
 y = f(x)
 y$backward(retain_graph=TRUE )
 
@@ -946,13 +946,13 @@ y$backward(retain_graph=TRUE )
 
 To print the gradient:
 
-```{r chunk_chapter3_task_torch_20, eval=TRUE}
+```{r chunk_chapter3_task_torch_20, eval=FALSE}
 x$grad
 ```
 
 We can also calculate the second order derivative $f''(x) = 10$:
 
-```{r chunk_chapter3_task_torch_21, eval=TRUE}
+```{r chunk_chapter3_task_torch_21, eval=FALSE}
 x = torch_tensor(2.0, requires_grad = TRUE)
 y = f(x)
 grad = torch::autograd_grad(y, x, retain_graph = TRUE, create_graph = TRUE)[[1]] # first
@@ -966,7 +966,7 @@ A more advanced example: *Linear regression*
 
 In this case we first simulate data following $\boldsymbol{y} = \boldsymbol{X} \boldsymbol{w} + \boldsymbol{\epsilon}$ ($\boldsymbol{\epsilon}$ follows a normal distribution == error).
 
-```{r chunk_chapter3_task_torch_22, eval=TRUE}
+```{r chunk_chapter3_task_torch_22, eval=FALSE}
 set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed.
 
 x = matrix(round(runif(500, -2, 2), 3), 100, 5)
@@ -976,7 +976,7 @@ y = x %*% w + round(rnorm(100, 0, 0.25), 4)
 
 In R we would do the following to fit a linear regression model:
 
-```{r chunk_chapter3_task_torch_23, eval=TRUE}
+```{r chunk_chapter3_task_torch_23, eval=FALSE}
 summary(lm(y~x))
 ```
 
@@ -984,7 +984,7 @@ Let's build our own model in TensorFlow. Here, we use now the variable data cont
 
 The input (predictors, independent variables or features, $\boldsymbol{X}$) and the observed (response, $\boldsymbol{y}$) are constant and will not be learned/optimized.
 
-```{r chunk_chapter3_task_torch_24, eval=TRUE}
+```{r chunk_chapter3_task_torch_24, eval=FALSE}
 library(torch)
 torch::torch_manual_seed(42L)
 
@@ -1024,7 +1024,7 @@ Play around with the simulation, increase/decrease the number of weights, add an
 
 `r hide("Click here to see the solution")`
 
-```{r chunk_chapter3_task_torch_25, eval=TRUE, include=TRUE}
+```{r chunk_chapter3_task_torch_25, eval=FALSE, include=TRUE}
 library(torch)
 torch::torch_manual_seed(42L)
 

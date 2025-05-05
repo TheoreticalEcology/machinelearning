@@ -26,7 +26,7 @@ In this lecture we will work with an African Elephant occurrence dataset.
 
 We will fit a random forest and use the iml package for xAI, see <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>.
 
-```{r chunk_chapter6_0}
+```{r chunk_chapter6_0, eval=FALSE}
 library(iml)
 library(ranger) # different random Forest package!
 library(EcoData)
@@ -42,29 +42,29 @@ head(data)
 
 Meaning of the bioclim variables:
 
-| Bioclim variable | Meaning                                                    |
+| Bioclim variable | Meaning |
 |--------------------------------------|----------------------------------|
-| bio1             | Annual Mean Temperature                                    |
-| bio2             | Mean Diurnal Range (Mean of monthly (max temp - min temp)) |
-| bio3             | Isothermality (BIO2/BIO7) (×100)                           |
-| bio4             | Temperature Seasonality (standard deviation ×100)          |
-| bio5             | Max Temperature of Warmest Month                           |
-| bio6             | Min Temperature of Coldest Month                           |
-| bio7             | Temperature Annual Range (BIO5-BIO6)                       |
-| bio8             | Mean Temperature of Wettest Quarter                        |
-| bio9             | Mean Temperature of Driest Quarter                         |
-| bio10            | Mean Temperature of Warmest Quarter                        |
-| bio11            | Mean Temperature of Coldest Quarter                        |
-| bio12            | Annual Precipitation                                       |
-| bio13            | Precipitation of Wettest Month                             |
-| bio14            | Precipitation of Driest Month                              |
-| bio15            | Precipitation Seasonality (Coefficient of Variation)       |
-| bio16            | Precipitation of Wettest Quarter                           |
-| bio17            | Precipitation of Driest Quarter                            |
-| bio18            | Precipitation of Warmest Quarter                           |
-| bio19            | Precipitation of Coldest Quarter                           |
+| bio1 | Annual Mean Temperature |
+| bio2 | Mean Diurnal Range (Mean of monthly (max temp - min temp)) |
+| bio3 | Isothermality (BIO2/BIO7) (×100) |
+| bio4 | Temperature Seasonality (standard deviation ×100) |
+| bio5 | Max Temperature of Warmest Month |
+| bio6 | Min Temperature of Coldest Month |
+| bio7 | Temperature Annual Range (BIO5-BIO6) |
+| bio8 | Mean Temperature of Wettest Quarter |
+| bio9 | Mean Temperature of Driest Quarter |
+| bio10 | Mean Temperature of Warmest Quarter |
+| bio11 | Mean Temperature of Coldest Quarter |
+| bio12 | Annual Precipitation |
+| bio13 | Precipitation of Wettest Month |
+| bio14 | Precipitation of Driest Month |
+| bio15 | Precipitation Seasonality (Coefficient of Variation) |
+| bio16 | Precipitation of Wettest Quarter |
+| bio17 | Precipitation of Driest Quarter |
+| bio18 | Precipitation of Warmest Quarter |
+| bio19 | Precipitation of Coldest Quarter |
 
-```{r}
+```{r, eval=FALSE}
 rf = ranger(as.factor(Presence) ~ ., data = data, probability = TRUE)
 ```
 
@@ -74,7 +74,7 @@ When we want to use such a generic package, we first have to create a predictor 
 
 We often have to warp our predict function inside a so called wrapper function so that the output of the predict function fits to iml (iml expects that the predict function returns a vector of predictions:
 
-```{r chunk_chapter6_1}
+```{r chunk_chapter6_1, eval=FALSE}
 
 predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions[,2]
 
@@ -87,7 +87,7 @@ predictor$task = "classif" # set task to classification
 
 Feature importance should not be mistaken with the random forest variable importance though they are related. It tells us how important the individual variables are for predictions, can be calculated for all machine learning models and is based on a permutation approach (have a look at the book):
 
-```{r chunk_chapter6_2}
+```{r chunk_chapter6_2, eval=FALSE}
 imp = FeatureImp$new(predictor, loss = "ce")
 plot(imp)
 ```
@@ -98,7 +98,7 @@ bio9 (Precipitation of the wettest Quarter) is the most important variable.
 
 Partial dependencies are similar to allEffects plots for normal regressions. The idea is to visualize "marginal effects" of predictors (with the "feature" argument we specify the variable we want to visualize):
 
-```{r chunk_chapter6_3}
+```{r chunk_chapter6_3, eval=FALSE}
 eff = FeatureEffect$new(predictor, feature = "bio9", method = "pdp",
                         grid.size = 30)
 plot(eff)
@@ -110,7 +110,7 @@ One disadvantage of partial dependencies is that they are sensitive to correlate
 
 Accumulated local effects (ALE) are basically partial dependencies plots but try to correct for correlations between predictors.
 
-```{r chunk_chapter6_5}
+```{r chunk_chapter6_5, eval=FALSE}
 ale = FeatureEffect$new(predictor, feature = "bio9", method = "ale")
 ale$plot()
 ```
@@ -121,7 +121,7 @@ If there is no collinearity, you shouldn't see much difference between partial d
 
 The H-statistic can be used to find interactions between predictors. However, again, keep in mind that the H-statistic is sensible to correlation between predictors:
 
-```{r chunk_chapter6_6, message=FALSE, warning=FALSE}
+```{r chunk_chapter6_6, message=FALSE, warning=FALSE, eval=FALSE}
 interact = Interaction$new(predictor, "bio9",grid.size = 5L)
 plot(interact)
 ```
@@ -130,7 +130,7 @@ plot(interact)
 
 Another idea is simplifying the machine learning model with another simpler model such as a decision tree. We create predictions with the machine learning model for a lot of different input values and then we fit a decision tree on these predictions. We can then interpret the easier model.
 
-```{r chunk_chapter6_7, results='hide', message=FALSE, warning=FALSE}
+```{r chunk_chapter6_7, results='hide', message=FALSE, warning=FALSE, eval=FALSE}
 library(partykit)
 
 tree = TreeSurrogate$new(predictor, maxdepth = 2)
@@ -143,7 +143,7 @@ The global approach is to simplify the entire machine learning-black-box model v
 
 However, sometimes we are only interested in understanding how single predictions are generated. The LIME (Local interpretable model-agnostic explanations) approach explores the feature space around one observation and based on this locally fits a simpler model (e.g. a linear model):
 
-```{r chunk_chapter6_8, message=FALSE, warning=FALSE}
+```{r chunk_chapter6_8, message=FALSE, warning=FALSE, eval=FALSE}
 lime.explain = LocalModel$new(predictor, x.interest = data[1,-1])
 lime.explain$results
 plot(lime.explain)
@@ -153,7 +153,7 @@ plot(lime.explain)
 
 The Shapley method computes the so called Shapley value, feature contributions for single predictions, and is based on an approach from cooperative game theory. The idea is that each feature value of the instance is a "player" in a game, where the prediction is the reward. The Shapley value tells us how to fairly distribute the reward among the features.
 
-```{r chunk_chapter6_9}
+```{r chunk_chapter6_9, eval=FALSE}
 shapley = Shapley$new(predictor, x.interest = data[1,-1])
 shapley$plot()
 ```
@@ -164,7 +164,7 @@ Standard xAI method do not provide reliable uncertainties on the fitted curves. 
 
 In a bootstrap, is instead of splitting up the data in test / validation, we sample from the data with replacement and fit the models repeatedly. The idea is to get an estimate about the variability we would expect if we created another dataset of the same size.
 
-```{r}
+```{r, eval=FALSE}
 k = 10 # bootstrap samples
 n = nrow(data)
 error = rep(NA, k)
@@ -189,7 +189,8 @@ Note that the distinction between bootstrap and validation / cross-validation is
 #### xAI in cito
 
 Data preparation
-```{r}
+
+```{r, eval=FALSE}
 library(iml)
 library(cito)
 library(EcoData)
@@ -205,30 +206,28 @@ data_sub = data[sample.int(nrow(data), 500),]
 
 ```
 
-
 Cito includes a lot of xAI methods directly out of the box
 
-```{r}
+```{r, eval=FALSE}
 model = dnn(Presence~., data = data_sub, batchsize = 200L,loss = "binomial", verbose = FALSE, lr = 0.15, epochs = 300)
 ```
 
 Try the following commands:
 
--   `summary(dnn, n_permute = 10)` 
--   `PDP(dnn)` 
+-   `summary(dnn, n_permute = 10)`
+-   `PDP(dnn)`
 -   `ALE(dnn)`
 
 Moreover, try to refit the model with the option `bootstrap = 5`. This may take a short while. Observe how the xAI options change.
-
 :::
 
 `r hide("Click here to see the solution for cito")`
 
-```{r}
+```{r, eval=FALSE}
 model = dnn(Presence~., data = data_sub, batchsize = 200L, bootstrap = 5L, loss = "binomial", verbose = FALSE, lr = 0.15, epochs = 300)
 ```
 
-```{r}
+```{r, eval=FALSE}
 summary(model, n_permute = 10L)
 ```
 
@@ -237,9 +236,7 @@ PDP(model)
 ALE(model)
 ```
 
-
 `r unhide()`
-
 
 ::: callout-warning
 #### Question
@@ -263,7 +260,7 @@ predict_wrapper = function(model, newdata) predict(model, as.matrix(newdata))
 
 Prepare the data
 
-```{r}
+```{r, eval=FALSE}
 library(EcoData)
 library(dplyr)
 library(missRanger) # for imputation
@@ -287,13 +284,11 @@ data_imputed = data_imputed %>%
 data_obs = data_imputed[!is.na(data_imputed$survived), ]
 data_new = data_imputed[is.na(data_imputed$survived), ]
 ```
-
-
 :::
 
 `r hide("Click here to see the solution for RF")`
 
-```{r , message=FALSE, warning=FALSE}
+```{r , message=FALSE, warning=FALSE, eval=FALSE}
 library(ranger)
 library("iml")
 set.seed(1234)
@@ -338,7 +333,7 @@ Maybe you want to see other explanation methods as well. Surely you can use the 
 
 `r hide("Click here to see the solution for xgboost")`
 
-```{r chunk_chapter6_task_00, message=FALSE, warning=FALSE}
+```{r chunk_chapter6_task_00, message=FALSE, warning=FALSE, eval=FALSE}
 library(xgboost)
 library("iml")
 set.seed(1234)
@@ -376,10 +371,9 @@ plot(importance)
 
 `r unhide()`
 
-
 `r hide("Click here to see the solution for cito")`
 
-```{r chunk_chapter6_task_0, message=FALSE, warning=FALSE}
+```{r chunk_chapter6_task_0, message=FALSE, warning=FALSE, eval=FALSE}
 library(cito)
 data_obs$survived = as.integer(data_obs$survived) - 1
 nn = dnn(survived~., data = data_obs, loss = "binomial", lr= 0.03, epochs = 300)
@@ -389,8 +383,8 @@ summary(nn)
 
 `r unhide()`
 
-
 <!-- ::: callout-warning -->
+
 <!-- #### Question -->
 
 <!-- As we show in Section 13 of this chapter, a random forest will partition the importance of variables across collinear predictors, while a linear regression model (`lm()`) can identify which predictor is causally affecting the response (at least in theory, if all confounders are controlled). What about a boosted regression tree or an artificial neural network? Take the random forest example and add a boosted regression tree (easier, you can use e.g. <https://rdrr.io/cran/xgboost/man/xgb.importance.html>) or an artificial neural network and see if they are better than the random forest at identifying causal predictors. -->
@@ -398,36 +392,51 @@ summary(nn)
 <!-- `r hide("Click here to see the solution")` -->
 
 <!-- ```{r chunk_chapter6_task_1, message=FALSE, warning=FALSE} -->
+
 <!-- library(xgboost) -->
+
 <!-- set.seed(1234) -->
 
 <!-- data = as.data.frame(EcoData::wine) -->
+
 <!-- submission = data[which(is.na(data$quality)), -which(colnames(data) == "quality")] -->
+
 <!-- data = data[complete.cases(data), ] # Removes sumbmission data as well. -->
 
 <!-- data_xg = xgb.DMatrix( -->
+
 <!--   data = as.matrix(data[,which(names(data) != "quality")]), -->
+
 <!--   label = data$quality -->
+
 <!-- ) -->
+
 <!-- brt = xgboost(data_xg, nrounds = 24) -->
 
 <!-- pred = round(predict(brt, newdata = data_xg)) # Only integers are allowed. -->
+
 <!-- table(pred, data$quality) -->
+
 <!-- (accuracy = mean(pred == data$quality)) # Fits very well (on the training data...) -->
 
 <!-- # For submission: -->
+
 <!-- #write.csv(round(predict(rf, submission)), file = "wine_RF.csv") -->
 
 <!-- # Look at variable importance: -->
+
 <!-- xgboost::xgb.importance(model = brt) -->
+
 <!-- ``` -->
 
 <!-- Every method yields slightly different results, but the main ingredient is alcohol (and sulphates). -->
 
 <!-- `r unhide()` -->
+
 <!-- ::: -->
 
 <!-- ::: callout-warning -->
+
 <!-- #### Bonus Task -->
 
 <!-- If you're done with the previous tasks and have still time and appetite, improve the submissions for our competition, in particular for the Wine data set. Possible ideas: -->
@@ -443,133 +452,223 @@ summary(nn)
 <!-- `r hide("Click here to see the solution")` -->
 
 <!-- ```{r chunk_chapter6_task_2, message=FALSE, warning=FALSE,eval=FALSE} -->
+
 <!-- library(tensorflow) -->
+
 <!-- library(keras) -->
-<!-- set_random_seed(123L, disable_gpu = FALSE)	# Already sets R's random seed. -->
+
+<!-- set_random_seed(123L, disable_gpu = FALSE) # Already sets R's random seed. -->
 
 <!-- readin = function(percentageTest = 0.2, aggregate = 0){ -->
+
 <!--     # Parameter "aggregate" packs the classes with very low abundances into one. -->
+
 <!--     # If "aggregate" equals to NA, NaN, Null, 0 or FALSE, no aggregation is performed. -->
+
 <!--     # Else, the given number is the boundary. -->
+
 <!--     # Every class with less elements than the boundary is aggregated into one. -->
 
 <!--     # WARNING: These classes cannot be distinguished from then on! -->
+
 <!--     # Using the predictions for submission needs further processing! -->
 
 <!--     # Just for random selection of features, independent of the amount of function calls. -->
+
 <!--     set.seed(12345) -->
 
 <!--     train = as.data.frame(EcoData::wine) -->
+
 <!--     indicesTrain = which(!is.na(train$quality)) -->
+
 <!--     labelsTrain = train$quality[indicesTrain] -->
+
 <!--     labelsTrain = labelsTrain - min(labelsTrain)  # Start at 0 (for softmax). -->
+
 <!--     train = train[, -which(colnames(train) == "quality")] -->
 
 <!--     if(!is.na(aggregate) & aggregate){ -->
+
 <!--         indices = names(table(labelsTrain)[ -->
+
 <!--             table(labelsTrain) < aggregate & table(labelsTrain) > 0 -->
+
 <!--         ]) -->
+
 <!--         if(length(indices)){ -->
+
 <!--             labelsTrain[labelsTrain %in% indices] = -1 -->
+
 <!--             labelsTrain = as.factor(labelsTrain) -->
+
 <!--             levels(labelsTrain) = 1:length(levels(labelsTrain)) - 1 -->
+
 <!--             labelsTrain = as.integer(labelsTrain) -->
+
 <!--         } -->
+
 <!--     } -->
 
 <!--     # Impute missing values (before any splitting, to get the highest power): -->
+
 <!--     train = missRanger::missRanger( -->
+
 <!--         data = train, -->
+
 <!--         maxiter = 10L, -->
+
 <!--         seed = 123, -->
+
 <!--         num.trees = 200L -->
+
 <!--     ) -->
 
 <!--     # Separate submission data (mind scaling!): -->
+
 <!--     submission = scale(train[-indicesTrain,]) -->
+
 <!--     train = scale(train[indicesTrain,]) -->
 
 <!--     # Very asymmetric training data: -->
+
 <!--     cat(paste0("Size of training set: ", length(labelsTrain), "\n")) -->
+
 <!--     print(table(labelsTrain)) -->
 
 <!--     if(percentageTest == 0){ -->
+
 <!--       return(list( -->
+
 <!--         "labelsTrain" = labelsTrain, -->
+
 <!--         "labelsTest" = list(), -->
+
 <!--         "train" = train, -->
+
 <!--         "test" = list(), -->
+
 <!--         "submission" = submission -->
+
 <!--       )) -->
+
 <!--     } -->
 
 <!--     # Split into training and test set: -->
+
 <!--     len = nrow(train) -->
+
 <!--     indicesTest = sample(x = 1:len, size = percentageTest * len, replace = FALSE) -->
+
 <!--     test = as.data.frame(train[indicesTest,]) -->
+
 <!--     labelsTest = labelsTrain[indicesTest] -->
+
 <!--     train = as.data.frame(train[-indicesTest,]) -->
+
 <!--     labelsTrain = labelsTrain[-indicesTest] -->
 
 <!--     return(list( -->
+
 <!--         "labelsTrain" = labelsTrain, -->
+
 <!--         "labelsTest" = labelsTest, -->
+
 <!--         "train" = train, -->
+
 <!--         "test" = test, -->
+
 <!--         "submission" = submission -->
+
 <!--     )) -->
+
 <!-- } -->
 
 <!-- retVal = readin(aggregate = 0) -->
+
 <!-- labelsTrain = retVal[["labelsTrain"]] -->
+
 <!-- labelsTest = retVal[["labelsTest"]] -->
+
 <!-- train = retVal[["train"]] -->
+
 <!-- test = retVal[["test"]] -->
+
 <!-- submission = retVal[["submission"]] -->
+
 <!-- rm(retVal) -->
 
 <!-- classNumber = length(table(labelsTrain)) -->
 
 <!-- model = keras_model_sequential() -->
+
 <!-- model %>% -->
+
 <!--     layer_dense(units = 200L, activation = "leaky_relu", -->
+
 <!--     kernel_regularizer = regularizer_l2(0.00035), -->
+
 <!--     input_shape = ncol(train)) %>% -->
+
 <!--     layer_dropout(0.45) %>% -->
+
 <!--     layer_dense(units = 100L, activation = "relu", -->
+
 <!--     bias_regularizer = regularizer_l1_l2(0.5)) %>% -->
+
 <!--     layer_dropout(0.2) %>% -->
+
 <!--     layer_dense(units = 100L, activation = "leaky_relu", -->
+
 <!--     kernel_regularizer = regularizer_l2(0.00035), -->
+
 <!--     bias_regularizer = regularizer_l1_l2(0.1)) %>% -->
+
 <!--     layer_dropout(0.25) %>% -->
+
 <!--     layer_dense(units = 50L, activation = "gelu") %>% -->
+
 <!--     layer_dense(units = 25L, activation = "elu") %>% -->
+
 <!--     layer_dropout(0.35) %>% -->
+
 <!--     # We need probabilities. So we use the softmax function. -->
+
 <!--     # Remember, the labels MUST start at 0! -->
+
 <!--     layer_dense(units = classNumber, activation = "softmax") -->
 
 <!-- model %>% -->
+
 <!--     keras::compile(loss = loss_binary_crossentropy, -->
+
 <!--                    optimizer = optimizer_adamax(learning_rate = 0.015)) -->
 
 <!-- model_history =  -->
+
 <!--     model %>% # Mind the matrix property (no data.frame)! -->
+
 <!--         fit(x = as.matrix(train), y = k_one_hot(labelsTrain, classNumber), -->
+
 <!--             epochs = 80L, batch = 12L, shuffle = TRUE) -->
 
 <!-- plot(model_history) -->
 
 <!-- # Accuracy on training set (!) -->
+
 <!-- pred = predict(model, as.matrix(train)) %>% apply(1, which.max) - 1 -->
+
 <!-- Metrics::accuracy(pred, labelsTrain) -->
+
 <!-- table(pred, labelsTrain) -->
 
 <!-- # Accuracy on test set -->
+
 <!-- pred = predict(model, as.matrix(test)) %>% apply(1, which.max) - 1 -->
+
 <!-- Metrics::accuracy(pred, labelsTest) -->
+
 <!-- table(pred, labelsTest) -->
+
 <!-- ``` -->
 
 <!-- Recognize overfitting of your model selection strategy by changing the seed few times (while keeping the model constant) and increase the percentage of test data. Furthermore, consider fitting a random forest for good quality as well. -->
@@ -577,60 +676,99 @@ summary(nn)
 <!-- For the final predictions, we use the whole data set without holdouts: -->
 
 <!-- ```{r chunk_chapter6_task_3, message=FALSE, warning=FALSE, eval=FALSE} -->
+
 <!-- library(tensorflow) -->
+
 <!-- library(keras) -->
-<!-- set_random_seed(321L, disable_gpu = FALSE)	# Already sets R's random seed. -->
+
+<!-- set_random_seed(321L, disable_gpu = FALSE) # Already sets R's random seed. -->
 
 <!-- retVal = readin(percentageTest = 0, aggregate = 0) -->
+
 <!-- labelsTrain = retVal[["labelsTrain"]] -->
+
 <!-- labelsTest = retVal[["labelsTest"]] -->
+
 <!-- train = retVal[["train"]] -->
+
 <!-- test = retVal[["test"]] -->
+
 <!-- submission = retVal[["submission"]] -->
+
 <!-- rm(retVal) -->
 
 <!-- classNumber = length(table(labelsTrain)) -->
 
 <!-- model = keras_model_sequential() -->
+
 <!-- model %>% -->
+
 <!--     layer_dense(units = 200L, activation = "leaky_relu", -->
+
 <!--     kernel_regularizer = regularizer_l2(0.00035), -->
+
 <!--     input_shape = ncol(train)) %>% -->
+
 <!--     layer_dropout(0.45) %>% -->
+
 <!--     layer_dense(units = 100L, activation = "relu", -->
+
 <!--     bias_regularizer = regularizer_l1_l2(0.5)) %>% -->
+
 <!--     layer_dropout(0.2) %>% -->
+
 <!--     layer_dense(units = 100L, activation = "leaky_relu", -->
+
 <!--     kernel_regularizer = regularizer_l2(0.00035), -->
+
 <!--     bias_regularizer = regularizer_l1_l2(0.1)) %>% -->
+
 <!--     layer_dropout(0.25) %>% -->
+
 <!--     layer_dense(units = 50L, activation = "gelu") %>% -->
+
 <!--     layer_dense(units = 25L, activation = "elu") %>% -->
+
 <!--     layer_dropout(0.35) %>% -->
+
 <!--     # We need probabilities. So we use the softmax function. -->
+
 <!--     # Remember, the labels MUST start at 0! -->
+
 <!--     layer_dense(units = classNumber, activation = "softmax") -->
 
 <!-- model %>% -->
+
 <!--     keras::compile(loss = loss_binary_crossentropy, -->
+
 <!--                    optimizer = optimizer_adamax(learning_rate = 0.015)) -->
 
 <!-- model_history =  -->
+
 <!--     model %>% # Mind the matrix property (no data.frame)! -->
+
 <!--         fit(x = as.matrix(train), y = k_one_hot(labelsTrain, classNumber), -->
+
 <!--             epochs = 80L, batch = 12L, shuffle = TRUE) -->
 
 <!-- plot(model_history) -->
 
 <!-- # Accuracy on training set (!) -->
+
 <!-- pred = predict(model, as.matrix(train)) %>% apply(1, which.max) - 1 -->
+
 <!-- Metrics::accuracy(pred, labelsTrain) -->
+
 <!-- table(pred, labelsTrain) -->
 
 <!-- # Reverse subtraction (for start at 0) and create submission file. -->
+
 <!-- write.csv(pred + min(as.data.frame(EcoData::wine)$quality, na.rm = TRUE), -->
+
 <!--           file = "wine_NN.csv") -->
+
 <!-- ``` -->
 
 <!-- `r unhide()` -->
+
 <!-- ::: -->
