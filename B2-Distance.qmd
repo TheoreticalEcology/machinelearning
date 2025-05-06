@@ -44,6 +44,11 @@ summary(knn)
 table(test$Species, fitted(knn))
 ```
 
+| Hyperparameter | Explanation |
+|------------------|------------------------------------------------------|
+| kernel | Kernel that should be used. Kernel is used to bring the features into a feature space where the problem/task is easier to solve |
+| k | Number of neighbors used to calculate the response |
+
 ## Support Vector Machines (SVMs)
 
 Support vectors machines have a different approach. They try to divide the predictor space into sectors for each class. To do so, a support-vector machine fits the parameters of a hyperplane (a $n-1$ dimensional subspace in a $n$-dimensional space) in the predictor space by optimizing the distance between the hyperplane and the nearest point from each class.
@@ -112,6 +117,11 @@ knitr::include_graphics("./images/svm.gif")
 ```
 
 As you have seen, this does not work with every kernel. Hence, the problem is to find the actual correct kernel, which is again an optimization procedure and can thus be approximated.
+
+| Hyperparameter | Explanation |
+|------------------|------------------------------------------------------|
+| kernel | Kernel that should be used. Kernel is used to bring the features into a feature space where the problem/task is easier to solve / linear separable |
+| cost | regularization term |
 
 ## Clustering methods
 
@@ -431,55 +441,30 @@ data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
 library(kknn)
 set.seed(42)
 data_obs = data_sub[!is.na(data_sub$survived),] 
+data_obs$survived = as.factor(data_obs$survived)
 cv = 3
 steps = 10
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+split = ...
 
-hyper_k = sample(10, 10)
-hyper_kernel = sample(c("triangular", "inv", "gaussian", "rank"), 10, replace = TRUE)
-
-results = data.frame(
-  set = rep(NA, steps),
-  k = rep(NA, steps),
-  kernel = rep(NA, steps),
-  AUC = rep(NA, steps)
-)
-
+hyper_k = ...
+hyper_kernel = ...
 
 tuning_results =
     sapply(1:length(hyper_kernel), function(k) {
         auc_inner = NULL
         for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
-          predictions = kknn(as.factor(survived)~., train = train_inner, test = test_inner, k = hyper_k[k], scale = FALSE, kernel = hyper_kernel[k])
-          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
+          inner_split = split == j
+          train_inner = data_obs[!inner_split, ]
+          test_inner = data_obs[inner_split, ]
+          predictions = kknn(survived~., train = train_inner, test = test_inner, k = hyper_k[k], scale = FALSE, kernel = hyper_kernel[k])
+          auc_inner[j]= Metrics::auc(test_inner$survived, predictions$prob[,2])
         }
       return(mean(auc_inner))
     })
 
-results = data.frame(minnodesize = hyper_minnodesize, AUC = tuning_results)
 
+results = data.frame(k = hyper_k, kernel = hyper_kernel, AUC = tuning_results)
 
-  
-tuning_results = 
-      sapply(1:length(hyper_k), function(k) {
-        tmp_cv = numeric(cv)
-      for(i in 1:cv) {
-        train_outer = data_obs[outer_split != i, ]
-        test_outer = data_obs[outer_split == i, ]
-        predictions = kknn(as.factor(survived)~., train = train_outer, test = test_outer, k = hyper_k[k], scale = FALSE, kernel = hyper_kernel[k])
-        tmp_cv = Metrics::auc(test_outer$survived, predictions$prob[,2])
-       }
-        return(Metrics::auc(test_outer$survived, predictions$prob[,2]))
-      })
-  
-  results[i, 1] = i
-  results[i, 2] = hyper_k[which.max(tuning_results)]
-  results[i, 3] = hyper_kernel[which.max(tuning_results)]  
-  results[i, 4] = max(tuning_results)
-}
 
 print(results)
 ```
@@ -488,40 +473,34 @@ print(results)
 
 `r hide("Click here to see the solution")`
 
-```{r}
+```{r,warning=FALSE}
 library(kknn)
 set.seed(42)
 data_obs = data_sub[!is.na(data_sub$survived),] 
+data_obs$survived = as.factor(data_obs$survived)
 cv = 3
+steps = 10
+split = sample.int(cv, nrow(data_obs), replace = T)
 
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-
-# sample minnodesize values (must be integers)
 hyper_k = sample(10, 10)
 hyper_kernel = sample(c("triangular", "inv", "gaussian", "rank"), 10, replace = TRUE)
 
-results = data.frame(
-  set = rep(NA, cv),
-  k = rep(NA, cv),
-  kernel = rep(NA, cv),
-  AUC = rep(NA, cv)
-)
+tuning_results =
+    sapply(1:length(hyper_kernel), function(k) {
+        auc_inner = NULL
+        for(j in 1:cv) {
+          inner_split = split == j
+          train_inner = data_obs[!inner_split, ]
+          test_inner = data_obs[inner_split, ]
+          predictions = kknn(survived~., train = train_inner, test = test_inner, k = hyper_k[k], scale = FALSE, kernel = hyper_kernel[k])
+          auc_inner[j]= Metrics::auc(test_inner$survived, predictions$prob[,2])
+        }
+      return(mean(auc_inner))
+    })
 
-for(i in 1:cv) {
-  train_outer = data_obs[outer_split != i, ]
-  test_outer = data_obs[outer_split == i, ]
-  
-  tuning_results = 
-      sapply(1:length(hyper_k), function(k) {
-        predictions = kknn(as.factor(survived)~., train = train_outer, test = test_outer, k = hyper_k[k], scale = FALSE, kernel = hyper_kernel[k])
-        return(Metrics::auc(test_outer$survived, predictions$prob[,2]))
-      })
-  
-  results[i, 1] = i
-  results[i, 2] = hyper_k[which.max(tuning_results)]
-  results[i, 3] = hyper_kernel[which.max(tuning_results)]  
-  results[i, 4] = max(tuning_results)
-}
+
+results = data.frame(k = hyper_k, kernel = hyper_kernel, AUC = tuning_results)
+
 
 print(results)
 ```
@@ -541,78 +520,227 @@ write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titan
 
 `r unhide()`
 
-::: callout-warning
-#### Question: kNN and SVM
+:::: callout-warning
+#### Question: Hyperparameter tuning of SVM
 
-Fit a standard k-nearest-neighbor classifier and a support vector machine with a linear kernel (check help) on the Sonar dataset, and report what fitted better.
+We want to optimize the kernel and the cost parameters
 
-Prepare dataset:
+Prepare the data:
 
 ```{r}
-library(mlbench)
-set.seed(123)
+library(EcoData)
+library(dplyr)
+library(missRanger)
+data(titanic_ml)
+data = titanic_ml
+data = 
+  data %>% select(survived, sex, age, fare, pclass)
+data[,-1] = missRanger(data[,-1], verbose = 0)
 
-data(Sonar)
-data = Sonar
-#str(data)
-
-# Do not forget scaling! This may be done implicitly by most functions.
-# Here, it's done explicitly for teaching purposes.
-data = cbind.data.frame(
-  scale(data[,-length(data)]),
-  "class" = data[,length(data)]
-)
-
-n = length(data[,1])
-indicesTrain = sample.int(n, (n+1) %/% 2) # Take (at least) 50 % of the data.
-
-train = data[indicesTrain,]
-test = data[-indicesTrain,]
+data_sub =
+  data %>%
+    mutate(age = scales::rescale(age, c(0, 1)),
+           fare = scales::rescale(fare, c(0, 1))) %>%
+    mutate(sex = as.integer(sex) - 1L,
+           pclass = as.integer(pclass - 1L))
+data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
+data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
 ```
 
-**Tasks:**
+**Hints:**
 
--   Fit a svm (from the e1071 package) on the train dataset and make predictions for the test dataset
--   Fit a kNN (from the kknn package) on the train dataset and make predictions for the test dataset
--   Calculate confusion matrices to compare the performance
+-   check the help of the kNN function to understand the hyperparameters
+
+::: {.callout-tip collapse="true" appearance="minimal"}
+## Code template
+
+```{r, eval=FALSE}
+library(e1071)
+set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+data_obs$survived = as.factor(data_obs$survived)
+cv = 3
+steps = 10
+split = ...
+
+hyper_k = ...
+hyper_kernel = ...
+
+tuning_results =
+    sapply(1:length(hyper_kernel), function(k) {
+        auc_inner = NULL
+        for(j in 1:cv) {
+          inner_split = split == j
+          train_inner = data_obs[!inner_split, ]
+          test_inner = data_obs[inner_split, ]
+          predictions = kknn(survived~., train = train_inner, test = test_inner, k = hyper_k[k], scale = FALSE, kernel = hyper_kernel[k])
+          auc_inner[j]= Metrics::auc(test_inner$survived, predictions$prob[,2])
+        }
+      return(mean(auc_inner))
+    })
+
+
+results = data.frame(k = hyper_k, kernel = hyper_kernel, AUC = tuning_results)
+
+
+print(results)
+```
 :::
+::::
 
 `r hide("Click here to see the solution")`
 
-```{r chunk_chapter4_task_33, include=TRUE}
+```{r,warning=FALSE}
 library(e1071)
-library(kknn)
+set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+data_obs$survived = as.factor(data_obs$survived)
+cv = 3
+steps = 40
+split = sample.int(cv, nrow(data_obs), replace = T)
 
-knn = kknn(class~., train = train, test = test, scale = FALSE,
-           kernel = "rectangular")
-predKNN = predict(knn, newdata = test)
+hyper_cost = runif(10, 0, 2)
+hyper_kernel = sample(c("linear", "polynomial", "radial", "sigmoid"), 10, replace = TRUE)
 
-sm = svm(class~., data = train, scale = FALSE, kernel = "linear")
-predSVM = predict(sm, newdata = test)
+tuning_results =
+    sapply(1:length(hyper_kernel), function(k) {
+        auc_inner = NULL
+        for(j in 1:cv) {
+          inner_split = split == j
+          train_inner = data_obs[!inner_split, ]
+          test_inner = data_obs[inner_split, ]
+          model = svm(survived~., data = train_inner, cost = hyper_cost[k], kernel = hyper_kernel[k], probability = TRUE)
+          predictions = attr(predict(model, newdata = test_inner, probability = TRUE), "probabilities")[,1]
+          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
+        }
+      return(mean(auc_inner))
+    })
+
+
+results = data.frame(cost = hyper_cost, kernel = hyper_kernel, AUC = tuning_results)
+
+
+print(results)
 ```
 
-```{r chunk_chapter4_task_34, echo=FALSE, include=TRUE}
-labelsTrain = train[,length(train)]
-labelsTest = test[,length(test)]
+Make predictions:
 
-contingency = table(predKNN, labelsTest)
-cat("K-nearest-neighbor, standard (rectangular) kernel:\n\n")
-print(contingency)
-cat("Correctly classified: ", contingency[1, 1] + contingency[2, 2],
-    " / ", sum(contingency))
+```{r, results='hide', warning=FALSE, message=FALSE}
+model = svm(survived~., data = data_obs, cost = results[which.max(results$AUC),1], kernel = results[which.max(results$AUC),2], probability = TRUE)
+predictions = attr(predict(model, newdata = data_new[,-1], probability = TRUE), "probabilities")[,1]
+# Single predictions from the ensemble model:
+write.csv(data.frame(y = apply(prediction_ensemble, 1, mean)), file = "Max_titanic_ensemble.csv")
 ```
-
-```{r chunk_chapter4_task_35, echo=FALSE, include=TRUE}
-contingency = table(predSVM, labelsTest)
-cat("Support-vector machine, linear kernel:\n\n")
-print(contingency)
-cat("Correctly classified: ", contingency[1, 1] + contingency[2, 2],
-    " / ", sum(contingency))
-```
-
-K-nearest neighbor fitted (slightly) better.
 
 `r unhide()`
+
+<!-- ::: callout-warning -->
+
+<!-- #### Question: kNN and SVM -->
+
+<!-- Fit a standard k-nearest-neighbor classifier and a support vector machine with a linear kernel (check help) on the Sonar dataset, and report what fitted better. -->
+
+<!-- Prepare dataset: -->
+
+<!-- ```{r} -->
+
+<!-- library(mlbench) -->
+
+<!-- set.seed(123) -->
+
+<!-- data(Sonar) -->
+
+<!-- data = Sonar -->
+
+<!-- #str(data) -->
+
+<!-- # Do not forget scaling! This may be done implicitly by most functions. -->
+
+<!-- # Here, it's done explicitly for teaching purposes. -->
+
+<!-- data = cbind.data.frame( -->
+
+<!--   scale(data[,-length(data)]), -->
+
+<!--   "class" = data[,length(data)] -->
+
+<!-- ) -->
+
+<!-- n = length(data[,1]) -->
+
+<!-- indicesTrain = sample.int(n, (n+1) %/% 2) # Take (at least) 50 % of the data. -->
+
+<!-- train = data[indicesTrain,] -->
+
+<!-- test = data[-indicesTrain,] -->
+
+<!-- ``` -->
+
+<!-- **Tasks:** -->
+
+<!-- -   Fit a svm (from the e1071 package) on the train dataset and make predictions for the test dataset -->
+
+<!-- -   Fit a kNN (from the kknn package) on the train dataset and make predictions for the test dataset -->
+
+<!-- -   Calculate confusion matrices to compare the performance -->
+
+<!-- ::: -->
+
+<!-- `r hide("Click here to see the solution")` -->
+
+<!-- ```{r chunk_chapter4_task_33, include=TRUE} -->
+
+<!-- library(e1071) -->
+
+<!-- library(kknn) -->
+
+<!-- knn = kknn(class~., train = train, test = test, scale = FALSE, -->
+
+<!--            kernel = "rectangular") -->
+
+<!-- predKNN = predict(knn, newdata = test) -->
+
+<!-- sm = svm(class~., data = train, scale = FALSE, kernel = "linear") -->
+
+<!-- predSVM = predict(sm, newdata = test) -->
+
+<!-- ``` -->
+
+<!-- ```{r chunk_chapter4_task_34, echo=FALSE, include=TRUE} -->
+
+<!-- labelsTrain = train[,length(train)] -->
+
+<!-- labelsTest = test[,length(test)] -->
+
+<!-- contingency = table(predKNN, labelsTest) -->
+
+<!-- cat("K-nearest-neighbor, standard (rectangular) kernel:\n\n") -->
+
+<!-- print(contingency) -->
+
+<!-- cat("Correctly classified: ", contingency[1, 1] + contingency[2, 2], -->
+
+<!--     " / ", sum(contingency)) -->
+
+<!-- ``` -->
+
+<!-- ```{r chunk_chapter4_task_35, echo=FALSE, include=TRUE} -->
+
+<!-- contingency = table(predSVM, labelsTest) -->
+
+<!-- cat("Support-vector machine, linear kernel:\n\n") -->
+
+<!-- print(contingency) -->
+
+<!-- cat("Correctly classified: ", contingency[1, 1] + contingency[2, 2], -->
+
+<!--     " / ", sum(contingency)) -->
+
+<!-- ``` -->
+
+<!-- K-nearest neighbor fitted (slightly) better. -->
+
+<!-- `r unhide()` -->
 
 ## Exercise - Unsupervised learning
 
