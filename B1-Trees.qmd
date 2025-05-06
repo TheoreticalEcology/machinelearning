@@ -13,7 +13,6 @@ Tree-based algorithms use a series of if-then rules to generate predictions from
 -   It controls the depth of tree (see the help of rpart for a description).
 -   It controls the complexity of the tree and can thus also be seen as a regularization parameter.
 
-We first prepare and visualize the data and afterwards fit a decision tree.
 
 ```{r chunk_chapter4_22, results='hide', message=FALSE, warning=FALSE}
 library(rpart)
@@ -154,9 +153,9 @@ Important hyperparameters:
 ## Exercise - Trees
 
 ::: callout-warning
-#### Question: Regression Trees
+#### Question: Understanding complexity in Regression Trees
 
-We will use the following code snippet to understand the hyperparameter mincut and thus the predictive performance.
+The goal of this exercise is to understand how the hyperparameter mincut (minsplit) affects the complexity of regression trees. 
 
 ```{r chunk_chapter4_task_21, eval=FALSE}
 library(tree)
@@ -174,7 +173,12 @@ lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 sqrt(mean((data$Ozone - pred)^2)) # RMSE
 ```
 
-Try different mincut parameters and see what happens. (Compare the root mean squared error for different mincut parameters and explain what you see. Compare predictions for different mincut parameters and explain what happens.) What was wrong in the snippet above?
+Tasks:
+
+- The code snippet above returns NA for the RMSE, what is wrong in the snippet?
+- Read the `tree.control` documentation, what does the mincut parameter do?
+- Try different mincut values and check how the predictions (and the RMSE) change. What was wrong in the snippet above?
+
 :::
 
 `r hide("Click here to see the solution")`
@@ -204,12 +208,14 @@ for(i in c(1, 2, 3, 5, 10, 15, 25, 50, 54, 55, 56, 57, 75, 100)){ doTask(i) }
 
 Approximately at mincut = 15, prediction is the best (mind overfitting). After mincut = 56, the prediction has no information at all and the RMSE stays constant.
 
-Mind the complete cases of the airquality data set, that was the error. `r unhide()`
+Mind the complete cases of the airquality data set, that was the error. 
+`r unhide()`
 
 ::: callout-warning
-#### Question: Random forest
+#### Question: Understanding complexity in Random forest
 
-We will use the following code snippet to explore a random forest:
+The goal of this exercise is to understand how the hyperparameter nodesize affects the complexity of random forest. 
+
 
 ```{r chunk_chapter4_task_23, message=FALSE, warning=FALSE}
 library(randomForest)
@@ -227,7 +233,11 @@ plot(data$Temp, data$Ozone)
 lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 ```
 
-Try different values for the nodesize describe how the predictions depend on this parameter.
+Tasks:
+
+- Check the documentation of the `randomForest` function and read the description of the nodesize parameter
+- Try different nodesize values and describe how the predictions change
+
 :::
 
 `r hide("Click here to see the solution")`
@@ -260,8 +270,12 @@ Nodesize affects the complexity. In other words: The bigger the nodesize, the sm
 `r unhide()`
 
 ::: callout-warning
-#### Question: Boosted regression trees
+#### Question: Understanding complexity in Boosted regression trees
 
+The goal of this exercise is to understand how complexity in BRT affects predictions. For that, we will simulate data with two predictors `x1` and `x2` and the `y` response variable will be an interaction of the two predictors:
+
+$$y = e^{-x_1^2 - x_2^2} $$
+We can visualize the simulated data as an image (x1 and x2 on the x and y axis, and the y values as colors)
 ```{r chunk_chapter4_task_25, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
 library(xgboost)
 library(animation)
@@ -279,6 +293,11 @@ axis(1, at = seq(0, 1, length.out = 10),
 axis(2, at = seq(0, 1, length.out = 10),
      labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
 
+```
+
+
+
+```{r, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
 
 model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
                          nrounds = 500L, verbose = 0L)
@@ -302,9 +321,12 @@ saveGIF(
 )
 ```
 
+
 ![](./images/boosting.gif){width="370"}
 
-Run the code above and play with different values for **max_depth** and describe what you see!
+Tasks:
+
+- Run the code above and try different **max_depth** values and describe what you see!
 
 Tip: have a look at the boosting.gif.
 :::
@@ -382,7 +404,7 @@ Important hyperparameters:
 | lambda | regularization strength of the individual trees |
 | max tree | maximal number of trees in the ensemble |
 
-Combing back to the titanic dataset from the morning, we want to optimize max depth and the eta parameter in xgboost.
+The goal of this exercise is to tune a BRT on the titanic_ml dataset and beat yesterday's RF predictions.
 
 Prepare the data:
 
@@ -405,6 +427,10 @@ data_sub =
 data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
 data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
 ```
+
+Tasks:
+
+- Tune eta and max depth!
 
 ::: {.callout-tip collapse="true" appearance="minimal"}
 ## Code template
