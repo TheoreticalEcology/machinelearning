@@ -441,7 +441,7 @@ set.seed(42)
 data_obs = data_sub[!is.na(data_sub$survived),] 
 cv = 3
 
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+split = sample.int(cv, nrow(data_obs), replace = T)
 
 # sample minnodesize values (must be integers)
 hyper_depth = ...
@@ -451,9 +451,9 @@ tuning_results =
     sapply(1:length(hyper_minnodesize), function(k) {
         auc_inner = NULL
         for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
+          split = outer_split == j
+          train_inner = data_obs[!inner_split, ]
+          test_inner = data_obs[inner_split, ]
           
           data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
           
@@ -480,7 +480,7 @@ set.seed(42)
 data_obs = data_sub[!is.na(data_sub$survived),] 
 cv = 3
 
-outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+split = sample.int(cv, nrow(data_obs), replace = T)
 
 # sample minnodesize values (must be integers)
 hyper_depth = sample(200, 20)
@@ -491,9 +491,9 @@ tuning_results =
     sapply(1:length(hyper_depth), function(k) {
         auc_inner = NULL
         for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
+          inner_split = split == j
+          train_inner = data_obs[!inner_split, ]
+          test_inner = data_obs[inner_split, ]
           
           data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
           
@@ -656,23 +656,24 @@ data_obs$survived = as.factor(data_obs$survived)
 ## Code template
 
 ```{r, eval=FALSE}
-library(ranger)
-data_obs = data_sub[!is.na(data_sub$survived),] 
+library(randomForest)
 set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+data_obs$survived = as.factor(data_obs$survived)
 
 cv = 3
 hyper_minnodesize = ...
+split = ...
 
 tuning_results =
     sapply(1:length(hyper_minnodesize), function(k) {
         auc_inner = NULL
         for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
-          
-          model = ranger(survived~.,data = train_inner, min.node.size = hyper_minnodesize[k], probability = TRUE)
-          predictions = predict(model, test_inner)$predictions[,2]
+          inner_split = split == j
+          train_inner = data_obs[!inner_split, ]
+          test_inner = data_obs[inner_split, ]
+          model = randomForest(survived~.,data = train_inner, nodesize = hyper_minnodesize[k])
+          predictions = predict(model, test_inner, type = "prob")[,2]
           
           auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
         }
@@ -689,22 +690,24 @@ print(results)
 `r hide("Click here to see the solution")`
 
 ```{r}
-library(ranger)
-data_obs = data_sub[!is.na(data_sub$survived),] 
+library(randomForest)
 set.seed(42)
+data_obs = data_sub[!is.na(data_sub$survived),] 
+data_obs$survived = as.factor(data_obs$survived)
 
 cv = 3
-hyper_minnodesize = sample(300, 20)
+hyper_minnodesize = sample(100, 20)
+split = sample.int(cv, nrow(data_obs), replace = T)
 
 tuning_results =
     sapply(1:length(hyper_minnodesize), function(k) {
         auc_inner = NULL
         for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
-          model = ranger(survived~.,data = train_inner, min.node.size = hyper_minnodesize[k], probability = TRUE)
-          predictions = predict(model, test_inner)$predictions[,2]
+          inner_split = split == j
+          train_inner = data_obs[!inner_split, ]
+          test_inner = data_obs[inner_split, ]
+          model = randomForest(survived~.,data = train_inner, nodesize = hyper_minnodesize[k])
+          predictions = predict(model, test_inner, type = "prob")[,2]
           
           auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
         }
@@ -719,9 +722,9 @@ print(results)
 Make predictions:
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
-model = ranger(survived~.,data = data_obs, min.node.size = results[which.max(results$AUC),1], probability = TRUE)
+model = randomForest(survived~.,data = data_obs, nodesize = results[which.max(results$AUC),1])
 
-write.csv(data.frame(y = predict(model, data_new)$predictions[,1]), file = "Max_titanic_rf.csv")
+write.csv(data.frame(y = predict(model, data_new, type = "prob")[,2]), file = "Max_titanic_rf.csv")
 ```
 
 `r unhide()`

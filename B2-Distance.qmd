@@ -6,7 +6,7 @@ editor_options:
 
 # Distance-based Algorithms
 
-In this chapter, we introduce support-vector machines (SVMs) and other distance-based methods **Hint**: Distance-based models need scaling!
+In this chapter, we introduce support-vector machines (SVM) and other distance-based methods **Hint**: Distance-based models need scaling!
 
 ## K-Nearest-Neighbor
 
@@ -93,8 +93,8 @@ animation::saveGIF(
         image(matrix(y, 100,100),
         main = "Ground truth", axes = FALSE, las = 2)
       }else{
-        sv = e1071::svm(x = x, y = factor(y), kernel = i)
-        image(matrix(as.numeric(as.character(predict(sv, x))), 100, 100),
+        sv = e1071::svm(x = X, y = factor(y), kernel = i)
+        image(matrix(as.numeric(as.character(predict(sv, X))), 100, 100),
         main = paste0("Kernel: ", i), axes = FALSE, las = 2)
         axis(1, at = seq(0,1, length.out = 10),
         labels = round(seq(-3, 3, length.out = 10), 1))
@@ -396,7 +396,7 @@ You can cluster the results of this ordination, ordinate before clustering, or s
 :::: callout-warning
 #### Question: Hyperparameter tuning of kNN
 
-Combing back to the titanic dataset from the morning, we want to optimize the number of neighbors (k) and the kernel of the kNN:
+We want to optimize the number of neighbors (k) and the kernel of the kNN:
 
 Prepare the data:
 
@@ -422,7 +422,7 @@ data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
 
 **Hints:**
 
--   check the help of the kNN function to get an idea about the hyperparameters
+-   check the help of the kNN function to understand the hyperparameters
 
 ::: {.callout-tip collapse="true" appearance="minimal"}
 ## Code template
@@ -432,26 +432,46 @@ library(kknn)
 set.seed(42)
 data_obs = data_sub[!is.na(data_sub$survived),] 
 cv = 3
-
+steps = 10
 outer_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
 
-hyper_k = ... # must be integer vector
-hyper_kernel = ... # must be character vector
+hyper_k = sample(10, 10)
+hyper_kernel = sample(c("triangular", "inv", "gaussian", "rank"), 10, replace = TRUE)
 
 results = data.frame(
-  set = rep(NA, cv),
-  k = rep(NA, cv),
-  kernel = rep(NA, cv),
-  AUC = rep(NA, cv)
+  set = rep(NA, steps),
+  k = rep(NA, steps),
+  kernel = rep(NA, steps),
+  AUC = rep(NA, steps)
 )
 
-for(i in 1:cv) {
-  train_outer = data_obs[outer_split != i, ]
-  test_outer = data_obs[outer_split == i, ]
+
+tuning_results =
+    sapply(1:length(hyper_kernel), function(k) {
+        auc_inner = NULL
+        for(j in 1:cv) {
+          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+          train_inner = data_obs[inner_split != j, ]
+          test_inner = data_obs[inner_split == j, ]
+          predictions = kknn(as.factor(survived)~., train = train_inner, test = test_inner, k = hyper_k[k], scale = FALSE, kernel = hyper_kernel[k])
+          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
+        }
+      return(mean(auc_inner))
+    })
+
+results = data.frame(minnodesize = hyper_minnodesize, AUC = tuning_results)
+
+
   
-  tuning_results = 
+tuning_results = 
       sapply(1:length(hyper_k), function(k) {
+        tmp_cv = numeric(cv)
+      for(i in 1:cv) {
+        train_outer = data_obs[outer_split != i, ]
+        test_outer = data_obs[outer_split == i, ]
         predictions = kknn(as.factor(survived)~., train = train_outer, test = test_outer, k = hyper_k[k], scale = FALSE, kernel = hyper_kernel[k])
+        tmp_cv = Metrics::auc(test_outer$survived, predictions$prob[,2])
+       }
         return(Metrics::auc(test_outer$survived, predictions$prob[,2]))
       })
   
