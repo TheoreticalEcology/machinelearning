@@ -92,6 +92,24 @@ summary(model)
 plot(model)
 ```
 
+
+## cito
+
+We are currently working on providing a userfriendly interface to CNN in cito:
+
+Configure architecture:
+```{r}
+library(cito)
+architecture = create_architecture(
+  conv(n_kernels = 16L, kernel_size = 2L, activation = "relu"),
+  maxPool(),
+  conv(n_kernels = 16L, kernel_size = 3L, activation = "relu"),
+  maxPool(),
+  linear(100L, activation = "relu")
+  )
+```
+
+
 ## Torch
 
 Prepare/download data:
@@ -267,6 +285,36 @@ model |>
   )
 ```
 
+## cito
+
+Fit model:
+
+```{r}
+# Note: cito wants the channels on the second position!
+model.cito = cnn(X = aperm(train_x, c(1, 4, 2, 3)), 
+                 Y = apply(train_y, 1, which.max), 
+                 loss = "softmax", 
+                 architecture = architecture, 
+                 batchsize = 128L,
+                 epochs = 5L,
+                 optimizer = "adam")
+
+```
+
+Visualize model:
+
+```{r}
+plot(model.cito)
+```
+
+Evaluation:
+
+```{r}
+pred = predict(model.cito, newdata = aperm(test_x, c(1, 4, 2, 3)), type = "response")
+mean(apply(test_y, 1, which.max) == apply(pred, 1, which.max))
+```
+
+
 ## Torch
 
 Train model:
@@ -326,7 +374,12 @@ test_accuracy
 
 CIFAR10 is another famous image classification dataset. It consists of ten classes with colored images (see https://www.cs.toronto.edu/\~kriz/cifar.html).
 
-```{r chunk_chapter5_24_cifar, eval=FALSE}
+::: panel-tabset
+
+## Keras 
+
+Prepare data, now with 3 channels (colored images):
+```{r}
 library(keras3)
 data = keras3::dataset_cifar10()
 train = data$train
@@ -337,6 +390,10 @@ image %>%
  `/`(., 255) %>%
  as.raster() %>%
  plot()
+```
+
+
+```{r chunk_chapter5_24_cifar, eval=FALSE}
 ## normalize pixel to 0-1
 train_x = array(train$x/255, c(dim(train$x)))
 test_x = array(test$x/255, c(dim(test$x)))
@@ -370,6 +427,69 @@ model |> fit(
  callbacks = c(early)
 )
 ```
+
+## cito
+
+```{r}
+train_x = array(train$x/255, c(dim(train$x)))
+test_x = array(test$x/255, c(dim(test$x)))
+train_y = keras3::to_categorical(train$y)
+test_y = keras3::to_categorical(test$y)
+
+train_x = aperm(train_x, c(1, 4, 2, 3))
+test_x = aperm(test_x, c(1, 4, 2, 3))
+
+architecture = create_architecture(
+  conv(n_kernels = 32, kernel_size = 2L, activation = "relu"),
+  maxPool(),
+  conv(n_kernels = 16, kernel_size = 3L, activation = "relu"),
+  maxPool(),
+  default_dropout = 0.2
+  )
+
+model.cito = cnn(X = train_x, 
+                 Y = apply(train_y, 1, which.max), 
+                 loss = "softmax", 
+                 architecture = architecture, 
+                 batchsize = 128L,
+                 epochs = 5L,
+                 validation = 0.2,
+                 optimizer = "adam",
+                 lr = 0.001)
+```
+
+Architecture:
+
+```{r}
+plot(model.cito)
+```
+
+Explainable AI:
+
+```{r}
+library(torch)
+observation = 19
+Xt = torch::torch_tensor(train_x[1:20,,,], requires_grad = TRUE)
+pred = model.cito$net(Xt)
+grads = torch::autograd_grad(pred[,apply(train_y, 1, which.max)[observation],drop=F], Xt, grad_outputs = torch_ones(20, 32))
+
+old_par = par()
+par(mfrow = c(2, 2))
+for(i in 1:3) fields::image.plot(as.array(grads[[1]]) [observation,i,,])
+image = aperm(train_x[observation,,,]*255., c(2, 3, 1))
+image %>%  
+ image_to_array() %>%
+ `/`(., 255) %>%
+ as.raster() %>%
+ plot()
+
+par(old_par)
+```
+
+
+
+
+:::
 
 ## Exercise
 
@@ -409,7 +529,9 @@ train[100,,,] |>
 
 **Tip:** Take a look at the dataset chapter.
 
-`r hide("Click here to see the solution for a minimal example")`
+:::
+
+`r hide("Click here to see the solution for a minimal Keras example")`
 
 Build model:
 
@@ -444,14 +566,41 @@ pred = model |> predict(test) |> apply(1, which.max) - 1L
 table(pred)
 ```
 
+`r unhide()`
+
+`r hide("Click here to see the solution for a minimal cito example")`
+
+```{r}
+architecture = create_architecture(
+  conv(n_kernels = 8L, kernel_size = 2L, activation = "relu"),
+  maxPool(),
+  default_dropout = 0.2
+  )
+
+model.cito = cnn(X = aperm(train, c(1, 4, 2, 3)) , 
+                 Y = labels+1L, 
+                 loss = "softmax", 
+                 architecture = architecture, 
+                 batchsize = 128L,
+                 epochs = 5L,
+                 validation = 0.2,
+                 optimizer = "adam",
+                 lr = 0.001)
+
+pred = predict(model.cito, newdata = aperm(test, c(1, 4, 2, 3)), type = "response") |> apply(1, which.max) - 1L
+```
+
+
+
 Submission:
 
 ```{r}
 write.csv(data.frame(y = pred), file = "cnn.csv")
 ```
 
+
 `r unhide()`
-:::
+
 
 ## Advanced Training Techniques
 
@@ -529,6 +678,7 @@ model %>% fit(train_ds, epochs = 2L)
 ```
 
 Using data augmentation we can artificially increase the number of images.
+
 
 ## Torch
 
@@ -686,7 +836,25 @@ model |>
   )
 ```
 
-We have seen, that transfer learning can easily be done using Keras.
+
+## cito
+
+```{r, eval=FALSE}
+train_x = array(train$x/255, c(dim(train$x)))
+test_x = array(test$x/255, c(dim(test$x)))
+train_y =train$y
+test_y = test$y
+
+train_x = aperm(train_x, c(1, 4, 2, 3))
+test_x = aperm(test_x, c(1, 4, 2, 3))
+
+transfer_architecture <- create_architecture(transfer("resnet18"))
+resnet <- cnn(train_x, train_y+1, transfer_architecture, loss = "softmax",
+              optimizer = "adam",
+              epochs = 1, validation = 0.1, lr = 0.001)
+```
+
+
 
 ## Torch
 
@@ -759,6 +927,10 @@ print(test_accuracy)
 
 Let's do that with our flower data set:
 
+::: panel-tabset
+
+## Keras
+
 ```{r chunk_chapter5_33, eval=FALSE}
 library(keras3)
 library(tensorflow)
@@ -812,11 +984,26 @@ model |>
   keras3::compile(loss = loss_categorical_crossentropy,
                   optimizer = keras3::optimizer_rmsprop(learning_rate = 0.0005))
 
-
 model |> 
   fit(train_ds, epochs = 5L)
+```
 
 
+## cito
 
+```{r,eval=FALSE}
+data = EcoData::dataset_flower()
+train = data$train/255
+train = aperm(train, c(1, 4, 2, 3))
+labels = data$labels
+
+transfer_architecture <- create_architecture(transfer("resnet18"))
+resnet <- cnn(train, labels+1, transfer_architecture, loss = "softmax",
+              optimizer = "adam",
+              epochs = 1, validation = 0.1, lr = 0.001)
 
 ```
+
+
+
+:::
