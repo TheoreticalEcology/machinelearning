@@ -14,7 +14,7 @@ library(cito)
 
 ## Fitting (deep) neural networks with the cito package
 
-Deep neural networks are currently the state of the art in unsupervised learning. Their ability to model different types of data (e.g. graphs, images) is one of the reasons for their rise in recent years. However,  requires extensive (programming) knowledge of the underlying deep learning frameworks (e.g. TensorFlow or PyTorch), which we will teach you in two days. For tabular data, we can use packages like cito, which work similarly to regression functions like lm and allow us to train deep neural networks in one line of code:
+Deep neural networks are currently the state of the art in unsupervised learning. Their ability to model different types of data (e.g. graphs, images) is one of the reasons for their rise in recent years. However, requires extensive (programming) knowledge of the underlying deep learning frameworks (e.g. TensorFlow or PyTorch), which we will teach you in two days. For tabular data, we can use packages like cito, which work similarly to regression functions like lm and allow us to train deep neural networks in one line of code:
 
 ```{r}
 library(cito)
@@ -22,20 +22,22 @@ nn.fit<- dnn(Species~., data = datasets::iris, loss = "softmax", verbose = FALSE
 ```
 
 cito also supports many of the S3 methods that are available for statistical models, e.g. the summary function:
+
 ```{r}
 summary(nn.fit)
 ```
 
 Variable importance can also be computed for non-tree algorithms (although it is slightly different, more on that on Thursday). The feature importance reports the importance of the features for distinguishing the three species, the average conditional effects are an approximation of the linear effects, and the standard deviation of the conditional effects is a measure of the non-linearity of these three variables.
 
-We can also plot the underlying neural network:
+<!-- We can also plot the underlying neural network: -->
 
-```{r}
-plot(nn.fit)
-```
+<!-- ```{r} -->
 
-The network starts with the input layer, 4 nodes for our four features, then two hidden layers, each with 50 nodes, and a final layer with 3 output nodes for our three levels of the species variable. The lines between the nodes are the connections between the nodes, and the lines actually represent the weights optimised during training (some connections are almost invisible, meaning they are close to 0).
+<!-- plot(nn.fit) -->
 
+<!-- ``` -->
+
+<!-- The network starts with the input layer, 4 nodes for our four features, then two hidden layers, each with 50 nodes, and a final layer with 3 output nodes for our three levels of the species variable. The lines between the nodes are the connections between the nodes, and the lines actually represent the weights optimised during training (some connections are almost invisible, meaning they are close to 0). -->
 
 ## Loss
 
@@ -67,9 +69,9 @@ head(predict(model, type = "response"))
 
 ```
 
-## Validation
+## Validation split in deep learning
 
-A holdout, or validation data, is important for detecting (and preventing) overfitting. In cito, we can directly tell the `dnn` function to automatically use a random subset of the data as validation data, which is validated after each epoch (each iteration of the optimization), allowing us to monitor the training:
+In cito, we can directly tell the `dnn` function to automatically use a random subset of the data as validation data, which is validated after each epoch (each iteration of the optimization), allowing us to monitor but also to invervene in the training:
 
 ```{r}
 #| message: false
@@ -83,6 +85,10 @@ model = dnn(Ozone~.,
 ```
 
 The validation argument ranges from 0 and 1 is the percent of the data that should be used for validation
+
+::: callout-warning
+The validation split in deep neural networks/ cito is part of the training! It should be not used to validate the model at all. Later on, we will introduce techniques that use the validation data during the training to improve the training itself!
+:::
 
 ### Baseline loss
 
@@ -221,11 +227,11 @@ model_tuned$tuning
 
 Tune architecture
 
--   Tune training parameters (learning rate, batch size) and regularization
+-   Tune training parameters (learning rate, batch size) and regularization (lambda and alpha)
 
 **Hints**
 
-cito has a feature to automatically tune hyperparameters under Cross Validation!
+cito can automatically tune hyperparameters under Cross Validation!
 
 -   passing `tune(...)` to a hyperparameter will tell cito to tune this specific hyperparameter
 -   the `tuning = config_tuning(...)` let you specify the cross-validation strategy and the number of hyperparameters that should be tested (steps = number of hyperparameter combinations that should be tried)
@@ -294,12 +300,10 @@ write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv")
 ```
 :::
 
-
 ::: callout-warning
 #### Question: Hyperparameter tuning - Plant-pollinator dataset
 
 The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower). We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>.
-
 
 see @sec-plantpoll for more information about the dataset.
 
