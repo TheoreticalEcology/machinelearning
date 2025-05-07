@@ -334,7 +334,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#a-practical-example" id="toc-a-practical-example" class="nav-link active" data-scroll-target="#a-practical-example"><span class="header-section-number">8.1</span> A Practical Example</a></li>
-  <li><a href="#feature-importance" id="toc-feature-importance" class="nav-link" data-scroll-target="#feature-importance"><span class="header-section-number">8.2</span> Feature Importance</a></li>
+  <li><a href="#featurepermutation-importance" id="toc-featurepermutation-importance" class="nav-link" data-scroll-target="#featurepermutation-importance"><span class="header-section-number">8.2</span> Feature/Permutation Importance</a></li>
   <li><a href="#partial-dependencies" id="toc-partial-dependencies" class="nav-link" data-scroll-target="#partial-dependencies"><span class="header-section-number">8.3</span> Partial Dependencies</a></li>
   <li><a href="#accumulated-local-effects" id="toc-accumulated-local-effects" class="nav-link" data-scroll-target="#accumulated-local-effects"><span class="header-section-number">8.4</span> Accumulated Local Effects</a></li>
   <li><a href="#friedmans-h-statistic" id="toc-friedmans-h-statistic" class="nav-link" data-scroll-target="#friedmans-h-statistic"><span class="header-section-number">8.5</span> Friedman’s H-statistic</a></li>
@@ -479,9 +479,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">ranger</span>(<span class="fu">as.factor</span>(Presence) <span class="sc">~</span> ., <span class="at">data =</span> data, <span class="at">probability =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+ranger Package
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The ranger package provides an alternative implementation of the random forest algorithm. The implementation in the ranger package is one of the fastest available, which is especially important for explainable AI. Most xAI tools require hundreds of predictions (e.g.&nbsp;feature importance permutes each feature n times to calculate the performance drop), so a fast implementation of the ML algorithm is crucial.</p>
+</div>
+</div>
 <p>The cito package has quite extensive xAI functionalities. However, ranger, as most other machine learning packages, has no extensive xAI functionalities. Thus, to do xAI with ranger, we have to use a generic xAI package that can handle almost all machine learning models.</p>
 <p>When we want to use such a generic package, we first have to create a predictor object, that holds the model and the data. The <code>iml</code> package uses R6 classes, that means new objects can be created by calling <code>Predictor$new()</code>. (Do not worry if you do not know what R6 classes are, just use the command.)</p>
-<p>We often have to warp our predict function inside a so called wrapper function so that the output of the predict function fits to iml (iml expects that the predict function returns a vector of predictions:</p>
+<p>To make the xAI tools available to many different packages/algorithms, the <code>iml</code> package expects that the ML algorithm specific predict method to be wrapped in a generic predict function in the form of <code>function(model, newdata) predict(model, newdata)</code> and the function wrapper should return a vector of predictions:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>predict_wrapper <span class="ot">=</span> <span class="cf">function</span>(model, newdata) <span class="fu">predict</span>(model, <span class="at">data=</span>newdata)<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -490,9 +503,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># "Predictor" is an object generator.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="feature-importance" class="level2" data-number="8.2">
-<h2 data-number="8.2" class="anchored" data-anchor-id="feature-importance"><span class="header-section-number">8.2</span> Feature Importance</h2>
-<p>Feature importance should not be mistaken with the random forest variable importance though they are related. It tells us how important the individual variables are for predictions, can be calculated for all machine learning models and is based on a permutation approach (have a look at the book):</p>
+<section id="featurepermutation-importance" class="level2" data-number="8.2">
+<h2 data-number="8.2" class="anchored" data-anchor-id="featurepermutation-importance"><span class="header-section-number">8.2</span> Feature/Permutation Importance</h2>
+<p>Feature importance should not be confused with random forest variable importance, although they are related. It tells us how important each variable is for prediction, can be computed for all machine learning models, and is based on a permutation approach (see the book):</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>imp <span class="ot">=</span> FeatureImp<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">loss =</span> <span class="st">"ce"</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(imp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -501,7 +514,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="partial-dependencies" class="level2" data-number="8.3">
 <h2 data-number="8.3" class="anchored" data-anchor-id="partial-dependencies"><span class="header-section-number">8.3</span> Partial Dependencies</h2>
-<p>Partial dependencies are similar to allEffects plots for normal regressions. The idea is to visualize “marginal effects” of predictors (with the “feature” argument we specify the variable we want to visualize):</p>
+<p>Partial dependencies are similar to <code>allEffects</code> plots for normal regressions. The idea is to visualize “marginal effects” of predictors (with the “feature” argument we specify the variable we want to visualize):</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>eff <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">"bio9"</span>, <span class="at">method =</span> <span class="st">"pdp"</span>,</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">grid.size =</span> <span class="dv">30</span>)</span>
@@ -604,7 +617,7 @@ xAI in cito
 <span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co"># we will subsample data (absences) to reduce runtime</span></span>
 <span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>data_sub <span class="ot">=</span> data[<span class="fu">sample.int</span>(<span class="fu">nrow</span>(data), <span class="dv">500</span>),]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Cito includes a lot of xAI methods directly out of the box</p>
+<p>Cito includes serveral xAI methods directly out of the box</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">dnn</span>(Presence<span class="sc">~</span>., <span class="at">data =</span> data_sub, <span class="at">batchsize =</span> <span class="dv">200</span>L,<span class="at">loss =</span> <span class="st">"binomial"</span>, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">lr =</span> <span class="fl">0.15</span>, <span class="at">epochs =</span> <span class="dv">300</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>

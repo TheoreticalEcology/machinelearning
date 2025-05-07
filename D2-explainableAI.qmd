@@ -68,11 +68,17 @@ Meaning of the bioclim variables:
 rf = ranger(as.factor(Presence) ~ ., data = data, probability = TRUE)
 ```
 
+::: callout-note
+## ranger Package
+
+The ranger package provides an alternative implementation of the random forest algorithm. The implementation in the ranger package is one of the fastest available, which is especially important for explainable AI. Most xAI tools require hundreds of predictions (e.g. feature importance permutes each feature n times to calculate the performance drop), so a fast implementation of the ML algorithm is crucial.
+:::
+
 The cito package has quite extensive xAI functionalities. However, ranger, as most other machine learning packages, has no extensive xAI functionalities. Thus, to do xAI with ranger, we have to use a generic xAI package that can handle almost all machine learning models.
 
 When we want to use such a generic package, we first have to create a predictor object, that holds the model and the data. The `iml` package uses R6 classes, that means new objects can be created by calling `Predictor$new()`. (Do not worry if you do not know what R6 classes are, just use the command.)
 
-We often have to warp our predict function inside a so called wrapper function so that the output of the predict function fits to iml (iml expects that the predict function returns a vector of predictions:
+To make the xAI tools available to many different packages/algorithms, the `iml` package expects that the ML algorithm specific predict method to be wrapped in a generic predict function in the form of `function(model, newdata) predict(model, newdata)` and the function wrapper should return a vector of predictions:
 
 ```{r chunk_chapter6_1, eval=FALSE}
 
@@ -83,9 +89,9 @@ predictor$task = "classif" # set task to classification
 # "Predictor" is an object generator.
 ```
 
-## Feature Importance
+## Feature/Permutation Importance
 
-Feature importance should not be mistaken with the random forest variable importance though they are related. It tells us how important the individual variables are for predictions, can be calculated for all machine learning models and is based on a permutation approach (have a look at the book):
+Feature importance should not be confused with random forest variable importance, although they are related. It tells us how important each variable is for prediction, can be computed for all machine learning models, and is based on a permutation approach (see the book):
 
 ```{r chunk_chapter6_2, eval=FALSE}
 imp = FeatureImp$new(predictor, loss = "ce")
@@ -96,7 +102,7 @@ bio9 (Precipitation of the wettest Quarter) is the most important variable.
 
 ## Partial Dependencies
 
-Partial dependencies are similar to allEffects plots for normal regressions. The idea is to visualize "marginal effects" of predictors (with the "feature" argument we specify the variable we want to visualize):
+Partial dependencies are similar to `allEffects` plots for normal regressions. The idea is to visualize "marginal effects" of predictors (with the "feature" argument we specify the variable we want to visualize):
 
 ```{r chunk_chapter6_3, eval=FALSE}
 eff = FeatureEffect$new(predictor, feature = "bio9", method = "pdp",
@@ -206,7 +212,7 @@ data_sub = data[sample.int(nrow(data), 500),]
 
 ```
 
-Cito includes a lot of xAI methods directly out of the box
+Cito includes serveral xAI methods directly out of the box
 
 ```{r, eval=FALSE}
 model = dnn(Presence~., data = data_sub, batchsize = 200L,loss = "binomial", verbose = FALSE, lr = 0.15, epochs = 300)
