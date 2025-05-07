@@ -363,8 +363,9 @@ window.Quarto = {
    
   <ul>
   <li><a href="#causalInference" id="toc-causalInference" class="nav-link active" data-scroll-target="#causalInference"><span class="header-section-number">9.1</span> Causal Inference on Static Data</a></li>
-  <li><a href="#causal-inference-on-dynamic-data" id="toc-causal-inference-on-dynamic-data" class="nav-link" data-scroll-target="#causal-inference-on-dynamic-data"><span class="header-section-number">9.2</span> Causal Inference on Dynamic Data</a></li>
-  <li><a href="#outlook-for-machine-learning" id="toc-outlook-for-machine-learning" class="nav-link" data-scroll-target="#outlook-for-machine-learning"><span class="header-section-number">9.3</span> Outlook for Machine Learning</a></li>
+  <li><a href="#automatic-causal-discovery" id="toc-automatic-causal-discovery" class="nav-link" data-scroll-target="#automatic-causal-discovery"><span class="header-section-number">9.2</span> Automatic Causal Discovery</a></li>
+  <li><a href="#causal-inference-on-dynamic-data" id="toc-causal-inference-on-dynamic-data" class="nav-link" data-scroll-target="#causal-inference-on-dynamic-data"><span class="header-section-number">9.3</span> Causal Inference on Dynamic Data</a></li>
+  <li><a href="#outlook-for-machine-learning" id="toc-outlook-for-machine-learning" class="nav-link" data-scroll-target="#outlook-for-machine-learning"><span class="header-section-number">9.4</span> Outlook for Machine Learning</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/D1-causality.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
@@ -496,18 +497,18 @@ Note
 
 Feature Importance:
   variable importance_1
-1       x1  0.128857501
-2       x2  0.004499443
+1       x1   0.13864303
+2       x2   0.00346932
 
 Average Conditional Effects:
    Response_1
-x1  0.9117967
-x2  0.1996802
+x1  0.9445299
+x2  0.1204029
 
 Standard Deviation of Conditional Effects:
    Response_1
-x1 0.06132476
-x2 0.06578667</code></pre>
+x1 0.04281256
+x2 0.06451134</code></pre>
 </div>
 </div>
 </div>
@@ -546,39 +547,47 @@ x2 0.06578667</code></pre>
 <!-- library(semPlot) -->
 <!-- semPaths(fit) -->
 <!-- ``` -->
-<!-- ## Automatic Causal Discovery -->
-<!-- But how to get the causal graph? In statistics, it is common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the *PC algorithm*. Here an example using the pcalg package: -->
-<!-- ```{r chunk_chapter6_17, eval=FALSE} -->
-<!-- library(pcalg) -->
-<!-- ``` -->
-<!-- Loading the data: -->
-<!-- ```{r chunk_chapter6_18, eval=FALSE} -->
-<!-- data("gmG", package = "pcalg") # Loads data sets gmG and gmG8. -->
-<!-- suffStat = list(C = cor(gmG8$x), n = nrow(gmG8$x)) -->
-<!-- varNames = gmG8$g@nodes -->
-<!-- ``` -->
-<!-- First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph). -->
-<!-- ```{r chunk_chapter6_19, eval=FALSE} -->
-<!-- skel.gmG8 = skeleton(suffStat, indepTest = gaussCItest, -->
-<!-- labels = varNames, alpha = 0.01) -->
-<!-- Rgraphviz::plot(skel.gmG8@graph) -->
-<!-- ``` -->
-<!-- What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows. -->
-<!-- ```{r chunk_chapter6_20, eval=FALSE} -->
-<!-- pc.gmG8 = pc(suffStat, indepTest = gaussCItest, -->
-<!-- labels = varNames, alpha = 0.01) -->
-<!-- Rgraphviz::plot(pc.gmG8@graph ) -->
-<!-- ``` -->
 </section>
-<section id="causal-inference-on-dynamic-data" class="level2" data-number="9.2">
-<h2 data-number="9.2" class="anchored" data-anchor-id="causal-inference-on-dynamic-data"><span class="header-section-number">9.2</span> Causal Inference on Dynamic Data</h2>
+<section id="automatic-causal-discovery" class="level2" data-number="9.2">
+<h2 data-number="9.2" class="anchored" data-anchor-id="automatic-causal-discovery"><span class="header-section-number">9.2</span> Automatic Causal Discovery</h2>
+<p>But how to get the causal graph? In statistics, it is common to “guess” it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e.&nbsp;algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the <em>PC algorithm</em>. Here an example using the pcalg package:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pcalg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Loading the data:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"gmG"</span>, <span class="at">package =</span> <span class="st">"pcalg"</span>) <span class="co"># Loads data sets gmG and gmG8.</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>suffStat <span class="ot">=</span> <span class="fu">list</span>(<span class="at">C =</span> <span class="fu">cor</span>(gmG8<span class="sc">$</span>x), <span class="at">n =</span> <span class="fu">nrow</span>(gmG8<span class="sc">$</span>x))</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>varNames <span class="ot">=</span> gmG8<span class="sc">$</span>g<span class="sc">@</span>nodes</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>skel.gmG8 <span class="ot">=</span> <span class="fu">skeleton</span>(suffStat, <span class="at">indepTest =</span> gaussCItest,</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="at">labels =</span> varNames, <span class="at">alpha =</span> <span class="fl">0.01</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>Rgraphviz<span class="sc">::</span><span class="fu">plot</span>(skel.gmG8<span class="sc">@</span>graph)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>pc.gmG8 <span class="ot">=</span> <span class="fu">pc</span>(suffStat, <span class="at">indepTest =</span> gaussCItest,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="at">labels =</span> varNames, <span class="at">alpha =</span> <span class="fl">0.01</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>Rgraphviz<span class="sc">::</span><span class="fu">plot</span>(pc.gmG8<span class="sc">@</span>graph )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="causal-inference-on-dynamic-data" class="level2" data-number="9.3">
+<h2 data-number="9.3" class="anchored" data-anchor-id="causal-inference-on-dynamic-data"><span class="header-section-number">9.3</span> Causal Inference on Dynamic Data</h2>
 <p>When working with dynamic data, we can use an additional piece of information - the cause usually precedes the effect, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as <em>Granger causality</em>, or Granger methods. Here an example:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="do">## What came first: the chicken or the egg?</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(ChickEgg)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(egg <span class="sc">~</span> chicken, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="do">## What came first: the chicken or the egg?</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(ChickEgg)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(egg <span class="sc">~</span> chicken, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Granger causality test
 
@@ -588,7 +597,7 @@ Model 2: egg ~ Lags(egg, 1:3)
 1     44                 
 2     47 -3 0.5916 0.6238</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(chicken <span class="sc">~</span> egg, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(chicken <span class="sc">~</span> egg, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Granger causality test
 
@@ -602,8 +611,8 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
 </section>
-<section id="outlook-for-machine-learning" class="level2" data-number="9.3">
-<h2 data-number="9.3" class="anchored" data-anchor-id="outlook-for-machine-learning"><span class="header-section-number">9.3</span> Outlook for Machine Learning</h2>
+<section id="outlook-for-machine-learning" class="level2" data-number="9.4">
+<h2 data-number="9.4" class="anchored" data-anchor-id="outlook-for-machine-learning"><span class="header-section-number">9.4</span> Outlook for Machine Learning</h2>
 <p>As we have seen, there are already a few methods / algorithms for discovering causality from large data sets, but the systematic transfer of these concepts to machine learning, in particular deep learning, is still at its infancy. At the moment, this field is actively researched and changes extremely fast, so we recommend using Google to see what is currently going on. Particular in business and industry, there is a large interest in learning about causal effect from large data sets. In our opinion, a great topic for young scientists to specialize on.</p>
 
 
