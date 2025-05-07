@@ -31,7 +31,7 @@ Here an example for the indicators of variable importance in the random forest a
 
 We first simulate a data set with 2 predictors that are strongly correlated, but only one of them has an effect on the response.
 
-```{r chunk_chapter6_10, eval=FALSE}
+```{r chunk_chapter6_10, eval=TRUE}
 library(randomForest)
 set.seed(123)
 
@@ -49,13 +49,13 @@ y = x1 + rnorm(n)
 
 lm / anova correctly identify $x1$ as causal variable.
 
-```{r chunk_chapter6_11, eval=FALSE}
+```{r chunk_chapter6_11, eval=TRUE}
 summary(lm(y ~ x1 + x2))
 ```
 
 Fit random forest and show variable importance:
 
-```{r chunk_chapter6_12, eval=FALSE}
+```{r chunk_chapter6_12, eval=TRUE}
 set.seed(123)
 
 fit = randomForest(y ~ x1 + x2, importance = TRUE)
@@ -70,90 +70,141 @@ Task: understand why this is - remember:
 -   Remember that as $x1 \propto x2$, we can use $x2$ as a replacement for $x1$.
 -   Remember that the variable importance measures the average contributions of the different variables in the trees of the forest.
 
-## Structural Equation Models
+::: callout-note
 
-If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). Structural equation models are designed to estimate entire causal diagrams. There are two main SEM packages in R: For anything that is non-normal, you will currently have to estimate the directed acyclic graph (that depicts causal relations) piece-wise with CRAN package piecewiseSEM. Example for a vegetation data set:
+We found that (D)NN can better separate collinearity than the other classical ML algorithms. Probably, this is one of the advantages of (D)NN over RF or BRT for tabular data for two reasons:
 
-```{r chunk_chapter6_13, results='hide', message=FALSE, warning=FALSE, eval=FALSE}
-library(piecewiseSEM)
+- We can trust DNN more "causally" than the other algorithms, in the sense that an effect in the DNN is not just a consequence of collinearity.
+- Causality (or the ability to correctly estimate causal effects) is important for predicting out-of-distribution, e.g., changing collinearity structures
 
-mod = psem(
- lm(rich ~ distance + elev + abiotic + age + hetero + firesev + cover,
-    data = keeley),
- lm(firesev ~ elev + age + cover, data = keeley),
- lm(cover ~ age + elev + hetero + abiotic, data = keeley)
-)
-summary(mod)
-plot(mod)
+```{r}
+library(cito)
+nn.fit = dnn(y~x1+x2, loss = "mse", data = data.frame(y = y, x1=x1, x2=x2), verbose = F, plot = F)
+summary(nn.fit)
 ```
 
-For linear structural equation models, we can estimate the entire directed acyclic graph at once. This also allows having unobserved variables in the directed acyclic graph. One of the most popular packages for this is lavaan.
 
-```{r chunk_chapter6_14, message=FALSE, warning=FALSE, eval=FALSE}
-library(lavaan)
+:::
 
-mod = "
- rich ~ distance + elev + abiotic + age + hetero + firesev + cover
- firesev ~ elev + age + cover
- cover ~ age + elev + abiotic
-"
-fit = sem(mod, data = keeley)
-summary(fit)
-```
+<!-- ## Structural Equation Models -->
 
-The default plot options are not so nice as before.
+<!-- If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). Structural equation models are designed to estimate entire causal diagrams. There are two main SEM packages in R: For anything that is non-normal, you will currently have to estimate the directed acyclic graph (that depicts causal relations) piece-wise with CRAN package piecewiseSEM. Example for a vegetation data set: -->
 
-```{r chunk_chapter6_15, eval=FALSE}
-library(lavaanPlot)
+<!-- ```{r chunk_chapter6_13, results='hide', message=FALSE, warning=FALSE, eval=FALSE} -->
 
-lavaanPlot(model = fit)
-```
+<!-- library(piecewiseSEM) -->
 
-Another plotting option is using semPlot.
+<!-- mod = psem( -->
 
-```{r chunk_chapter6_16, eval=FALSE}
-library(semPlot)
+<!--  lm(rich ~ distance + elev + abiotic + age + hetero + firesev + cover, -->
 
-semPaths(fit)
-```
+<!--     data = keeley), -->
 
-## Automatic Causal Discovery
+<!--  lm(firesev ~ elev + age + cover, data = keeley), -->
 
-But how to get the causal graph? In statistics, it is common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the *PC algorithm*. Here an example using the pcalg package:
+<!--  lm(cover ~ age + elev + hetero + abiotic, data = keeley) -->
 
-```{r chunk_chapter6_17, eval=FALSE}
-library(pcalg)
-```
+<!-- ) -->
 
-Loading the data:
+<!-- summary(mod) -->
 
-```{r chunk_chapter6_18, eval=FALSE}
-data("gmG", package = "pcalg") # Loads data sets gmG and gmG8.
-suffStat = list(C = cor(gmG8$x), n = nrow(gmG8$x))
-varNames = gmG8$g@nodes
-```
+<!-- plot(mod) -->
 
-First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph).
+<!-- ``` -->
 
-```{r chunk_chapter6_19, eval=FALSE}
-skel.gmG8 = skeleton(suffStat, indepTest = gaussCItest,
-labels = varNames, alpha = 0.01)
-Rgraphviz::plot(skel.gmG8@graph)
-```
+<!-- For linear structural equation models, we can estimate the entire directed acyclic graph at once. This also allows having unobserved variables in the directed acyclic graph. One of the most popular packages for this is lavaan. -->
 
-What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.
+<!-- ```{r chunk_chapter6_14, message=FALSE, warning=FALSE, eval=FALSE} -->
 
-```{r chunk_chapter6_20, eval=FALSE}
-pc.gmG8 = pc(suffStat, indepTest = gaussCItest,
-labels = varNames, alpha = 0.01)
-Rgraphviz::plot(pc.gmG8@graph )
-```
+<!-- library(lavaan) -->
+
+<!-- mod = " -->
+
+<!--  rich ~ distance + elev + abiotic + age + hetero + firesev + cover -->
+
+<!--  firesev ~ elev + age + cover -->
+
+<!--  cover ~ age + elev + abiotic -->
+
+<!-- " -->
+
+<!-- fit = sem(mod, data = keeley) -->
+
+<!-- summary(fit) -->
+
+<!-- ``` -->
+
+<!-- The default plot options are not so nice as before. -->
+
+<!-- ```{r chunk_chapter6_15, eval=FALSE} -->
+
+<!-- library(lavaanPlot) -->
+
+<!-- lavaanPlot(model = fit) -->
+
+<!-- ``` -->
+
+<!-- Another plotting option is using semPlot. -->
+
+<!-- ```{r chunk_chapter6_16, eval=FALSE} -->
+
+<!-- library(semPlot) -->
+
+<!-- semPaths(fit) -->
+
+<!-- ``` -->
+
+<!-- ## Automatic Causal Discovery -->
+
+<!-- But how to get the causal graph? In statistics, it is common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the *PC algorithm*. Here an example using the pcalg package: -->
+
+<!-- ```{r chunk_chapter6_17, eval=FALSE} -->
+
+<!-- library(pcalg) -->
+
+<!-- ``` -->
+
+<!-- Loading the data: -->
+
+<!-- ```{r chunk_chapter6_18, eval=FALSE} -->
+
+<!-- data("gmG", package = "pcalg") # Loads data sets gmG and gmG8. -->
+
+<!-- suffStat = list(C = cor(gmG8$x), n = nrow(gmG8$x)) -->
+
+<!-- varNames = gmG8$g@nodes -->
+
+<!-- ``` -->
+
+<!-- First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph). -->
+
+<!-- ```{r chunk_chapter6_19, eval=FALSE} -->
+
+<!-- skel.gmG8 = skeleton(suffStat, indepTest = gaussCItest, -->
+
+<!-- labels = varNames, alpha = 0.01) -->
+
+<!-- Rgraphviz::plot(skel.gmG8@graph) -->
+
+<!-- ``` -->
+
+<!-- What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows. -->
+
+<!-- ```{r chunk_chapter6_20, eval=FALSE} -->
+
+<!-- pc.gmG8 = pc(suffStat, indepTest = gaussCItest, -->
+
+<!-- labels = varNames, alpha = 0.01) -->
+
+<!-- Rgraphviz::plot(pc.gmG8@graph ) -->
+
+<!-- ``` -->
 
 ## Causal Inference on Dynamic Data
 
 When working with dynamic data, we can use an additional piece of information - the cause usually precedes the effect, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as *Granger causality*, or Granger methods. Here an example:
 
-```{r chunk_chapter6_21, message=FALSE, warning=FALSE, eval=FALSE}
+```{r chunk_chapter6_21, message=FALSE, warning=FALSE, eval=TRUE}
 library(lmtest)
 
 ## What came first: the chicken or the egg?

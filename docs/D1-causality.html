@@ -363,10 +363,8 @@ window.Quarto = {
    
   <ul>
   <li><a href="#causalInference" id="toc-causalInference" class="nav-link active" data-scroll-target="#causalInference"><span class="header-section-number">9.1</span> Causal Inference on Static Data</a></li>
-  <li><a href="#structural-equation-models" id="toc-structural-equation-models" class="nav-link" data-scroll-target="#structural-equation-models"><span class="header-section-number">9.2</span> Structural Equation Models</a></li>
-  <li><a href="#automatic-causal-discovery" id="toc-automatic-causal-discovery" class="nav-link" data-scroll-target="#automatic-causal-discovery"><span class="header-section-number">9.3</span> Automatic Causal Discovery</a></li>
-  <li><a href="#causal-inference-on-dynamic-data" id="toc-causal-inference-on-dynamic-data" class="nav-link" data-scroll-target="#causal-inference-on-dynamic-data"><span class="header-section-number">9.4</span> Causal Inference on Dynamic Data</a></li>
-  <li><a href="#outlook-for-machine-learning" id="toc-outlook-for-machine-learning" class="nav-link" data-scroll-target="#outlook-for-machine-learning"><span class="header-section-number">9.5</span> Outlook for Machine Learning</a></li>
+  <li><a href="#causal-inference-on-dynamic-data" id="toc-causal-inference-on-dynamic-data" class="nav-link" data-scroll-target="#causal-inference-on-dynamic-data"><span class="header-section-number">9.2</span> Causal Inference on Dynamic Data</a></li>
+  <li><a href="#outlook-for-machine-learning" id="toc-outlook-for-machine-learning" class="nav-link" data-scroll-target="#outlook-for-machine-learning"><span class="header-section-number">9.3</span> Outlook for Machine Learning</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/D1-causality.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
@@ -401,30 +399,64 @@ window.Quarto = {
 <p>Here an example for the indicators of variable importance in the random forest algorithm. The purpose of this script is to show that random forest variable importance will split importance values for collinear variables evenly, even if collinearity is low enough so that variables are separable and would be correctly separated by an lm / ANOVA.</p>
 <p>We first simulate a data set with 2 predictors that are strongly correlated, but only one of them has an effect on the response.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulation parameters.</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">1000</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>col <span class="ot">=</span> <span class="fl">0.7</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Create collinear predictors.</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">=</span> <span class="fu">runif</span>(n)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">=</span> col <span class="sc">*</span> x1 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>col) <span class="sc">*</span> <span class="fu">runif</span>(n)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Response is only influenced by x1.</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> x1 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>randomForest 4.7-1.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Type rfNews() to see new features/changes/bug fixes.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulation parameters.</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">1000</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>col <span class="ot">=</span> <span class="fl">0.7</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Create collinear predictors.</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">=</span> <span class="fu">runif</span>(n)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">=</span> col <span class="sc">*</span> x1 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>col) <span class="sc">*</span> <span class="fu">runif</span>(n)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Response is only influenced by x1.</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> x1 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>lm / anova correctly identify <span class="math inline">\(x1\)</span> as causal variable.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = y ~ x1 + x2)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-3.0709 -0.6939  0.0102  0.6976  3.3373 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  0.02837    0.08705   0.326 0.744536    
+x1           1.07383    0.27819   3.860 0.000121 ***
+x2          -0.04547    0.37370  -0.122 0.903186    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 1.011 on 997 degrees of freedom
+Multiple R-squared:  0.08104,   Adjusted R-squared:  0.0792 
+F-statistic: 43.96 on 2 and 997 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
 </div>
 <p>Fit random forest and show variable importance:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">=</span> <span class="fu">randomForest</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">importance =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">varImpPlot</span>(fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">=</span> <span class="fu">randomForest</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">importance =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">varImpPlot</span>(fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="D1-causality_files/figure-html/chunk_chapter6_12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 <p>Variable importance is now split nearly evenly.</p>
 <p>Task: understand why this is - remember:</p>
@@ -433,86 +465,145 @@ window.Quarto = {
 <li>Remember that as <span class="math inline">\(x1 \propto x2\)</span>, we can use <span class="math inline">\(x2\)</span> as a replacement for <span class="math inline">\(x1\)</span>.</li>
 <li>Remember that the variable importance measures the average contributions of the different variables in the trees of the forest.</li>
 </ul>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>We found that (D)NN can better separate collinearity than the other classical ML algorithms. Probably, this is one of the advantages of (D)NN over RF or BRT for tabular data for two reasons:</p>
+<ul>
+<li>We can trust DNN more “causally” than the other algorithms, in the sense that an effect in the DNN is not just a consequence of collinearity.</li>
+<li>Causality (or the ability to correctly estimate causal effects) is important for predicting out-of-distribution, e.g., changing collinearity structures</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cito)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>nn.fit <span class="ot">=</span> <span class="fu">dnn</span>(y<span class="sc">~</span>x1<span class="sc">+</span>x2, <span class="at">loss =</span> <span class="st">"mse"</span>, <span class="at">data =</span> <span class="fu">data.frame</span>(<span class="at">y =</span> y, <span class="at">x1=</span>x1, <span class="at">x2=</span>x2), <span class="at">verbose =</span> F, <span class="at">plot =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Registered S3 methods overwritten by 'reformulas':
+  method       from
+  head.call    cito
+  head.formula cito
+  head.name    cito</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nn.fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Summary of Deep Neural Network Model
+
+Feature Importance:
+  variable importance_1
+1       x1  0.128857501
+2       x2  0.004499443
+
+Average Conditional Effects:
+   Response_1
+x1  0.9117967
+x2  0.1996802
+
+Standard Deviation of Conditional Effects:
+   Response_1
+x1 0.06132476
+x2 0.06578667</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ## Structural Equation Models -->
+<!-- If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). Structural equation models are designed to estimate entire causal diagrams. There are two main SEM packages in R: For anything that is non-normal, you will currently have to estimate the directed acyclic graph (that depicts causal relations) piece-wise with CRAN package piecewiseSEM. Example for a vegetation data set: -->
+<!-- ```{r chunk_chapter6_13, results='hide', message=FALSE, warning=FALSE, eval=FALSE} -->
+<!-- library(piecewiseSEM) -->
+<!-- mod = psem( -->
+<!--  lm(rich ~ distance + elev + abiotic + age + hetero + firesev + cover, -->
+<!--     data = keeley), -->
+<!--  lm(firesev ~ elev + age + cover, data = keeley), -->
+<!--  lm(cover ~ age + elev + hetero + abiotic, data = keeley) -->
+<!-- ) -->
+<!-- summary(mod) -->
+<!-- plot(mod) -->
+<!-- ``` -->
+<!-- For linear structural equation models, we can estimate the entire directed acyclic graph at once. This also allows having unobserved variables in the directed acyclic graph. One of the most popular packages for this is lavaan. -->
+<!-- ```{r chunk_chapter6_14, message=FALSE, warning=FALSE, eval=FALSE} -->
+<!-- library(lavaan) -->
+<!-- mod = " -->
+<!--  rich ~ distance + elev + abiotic + age + hetero + firesev + cover -->
+<!--  firesev ~ elev + age + cover -->
+<!--  cover ~ age + elev + abiotic -->
+<!-- " -->
+<!-- fit = sem(mod, data = keeley) -->
+<!-- summary(fit) -->
+<!-- ``` -->
+<!-- The default plot options are not so nice as before. -->
+<!-- ```{r chunk_chapter6_15, eval=FALSE} -->
+<!-- library(lavaanPlot) -->
+<!-- lavaanPlot(model = fit) -->
+<!-- ``` -->
+<!-- Another plotting option is using semPlot. -->
+<!-- ```{r chunk_chapter6_16, eval=FALSE} -->
+<!-- library(semPlot) -->
+<!-- semPaths(fit) -->
+<!-- ``` -->
+<!-- ## Automatic Causal Discovery -->
+<!-- But how to get the causal graph? In statistics, it is common to "guess" it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e. algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the *PC algorithm*. Here an example using the pcalg package: -->
+<!-- ```{r chunk_chapter6_17, eval=FALSE} -->
+<!-- library(pcalg) -->
+<!-- ``` -->
+<!-- Loading the data: -->
+<!-- ```{r chunk_chapter6_18, eval=FALSE} -->
+<!-- data("gmG", package = "pcalg") # Loads data sets gmG and gmG8. -->
+<!-- suffStat = list(C = cor(gmG8$x), n = nrow(gmG8$x)) -->
+<!-- varNames = gmG8$g@nodes -->
+<!-- ``` -->
+<!-- First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph). -->
+<!-- ```{r chunk_chapter6_19, eval=FALSE} -->
+<!-- skel.gmG8 = skeleton(suffStat, indepTest = gaussCItest, -->
+<!-- labels = varNames, alpha = 0.01) -->
+<!-- Rgraphviz::plot(skel.gmG8@graph) -->
+<!-- ``` -->
+<!-- What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows. -->
+<!-- ```{r chunk_chapter6_20, eval=FALSE} -->
+<!-- pc.gmG8 = pc(suffStat, indepTest = gaussCItest, -->
+<!-- labels = varNames, alpha = 0.01) -->
+<!-- Rgraphviz::plot(pc.gmG8@graph ) -->
+<!-- ``` -->
 </section>
-<section id="structural-equation-models" class="level2" data-number="9.2">
-<h2 data-number="9.2" class="anchored" data-anchor-id="structural-equation-models"><span class="header-section-number">9.2</span> Structural Equation Models</h2>
-<p>If causal relationships get more complicated, it will not be possible to adjust correctly with a simple lm. In this case, in statistics, we will usually use structural equation models (SEMs). Structural equation models are designed to estimate entire causal diagrams. There are two main SEM packages in R: For anything that is non-normal, you will currently have to estimate the directed acyclic graph (that depicts causal relations) piece-wise with CRAN package piecewiseSEM. Example for a vegetation data set:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(piecewiseSEM)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">=</span> <span class="fu">psem</span>(</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">lm</span>(rich <span class="sc">~</span> distance <span class="sc">+</span> elev <span class="sc">+</span> abiotic <span class="sc">+</span> age <span class="sc">+</span> hetero <span class="sc">+</span> firesev <span class="sc">+</span> cover,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> keeley),</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">lm</span>(firesev <span class="sc">~</span> elev <span class="sc">+</span> age <span class="sc">+</span> cover, <span class="at">data =</span> keeley),</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a> <span class="fu">lm</span>(cover <span class="sc">~</span> age <span class="sc">+</span> elev <span class="sc">+</span> hetero <span class="sc">+</span> abiotic, <span class="at">data =</span> keeley)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod)</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>For linear structural equation models, we can estimate the entire directed acyclic graph at once. This also allows having unobserved variables in the directed acyclic graph. One of the most popular packages for this is lavaan.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lavaan)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">=</span> <span class="st">"</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st"> rich ~ distance + elev + abiotic + age + hetero + firesev + cover</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st"> firesev ~ elev + age + cover</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="st"> cover ~ age + elev + abiotic</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="st">"</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">=</span> <span class="fu">sem</span>(mod, <span class="at">data =</span> keeley)</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>The default plot options are not so nice as before.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lavaanPlot)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lavaanPlot</span>(<span class="at">model =</span> fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>Another plotting option is using semPlot.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(semPlot)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">semPaths</span>(fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="automatic-causal-discovery" class="level2" data-number="9.3">
-<h2 data-number="9.3" class="anchored" data-anchor-id="automatic-causal-discovery"><span class="header-section-number">9.3</span> Automatic Causal Discovery</h2>
-<p>But how to get the causal graph? In statistics, it is common to “guess” it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e.&nbsp;algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the <em>PC algorithm</em>. Here an example using the pcalg package:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pcalg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>Loading the data:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"gmG"</span>, <span class="at">package =</span> <span class="st">"pcalg"</span>) <span class="co"># Loads data sets gmG and gmG8.</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>suffStat <span class="ot">=</span> <span class="fu">list</span>(<span class="at">C =</span> <span class="fu">cor</span>(gmG8<span class="sc">$</span>x), <span class="at">n =</span> <span class="fu">nrow</span>(gmG8<span class="sc">$</span>x))</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>varNames <span class="ot">=</span> gmG8<span class="sc">$</span>g<span class="sc">@</span>nodes</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph).</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>skel.gmG8 <span class="ot">=</span> <span class="fu">skeleton</span>(suffStat, <span class="at">indepTest =</span> gaussCItest,</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="at">labels =</span> varNames, <span class="at">alpha =</span> <span class="fl">0.01</span>)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>Rgraphviz<span class="sc">::</span><span class="fu">plot</span>(skel.gmG8<span class="sc">@</span>graph)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>pc.gmG8 <span class="ot">=</span> <span class="fu">pc</span>(suffStat, <span class="at">indepTest =</span> gaussCItest,</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="at">labels =</span> varNames, <span class="at">alpha =</span> <span class="fl">0.01</span>)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>Rgraphviz<span class="sc">::</span><span class="fu">plot</span>(pc.gmG8<span class="sc">@</span>graph )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="causal-inference-on-dynamic-data" class="level2" data-number="9.4">
-<h2 data-number="9.4" class="anchored" data-anchor-id="causal-inference-on-dynamic-data"><span class="header-section-number">9.4</span> Causal Inference on Dynamic Data</h2>
+<section id="causal-inference-on-dynamic-data" class="level2" data-number="9.2">
+<h2 data-number="9.2" class="anchored" data-anchor-id="causal-inference-on-dynamic-data"><span class="header-section-number">9.2</span> Causal Inference on Dynamic Data</h2>
 <p>When working with dynamic data, we can use an additional piece of information - the cause usually precedes the effect, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as <em>Granger causality</em>, or Granger methods. Here an example:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="do">## What came first: the chicken or the egg?</span></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(ChickEgg)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(egg <span class="sc">~</span> chicken, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(chicken <span class="sc">~</span> egg, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(egg <span class="sc">~</span> chicken, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Granger causality test
+
+Model 1: egg ~ Lags(egg, 1:3) + Lags(chicken, 1:3)
+Model 2: egg ~ Lags(egg, 1:3)
+  Res.Df Df      F Pr(&gt;F)
+1     44                 
+2     47 -3 0.5916 0.6238</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(chicken <span class="sc">~</span> egg, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Granger causality test
+
+Model 1: chicken ~ Lags(chicken, 1:3) + Lags(egg, 1:3)
+Model 2: chicken ~ Lags(chicken, 1:3)
+  Res.Df Df     F   Pr(&gt;F)   
+1     44                     
+2     47 -3 5.405 0.002966 **
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
 </div>
 </section>
-<section id="outlook-for-machine-learning" class="level2" data-number="9.5">
-<h2 data-number="9.5" class="anchored" data-anchor-id="outlook-for-machine-learning"><span class="header-section-number">9.5</span> Outlook for Machine Learning</h2>
+<section id="outlook-for-machine-learning" class="level2" data-number="9.3">
+<h2 data-number="9.3" class="anchored" data-anchor-id="outlook-for-machine-learning"><span class="header-section-number">9.3</span> Outlook for Machine Learning</h2>
 <p>As we have seen, there are already a few methods / algorithms for discovering causality from large data sets, but the systematic transfer of these concepts to machine learning, in particular deep learning, is still at its infancy. At the moment, this field is actively researched and changes extremely fast, so we recommend using Google to see what is currently going on. Particular in business and industry, there is a large interest in learning about causal effect from large data sets. In our opinion, a great topic for young scientists to specialize on.</p>
 
 
