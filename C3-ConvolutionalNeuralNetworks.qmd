@@ -196,20 +196,20 @@ Build the network:
 net = nn_module(
   "mnist",
   initialize = function(){
-    self$conv1 = nn_conv2d(1, 16L, 2L)
+    self$conv1 = nn_conv2d(1, 16L, 2L) 
     self$conv2 = nn_conv2d(16L, 16L, 3L)
     self$fc1 = nn_linear(400L, 100L)
     self$fc2 = nn_linear(100L, 10L)
   },
   forward = function(x){
     x |>
-      self$conv1() |>
+      self$conv1() |> # output dim: 16, 27, 27
       nnf_relu() |>
-      nnf_max_pool2d(2) |>
-      self$conv2() |>
+      nnf_max_pool2d(2) |> # output dim: 16, 13, 13
+      self$conv2() |> # output dim: 16, 11, 11
       nnf_relu() |>
-      nnf_max_pool2d(2) |>
-      torch_flatten(start_dim = 2) |>
+      nnf_max_pool2d(2) |> # output dim: 16, 5, 5
+      torch_flatten(start_dim = 2) |> # 16*5*5
       self$fc1() |>
       nnf_relu() |>
       self$fc2()
@@ -376,6 +376,7 @@ CIFAR10 is another famous image classification dataset. It consists of ten class
 
 ::: panel-tabset
 
+
 ## Keras 
 
 Prepare data, now with 3 channels (colored images):
@@ -427,6 +428,87 @@ model |> fit(
  callbacks = c(early)
 )
 ```
+
+
+## torch
+
+```{r}
+train_ds = cifar10_dataset(
+  ".",
+  download = TRUE,
+  train = TRUE,
+  transform = transform_to_tensor
+)
+
+test_ds = cifar10_dataset(
+  ".",
+  download = TRUE,
+  train = FALSE,
+  transform = transform_to_tensor
+)
+
+train_dl = dataloader(train_ds, batch_size = 32, shuffle = TRUE)
+test_dl = dataloader(test_ds, batch_size = 32)
+first_batch = train_dl$.iter()
+df = first_batch$.next()
+
+df$x$size()
+```
+
+Model:
+
+```{r}
+net = nn_module(
+  "mnist",
+  initialize = function(dropout_rate = 0.3){
+    self$conv1 = nn_conv2d(3, 8L, 2L) # 8, 31, 31 -> 8, 15, 15
+    self$dropout1 = nn_dropout2d(p = dropout_rate)
+    self$conv2 = nn_conv2d(8L, 16L, 3L) # 16, 13, 13 -> 16, 6, 6
+    self$dropout2 = nn_dropout2d(p = dropout_rate)
+    self$conv3 = nn_conv2d(16L, 32L, 3L) # 32, 4, 4 -> 32, 2, 2
+    self$dropout3 = nn_dropout2d(p = dropout_rate)
+    self$fc1 = nn_linear(128L, 10L)
+  },
+  forward = function(x){
+    x |>
+      self$conv1() |> 
+      nnf_relu() |>
+      self$dropout1() |> 
+      nnf_max_pool2d(2) |> 
+      self$conv2() |> 
+      nnf_relu() |>
+      self$dropout2() |> 
+      nnf_max_pool2d(2) |> 
+      self$conv3() |> 
+      self$dropout3() |> 
+      nnf_max_pool2d(2) |> 
+      torch_flatten(start_dim = 2) |> 
+      self$fc1()
+  }
+)
+```
+
+Train model:
+```{r,eval=FALSE}
+model_torch = net()
+opt = optim_adam(params = model_torch$parameters, lr = 0.01)
+
+for(e in 1:3){
+  losses = c()
+  coro::loop(
+    for(batch in train_dl){
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]], reduction = "mean")
+      loss$backward()
+      opt$step()
+      losses = c(losses, loss$item())
+    }
+  )
+  cat(sprintf("Loss at epoch %d: %3f\n", e, mean(losses)))
+}
+```
+
 
 ## cito
 
@@ -513,9 +595,14 @@ Prepare data:
 library(tensorflow)
 library(keras3)
 
+# keras
 train = EcoData::dataset_flower()$train/255
 test = EcoData::dataset_flower()$test/255
 labels = EcoData::dataset_flower()$labels
+
+# torch / cito -> channels must be at the second dim
+train_torch = aperm(train, c(1, 4, 2, 3))
+test_torch = aperm(test, c(1, 4, 2, 3))
 ```
 
 Plot flower:
@@ -530,6 +617,76 @@ train[100,,,] |>
 **Tip:** Take a look at the dataset chapter.
 
 :::
+
+`r hide("Click here to see the solution for a minimal Torch example")`
+
+Build model:
+
+```{r}
+net = nn_module(
+  "flower",
+  initialize = function(dropout_rate = 0.3){
+    self$conv1 = nn_conv2d(3, 8L, 4L) # 8, 77, 77 -> 8, 19, 19
+    self$dropout1 = nn_dropout2d(p = dropout_rate)
+    self$fc1 = nn_linear(2888, 10L)
+  },
+  forward = function(x){
+    x |>
+      self$conv1() |> 
+      nnf_relu() |>
+      self$dropout1() |> 
+      nnf_max_pool2d(4) |> 
+      torch_flatten(start_dim = 2) |> 
+      self$fc1()
+  }
+)
+
+model_torch = net()
+opt = optim_adam(params = model_torch$parameters, lr = 0.01)
+
+
+dataset = tensor_dataset(torch_tensor(train_torch), 
+                         torch_tensor(labels+1, dtype = torch_long())
+                         )
+train_dl = torch::dataloader(dataset, batch_size = 50L, shuffle = TRUE)
+
+for(e in 1:3){
+  losses = c()
+  coro::loop(
+    for(batch in train_dl){
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_cross_entropy(pred, batch[[2]], reduction = "mean")
+      loss$backward()
+      opt$step()
+      losses = c(losses, loss$item())
+    }
+  )
+  cat(sprintf("Loss at epoch %d: %3f\n", e, mean(losses)))
+}
+```
+
+Predictions:
+
+```{r}
+# Prediction on training data:
+model_torch$eval()
+predictions = model_torch(torch_tensor(train_torch))
+predictions = nnf_softmax( predictions, 2) |> as_array() # apply link function
+pred = apply(predictions, 1, which.max)
+Metrics::accuracy(pred - 1L, labels)
+table(pred)
+
+# Prediction for the submission server:
+predictions = model_torch(torch_tensor(test_torch))
+predictions = nnf_softmax( predictions, 2) |> as_array() # apply link function
+
+pred = predictions |> apply(1, which.max) - 1L
+table(pred)
+write.csv(data.frame(y = pred), file = "cnn.csv")
+```
+
+`r unhide()`
 
 `r hide("Click here to see the solution for a minimal Keras example")`
 

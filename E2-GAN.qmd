@@ -39,6 +39,7 @@ $$ High predicted probabilities of having the label for originally labeled data 
 A possible application of generative adversarial networks is to create pictures that look like real photographs e.g. <a href="https://thispersondoesnotexist.com/" target="_blank" rel="noopener">https://thispersondoesnotexist.com/</a>. Visit that site (several times)!. However, the application of generative adversarial networks today is much wider than just the creation of data. For example, generative adversarial networks can also be used to "augment" data, i.e. to create new data and thereby improve the fitted model.
 
 Helper function and hyperparameters
+
 ```{r,eval=FALSE}
 
 library(torch)
@@ -65,8 +66,8 @@ device = "cpu"
 
 Our Models:
 
-- Generator creates images from noise
-- Discriminator classifies images into fake and real
+-   Generator creates images from noise
+-   Discriminator classifies images into fake and real
 
 ```{r,eval=FALSE}
 
@@ -132,8 +133,6 @@ dataLoader = torch::dataloader(dataset, batch_size = 50L, shuffle = TRUE, pin_me
 
 ```
 
-
-
 Create our models and initialize optimizers:
 
 ```{r,eval=FALSE}
@@ -160,7 +159,6 @@ optimizerG = optim_adam(disc$parameters, lr=lr)
 
 
 ```
-
 
 ```{r,eval=FALSE}
 
@@ -240,62 +238,92 @@ for(i in 1:20) {
 
 ```
 
-
 <!-- ## MNIST - Generative Adversarial Networks Based on Deep Neural Networks -->
 
 <!-- We will now explore this on the MNIST data set. -->
 
 <!-- ``` r -->
+
 <!-- library(keras) -->
+
 <!-- library(tensorflow) -->
+
 <!-- set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed. -->
 
 <!-- rotate = function(x){ t(apply(x, 2, rev)) } -->
+
 <!-- imgPlot = function(img, title = ""){ -->
+
 <!--   col = grey.colors(255) -->
+
 <!--   image(rotate(img), col = col, xlab = "", ylab = "", axes = FALSE, -->
+
 <!--         main = paste0("Label: ", as.character(title))) -->
+
 <!-- } -->
+
 <!-- ``` -->
 
 <!-- We don't need the test set here. -->
 
 <!-- ``` r -->
+
 <!-- data = dataset_mnist() -->
+
 <!-- train = data$train -->
+
 <!-- train_x = array((train$x-127.5)/127.5, c(dim(train$x)[1], 784L)) -->
+
 <!-- ``` -->
 
 <!-- We need a function to sample images for the discriminator. -->
 
 <!-- ``` r -->
+
 <!-- batch_size = 32L -->
+
 <!-- dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32")) -->
+
 <!-- dataset$batch(batch_size) -->
+
 <!-- ``` -->
 
 <!-- Create function that returns the generator model: -->
 
 <!-- ``` r -->
+
 <!-- get_generator = function(){ -->
+
 <!--   generator = keras_model_sequential() -->
+
 <!--   generator %>%  -->
+
 <!--   layer_dense(units = 200L, input_shape = c(100L)) %>%  -->
+
 <!--   layer_activation_leaky_relu() %>%  -->
+
 <!--   layer_dense(units = 200L) %>%  -->
+
 <!--   layer_activation_leaky_relu() %>%  -->
+
 <!--   layer_dense(units = 784L, activation = "tanh") -->
 
 <!--   return(generator) -->
+
 <!-- } -->
+
 <!-- ``` -->
 
 <!-- Test the generator: -->
 
 <!-- ``` r -->
+
 <!-- generator = get_generator() -->
+
 <!-- sample = tf$random$normal(c(1L, 100L)) -->
+
 <!-- imgPlot(array(generator(sample)$numpy(), c(28L, 28L))) -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_24-1.png" width="100%" style="display: block; margin: auto;"/> -->
@@ -303,31 +331,47 @@ for(i in 1:20) {
 <!-- In the discriminator, noise (random vector with 100 values) is passed through the network such that the output corresponds to the number of pixels of one MNIST image (784). We therefore define the discriminator function now. -->
 
 <!-- ``` r -->
+
 <!-- get_discriminator = function(){ -->
+
 <!--   discriminator = keras_model_sequential() -->
+
 <!--   discriminator %>%  -->
+
 <!--   layer_dense(units = 200L, input_shape = c(784L)) %>%  -->
+
 <!--   layer_activation_leaky_relu() %>%  -->
+
 <!--   layer_dense(units = 100L) %>%  -->
+
 <!--   layer_activation_leaky_relu() %>%  -->
+
 <!--   layer_dense(units = 1L, activation = "sigmoid") -->
 
 <!--   return(discriminator) -->
+
 <!-- } -->
+
 <!-- ``` -->
 
 <!-- And we also test the discriminator function. -->
 
 <!-- ``` r -->
+
 <!-- discriminator = get_discriminator() -->
+
 <!-- discriminator(generator(tf$random$normal(c(1L, 100L)))) -->
+
 <!-- ``` -->
 
 <!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+
 <!-- cat(" -->
+
 <!-- tf.Tensor([[0.5089391]], shape=(1, 1), dtype=float32) -->
 
 <!--     ") -->
+
 <!-- ``` -->
 
 <!-- We also have to define the loss functions for both networks.We use the already known binary cross entropy. However, we have to encode the real and predicted values for the two networks individually. -->
@@ -337,119 +381,191 @@ for(i in 1:20) {
 <!-- The generator will just get one loss - was it able to deceive the discriminator? -->
 
 <!-- ``` r -->
+
 <!-- ce = tf$keras$losses$BinaryCrossentropy(from_logits = TRUE) -->
 
 <!-- loss_discriminator = function(real, fake){ -->
+
 <!--   real_loss = ce(tf$ones_like(real), real) -->
+
 <!--   fake_loss = ce(tf$zeros_like(fake), fake) -->
+
 <!--   return(real_loss + fake_loss) -->
+
 <!-- } -->
 
 <!-- loss_generator = function(fake){ -->
+
 <!--   return(ce(tf$ones_like(fake), fake)) -->
+
 <!-- } -->
+
 <!-- ``` -->
 
 <!-- Each network will get its own optimizer (in a GAN the networks are treated independently): -->
 
 <!-- ``` r -->
+
 <!-- gen_opt = tf$keras$optimizers$RMSprop(1e-4) -->
+
 <!-- disc_opt = tf$keras$optimizers$RMSprop(1e-4) -->
+
 <!-- ``` -->
 
 <!-- We have to write our own training loop here (we cannot use the fit function). In each iteration (for each batch) we will do the following (the GradientTape records computations to do automatic differentiation): -->
 
 <!-- 1.  Sample noise. -->
+
 <!-- 2.  Generator creates images from the noise. -->
+
 <!-- 3.  Discriminator makes predictions for fake images and real images (response is a probability between \[0,1\]). -->
+
 <!-- 4.  Calculate loss for generator. -->
+
 <!-- 5.  Calculate loss for discriminator. -->
+
 <!-- 6.  Calculate gradients for weights and the loss. -->
+
 <!-- 7.  Update weights of generator. -->
+
 <!-- 8.  Update weights of discriminator. -->
+
 <!-- 9.  Return losses. -->
 
 <!-- ``` r -->
+
 <!-- generator = get_generator() -->
+
 <!-- discriminator = get_discriminator() -->
 
 <!-- train_step = function(images){ -->
+
 <!--   noise = tf$random$normal(c(128L, 100L)) -->
+
 <!--   with(tf$GradientTape(persistent = TRUE) %as% tape, -->
+
 <!--     { -->
+
 <!--       gen_images = generator(noise) -->
+
 <!--       fake_output = discriminator(gen_images) -->
+
 <!--       real_output = discriminator(images) -->
+
 <!--       gen_loss = loss_generator(fake_output) -->
+
 <!--       disc_loss = loss_discriminator(real_output, fake_output) -->
+
 <!--     } -->
+
 <!--   ) -->
 
 <!--   gen_grads = tape$gradient(gen_loss, generator$weights) -->
+
 <!--   disc_grads = tape$gradient(disc_loss, discriminator$weights) -->
+
 <!--   rm(tape) -->
+
 <!--   gen_opt$apply_gradients(purrr::transpose(list(gen_grads, generator$weights))) -->
+
 <!--   disc_opt$apply_gradients(purrr::transpose(list(disc_grads, discriminator$weights))) -->
 
 <!--   return(c(gen_loss, disc_loss)) -->
+
 <!-- } -->
 
 <!-- train_step = tf$`function`(reticulate::py_func(train_step)) -->
+
 <!-- ``` -->
 
 <!-- Now we can finally train our networks in a training loop: -->
 
 <!-- 1.  Create networks. -->
+
 <!-- 2.  Get batch of images. -->
+
 <!-- 3.  Run train_step function. -->
+
 <!-- 4.  Print losses. -->
+
 <!-- 5.  Repeat step 2-4 for number of epochs. -->
 
 <!-- ``` r -->
+
 <!-- batch_size = 128L -->
+
 <!-- epochs = 20L -->
+
 <!-- steps = as.integer(nrow(train_x)/batch_size) -->
+
 <!-- counter = 1 -->
+
 <!-- gen_loss = c() -->
+
 <!-- disc_loss = c() -->
 
 <!-- dataset2 = dataset$prefetch(tf$data$AUTOTUNE) -->
 
 <!-- for(e in 1:epochs){ -->
+
 <!--   dat = reticulate::as_iterator(dataset2$batch(batch_size)) -->
 
 <!--   coro::loop( -->
+
 <!--     for(images in dat){ -->
+
 <!--       losses = train_step(images) -->
+
 <!--       gen_loss = c(gen_loss, tf$reduce_sum(losses[[1]])$numpy()) -->
+
 <!--       disc_loss = c(disc_loss, tf$reduce_sum(losses[[2]])$numpy()) -->
+
 <!--     } -->
+
 <!--   ) -->
 
 <!--   if(e %% 5 == 0){ #Print output every 5 steps. -->
+
 <!--     cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n") -->
+
 <!--   } -->
+
 <!--   noise = tf$random$normal(c(1L, 100L)) -->
+
 <!--   if(e %% 10 == 0){  #Plot image every 10 steps. -->
+
 <!--     imgPlot(array(generator(noise)$numpy(), c(28L, 28L)), "Gen") -->
+
 <!--   } -->
+
 <!-- } -->
+
 <!-- ``` -->
 
 <!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+
 <!-- cat(" -->
+
 <!-- Gen:  0.8095555  Disc:  1.10533   -->
+
 <!-- Gen:  0.8928918  Disc:  1.287504     -->
+
 <!--     ") -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_30-1.png" width="100%" style="display: block; margin: auto;"/> -->
 
 <!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+
 <!-- cat(" -->
+
 <!-- Gen:  0.9071119  Disc:  1.314586   -->
+
 <!-- Gen:  0.9514963  Disc:  1.31548  -->
+
 <!--     ") -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_30-2.png" width="100%" style="display: block; margin: auto;"/> -->
@@ -459,58 +575,103 @@ for(i in 1:20) {
 <!-- We can now also do the same for the flower data set. We will write this completely on our own following the steps also done for the MNIST data set. -->
 
 <!-- ``` r -->
+
 <!-- library(keras) -->
+
 <!-- library(tidyverse) -->
+
 <!-- library(tensorflow) -->
+
 <!-- library(EcoData) -->
 
 <!-- data = EcoData::dataset_flower() -->
+
 <!-- train = (data$train-127.5)/127.5 -->
+
 <!-- test = (data$test-127.5)/127.5 -->
+
 <!-- train_x = abind::abind(list(train, test), along = 1L) -->
+
 <!-- dataset = tf$data$Dataset$from_tensor_slices(tf$constant(train_x, "float32")) -->
+
 <!-- ``` -->
 
 <!-- Define the generator model and test it: -->
 
 <!-- ``` r -->
+
 <!-- get_generator = function(){ -->
+
 <!--   generator = keras_model_sequential() -->
+
 <!--   generator %>%  -->
+
 <!--     layer_dense(units = 20L*20L*128L, input_shape = c(100L), -->
+
 <!--                 use_bias = FALSE) %>%  -->
+
 <!--     layer_activation_leaky_relu() %>%  -->
+
 <!--     layer_reshape(c(20L, 20L, 128L)) %>%  -->
+
 <!--     layer_dropout(0.3) %>%  -->
+
 <!--     layer_conv_2d_transpose(filters = 256L, kernel_size = c(3L, 3L), -->
+
 <!--                             padding = "same", strides = c(1L, 1L), -->
+
 <!--                             use_bias = FALSE) %>%  -->
+
 <!--     layer_activation_leaky_relu() %>%  -->
+
 <!--     layer_dropout(0.3) %>%  -->
+
 <!--     layer_conv_2d_transpose(filters = 128L, kernel_size = c(5L, 5L), -->
+
 <!--                             padding = "same", strides = c(1L, 1L), -->
+
 <!--                             use_bias = FALSE) %>%  -->
+
 <!--     layer_activation_leaky_relu() %>%  -->
+
 <!--     layer_dropout(0.3) %>%  -->
+
 <!--     layer_conv_2d_transpose(filters = 64L, kernel_size = c(5L, 5L), -->
+
 <!--                             padding = "same", strides = c(2L, 2L), -->
+
 <!--                             use_bias = FALSE) %>% -->
+
 <!--     layer_activation_leaky_relu() %>%  -->
+
 <!--     layer_dropout(0.3) %>%  -->
+
 <!--     layer_conv_2d_transpose(filters = 3L, kernel_size = c(5L, 5L), -->
+
 <!--                             padding = "same", strides = c(2L, 2L), -->
+
 <!--                             activation = "tanh", use_bias = FALSE) -->
+
 <!--   return(generator) -->
+
 <!-- } -->
 
 <!-- generator = get_generator() -->
+
 <!-- image = generator(tf$random$normal(c(1L,100L)))$numpy()[1,,,] -->
+
 <!-- image = scales::rescale(image, to = c(0, 255)) -->
+
 <!-- image %>%  -->
+
 <!--   image_to_array() %>% -->
+
 <!--   `/`(., 255) %>% -->
+
 <!--   as.raster() %>% -->
+
 <!--   plot() -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_32-1.png" width="100%" style="display: block; margin: auto;"/> -->
@@ -518,188 +679,307 @@ for(i in 1:20) {
 <!-- Define the discriminator and test it: -->
 
 <!-- ``` r -->
+
 <!-- get_discriminator = function(){ -->
+
 <!--   discriminator = keras_model_sequential() -->
+
 <!--   discriminator %>%  -->
+
 <!--     layer_conv_2d(filters = 64L, kernel_size = c(5L, 5L), -->
+
 <!--                   strides = c(2L, 2L), padding = "same", -->
+
 <!--                   input_shape = c(80L, 80L, 3L)) %>% -->
+
 <!--     layer_activation_leaky_relu() %>%  -->
+
 <!--     layer_dropout(0.3) %>%  -->
+
 <!--     layer_conv_2d(filters = 128L, kernel_size = c(5L, 5L), -->
+
 <!--                   strides = c(2L, 2L), padding = "same") %>%  -->
+
 <!--     layer_activation_leaky_relu() %>%  -->
+
 <!--     layer_dropout(0.3) %>%  -->
+
 <!--     layer_conv_2d(filters = 256L, kernel_size = c(3L, 3L), -->
+
 <!--                   strides = c(2L, 2L), padding = "same") %>%  -->
+
 <!--     layer_activation_leaky_relu() %>%  -->
+
 <!--     layer_dropout(0.3) %>%  -->
+
 <!--     layer_flatten() %>%  -->
+
 <!--     layer_dense(units = 1L, activation = "sigmoid") -->
+
 <!--   return(discriminator) -->
+
 <!-- } -->
 
 <!-- discriminator = get_discriminator() -->
+
 <!-- discriminator -->
+
 <!-- discriminator(generator(tf$random$normal(c(1L, 100L)))) -->
+
 <!-- ``` -->
 
 <!-- ```{r} -->
+
 <!-- cat(' -->
+
 <!-- Model: "sequential_13" -->
+
 <!-- __________________________________________________________________________________________ -->
+
 <!--  Layer (type)                           Output Shape                        Param #        -->
+
 <!-- ========================================================================================== -->
+
 <!--  conv2d_21 (Conv2D)                     (None, 40, 40, 64)                  4864           -->
+
 <!--  leaky_re_lu_14 (LeakyReLU)             (None, 40, 40, 64)                  0              -->
+
 <!--  dropout_6 (Dropout)                    (None, 40, 40, 64)                  0              -->
+
 <!--  conv2d_20 (Conv2D)                     (None, 20, 20, 128)                 204928         -->
+
 <!--  leaky_re_lu_13 (LeakyReLU)             (None, 20, 20, 128)                 0              -->
+
 <!--  dropout_5 (Dropout)                    (None, 20, 20, 128)                 0              -->
+
 <!--  conv2d_19 (Conv2D)                     (None, 10, 10, 256)                 295168         -->
+
 <!--  leaky_re_lu_12 (LeakyReLU)             (None, 10, 10, 256)                 0              -->
+
 <!--  dropout_4 (Dropout)                    (None, 10, 10, 256)                 0              -->
+
 <!--  flatten_3 (Flatten)                    (None, 25600)                       0              -->
+
 <!--  dense_25 (Dense)                       (None, 1)                           25601          -->
+
 <!-- ========================================================================================== -->
+
 <!-- Total params: 530,561 -->
+
 <!-- Trainable params: 530,561 -->
+
 <!-- Non-trainable params: 0 -->
+
 <!-- __________________________________________________________________________________________ -->
 
 <!-- tf.Tensor([[0.49996078]], shape=(1, 1), dtype=float32)     -->
+
 <!--     ') -->
+
 <!-- ``` -->
 
 <!-- Loss functions: -->
 
 <!-- ``` r -->
+
 <!-- ce = tf$keras$losses$BinaryCrossentropy(from_logits = FALSE, -->
+
 <!--                                         label_smoothing = 0.1) -->
 
 <!-- loss_discriminator = function(real, fake){ -->
+
 <!--   real_loss = ce(tf$ones_like(real), real) -->
+
 <!--   fake_loss = ce(tf$zeros_like(fake), fake) -->
+
 <!--   return(real_loss+fake_loss) -->
+
 <!-- } -->
 
 <!-- loss_generator = function(fake){ -->
+
 <!--   return(ce(tf$ones_like(fake), fake)) -->
+
 <!-- } -->
+
 <!-- ``` -->
 
 <!-- Optimizers (two, each for one network): -->
 
 <!-- ``` r -->
+
 <!-- gen_opt = tf$keras$optimizers$RMSprop(1e-4) -->
+
 <!-- disc_opt = tf$keras$optimizers$RMSprop(1e-4) -->
+
 <!-- ``` -->
 
 <!-- Define functions for the generator and discriminator: -->
 
 <!-- ``` r -->
+
 <!-- generator = get_generator() -->
+
 <!-- discriminator = get_discriminator() -->
 
 <!-- train_step = function(images){ -->
+
 <!--   noise = tf$random$normal(c(32L, 100L)) -->
 
 <!--   with(tf$GradientTape(persistent = TRUE) %as% tape, -->
+
 <!--     { -->
+
 <!--       gen_images = generator(noise) -->
 
 <!--       real_output = discriminator(images) -->
+
 <!--       fake_output = discriminator(gen_images) -->
 
 <!--       gen_loss = loss_generator(fake_output) -->
+
 <!--       disc_loss = loss_discriminator(real_output, fake_output) -->
+
 <!--     } -->
+
 <!--   ) -->
 
 <!--   gen_grads = tape$gradient(gen_loss, generator$weights) -->
+
 <!--   disc_grads = tape$gradient(disc_loss, discriminator$weights) -->
+
 <!--   rm(tape) -->
 
 <!--   gen_opt$apply_gradients(purrr::transpose(list(gen_grads, -->
+
 <!--                                                 generator$weights))) -->
+
 <!--   disc_opt$apply_gradients(purrr::transpose(list(disc_grads, -->
+
 <!--                                                  discriminator$weights))) -->
 
 <!--   return(c(gen_loss, disc_loss)) -->
+
 <!-- } -->
 
 <!-- train_step = tf$`function`(reticulate::py_func(train_step)) -->
+
 <!-- ``` -->
 
 <!-- Training: -->
 
 <!-- ``` r -->
+
 <!-- batch_size = 32L -->
+
 <!-- epochs = 30L -->
+
 <!-- steps = as.integer(dim(train_x)[1]/batch_size) -->
+
 <!-- counter = 1 -->
+
 <!-- gen_loss = c() -->
+
 <!-- disc_loss = c() -->
 
 <!-- dataset = dataset$prefetch(tf$data$AUTOTUNE) -->
 
 <!-- for(e in 1:epochs){ -->
+
 <!--   dat = reticulate::as_iterator(dataset$batch(batch_size)) -->
 
 <!--   coro::loop( -->
+
 <!--     for(images in dat){ -->
+
 <!--       losses = train_step(images) -->
+
 <!--       gen_loss = c(gen_loss, tf$reduce_sum(losses[[1]])$numpy()) -->
+
 <!--       disc_loss = c(disc_loss, tf$reduce_sum(losses[[2]])$numpy()) -->
+
 <!--     } -->
+
 <!--   ) -->
 
 <!--   noise = tf$random$normal(c(1L, 100L)) -->
+
 <!--   image = generator(noise)$numpy()[1,,,] -->
+
 <!--   image = scales::rescale(image, to = c(0, 255)) -->
+
 <!--   if(e %% 15 == 0){ -->
+
 <!--     image %>%  -->
+
 <!--       image_to_array() %>% -->
+
 <!--         `/`(., 255) %>% -->
+
 <!--         as.raster() %>% -->
+
 <!--         plot() -->
+
 <!--   } -->
 
 <!--   if(e %% 10 == 0) cat("Gen: ", mean(gen_loss), " Disc: ", mean(disc_loss), " \n") -->
+
 <!-- } -->
+
 <!-- ``` -->
 
 <!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+
 <!-- cat(' -->
+
 <!-- Gen:  1.651127  Disc:  0.8720699     -->
+
 <!--     ') -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_37-1.png" width="100%" style="display: block; margin: auto;"/> -->
 
 <!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+
 <!-- cat(' -->
+
 <!-- Gen:  1.303061  Disc:  1.037192  -->
+
 <!--     ') -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_37-2.png" width="100%" style="display: block; margin: auto;"/> -->
 
 <!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+
 <!-- cat(' -->
+
 <!-- Gen:  1.168868  Disc:  1.100166 -->
+
 <!--     ') -->
+
 <!-- ``` -->
 
 <!-- ``` r -->
+
 <!-- noise = tf$random$normal(c(1L, 100L)) -->
+
 <!-- image = generator(noise)$numpy()[1,,,] -->
+
 <!-- image = scales::rescale(image, to = c(0, 255)) -->
+
 <!-- image %>%  -->
+
 <!--   image_to_array() %>% -->
+
 <!--   `/`(., 255) %>% -->
+
 <!--   as.raster() %>% -->
+
 <!--   plot() -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_38-1.png" width="100%" style="display: block; margin: auto;"/> -->
@@ -711,9 +991,11 @@ for(i in 1:20) {
 <!-- ## Exercise -->
 
 <!-- ::: {.callout-caution icon="false"} -->
+
 <!-- #### Question -->
 
 <!-- Go through the R examples on generative adversarial networks (@sec-GAN) and compare the flower example with the MNIST example - where are the differences - and why? -->
 
 <!-- The MNIST example uses a "simple" deep neural network which is sufficient for a classification that easy. The flower example uses a much more expensive convolutional neural network to classify the images. -->
+
 <!-- ::: -->
