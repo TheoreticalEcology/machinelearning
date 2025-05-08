@@ -644,7 +644,6 @@ net = nn_module(
 model_torch = net()
 opt = optim_adam(params = model_torch$parameters, lr = 0.01)
 
-
 dataset = tensor_dataset(torch_tensor(train_torch), 
                          torch_tensor(labels+1, dtype = torch_long())
                          )
@@ -1161,6 +1160,127 @@ resnet <- cnn(train, labels+1, transfer_architecture, loss = "softmax",
 
 ```
 
+
+## torch
+
+```{r}
+library(keras3)
+library(tensorflow)
+
+data = EcoData::dataset_flower()
+train = data$train/255
+labels = data$labels
+
+train = aperm(train, c(1, 4, 2, 3))
+
+train_transforms = function(img){
+  img |>
+    transform_random_horizontal_flip(p = 0.3) |>
+    transform_random_resized_crop(size = c(28L, 28L)) |>
+    transform_random_vertical_flip(0.3)
+}
+
+## model 
+
+model_torch = model_resnet18(pretrained = TRUE)
+
+# We will set all model parameters to constant values:
+model_torch$parameters |>
+  purrr::walk(function(param) param$requires_grad_(FALSE))
+
+# Let's replace the last layer (last layer is named 'fc') with our own layer:
+inFeat = model_torch$fc$in_features
+model_torch$fc = nn_linear(inFeat, out_features = 10L)
+
+
+net_pretrained = nn_module(
+  initialize = function(rate = 0.5, freeze_weights = TRUE) {
+    pretrained_model = model_resnet18(pretrained = TRUE)
+    if(freeze_weights) {
+      pretrained_model$parameters |>
+          purrr::walk(function(param) param$requires_grad_(FALSE))
+    }
+    self$pretrained_model = pretrained_model
+    self$dropout = nn_dropout(rate)
+    self$output_layer = nn_linear(pretrained_model$fc$out_features, 5L)
+  },
+  forward = function(x) {
+    x |> self$pretrained_model() |> self$dropout() |> self$output_layer() 
+  }
+)
+
+```
+
+
+```{r}
+# dataloaders
+train_indices = sample.int(dim(train)[1], 2500)
+Xtorch = train[train_indices,,,] |> torch_tensor()
+Ytorch = (labels[train_indices] + 1L)  |> torch_tensor(dtype=torch_long())
+
+Xtorch_test = train[-train_indices,,,] |> torch_tensor()
+Ytorch_test = (labels[-train_indices] + 1L) |> torch_tensor(dtype=torch_long())
+
+
+# setup/define our dataset
+dataset_train = tensor_dataset(Xtorch, Ytorch)
+dataset_val = tensor_dataset(Xtorch_test, Ytorch_test)
+
+
+# dataloaders --> batch samplers
+train_dl = torch::dataloader(dataset_train, batch_size = 150L, shuffle = TRUE)
+val_dl = torch::dataloader(dataset_val, batch_size = 150L, shuffle = FALSE)
+```
+
+
+```{r}
+model = net_pretrained()
+
+# l2 regularization
+opt = optim_adam(params = model$parameters, lr = 0.01, weight_decay = 0.001)
+
+epochs = 5L
+
+overall_train_loss = overall_val_loss = c()
+for(e in 1:epochs) {
+  losses = losses_val = c()
+  
+  model$train() # -> dropout is on
+  coro::loop(
+    for(batch in train_dl) {
+      x = train_transforms(batch[[1]]) # Feature matrix/tensor
+      y = batch[[2]] # Response matrix/tensor
+      opt$zero_grad() # reset optimizer
+      pred = model(x)
+      loss = nnf_cross_entropy(pred, y)
+      loss$backward()
+      opt$step() # update weights
+      losses = c(losses, loss$item())
+    }
+  ) 
+  
+  # calculate validation loss after each epoch
+  model$eval() # dropout is off
+  coro::loop(
+    for(batch in val_dl) {
+      x = batch[[1]] # Feature matrix/tensor
+      y = batch[[2]] # Response matrix/tensor
+      pred = model(x)
+      loss = nnf_cross_entropy(pred, y)
+      losses_val = c(losses_val, loss$item())
+    }
+  ) 
+  overall_train_loss = c(overall_train_loss, mean(losses))
+  overall_val_loss = c(overall_val_loss, mean(losses_val))
+  cat(sprintf("Loss at epoch: %d train: %3f eval: %3f\n", e, mean(losses), mean(losses_val)))
+  
+}
+
+```
+
+```{r}
+matplot(cbind(overall_train_loss, overall_val_loss), type = "l", lty = 1, col = c("#2262AA", "#F82211"), xlab = "epoch", ylab = "Loss")
+```
 
 
 :::

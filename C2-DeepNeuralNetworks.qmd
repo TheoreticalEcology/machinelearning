@@ -624,6 +624,164 @@ print(rmse_torch)
 Build a Keras DNN for the titanic dataset
 :::
 
+`r hide("Solution Torch")`
+```{r}
+library(EcoData)
+library(dplyr)
+library(missRanger)
+library(torch)
+data(titanic_ml)
+data = titanic_ml
+data =
+  data %>% select(survived, sex, age, fare, pclass)
+data[,-1] = missRanger(data[,-1], verbose = 0)
+
+data_sub =
+  data %>%
+    mutate(age = scales::rescale(age, c(0, 1)),
+           fare = scales::rescale(fare, c(0, 1))) %>%
+    mutate(sex = as.integer(sex) - 1L,
+           pclass = as.integer(pclass - 1L))
+data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
+data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
+
+Xtorch = data_obs[,-1] |> as.matrix() |> torch_tensor()
+Ytorch = data_obs[,1] |> as.matrix() |> torch_tensor(dtype=torch_float32())
+Xtest = data_new[,-1] |> as.matrix() |> torch_tensor()
+
+
+```
+
+Dataset:
+```{r}
+train_indices = 1:400
+val_indices = 401:nrow(Xtorch)
+dataset_train= torch::tensor_dataset(Xtorch[train_indices,], Ytorch[train_indices,])
+train_dl = torch::dataloader(dataset_train, batch_size = 20L, shuffle = TRUE)
+
+dataset_val= torch::tensor_dataset(Xtorch[val_indices,], Ytorch[val_indices,])
+val_dl = torch::dataloader(dataset_val, batch_size = 20L, shuffle = TRUE)
+
+first_batch = train_dl$.iter()
+df = first_batch$.next()
+
+df[[1]] |> head()
+df[[2]] |> head()
+
+```
+
+
+Model:
+
+```{r}
+# blueprint
+net = nn_module(
+  # first function tells torch how to build the network
+  initialize = function(units = 50L, input_dim=4L, dropout_rate = 0.5) {
+    # self
+    self$layer1 = nn_linear(in_features = input_dim, out_features = units)
+    self$dropout1 = nn_dropout(p = dropout_rate)
+    self$layer2 = nn_linear(units, units)
+    self$dropout2 = nn_dropout(p = dropout_rate)
+    self$layer3 = nn_linear(units, 1L)
+  },
+  # forward tells torch the input data should be processed
+  forward = function(x) {
+    # x = feature tensor
+    x |> 
+      self$layer1() |> 
+      nnf_relu() |> 
+      self$dropout1() |> 
+      self$layer2() |> 
+      nnf_relu() |> 
+      self$dropout2() |> 
+      self$layer3() |> 
+      torch_sigmoid()
+  }
+)
+
+```
+
+Training loop:
+
+```{r}
+
+train_dl = torch::dataloader(dataset_train, batch_size = 150L, shuffle = TRUE)
+val_dl = torch::dataloader(dataset_val, batch_size = 150L, shuffle = TRUE)
+
+model = net()
+opt = optim_adam(params = model$parameters, lr = 0.01)
+epochs = 500L
+
+overall_train_loss = overall_val_loss = c()
+alpha = 0.7
+lambda = 0.01
+for(e in 1:epochs) {
+  losses = losses_val = c()
+  
+  model$train() # -> dropout is on
+  coro::loop(
+    for(batch in train_dl) {
+      x = batch[[1]] # Feature matrix/tensor
+      y = batch[[2]] # Response matrix/tensor
+      opt$zero_grad() # reset optimizer
+      
+      pred = model(x)
+      loss = nnf_binary_cross_entropy(pred, y)
+      
+      # add regularization loss, l2 -> sum((weights)**2)*lambda 
+      loss = loss + (1-alpha)*(lambda*sum(model$parameters[[1]]**2))
+      
+      # l1 regularization: sum(abs(weights))*lambda
+      loss = loss + (alpha)*(lambda*sum(abs(model$parameters[[1]])))
+      
+      loss$backward()
+      opt$step() # update weights
+      
+      losses = c(losses, loss$item())
+    }
+  ) 
+  
+  # calculate validation loss after each epoch
+  
+  model$eval() # dropout is off
+  coro::loop(
+    for(batch in val_dl) {
+      x = batch[[1]] # Feature matrix/tensor
+      y = batch[[2]] # Response matrix/tensor
+      
+      pred = model(x)
+      loss = nnf_binary_cross_entropy(pred, y)
+      
+      losses_val = c(losses_val, loss$item())
+    }
+  ) 
+  
+  overall_train_loss = c(overall_train_loss, mean(losses))
+  overall_val_loss = c(overall_val_loss, mean(losses_val))
+  
+  cat(sprintf("Loss at epoch: %d train: %3f eval: %3f\n", e, mean(losses), mean(losses_val)))
+  
+}
+
+```
+
+```{r}
+matplot(cbind(overall_train_loss, overall_val_loss), type = "l", lty = 1, col = c("#2262AA", "#F82211"), xlab = "epoch", ylab = "Loss")
+```
+
+Predictions
+```{r}
+model$eval()
+predictions = model(Xtest)
+predictions = as.numeric(predictions)
+```
+
+
+
+`r unhide()`
+
+
 ::::: callout-warning
 #### Bonus Task: More details on the inner working of Keras
 
