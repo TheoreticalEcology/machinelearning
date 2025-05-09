@@ -429,7 +429,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras3)</span>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>holdout <span class="ot">=</span> <span class="dv">700</span><span class="sc">:</span><span class="dv">999</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>X_train <span class="ot">=</span> X[<span class="sc">-</span>holdout,,]</span>
@@ -438,91 +438,166 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>Y_train <span class="ot">=</span> Y[<span class="sc">-</span>holdout,]</span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>Y_test <span class="ot">=</span> Y[holdout,]</span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>()</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> </span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_lstm</span>(<span class="at">units =</span> <span class="dv">60</span>L,<span class="at">input_shape =</span> <span class="fu">dim</span>(X)[<span class="dv">2</span><span class="sc">:</span><span class="dv">3</span>]) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">6</span>L)</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">compile</span>(<span class="at">loss =</span> keras3<span class="sc">::</span>loss_mean_squared_error, <span class="at">optimizer =</span> <span class="fu">optimizer_adamax</span>(<span class="at">learning_rate =</span> <span class="fl">0.01</span>))</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">fit</span>(<span class="at">x =</span> X_train, <span class="at">y =</span> Y_train, <span class="at">epochs =</span> <span class="dv">30</span>L)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>net <span class="ot">=</span> <span class="fu">nn_module</span>(</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>() {</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>lstm <span class="ot">=</span> <span class="fu">nn_lstm</span>(<span class="at">input_size =</span> <span class="dv">21</span>L, <span class="at">hidden_size =</span> <span class="dv">50</span>L ,<span class="at">batch_first =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>linear <span class="ot">=</span> <span class="fu">nn_linear</span>(<span class="dv">50</span>,  <span class="dv">6</span>L)</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  }, </span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">forward =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">=</span> self<span class="sc">$</span><span class="fu">lstm</span>(x)</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># two outputs -&gt; [batch, seq_len, hidden] , last hidden state</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">=</span> x[[<span class="dv">1</span>]][,<span class="fu">dim</span>(x[[<span class="dv">1</span>]])[<span class="dv">2</span>], ]</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(self<span class="sc">$</span><span class="fu">linear</span>(x))</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="co"># training loop</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">net</span>()</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>train_dl <span class="ot">=</span> <span class="fu">dataloader</span>(<span class="fu">tensor_dataset</span>(<span class="fu">torch_tensor</span>(X_train), <span class="fu">torch_tensor</span>(Y_train)), <span class="at">batch_size =</span> <span class="dv">100</span>L, <span class="at">shuffle =</span> <span class="cn">TRUE</span> )</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>opt <span class="ot">=</span> <span class="fu">optim_adam</span>(<span class="at">params =</span> model<span class="sc">$</span>parameters, <span class="at">lr =</span> <span class="fl">0.01</span>)</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>epochs <span class="ot">=</span> <span class="dv">100</span>L</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>overall_train_loss <span class="ot">=</span> <span class="fu">c</span>()</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>epochs) {</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>  losses <span class="ot">=</span> losses_val <span class="ot">=</span> <span class="fu">c</span>()</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>  model<span class="sc">$</span><span class="fu">train</span>() <span class="co"># -&gt; dropout is on</span></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>  coro<span class="sc">::</span><span class="fu">loop</span>(</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(batch <span class="cf">in</span> train_dl) {</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>      x <span class="ot">=</span> batch[[<span class="dv">1</span>]] <span class="co"># Feature matrix/tensor</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>      y <span class="ot">=</span> batch[[<span class="dv">2</span>]] <span class="co"># Response matrix/tensor</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>      opt<span class="sc">$</span><span class="fu">zero_grad</span>() <span class="co"># reset optimizer</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>      pred <span class="ot">=</span> <span class="fu">model</span>(x)</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>      loss <span class="ot">=</span> <span class="fu">nnf_mse_loss</span>(pred, y)</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>      loss<span class="sc">$</span><span class="fu">backward</span>()</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>      opt<span class="sc">$</span><span class="fu">step</span>() <span class="co"># update weights</span></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>      losses <span class="ot">=</span> <span class="fu">c</span>(losses, loss<span class="sc">$</span><span class="fu">item</span>())</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>  overall_train_loss <span class="ot">=</span> <span class="fu">c</span>(overall_train_loss, <span class="fu">mean</span>(losses))</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"Loss at epoch: %d train: %3f</span><span class="sc">\n</span><span class="st">"</span>, e, <span class="fu">mean</span>(losses)))</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Epoch 1/30
-22/22 - 1s - 60ms/step - loss: 0.7506
-Epoch 2/30
-22/22 - 1s - 40ms/step - loss: 0.4153
-Epoch 3/30
-22/22 - 1s - 29ms/step - loss: 0.3555
-Epoch 4/30
-22/22 - 1s - 26ms/step - loss: 0.3522
-Epoch 5/30
-22/22 - 1s - 27ms/step - loss: 0.3493
-Epoch 6/30
-22/22 - 1s - 26ms/step - loss: 0.3175
-Epoch 7/30
-22/22 - 1s - 26ms/step - loss: 0.3007
-Epoch 8/30
-22/22 - 1s - 26ms/step - loss: 0.3136
-Epoch 9/30
-22/22 - 1s - 26ms/step - loss: 0.3007
-Epoch 10/30
-22/22 - 1s - 26ms/step - loss: 0.2950
-Epoch 11/30
-22/22 - 1s - 26ms/step - loss: 0.2871
-Epoch 12/30
-22/22 - 1s - 27ms/step - loss: 0.2743
-Epoch 13/30
-22/22 - 1s - 27ms/step - loss: 0.2745
-Epoch 14/30
-22/22 - 1s - 29ms/step - loss: 0.2906
-Epoch 15/30
-22/22 - 1s - 27ms/step - loss: 0.2722
-Epoch 16/30
-22/22 - 1s - 26ms/step - loss: 0.2571
-Epoch 17/30
-22/22 - 1s - 26ms/step - loss: 0.2449
-Epoch 18/30
-22/22 - 1s - 26ms/step - loss: 0.2502
-Epoch 19/30
-22/22 - 1s - 28ms/step - loss: 0.2393
-Epoch 20/30
-22/22 - 1s - 31ms/step - loss: 0.2437
-Epoch 21/30
-22/22 - 1s - 31ms/step - loss: 0.2560
-Epoch 22/30
-22/22 - 1s - 51ms/step - loss: 0.2310
-Epoch 23/30
-22/22 - 1s - 28ms/step - loss: 0.2176
-Epoch 24/30
-22/22 - 1s - 26ms/step - loss: 0.2204
-Epoch 25/30
-22/22 - 1s - 43ms/step - loss: 0.2055
-Epoch 26/30
-22/22 - 1s - 26ms/step - loss: 0.1906
-Epoch 27/30
-22/22 - 1s - 27ms/step - loss: 0.1895
-Epoch 28/30
-22/22 - 1s - 27ms/step - loss: 0.1866
-Epoch 29/30
-22/22 - 1s - 26ms/step - loss: 0.1923
-Epoch 30/30
-22/22 - 1s - 26ms/step - loss: 0.1837</code></pre>
+<pre><code>Loss at epoch: 1 train: 1.994906
+Loss at epoch: 2 train: 0.856170
+Loss at epoch: 3 train: 0.476273
+Loss at epoch: 4 train: 0.380085
+Loss at epoch: 5 train: 0.376748
+Loss at epoch: 6 train: 0.357207
+Loss at epoch: 7 train: 0.341953
+Loss at epoch: 8 train: 0.346024
+Loss at epoch: 9 train: 0.336112
+Loss at epoch: 10 train: 0.333987
+Loss at epoch: 11 train: 0.331322
+Loss at epoch: 12 train: 0.296810
+Loss at epoch: 13 train: 0.296099
+Loss at epoch: 14 train: 0.283915
+Loss at epoch: 15 train: 0.278939
+Loss at epoch: 16 train: 0.271180
+Loss at epoch: 17 train: 0.276021
+Loss at epoch: 18 train: 0.267254
+Loss at epoch: 19 train: 0.255515
+Loss at epoch: 20 train: 0.243821
+Loss at epoch: 21 train: 0.241473
+Loss at epoch: 22 train: 0.245328
+Loss at epoch: 23 train: 0.252983
+Loss at epoch: 24 train: 0.275309
+Loss at epoch: 25 train: 0.261029
+Loss at epoch: 26 train: 0.234615
+Loss at epoch: 27 train: 0.220224
+Loss at epoch: 28 train: 0.203021
+Loss at epoch: 29 train: 0.181731
+Loss at epoch: 30 train: 0.175554
+Loss at epoch: 31 train: 0.175870
+Loss at epoch: 32 train: 0.195022
+Loss at epoch: 33 train: 0.183308
+Loss at epoch: 34 train: 0.168748
+Loss at epoch: 35 train: 0.168387
+Loss at epoch: 36 train: 0.153121
+Loss at epoch: 37 train: 0.149006
+Loss at epoch: 38 train: 0.151347
+Loss at epoch: 39 train: 0.150211
+Loss at epoch: 40 train: 0.135393
+Loss at epoch: 41 train: 0.126832
+Loss at epoch: 42 train: 0.116456
+Loss at epoch: 43 train: 0.113194
+Loss at epoch: 44 train: 0.106261
+Loss at epoch: 45 train: 0.101918
+Loss at epoch: 46 train: 0.097186
+Loss at epoch: 47 train: 0.093761
+Loss at epoch: 48 train: 0.091179
+Loss at epoch: 49 train: 0.087262
+Loss at epoch: 50 train: 0.086706
+Loss at epoch: 51 train: 0.093703
+Loss at epoch: 52 train: 0.092632
+Loss at epoch: 53 train: 0.089517
+Loss at epoch: 54 train: 0.087657
+Loss at epoch: 55 train: 0.082732
+Loss at epoch: 56 train: 0.078252
+Loss at epoch: 57 train: 0.074534
+Loss at epoch: 58 train: 0.076109
+Loss at epoch: 59 train: 0.072607
+Loss at epoch: 60 train: 0.070278
+Loss at epoch: 61 train: 0.069510
+Loss at epoch: 62 train: 0.065573
+Loss at epoch: 63 train: 0.066073
+Loss at epoch: 64 train: 0.062593
+Loss at epoch: 65 train: 0.060189
+Loss at epoch: 66 train: 0.058890
+Loss at epoch: 67 train: 0.057784
+Loss at epoch: 68 train: 0.057428
+Loss at epoch: 69 train: 0.054572
+Loss at epoch: 70 train: 0.056867
+Loss at epoch: 71 train: 0.055438
+Loss at epoch: 72 train: 0.052952
+Loss at epoch: 73 train: 0.052330
+Loss at epoch: 74 train: 0.052945
+Loss at epoch: 75 train: 0.055448
+Loss at epoch: 76 train: 0.052313
+Loss at epoch: 77 train: 0.048622
+Loss at epoch: 78 train: 0.050235
+Loss at epoch: 79 train: 0.047862
+Loss at epoch: 80 train: 0.049148
+Loss at epoch: 81 train: 0.047287
+Loss at epoch: 82 train: 0.053710
+Loss at epoch: 83 train: 0.054321
+Loss at epoch: 84 train: 0.054545
+Loss at epoch: 85 train: 0.054815
+Loss at epoch: 86 train: 0.050959
+Loss at epoch: 87 train: 0.093483
+Loss at epoch: 88 train: 0.098891
+Loss at epoch: 89 train: 0.093983
+Loss at epoch: 90 train: 0.092342
+Loss at epoch: 91 train: 0.096662
+Loss at epoch: 92 train: 0.092818
+Loss at epoch: 93 train: 0.096260
+Loss at epoch: 94 train: 0.080524
+Loss at epoch: 95 train: 0.072129
+Loss at epoch: 96 train: 0.061361
+Loss at epoch: 97 train: 0.053054
+Loss at epoch: 98 train: 0.057596
+Loss at epoch: 99 train: 0.056570
+Loss at epoch: 100 train: 0.054325</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> </span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  model <span class="sc">%&gt;%</span> <span class="fu">predict</span>(X_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>10/10 - 0s - 19ms/step</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">matplot</span>(<span class="fu">cbind</span>(<span class="fu">as.vector</span>(preds[<span class="dv">1</span><span class="sc">:</span><span class="dv">48</span>,]),  </span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>              <span class="fu">as.vector</span>(Y_test[<span class="dv">1</span><span class="sc">:</span><span class="dv">48</span>,])), </span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"darkblue"</span>, <span class="st">"darkred"</span>),</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">"o"</span>, </span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">16</span>),</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">xlab =</span> <span class="st">"week"</span>, <span class="at">ylab =</span> <span class="st">"Drought"</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">bty =</span> <span class="st">"n"</span>, </span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"darkblue"</span>, <span class="st">"darkred"</span>),</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">16</span>), </span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Prediction"</span>, <span class="st">"True Values"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">as.matrix</span>(<span class="fu">model</span>(<span class="fu">torch_tensor</span>(X_test)))</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="fu">matplot</span>(<span class="fu">cbind</span>(<span class="fu">as.vector</span>(preds[<span class="dv">1</span><span class="sc">:</span><span class="dv">48</span>,]),  </span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">as.vector</span>(Y_test[<span class="dv">1</span><span class="sc">:</span><span class="dv">48</span>,])), </span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"darkblue"</span>, <span class="st">"darkred"</span>),</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">"l"</span>, </span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">16</span>),</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">xlab =</span> <span class="st">"week"</span>, <span class="at">ylab =</span> <span class="st">"Drought"</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">bty =</span> <span class="st">"n"</span>, </span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"darkblue"</span>, <span class="st">"darkred"</span>),</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">16</span>), </span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Prediction"</span>, <span class="st">"True Values"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -531,184 +606,101 @@ Epoch 30/30
 </div>
 </div>
 </div>
-<p>The following code snippet shows you many (technical) things you need for building more complex network structures, even with LSTM cells (the following example doesn’t have any functionality, it is just an example for how to process two different inputs in different ways within one network):</p>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" aria-current="page">Keras</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Torch</a></li></ul>
-<div class="tab-content">
-<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras3)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>inputDimension1 <span class="ot">=</span> <span class="dv">50</span>L</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>inputDimension2 <span class="ot">=</span> <span class="dv">10</span>L</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>input1 <span class="ot">=</span> <span class="fu">layer_input</span>(<span class="at">shape =</span> inputDimension1)</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>input2 <span class="ot">=</span> <span class="fu">layer_input</span>(<span class="at">shape =</span> inputDimension2)</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>modelInput2 <span class="ot">=</span> input2 <span class="sc">%&gt;%</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dropout</span>(<span class="at">rate =</span> <span class="fl">0.5</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> inputDimension2, <span class="at">activation =</span> <span class="st">"gelu"</span>)</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>modelMemory <span class="ot">=</span> input1 <span class="sc">%&gt;%</span></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_embedding</span>(<span class="at">input_dim =</span> inputDimension1, <span class="at">output_dim =</span> <span class="dv">64</span>L) <span class="sc">%&gt;%</span></span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_lstm</span>(<span class="at">units =</span> <span class="dv">64</span>L) <span class="sc">%&gt;%</span></span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dropout</span>(<span class="at">rate =</span> <span class="fl">0.5</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">2</span>L, <span class="at">activation =</span> <span class="st">"sigmoid"</span>)</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>modelDeep <span class="ot">=</span> input1 <span class="sc">%&gt;%</span></span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dropout</span>(<span class="at">rate =</span> <span class="fl">0.5</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">64</span>L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dropout</span>(<span class="at">rate =</span> <span class="fl">0.3</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">64</span>L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">64</span>L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">5</span>L, <span class="at">activation =</span> <span class="st">"sigmoid"</span>)</span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>modelMain <span class="ot">=</span> <span class="fu">layer_concatenate</span>(<span class="fu">c</span>(modelMemory, modelDeep, modelInput2)) <span class="sc">%&gt;%</span></span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dropout</span>(<span class="at">rate =</span> <span class="fl">0.25</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">64</span>L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dropout</span>(<span class="at">rate =</span> <span class="fl">0.3</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">64</span>L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">2</span>L, <span class="at">activation =</span> <span class="st">"sigmoid"</span>)</span>
-<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model</span>(</span>
-<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>  <span class="at">inputs =</span> <span class="fu">c</span>(input1, input2),</span>
-<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>  <span class="at">outputs =</span> <span class="fu">c</span>(modelMain)  <span class="co"># Use the whole modelMain (resp. its output) as output.</span></span>
-<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Model: "functional_3"
-┏━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┓
-┃ Layer (type)          ┃ Output Shape      ┃     Param # ┃ Connected to       ┃
-┡━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━┩
-│ input_layer_1         │ (None, 50)        │           0 │ -                  │
-│ (InputLayer)          │                   │             │                    │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dropout_2 (Dropout)   │ (None, 50)        │           0 │ input_layer_1[0][… │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dense_3 (Dense)       │ (None, 64)        │       3,264 │ dropout_2[0][0]    │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ embedding (Embedding) │ (None, 50, 64)    │       3,200 │ input_layer_1[0][… │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dropout_3 (Dropout)   │ (None, 64)        │           0 │ dense_3[0][0]      │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ lstm_1 (LSTM)         │ (None, 64)        │      33,024 │ embedding[0][0]    │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dense_4 (Dense)       │ (None, 64)        │       4,160 │ dropout_3[0][0]    │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ input_layer_2         │ (None, 10)        │           0 │ -                  │
-│ (InputLayer)          │                   │             │                    │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dropout_1 (Dropout)   │ (None, 64)        │           0 │ lstm_1[0][0]       │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dense_5 (Dense)       │ (None, 64)        │       4,160 │ dense_4[0][0]      │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dropout (Dropout)     │ (None, 10)        │           0 │ input_layer_2[0][… │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dense_2 (Dense)       │ (None, 2)         │         130 │ dropout_1[0][0]    │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dense_6 (Dense)       │ (None, 5)         │         325 │ dense_5[0][0]      │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dense_1 (Dense)       │ (None, 10)        │         110 │ dropout[0][0]      │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ concatenate           │ (None, 17)        │           0 │ dense_2[0][0],     │
-│ (Concatenate)         │                   │             │ dense_6[0][0],     │
-│                       │                   │             │ dense_1[0][0]      │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dropout_4 (Dropout)   │ (None, 17)        │           0 │ concatenate[0][0]  │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dense_7 (Dense)       │ (None, 64)        │       1,152 │ dropout_4[0][0]    │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dropout_5 (Dropout)   │ (None, 64)        │           0 │ dense_7[0][0]      │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dense_8 (Dense)       │ (None, 64)        │       4,160 │ dropout_5[0][0]    │
-├───────────────────────┼───────────────────┼─────────────┼────────────────────┤
-│ dense_9 (Dense)       │ (None, 2)         │         130 │ dense_8[0][0]      │
-└───────────────────────┴───────────────────┴─────────────┴────────────────────┘
- Total params: 53,815 (210.21 KB)
- Trainable params: 53,815 (210.21 KB)
- Non-trainable params: 0 (0.00 B)</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model %&gt;% plot_model()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</div>
-<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
-<div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>model_torch <span class="ot">=</span> <span class="fu">nn_module</span>(</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(type, <span class="at">inputDimension1 =</span> <span class="dv">50</span>L, <span class="at">inputDimension2 =</span> <span class="dv">10</span>L) {</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>dim1 <span class="ot">=</span> inputDimension1</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>dim2 <span class="ot">=</span> inputDimension2</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>modelInput2 <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_dropout</span>(<span class="fl">0.5</span>),</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_linear</span>(<span class="at">in_features =</span> self<span class="sc">$</span>dim2, <span class="at">out_features =</span> self<span class="sc">$</span>dim2),</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_selu</span>()</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>modelMemory <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_embedding</span>(self<span class="sc">$</span>dim1, <span class="dv">64</span>),</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_lstm</span>(<span class="dv">64</span>, <span class="dv">64</span>)</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>modelMemoryOutput <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_dropout</span>(<span class="fl">0.5</span>),</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_linear</span>(<span class="dv">64</span>L, <span class="dv">2</span>L),</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_sigmoid</span>()</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>modelDeep <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_dropout</span>(<span class="fl">0.5</span>),</span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_linear</span>(self<span class="sc">$</span>dim1, <span class="dv">64</span>L),</span>
-<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
-<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_dropout</span>(<span class="fl">0.3</span>),</span>
-<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_linear</span>(<span class="dv">64</span>, <span class="dv">64</span>),</span>
-<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
-<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_linear</span>(<span class="dv">64</span>, <span class="dv">64</span>),</span>
-<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
-<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_linear</span>(<span class="dv">64</span>, <span class="dv">5</span>),</span>
-<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_sigmoid</span>()</span>
-<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>modelMain <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
-<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_linear</span>(<span class="dv">7</span><span class="sc">+</span>self<span class="sc">$</span>dim2, <span class="dv">64</span>),</span>
-<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
-<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_dropout</span>(<span class="fl">0.5</span>),</span>
-<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_linear</span>(<span class="dv">64</span>, <span class="dv">64</span>),</span>
-<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_relu</span>(),</span>
-<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_dropout</span>(),</span>
-<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_linear</span>(<span class="dv">64</span>, <span class="dv">2</span>),</span>
-<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nn_sigmoid</span>()</span>
-<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>  <span class="at">forward =</span> <span class="cf">function</span>(x) {</span>
-<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>    input1 <span class="ot">=</span> x[[<span class="dv">1</span>]]</span>
-<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>    input2 <span class="ot">=</span> x[[<span class="dv">2</span>]]</span>
-<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a>    out2 <span class="ot">=</span> self<span class="sc">$</span><span class="fu">modelInput2</span>(input2)</span>
-<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>    out1 <span class="ot">=</span> self<span class="sc">$</span><span class="fu">modelMemoryOutput</span>( self<span class="sc">$</span><span class="fu">modelMemory</span>(input1)<span class="sc">$</span><span class="fu">view</span>(<span class="fu">list</span>(<span class="fu">dim</span>(input1)[<span class="dv">1</span>], <span class="sc">-</span><span class="dv">1</span>)) )</span>
-<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>    out3 <span class="ot">=</span> self<span class="sc">$</span><span class="fu">modelDeep</span>(input1)</span>
-<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>    out <span class="ot">=</span> self<span class="sc">$</span><span class="fu">modelMain</span>(<span class="fu">torch_cat</span>(<span class="fu">list</span>(out1, out2, out3), <span class="dv">2</span>))</span>
-<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(out)</span>
-<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>(<span class="fu">model_torch</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>An `nn_module` containing 54,071 parameters.
-
-── Modules ─────────────────────────────────────────────────────────────────────
-• modelInput2: &lt;nn_sequential&gt; #110 parameters
-• modelMemory: &lt;nn_sequential&gt; #36,480 parameters
-• modelMemoryOutput: &lt;nn_sequential&gt; #130 parameters
-• modelDeep: &lt;nn_sequential&gt; #11,909 parameters
-• modelMain: &lt;nn_sequential&gt; #5,442 parameters</code></pre>
-</div>
-</div>
-</div>
-</div>
-</div>
+<!-- The following code snippet shows you many (technical) things you need for building more complex network structures, even with LSTM cells (the following example doesn't have any functionality, it is just an example for how to process two different inputs in different ways within one network): -->
+<!-- ::: panel-tabset -->
+<!-- ## Keras -->
+<!-- ```{r chunk_chapter5_1, message=FALSE, warning=FALSE} -->
+<!-- library(tensorflow) -->
+<!-- library(keras3) -->
+<!-- inputDimension1 = 50L -->
+<!-- inputDimension2 = 10L -->
+<!-- input1 = layer_input(shape = inputDimension1) -->
+<!-- input2 = layer_input(shape = inputDimension2) -->
+<!-- modelInput2 = input2 %>% -->
+<!--   layer_dropout(rate = 0.5) %>% -->
+<!--   layer_dense(units = inputDimension2, activation = "gelu") -->
+<!-- modelMemory = input1 %>% -->
+<!--   layer_embedding(input_dim = inputDimension1, output_dim = 64L) %>% -->
+<!--   layer_lstm(units = 64L) %>% -->
+<!--   layer_dropout(rate = 0.5) %>% -->
+<!--   layer_dense(units = 2L, activation = "sigmoid") -->
+<!-- modelDeep = input1 %>% -->
+<!--   layer_dropout(rate = 0.5) %>% -->
+<!--   layer_dense(units = 64L, activation = "relu") %>% -->
+<!--   layer_dropout(rate = 0.3) %>% -->
+<!--   layer_dense(units = 64L, activation = "relu") %>% -->
+<!--   layer_dense(units = 64L, activation = "relu") %>% -->
+<!--   layer_dense(units = 5L, activation = "sigmoid") -->
+<!-- modelMain = layer_concatenate(c(modelMemory, modelDeep, modelInput2)) %>% -->
+<!--   layer_dropout(rate = 0.25) %>% -->
+<!--   layer_dense(units = 64L, activation = "relu") %>% -->
+<!--   layer_dropout(rate = 0.3) %>% -->
+<!--   layer_dense(units = 64L, activation = "relu") %>% -->
+<!--   layer_dense(units = 2L, activation = "sigmoid") -->
+<!-- model = keras_model( -->
+<!--   inputs = c(input1, input2), -->
+<!--   outputs = c(modelMain)  # Use the whole modelMain (resp. its output) as output. -->
+<!-- ) -->
+<!-- summary(model) -->
+<!-- # model %>% plot_model() -->
+<!-- ``` -->
+<!-- ## Torch -->
+<!-- ```{r chunk_chapter5_1_torch, message=FALSE, warning=FALSE} -->
+<!-- library(torch) -->
+<!-- model_torch = nn_module( -->
+<!--   initialize = function(type, inputDimension1 = 50L, inputDimension2 = 10L) { -->
+<!--     self$dim1 = inputDimension1 -->
+<!--     self$dim2 = inputDimension2 -->
+<!--     self$modelInput2 = nn_sequential( -->
+<!--       nn_dropout(0.5), -->
+<!--       nn_linear(in_features = self$dim2, out_features = self$dim2), -->
+<!--       nn_selu() -->
+<!--     ) -->
+<!--     self$modelMemory = nn_sequential( -->
+<!--       nn_embedding(self$dim1, 64), -->
+<!--       nn_lstm(64, 64) -->
+<!--     ) -->
+<!--     self$modelMemoryOutput = nn_sequential( -->
+<!--       nn_dropout(0.5), -->
+<!--       nn_linear(64L, 2L), -->
+<!--       nn_sigmoid() -->
+<!--     ) -->
+<!--     self$modelDeep = nn_sequential( -->
+<!--       nn_dropout(0.5), -->
+<!--       nn_linear(self$dim1, 64L), -->
+<!--       nn_relu(), -->
+<!--       nn_dropout(0.3), -->
+<!--       nn_linear(64, 64), -->
+<!--       nn_relu(), -->
+<!--       nn_linear(64, 64), -->
+<!--       nn_relu(), -->
+<!--       nn_linear(64, 5), -->
+<!--       nn_sigmoid() -->
+<!--     ) -->
+<!--     self$modelMain = nn_sequential( -->
+<!--       nn_linear(7+self$dim2, 64), -->
+<!--       nn_relu(), -->
+<!--       nn_dropout(0.5), -->
+<!--       nn_linear(64, 64), -->
+<!--       nn_relu(), -->
+<!--       nn_dropout(), -->
+<!--       nn_linear(64, 2), -->
+<!--       nn_sigmoid() -->
+<!--     ) -->
+<!--   }, -->
+<!--   forward = function(x) { -->
+<!--     input1 = x[[1]] -->
+<!--     input2 = x[[2]] -->
+<!--     out2 = self$modelInput2(input2) -->
+<!--     out1 = self$modelMemoryOutput( self$modelMemory(input1)$view(list(dim(input1)[1], -1)) ) -->
+<!--     out3 = self$modelDeep(input1) -->
+<!--     out = self$modelMain(torch_cat(list(out1, out2, out3), 2)) -->
+<!--     return(out) -->
+<!--   } -->
+<!-- ) -->
+<!-- (model_torch()) -->
+<!-- ``` -->
+<!-- ::: -->
 
 
 </section>

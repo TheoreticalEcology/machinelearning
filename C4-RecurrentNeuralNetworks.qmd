@@ -48,7 +48,7 @@ plot(as.vector(Y[1:16,]), type = "l", xlab = "week", ylab = "Drought")
 ```
 
 ```{r chunk_chapter5_1_Rnn, message=FALSE, warning=FALSE}
-library(keras3)
+library(torch)
 
 holdout = 700:999
 X_train = X[-holdout,,]
@@ -57,23 +57,59 @@ X_test = X[holdout,,]
 Y_train = Y[-holdout,]
 Y_test = Y[holdout,]
 
-model = keras_model_sequential()
-model %>% 
-  layer_lstm(units = 60L,input_shape = dim(X)[2:3]) %>% 
-  layer_dense(units = 6L)
 
-model %>% compile(loss = keras3::loss_mean_squared_error, optimizer = optimizer_adamax(learning_rate = 0.01))
-  
-model %>% fit(x = X_train, y = Y_train, epochs = 30L)
 
-preds = 
-  model %>% predict(X_test)
+net = nn_module(
+  initialize = function() {
+    self$lstm = nn_lstm(input_size = 21L, hidden_size = 50L ,batch_first = TRUE)
+    self$linear = nn_linear(50,  6L)
+  }, 
+  forward = function(x) {
+    x = self$lstm(x)
+    # two outputs -> [batch, seq_len, hidden] , last hidden state
+    x = x[[1]][,dim(x[[1]])[2], ]
+    return(self$linear(x))
+  }
+)
+
+# training loop
+model = net()
+
+train_dl = dataloader(tensor_dataset(torch_tensor(X_train), torch_tensor(Y_train)), batch_size = 100L, shuffle = TRUE )
+
+opt = optim_adam(params = model$parameters, lr = 0.01)
+epochs = 100L
+overall_train_loss = c()
+for(e in 1:epochs) {
+  losses = losses_val = c()
+  model$train() # -> dropout is on
+  coro::loop(
+    for(batch in train_dl) {
+      x = batch[[1]] # Feature matrix/tensor
+      y = batch[[2]] # Response matrix/tensor
+      opt$zero_grad() # reset optimizer
+      pred = model(x)
+      loss = nnf_mse_loss(pred, y)
+      loss$backward()
+      opt$step() # update weights
+      losses = c(losses, loss$item())
+    }
+  )
+  overall_train_loss = c(overall_train_loss, mean(losses))
+  cat(sprintf("Loss at epoch: %d train: %3f\n", e, mean(losses)))
+
+}
+
+preds = as.matrix(model(torch_tensor(X_test)))
+
+
+
 
 
 matplot(cbind(as.vector(preds[1:48,]),  
               as.vector(Y_test[1:48,])), 
         col = c("darkblue", "darkred"),
-        type = "o", 
+        type = "l", 
         pch = c(15, 16),
         xlab = "week", ylab = "Drought")
 legend("topright", bty = "n", 
@@ -83,118 +119,122 @@ legend("topright", bty = "n",
 
 ```
 
-The following code snippet shows you many (technical) things you need for building more complex network structures, even with LSTM cells (the following example doesn't have any functionality, it is just an example for how to process two different inputs in different ways within one network):
-
-::: panel-tabset
-## Keras
-
-```{r chunk_chapter5_1, message=FALSE, warning=FALSE}
-library(tensorflow)
-library(keras3)
 
 
-inputDimension1 = 50L
-inputDimension2 = 10L
 
-input1 = layer_input(shape = inputDimension1)
-input2 = layer_input(shape = inputDimension2)
 
-modelInput2 = input2 %>%
-  layer_dropout(rate = 0.5) %>%
-  layer_dense(units = inputDimension2, activation = "gelu")
+<!-- The following code snippet shows you many (technical) things you need for building more complex network structures, even with LSTM cells (the following example doesn't have any functionality, it is just an example for how to process two different inputs in different ways within one network): -->
 
-modelMemory = input1 %>%
-  layer_embedding(input_dim = inputDimension1, output_dim = 64L) %>%
-  layer_lstm(units = 64L) %>%
-  layer_dropout(rate = 0.5) %>%
-  layer_dense(units = 2L, activation = "sigmoid")
+<!-- ::: panel-tabset -->
+<!-- ## Keras -->
 
-modelDeep = input1 %>%
-  layer_dropout(rate = 0.5) %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dropout(rate = 0.3) %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dense(units = 5L, activation = "sigmoid")
+<!-- ```{r chunk_chapter5_1, message=FALSE, warning=FALSE} -->
+<!-- library(tensorflow) -->
+<!-- library(keras3) -->
 
-modelMain = layer_concatenate(c(modelMemory, modelDeep, modelInput2)) %>%
-  layer_dropout(rate = 0.25) %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dropout(rate = 0.3) %>%
-  layer_dense(units = 64L, activation = "relu") %>%
-  layer_dense(units = 2L, activation = "sigmoid")
 
-model = keras_model(
-  inputs = c(input1, input2),
-  outputs = c(modelMain)  # Use the whole modelMain (resp. its output) as output.
-)
+<!-- inputDimension1 = 50L -->
+<!-- inputDimension2 = 10L -->
 
-summary(model)
-# model %>% plot_model()
-```
+<!-- input1 = layer_input(shape = inputDimension1) -->
+<!-- input2 = layer_input(shape = inputDimension2) -->
 
-## Torch
+<!-- modelInput2 = input2 %>% -->
+<!--   layer_dropout(rate = 0.5) %>% -->
+<!--   layer_dense(units = inputDimension2, activation = "gelu") -->
 
-```{r chunk_chapter5_1_torch, message=FALSE, warning=FALSE}
-library(torch)
+<!-- modelMemory = input1 %>% -->
+<!--   layer_embedding(input_dim = inputDimension1, output_dim = 64L) %>% -->
+<!--   layer_lstm(units = 64L) %>% -->
+<!--   layer_dropout(rate = 0.5) %>% -->
+<!--   layer_dense(units = 2L, activation = "sigmoid") -->
 
-model_torch = nn_module(
-  initialize = function(type, inputDimension1 = 50L, inputDimension2 = 10L) {
-    self$dim1 = inputDimension1
-    self$dim2 = inputDimension2
-    self$modelInput2 = nn_sequential(
-      nn_dropout(0.5),
-      nn_linear(in_features = self$dim2, out_features = self$dim2),
-      nn_selu()
-    )
-    self$modelMemory = nn_sequential(
-      nn_embedding(self$dim1, 64),
-      nn_lstm(64, 64)
-    )
-    self$modelMemoryOutput = nn_sequential(
-      nn_dropout(0.5),
-      nn_linear(64L, 2L),
-      nn_sigmoid()
-    )
-    
-    self$modelDeep = nn_sequential(
-      nn_dropout(0.5),
-      nn_linear(self$dim1, 64L),
-      nn_relu(),
-      nn_dropout(0.3),
-      nn_linear(64, 64),
-      nn_relu(),
-      nn_linear(64, 64),
-      nn_relu(),
-      nn_linear(64, 5),
-      nn_sigmoid()
-    )
-    
-    self$modelMain = nn_sequential(
-      nn_linear(7+self$dim2, 64),
-      nn_relu(),
-      nn_dropout(0.5),
-      nn_linear(64, 64),
-      nn_relu(),
-      nn_dropout(),
-      nn_linear(64, 2),
-      nn_sigmoid()
-    )
-  },
-  
-  forward = function(x) {
-    input1 = x[[1]]
-    input2 = x[[2]]
-    out2 = self$modelInput2(input2)
-    out1 = self$modelMemoryOutput( self$modelMemory(input1)$view(list(dim(input1)[1], -1)) )
-    out3 = self$modelDeep(input1)
-    out = self$modelMain(torch_cat(list(out1, out2, out3), 2))
-    return(out)
-  }
-  
-)
+<!-- modelDeep = input1 %>% -->
+<!--   layer_dropout(rate = 0.5) %>% -->
+<!--   layer_dense(units = 64L, activation = "relu") %>% -->
+<!--   layer_dropout(rate = 0.3) %>% -->
+<!--   layer_dense(units = 64L, activation = "relu") %>% -->
+<!--   layer_dense(units = 64L, activation = "relu") %>% -->
+<!--   layer_dense(units = 5L, activation = "sigmoid") -->
 
-(model_torch())
+<!-- modelMain = layer_concatenate(c(modelMemory, modelDeep, modelInput2)) %>% -->
+<!--   layer_dropout(rate = 0.25) %>% -->
+<!--   layer_dense(units = 64L, activation = "relu") %>% -->
+<!--   layer_dropout(rate = 0.3) %>% -->
+<!--   layer_dense(units = 64L, activation = "relu") %>% -->
+<!--   layer_dense(units = 2L, activation = "sigmoid") -->
 
-```
-:::
+<!-- model = keras_model( -->
+<!--   inputs = c(input1, input2), -->
+<!--   outputs = c(modelMain)  # Use the whole modelMain (resp. its output) as output. -->
+<!-- ) -->
+
+<!-- summary(model) -->
+<!-- # model %>% plot_model() -->
+<!-- ``` -->
+
+<!-- ## Torch -->
+
+<!-- ```{r chunk_chapter5_1_torch, message=FALSE, warning=FALSE} -->
+<!-- library(torch) -->
+
+<!-- model_torch = nn_module( -->
+<!--   initialize = function(type, inputDimension1 = 50L, inputDimension2 = 10L) { -->
+<!--     self$dim1 = inputDimension1 -->
+<!--     self$dim2 = inputDimension2 -->
+<!--     self$modelInput2 = nn_sequential( -->
+<!--       nn_dropout(0.5), -->
+<!--       nn_linear(in_features = self$dim2, out_features = self$dim2), -->
+<!--       nn_selu() -->
+<!--     ) -->
+<!--     self$modelMemory = nn_sequential( -->
+<!--       nn_embedding(self$dim1, 64), -->
+<!--       nn_lstm(64, 64) -->
+<!--     ) -->
+<!--     self$modelMemoryOutput = nn_sequential( -->
+<!--       nn_dropout(0.5), -->
+<!--       nn_linear(64L, 2L), -->
+<!--       nn_sigmoid() -->
+<!--     ) -->
+
+<!--     self$modelDeep = nn_sequential( -->
+<!--       nn_dropout(0.5), -->
+<!--       nn_linear(self$dim1, 64L), -->
+<!--       nn_relu(), -->
+<!--       nn_dropout(0.3), -->
+<!--       nn_linear(64, 64), -->
+<!--       nn_relu(), -->
+<!--       nn_linear(64, 64), -->
+<!--       nn_relu(), -->
+<!--       nn_linear(64, 5), -->
+<!--       nn_sigmoid() -->
+<!--     ) -->
+
+<!--     self$modelMain = nn_sequential( -->
+<!--       nn_linear(7+self$dim2, 64), -->
+<!--       nn_relu(), -->
+<!--       nn_dropout(0.5), -->
+<!--       nn_linear(64, 64), -->
+<!--       nn_relu(), -->
+<!--       nn_dropout(), -->
+<!--       nn_linear(64, 2), -->
+<!--       nn_sigmoid() -->
+<!--     ) -->
+<!--   }, -->
+
+<!--   forward = function(x) { -->
+<!--     input1 = x[[1]] -->
+<!--     input2 = x[[2]] -->
+<!--     out2 = self$modelInput2(input2) -->
+<!--     out1 = self$modelMemoryOutput( self$modelMemory(input1)$view(list(dim(input1)[1], -1)) ) -->
+<!--     out3 = self$modelDeep(input1) -->
+<!--     out = self$modelMain(torch_cat(list(out1, out2, out3), 2)) -->
+<!--     return(out) -->
+<!--   } -->
+
+<!-- ) -->
+
+<!-- (model_torch()) -->
+
+<!-- ``` -->
+<!-- ::: -->
