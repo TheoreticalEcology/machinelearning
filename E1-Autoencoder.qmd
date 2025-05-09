@@ -28,85 +28,137 @@ library(torch)
 <!-- Let's start with the (usual) MNIST example: -->
 
 <!-- ``` r -->
+
 <!-- library(keras) -->
+
 <!-- library(tensorflow) -->
 
 <!-- data = keras::dataset_mnist() -->
+
 <!-- ``` -->
 
 <!-- We don't need the labels here, our images will be the inputs and at the same time the outputs of our final autoencoder. -->
 
 <!-- ``` r -->
+
 <!-- rotate = function(x){ t(apply(x, 2, rev)) } -->
 
 <!-- imgPlot = function(img, title = ""){ -->
+
 <!--   col = grey.colors(255) -->
+
 <!--   if(title != ""){ main = paste0("Label: ", as.character(title)) } -->
+
 <!--   else{ main = "" } -->
+
 <!--   image(rotate(img), col = col, xlab = "", ylab = "", axes = FALSE, main = main) -->
+
 <!-- } -->
 
 <!-- train = data[[1]] -->
+
 <!-- test = data[[2]] -->
+
 <!-- train_x = array(train[[1]]/255, c(dim(train[[1]])[1], 784L)) -->
+
 <!-- test_x = array(test[[1]]/255, c(dim(test[[1]])[1], 784L)) -->
+
 <!-- ``` -->
 
 <!-- Our encoder: image (784 dimensions) $\rightarrow$ 2 dimensions -->
 
 <!-- ``` r -->
+
 <!-- down_size_model = keras_model_sequential() -->
+
 <!-- down_size_model %>%  -->
+
 <!--   layer_dense(units = 100L, input_shape = c(784L), activation = "relu") %>%  -->
+
 <!--   layer_dense(units = 20L, activation = "relu") %>%  -->
+
 <!--   layer_dense(units = 2L, activation = "linear") -->
+
 <!-- ``` -->
 
 <!-- Our decoder: 2 dimensions $\rightarrow$ 784 dimensions (our image) -->
 
 <!-- ``` r -->
+
 <!-- up_size_model = keras_model_sequential() -->
+
 <!-- up_size_model %>%  -->
+
 <!--   layer_dense(units = 20L, input_shape = c(2L), activation = "relu") %>%  -->
+
 <!--   layer_dense(units = 100L, activation = "relu") %>%  -->
+
 <!--   layer_dense(units = 784L, activation = "sigmoid") -->
+
 <!-- ``` -->
 
 <!-- We can use the non-sequential model type to connect the two models. (We did the same in the transfer learning chapter.) -->
 
 <!-- ``` r -->
+
 <!-- autoencoder = keras_model(inputs = down_size_model$input,  -->
+
 <!--                           outputs = up_size_model(down_size_model$output)) -->
+
 <!-- autoencoder$compile(loss = loss_binary_crossentropy, -->
+
 <!--                     optimizer = optimizer_adamax(0.01)) -->
+
 <!-- summary(autoencoder) -->
+
 <!-- ``` -->
 
 <!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+
 <!-- cat(" -->
+
 <!-- Model: -->
+
 <!-- __________________________________________________________________________________________ -->
+
 <!--  Layer (type)                           Output Shape                        Param #        -->
+
 <!-- ========================================================================================== -->
+
 <!--  dense_2_input (InputLayer)             [(None, 784)]                       0              -->
+
 <!--  dense_2 (Dense)                        (None, 100)                         78500          -->
+
 <!--  dense_1 (Dense)                        (None, 20)                          2020           -->
+
 <!--  dense (Dense)                          (None, 2)                           42             -->
+
 <!--  sequential_1 (Sequential)              (None, 784)                         81344          -->
+
 <!-- ========================================================================================== -->
+
 <!-- Total params: 161,906 -->
+
 <!-- Trainable params: 161,906 -->
+
 <!-- Non-trainable params: 0 -->
+
 <!-- __________________________________________________________________________________________     -->
+
 <!--     ") -->
+
 <!-- ``` -->
 
 <!-- We will now show an example of an image before and after the unfitted autoencoder, so we see that we have to train the autoencoder. -->
 
 <!-- ``` r -->
+
 <!-- image = autoencoder(train_x[1,,drop = FALSE]) -->
+
 <!-- imgPlot(array(train_x[1,,drop = FALSE], c(28, 28)), title = "Before") -->
+
 <!-- imgPlot(array(image$numpy(), c(28, 28)), title = "After") -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_6__AEmnistoutput-1.png" width="100%" style="display: block; margin: auto;"/> -->
@@ -114,29 +166,43 @@ library(torch)
 <!-- Fit the autoencoder (inputs == outputs!): -->
 
 <!-- ``` r -->
+
 <!-- library(tensorflow) -->
+
 <!-- library(keras) -->
+
 <!-- set_random_seed(123L, disable_gpu = FALSE)  # Already sets R's random seed. -->
 
 <!-- autoencoder %>%  -->
+
 <!--   fit(x = train_x, y = train_x, epochs = 5L, batch_size = 128L) -->
+
 <!-- ``` -->
 
 <!-- Visualization of the latent variables: -->
 
 <!-- ``` r -->
+
 <!-- pred_dim = down_size_model(test_x) -->
+
 <!-- reconstr_pred = up_size_model(pred_dim) -->
+
 <!-- imgPlot(array(reconstr_pred[10,]$numpy(), dim = c(28L, 28L)), title = "") -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_8__AEvisualization-1.png" width="100%" style="display: block; margin: auto;"/> -->
 
 <!-- ``` r -->
+
 <!-- ownColors = c("limegreen", "purple", "yellow", "grey", "orange", -->
+
 <!--               "black", "red", "navy", "sienna", "springgreen") -->
+
 <!-- oldpar = par(mfrow = c(1, 1)) -->
+
 <!-- plot(pred_dim$numpy()[,1], pred_dim$numpy()[,2], col = ownColors[test[[2]]+1L]) -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_9__AEvisualizationContinuation-1.png" width="100%" style="display: block; margin: auto;"/> -->
@@ -168,8 +234,6 @@ as.matrix(df[,1:4]) %>%
 
 plot(predictions, col = iris$Species)
 ```
-
-
 
 ## Autoencoder - Convolutional Neural Networks for Flower
 
@@ -236,7 +300,6 @@ AE = nn_module(
 )
 ```
 
-
 ```{r, eval=FALSE}
 ae = AE()
 
@@ -279,70 +342,108 @@ for(e in 1:200) {
 }
 ```
 
-
 <!-- We can also use convolutional neural networks instead or on the side of deep neural networks: Prepare data: -->
 
 <!-- ``` r -->
+
 <!-- data = tf$keras$datasets$mnist$load_data() -->
+
 <!-- train = data[[1]] -->
+
 <!-- train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L)) -->
+
 <!-- test_x = array(data[[2]][[1]]/255, c(dim(data[[2]][[1]]/255), 1L)) -->
+
 <!-- ``` -->
 
 <!-- Then define the downsize model: -->
 
 <!-- ``` r -->
+
 <!-- down_size_model = keras_model_sequential() -->
+
 <!-- down_size_model %>%  -->
+
 <!--   layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L, 3L), input_shape = c(28L, 28L, 1L), padding = "same") %>%  -->
+
 <!--   layer_max_pooling_2d(, padding = "same") %>%  -->
+
 <!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+
 <!--   layer_max_pooling_2d(, padding = "same") %>%  -->
+
 <!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+
 <!--   layer_max_pooling_2d(, padding = "same") %>%  -->
+
 <!--   layer_flatten() %>%  -->
+
 <!--   layer_dense(units = 2L, activation = "linear") -->
+
 <!-- ``` -->
 
 <!-- Define the upsize model: -->
 
 <!-- ``` r -->
+
 <!-- up_size_model = keras_model_sequential() -->
+
 <!-- up_size_model %>%  -->
+
 <!--   layer_dense(units = 128L, activation = "relu", input_shape = c(2L)) %>%  -->
+
 <!--   layer_reshape(target_shape = c(4L, 4L, 8L)) %>%  -->
+
 <!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+
 <!--   layer_upsampling_2d() %>%  -->
+
 <!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+
 <!--   layer_upsampling_2d() %>%  -->
+
 <!--   layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L,3L)) %>%  -->
+
 <!--   layer_upsampling_2d() %>%  -->
+
 <!--   layer_conv_2d(filters = 1, activation = "sigmoid", kernel_size = c(3L,3L), padding = "same") -->
+
 <!-- ``` -->
 
 <!-- Combine the two models and fit it: -->
 
 <!-- ``` r -->
+
 <!-- library(tensorflow) -->
+
 <!-- library(keras) -->
+
 <!-- set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed. -->
 
 <!-- autoencoder = tf$keras$models$Model(inputs = down_size_model$input, -->
+
 <!--                                     outputs = up_size_model(down_size_model$output)) -->
 
 <!-- autoencoder %>% compile(loss = loss_binary_crossentropy, -->
+
 <!--                     optimizer = optimizer_rmsprop(0.001)) -->
 
 <!-- autoencoder %>%  fit(x = tf$constant(train_x), y = tf$constant(train_x), -->
+
 <!--                       epochs = 50L, batch_size = 64L) -->
+
 <!-- ``` -->
 
 <!-- Test it: -->
 
 <!-- ``` r -->
+
 <!-- pred_dim = down_size_model(tf$constant(test_x, "float32")) -->
+
 <!-- reconstr_pred = autoencoder(tf$constant(test_x, "float32")) -->
+
 <!-- imgPlot(reconstr_pred[10,,,]$numpy()[,,1]) -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_14-1.png" width="100%" style="display: block; margin: auto;"/> -->
@@ -350,8 +451,11 @@ for(e in 1:200) {
 <!-- ``` r -->
 
 <!-- ownColors = c("limegreen", "purple", "yellow", "grey", "orange", -->
+
 <!--               "black", "red", "navy", "sienna", "springgreen") -->
+
 <!-- plot(pred_dim[,1]$numpy(), pred_dim[,2]$numpy(), col = ownColors[test[[2]]+1L]) -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_14-2.png" width="100%" style="display: block; margin: auto;"/> -->
@@ -359,8 +463,11 @@ for(e in 1:200) {
 <!-- ``` r -->
 
 <!-- ## Generate new images! -->
+
 <!-- new = matrix(c(10, 10), 1, 2) -->
+
 <!-- imgPlot(array(up_size_model(new)$numpy(), c(28L, 28L))) -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_14-3.png" width="100%" style="display: block; margin: auto;"/> -->
@@ -368,7 +475,9 @@ for(e in 1:200) {
 <!-- ``` r -->
 
 <!-- new = matrix(c(5, 5), 1, 2) -->
+
 <!-- imgPlot(array(up_size_model(new)$numpy(), c(28L, 28L))) -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_14-4.png" width="100%" style="display: block; margin: auto;"/> -->
@@ -377,15 +486,14 @@ for(e in 1:200) {
 
 The difference between a variational and a normal autoencoder is that a variational autoencoder assumes a distribution for the latent variables (latent variables cannot be observed and are composed of other variables) and the parameters of this distribution are learned. Thus new objects can be generated by inserting valid (!) (with regard to the assumed distribution) "seeds" to the decoder. To achieve the property that more or less randomly chosen points in the low dimensional latent space are meaningful and yield suitable results after decoding, the latent space/training process must be regularized. In this process, the input to the VAE is encoded to a distribution in the latent space rather than a single point.
 
-
 Helper functions:
+
 ```{r,eval=FALSE}
 data = EcoData::dataset_flower()
 train = data$train/255
 labels = data$labels
 train = aperm(train, perm = c(1, 4, 2, 3))
 ```
-
 
 ```{r,eval=FALSE}
 library(torch)
@@ -468,7 +576,6 @@ VAE = nn_module(
 )
 ```
 
-
 ```{r,eval=FALSE}
 vae = VAE()
 device = "cpu"
@@ -481,6 +588,7 @@ vae$fc3$to(device = device)
 ```
 
 Try untrained VAE:
+
 ```{r,eval=FALSE}
 preditions = as_array(vae(torch_tensor(train[1:5,,,]))[[1]])
 preditions = aperm(preditions, c(1, 3, 4, 2))
@@ -491,6 +599,7 @@ preditions[1,,,]  %>%
 ```
 
 Train VAE:
+
 ```{r, eval=FALSE}
 # Loss function:
 loss_function = function(reconstructed, x, mu, logvar){
@@ -525,6 +634,7 @@ for(e in 1:200) {
 ```
 
 Sample from our Decoder:
+
 ```{r, eval=FALSE}
 images = vae$decode(torch_randn(c(20L, 30L))$to( device = device)) $cpu()
 images = as_array(images$cpu())
@@ -534,8 +644,8 @@ images[1,,,]  %>%
   plot()
 ```
 
-
 Example images (from the above trained VAE):
+
 ```{r}
 #| echo: false
 #| warning: false
@@ -554,91 +664,136 @@ vae_examples[i,,,]  %>%
 do.call(par, oldpar)
 ```
 
-
-
 <!-- ``` r -->
+
 <!-- library(tfprobability) -->
 
 <!-- data = tf$keras$datasets$mnist$load_data() -->
+
 <!-- train = data[[1]] -->
+
 <!-- train_x = array(train[[1]]/255, c(dim(train[[1]]), 1L)) -->
+
 <!-- ``` -->
 
 <!-- We will use TensorFlow probability to define priors for our latent variables. -->
 
 <!-- ``` r -->
+
 <!-- library(tfprobability) -->
 
 <!-- tfp = reticulate::import("tensorflow_probability") -->
+
 <!-- ``` -->
 
 <!-- Build the two networks: -->
 
 <!-- ``` r -->
+
 <!-- encoded = 2L -->
+
 <!-- prior = tfd_independent(tfd_normal(c(0.0, 0.0), 1.0), 1L) -->
 
 <!-- up_size_model = keras_model_sequential() -->
+
 <!-- up_size_model %>%  -->
+
 <!--   layer_dense(units = 128L, activation = "relu", input_shape = c(2L)) %>%  -->
+
 <!--   layer_reshape(target_shape = c(4L, 4L, 8L)) %>%  -->
+
 <!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+
 <!--   layer_upsampling_2d() %>%  -->
+
 <!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+
 <!--   layer_upsampling_2d() %>%  -->
+
 <!--   layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L,3L)) %>%  -->
+
 <!--   layer_upsampling_2d() %>%  -->
+
 <!--   layer_conv_2d(filters = 1, activation = "sigmoid", kernel_size = c(3L,3L), padding = "same") -->
 
 <!-- down_size_model = keras_model_sequential() -->
+
 <!-- down_size_model %>%  -->
+
 <!--   layer_conv_2d(filters = 16L, activation = "relu", kernel_size = c(3L, 3L), input_shape = c(28L, 28L, 1L), padding = "same") %>%  -->
+
 <!--   layer_max_pooling_2d(, padding = "same") %>%  -->
+
 <!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+
 <!--   layer_max_pooling_2d(, padding = "same") %>%  -->
+
 <!--   layer_conv_2d(filters = 8L, activation = "relu", kernel_size = c(3L,3L), padding = "same") %>%  -->
+
 <!--   layer_max_pooling_2d(, padding = "same") %>%  -->
+
 <!--   layer_flatten() %>%  -->
+
 <!--   layer_dense(units = 4L, activation = "linear") %>%  -->
+
 <!--   layer_independent_normal(2L, -->
+
 <!--                            activity_regularizer = -->
+
 <!--                              tfp$layers$KLDivergenceRegularizer(distribution_b = prior)) -->
 
 <!-- VAE = keras_model(inputs = down_size_model$inputs, -->
+
 <!--                   outputs = up_size_model(down_size_model$outputs)) -->
+
 <!-- ``` -->
 
 <!-- Compile and fit model: -->
 
 <!-- ``` r -->
+
 <!-- library(tensorflow) -->
+
 <!-- library(keras) -->
+
 <!-- set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed. -->
 
 <!-- loss_binary = function(true, pred){ -->
+
 <!--   return(loss_binary_crossentropy(true, pred) * 28.0 * 28.0) -->
+
 <!-- } -->
+
 <!-- VAE %>% compile(loss = loss_binary, optimizer = optimizer_adamax()) -->
 
 <!-- VAE %>% fit(train_x, train_x, epochs = 50L) -->
+
 <!-- ``` -->
 
 <!-- And show that it works: -->
 
 <!-- ``` r -->
+
 <!-- dist = down_size_model(train_x[1:2000,,,,drop = FALSE]) -->
+
 <!-- images = up_size_model(dist$sample()[1:5,]) -->
 
 <!-- ownColors = c("limegreen", "purple", "yellow", "grey", "orange", -->
+
 <!--               "black", "red", "navy", "sienna", "springgreen") -->
+
 <!-- oldpar = par(mfrow = c(1, 1)) -->
+
 <!-- imgPlot(images[1,,,1]$numpy()) -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-1.png" width="100%" style="display: block; margin: auto;"/> -->
 
 <!-- ``` r -->
+
 <!-- plot(dist$mean()$numpy()[,1], dist$mean()$numpy()[,2], col = ownColors[train[[2]]+1L]) -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_19__VAEmnist-2.png" width="100%" style="display: block; margin: auto;"/> -->
@@ -646,6 +801,7 @@ do.call(par, oldpar)
 <!-- ## Exercise -->
 
 <!-- ::: {.callout-caution icon="false"} -->
+
 <!-- #### Question -->
 
 <!-- Read section @sec-VAE on variational autoencoders and try to transfer the examples with MNIST to our flower data set (so from black-white images to colored images). -->
@@ -655,136 +811,237 @@ do.call(par, oldpar)
 <!-- Split the data: -->
 
 <!-- ``` r -->
+
 <!-- library(keras) -->
+
 <!-- library(tensorflow) -->
+
 <!-- library(tfprobability) -->
+
 <!-- set_random_seed(321L, disable_gpu = FALSE)  # Already sets R's random seed. -->
 
 <!-- data = EcoData::dataset_flower() -->
+
 <!-- test = data$test/255 -->
+
 <!-- train = data$train/255 -->
+
 <!-- rm(data) -->
+
 <!-- ``` -->
 
 <!-- Build the variational autoencoder: -->
 
 <!-- ``` r -->
+
 <!-- encoded = 10L -->
+
 <!-- prior = tfp$distributions$Independent( -->
+
 <!--   tfp$distributions$Normal(loc=tf$zeros(encoded), scale = 1.), -->
+
 <!--   reinterpreted_batch_ndims = 1L -->
+
 <!-- ) -->
 
 <!-- down_size_model = tf$keras$models$Sequential(list( -->
+
 <!--   tf$keras$layers$InputLayer(input_shape = c(80L, 80L, 3L)), -->
+
 <!--   tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu, -->
+
 <!--                          kernel_size = 5L, strides = 1L), -->
+
 <!--   tf$keras$layers$Conv2D(filters = 32L, activation = tf$nn$leaky_relu, -->
+
 <!--                          kernel_size = 5L, strides = 2L), -->
+
 <!--   tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu, -->
+
 <!--                          kernel_size = 5L, strides = 1L), -->
+
 <!--   tf$keras$layers$Conv2D(filters = 64L, activation = tf$nn$leaky_relu, -->
+
 <!--                          kernel_size = 5L, strides = 2L), -->
+
 <!--   tf$keras$layers$Conv2D(filters = 128L, activation = tf$nn$leaky_relu, -->
+
 <!--                          kernel_size = 7L, strides = 1L), -->
+
 <!--   tf$keras$layers$Flatten(), -->
+
 <!--   tf$keras$layers$Dense(units = tfp$layers$MultivariateNormalTriL$params_size(encoded), -->
+
 <!--                         activation = NULL), -->
+
 <!--   tfp$layers$MultivariateNormalTriL( -->
+
 <!--     encoded,  -->
+
 <!--     activity_regularizer = tfp$layers$KLDivergenceRegularizer(prior, weight = 0.0002) -->
+
 <!--   ) -->
+
 <!-- )) -->
 
 <!-- up_size_model = tf$keras$models$Sequential(list( -->
+
 <!--   tf$keras$layers$InputLayer(input_shape = encoded), -->
+
 <!--   tf$keras$layers$Dense(units = 8192L, activation = "relu"), -->
+
 <!--   tf$keras$layers$Reshape(target_shape =  c(8L, 8L, 128L)), -->
+
 <!--   tf$keras$layers$Conv2DTranspose(filters = 128L, kernel_size = 7L, -->
+
 <!--                                   activation = tf$nn$leaky_relu, strides = 1L, -->
+
 <!--                                   use_bias = FALSE), -->
+
 <!--   tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L, -->
+
 <!--                                   activation = tf$nn$leaky_relu, strides = 2L, -->
+
 <!--                                   use_bias = FALSE), -->
+
 <!--   tf$keras$layers$Conv2DTranspose(filters = 64L, kernel_size = 5L, -->
+
 <!--                                   activation = tf$nn$leaky_relu, strides = 1L, -->
+
 <!--                                   use_bias = FALSE), -->
+
 <!--   tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L, -->
+
 <!--                                   activation = tf$nn$leaky_relu, strides = 2L, -->
+
 <!--                                   use_bias = FALSE), -->
+
 <!--   tf$keras$layers$Conv2DTranspose(filters = 32L, kernel_size = 5L, -->
+
 <!--                                   activation = tf$nn$leaky_relu, strides = 1L, -->
+
 <!--                                   use_bias = FALSE), -->
+
 <!--   tf$keras$layers$Conv2DTranspose(filters = 3L, kernel_size = c(4L, 4L), -->
+
 <!--                                   activation = "sigmoid", strides = c(1L, 1L), -->
+
 <!--                                   use_bias = FALSE) -->
+
 <!-- )) -->
 
 <!-- VAE = tf$keras$models$Model(inputs = down_size_model$inputs,  -->
+
 <!--                             outputs = up_size_model(down_size_model$outputs)) -->
+
 <!-- ``` -->
 
 <!-- ```{r, eval = TRUE,echo = FALSE, results = TRUE} -->
+
 <!-- cat(' -->
+
 <!-- summary(VAE) -->
+
 <!-- Model: "model_3" -->
+
 <!-- __________________________________________________________________________________________ -->
+
 <!--  Layer (type)                           Output Shape                        Param #        -->
+
 <!-- ========================================================================================== -->
+
 <!--  input_1 (InputLayer)                   [(None, 80, 80, 3)]                 0              -->
+
 <!--  conv2d_14 (Conv2D)                     (None, 76, 76, 32)                  2432           -->
+
 <!--  conv2d_15 (Conv2D)                     (None, 36, 36, 32)                  25632          -->
+
 <!--  conv2d_16 (Conv2D)                     (None, 32, 32, 64)                  51264          -->
+
 <!--  conv2d_17 (Conv2D)                     (None, 14, 14, 64)                  102464         -->
+
 <!--  conv2d_18 (Conv2D)                     (None, 8, 8, 128)                   401536         -->
+
 <!--  flatten_2 (Flatten)                    (None, 8192)                        0              -->
+
 <!--  dense_10 (Dense)                       (None, 65)                          532545         -->
+
 <!--  multivariate_normal_tri_l (Multivariat  ((None, 10),                       0              -->
+
 <!--  eNormalTriL)                            (None, 10))                                       -->
+
 <!--  sequential_7 (Sequential)              (None, 80, 80, 3)                   1278464        -->
+
 <!-- ========================================================================================== -->
+
 <!-- Total params: 2,394,337 -->
+
 <!-- Trainable params: 2,394,337 -->
+
 <!-- Non-trainable params: 0 -->
+
 <!-- __________________________________________________________________________________________     -->
+
 <!--     ') -->
+
 <!-- ``` -->
 
 <!-- Compile and train model: -->
 
 <!-- ``` r -->
+
 <!-- be = function(true, pred){ -->
+
 <!--   return(tf$losses$binary_crossentropy(true, pred) * 80.0 * 80.0) -->
+
 <!-- } -->
 
 <!-- VAE$compile(loss = be, -->
+
 <!--             optimizer = tf$keras$optimizers$Adamax(learning_rate = 0.0003)) -->
+
 <!-- VAE$fit(x = train, y = train, epochs = 50L, shuffle = TRUE, batch_size = 20L) -->
 
 <!-- dist = down_size_model(train[1:10,,,]) -->
+
 <!-- images = up_size_model( dist$sample()[1:5,] ) -->
 
 <!-- oldpar = par(mfrow = c(3, 1), mar = rep(1, 4)) -->
+
 <!-- scales::rescale(images[1,,,]$numpy(), to = c(0, 255)) %>%  -->
+
 <!--   image_to_array() %>% -->
+
 <!--   `/`(., 255) %>% -->
+
 <!--   as.raster() %>% -->
+
 <!--   plot() -->
 
 <!-- scales::rescale(images[2,,,]$numpy(), to = c(0, 255)) %>%  -->
+
 <!--   image_to_array() %>% -->
+
 <!--   `/`(., 255) %>% -->
+
 <!--   as.raster() %>% -->
+
 <!--   plot() -->
 
 <!-- scales::rescale(images[3,,,]$numpy(), to = c(0, 255)) %>%  -->
+
 <!--   image_to_array() %>% -->
+
 <!--   `/`(., 255) %>% -->
+
 <!--   as.raster() %>% -->
+
 <!--   plot() -->
+
 <!-- ``` -->
 
 <!-- <img src="09-GAN_files/figure-html/chunk_chapter7_task_2__VAEflower-1.png" width="100%" style="display: block; margin: auto;"/> -->
 
 <!-- `r unhide()` -->
+
 <!-- ::: -->
