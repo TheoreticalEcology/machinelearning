@@ -2,9 +2,16 @@
 output: html_document
 editor_options:
   chunk_output_type: console
+fig-cap-location: margin
 ---
 
 # Explainable AI
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(fig.align = "center")
+```
+
 
 ```{r}
 #| echo: false
@@ -172,7 +179,7 @@ shapley$plot()
 
 Standard xAI method do not provide reliable uncertainties on the fitted curves. If you want uncertainties or p-values, the most common method is the bootstrap.
 
-In a bootstrap, is instead of splitting up the data in test / validation, we sample from the data with replacement and fit the models repeatedly. The idea is to get an estimate about the variability we would expect if we created another dataset of the same size.
+In a bootstrap, instead of splitting up the data in test / validation, we sample from the data with replacement and fit the models repeatedly. The idea is to get an estimate about the variability we would expect if we created another dataset of the same size.
 
 ```{r, eval=FALSE}
 k = 10 # bootstrap samples
@@ -195,7 +202,7 @@ Note that the distinction between bootstrap and validation / cross-validation is
 
 ## Exercises
 
-::: callout-warning
+:::: exercise
 #### xAI in cito
 
 Data preparation
@@ -216,7 +223,7 @@ data_sub = data[sample.int(nrow(data), 500),]
 
 ```
 
-Cito includes serveral xAI methods directly out of the box
+cito includes several xAI methods directly out of the box
 
 ```{r, eval=FALSE}
 model = dnn(Presence~., data = data_sub, batchsize = 200L,loss = "binomial", verbose = FALSE, lr = 0.15, epochs = 300)
@@ -229,9 +236,8 @@ Try the following commands:
 -   `ALE(dnn)`
 
 Moreover, try to refit the model with the option `bootstrap = 5`. This may take a short while. Observe how the xAI options change.
-:::
 
-`r hide("Click here to see the solution for cito")`
+`r hide("Show solution — cito")`
 
 ```{r, eval=FALSE}
 model = dnn(Presence~., data = data_sub, batchsize = 200L, bootstrap = 5L, loss = "binomial", verbose = FALSE, lr = 0.15, epochs = 300)
@@ -247,9 +253,10 @@ ALE(model)
 ```
 
 `r unhide()`
+::::
 
-::: callout-warning
-#### Question
+:::: exercise
+#### Interpret a fitted model (Titanic)
 
 Use the Titanic_ml dataset and fit a random forest, dnn or a BRT using xgboost. Explore / interpret the fitted model using `iml` (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>).
 
@@ -279,7 +286,7 @@ library(missRanger) # for imputation
 data = titanic_ml
 
 # feature selection
-data = data %>% select(survived, sex, age, fare, pclass)# play around with the features
+data = data |> select(survived, sex, age, fare, pclass)# play around with the features
 
 # imputation - remove response variable!
 head(data)
@@ -287,16 +294,15 @@ data_imputed = data
 data_imputed[,-1] = missRanger(data_imputed[,-1])
 summary(data_imputed)
 
-data_imputed = data_imputed %>% 
+data_imputed = data_imputed |> 
   mutate(age = (age - mean(age))/sd(age), fare = (fare - mean(fare))/sd(fare),
          sex = as.integer(sex), pclass = as.integer(pclass))
 
 data_obs = data_imputed[!is.na(data_imputed$survived), ]
 data_new = data_imputed[is.na(data_imputed$survived), ]
 ```
-:::
 
-`r hide("Click here to see the solution for RF")`
+`r hide("Show solution — RF")`
 
 ```{r , message=FALSE, warning=FALSE, eval=FALSE}
 library(ranger)
@@ -341,7 +347,7 @@ Maybe you want to see other explanation methods as well. Surely you can use the 
 
 `r unhide()`
 
-`r hide("Click here to see the solution for xgboost")`
+`r hide("Show solution — xgboost")`
 
 ```{r chunk_chapter6_task_00, message=FALSE, warning=FALSE, eval=FALSE}
 library(xgboost)
@@ -381,7 +387,7 @@ plot(importance)
 
 `r unhide()`
 
-`r hide("Click here to see the solution for cito")`
+`r hide("Show solution — cito")`
 
 ```{r chunk_chapter6_task_0, message=FALSE, warning=FALSE, eval=FALSE}
 library(cito)
@@ -392,6 +398,7 @@ summary(nn)
 ```
 
 `r unhide()`
+::::
 
 <!-- ::: callout-warning -->
 
@@ -611,35 +618,35 @@ summary(nn)
 
 <!-- model = keras_model_sequential() -->
 
-<!-- model %>% -->
+<!-- model |> -->
 
 <!--     layer_dense(units = 200L, activation = "leaky_relu", -->
 
 <!--     kernel_regularizer = regularizer_l2(0.00035), -->
 
-<!--     input_shape = ncol(train)) %>% -->
+<!--     input_shape = ncol(train)) |> -->
 
-<!--     layer_dropout(0.45) %>% -->
+<!--     layer_dropout(0.45) |> -->
 
 <!--     layer_dense(units = 100L, activation = "relu", -->
 
-<!--     bias_regularizer = regularizer_l1_l2(0.5)) %>% -->
+<!--     bias_regularizer = regularizer_l1_l2(0.5)) |> -->
 
-<!--     layer_dropout(0.2) %>% -->
+<!--     layer_dropout(0.2) |> -->
 
 <!--     layer_dense(units = 100L, activation = "leaky_relu", -->
 
 <!--     kernel_regularizer = regularizer_l2(0.00035), -->
 
-<!--     bias_regularizer = regularizer_l1_l2(0.1)) %>% -->
+<!--     bias_regularizer = regularizer_l1_l2(0.1)) |> -->
 
-<!--     layer_dropout(0.25) %>% -->
+<!--     layer_dropout(0.25) |> -->
 
-<!--     layer_dense(units = 50L, activation = "gelu") %>% -->
+<!--     layer_dense(units = 50L, activation = "gelu") |> -->
 
-<!--     layer_dense(units = 25L, activation = "elu") %>% -->
+<!--     layer_dense(units = 25L, activation = "elu") |> -->
 
-<!--     layer_dropout(0.35) %>% -->
+<!--     layer_dropout(0.35) |> -->
 
 <!--     # We need probabilities. So we use the softmax function. -->
 
@@ -647,7 +654,7 @@ summary(nn)
 
 <!--     layer_dense(units = classNumber, activation = "softmax") -->
 
-<!-- model %>% -->
+<!-- model |> -->
 
 <!--     keras::compile(loss = loss_binary_crossentropy, -->
 
@@ -655,7 +662,7 @@ summary(nn)
 
 <!-- model_history =  -->
 
-<!--     model %>% # Mind the matrix property (no data.frame)! -->
+<!--     model |> # Mind the matrix property (no data.frame)! -->
 
 <!--         fit(x = as.matrix(train), y = k_one_hot(labelsTrain, classNumber), -->
 
@@ -665,7 +672,7 @@ summary(nn)
 
 <!-- # Accuracy on training set (!) -->
 
-<!-- pred = predict(model, as.matrix(train)) %>% apply(1, which.max) - 1 -->
+<!-- pred = predict(model, as.matrix(train)) |> apply(1, which.max) - 1 -->
 
 <!-- Metrics::accuracy(pred, labelsTrain) -->
 
@@ -673,7 +680,7 @@ summary(nn)
 
 <!-- # Accuracy on test set -->
 
-<!-- pred = predict(model, as.matrix(test)) %>% apply(1, which.max) - 1 -->
+<!-- pred = predict(model, as.matrix(test)) |> apply(1, which.max) - 1 -->
 
 <!-- Metrics::accuracy(pred, labelsTest) -->
 
@@ -711,35 +718,35 @@ summary(nn)
 
 <!-- model = keras_model_sequential() -->
 
-<!-- model %>% -->
+<!-- model |> -->
 
 <!--     layer_dense(units = 200L, activation = "leaky_relu", -->
 
 <!--     kernel_regularizer = regularizer_l2(0.00035), -->
 
-<!--     input_shape = ncol(train)) %>% -->
+<!--     input_shape = ncol(train)) |> -->
 
-<!--     layer_dropout(0.45) %>% -->
+<!--     layer_dropout(0.45) |> -->
 
 <!--     layer_dense(units = 100L, activation = "relu", -->
 
-<!--     bias_regularizer = regularizer_l1_l2(0.5)) %>% -->
+<!--     bias_regularizer = regularizer_l1_l2(0.5)) |> -->
 
-<!--     layer_dropout(0.2) %>% -->
+<!--     layer_dropout(0.2) |> -->
 
 <!--     layer_dense(units = 100L, activation = "leaky_relu", -->
 
 <!--     kernel_regularizer = regularizer_l2(0.00035), -->
 
-<!--     bias_regularizer = regularizer_l1_l2(0.1)) %>% -->
+<!--     bias_regularizer = regularizer_l1_l2(0.1)) |> -->
 
-<!--     layer_dropout(0.25) %>% -->
+<!--     layer_dropout(0.25) |> -->
 
-<!--     layer_dense(units = 50L, activation = "gelu") %>% -->
+<!--     layer_dense(units = 50L, activation = "gelu") |> -->
 
-<!--     layer_dense(units = 25L, activation = "elu") %>% -->
+<!--     layer_dense(units = 25L, activation = "elu") |> -->
 
-<!--     layer_dropout(0.35) %>% -->
+<!--     layer_dropout(0.35) |> -->
 
 <!--     # We need probabilities. So we use the softmax function. -->
 
@@ -747,7 +754,7 @@ summary(nn)
 
 <!--     layer_dense(units = classNumber, activation = "softmax") -->
 
-<!-- model %>% -->
+<!-- model |> -->
 
 <!--     keras::compile(loss = loss_binary_crossentropy, -->
 
@@ -755,7 +762,7 @@ summary(nn)
 
 <!-- model_history =  -->
 
-<!--     model %>% # Mind the matrix property (no data.frame)! -->
+<!--     model |> # Mind the matrix property (no data.frame)! -->
 
 <!--         fit(x = as.matrix(train), y = k_one_hot(labelsTrain, classNumber), -->
 
@@ -765,7 +772,7 @@ summary(nn)
 
 <!-- # Accuracy on training set (!) -->
 
-<!-- pred = predict(model, as.matrix(train)) %>% apply(1, which.max) - 1 -->
+<!-- pred = predict(model, as.matrix(train)) |> apply(1, which.max) - 1 -->
 
 <!-- Metrics::accuracy(pred, labelsTrain) -->
 

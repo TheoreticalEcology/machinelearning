@@ -2,9 +2,16 @@
 output: html_document
 editor_options:
   chunk_output_type: console
+fig-cap-location: margin
 ---
 
 # Causal Inference and Machine Learning {#sec-causalInference}
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(fig.align = "center")
+```
+
 
 ```{r}
 #| echo: false
@@ -23,7 +30,7 @@ In statistics courses (in particular our course: Advanced Biostatistics), we dis
 
 ## Causal Inference on Static Data {#causalInference}
 
-Methods for causal inference depend on whether we have dynamic or static data. The latter is the more common case. With static data, the problem is confounding. If you have several correlated predictors, you can get spurious correlations between a given predictor and the response, although there is no causal effect in general.
+Methods for **causal inference** depend on whether we have dynamic or static data. The latter is the more common case. With static data, the central problem is **confounding**: if you have several correlated predictors, you can get spurious correlations between a given predictor and the response even when there is no causal effect.
 
 Multiple regression and few other methods are able to correct for other predictors and thus isolate the causal effect. The same is not necessarily true for machine learning algorithms and xAI methods. This is not a bug, but a feature - for making good predictions, it is often no problem, but rather an advantage to also use non-causal predictors.
 
@@ -55,14 +62,14 @@ summary(lm(y ~ x1 + x2))
 
 Fit random forest and show variable importance:
 
-```{r chunk_chapter6_12, eval=TRUE}
+```{r chunk_chapter6_12, eval=TRUE, fig.cap="Random-forest variable importance for two strongly collinear predictors, only one of which (x1) is causal. The importance is split nearly evenly between them."}
 set.seed(123)
 
 fit = randomForest(y ~ x1 + x2, importance = TRUE)
-varImpPlot(fit)
+varImpPlot(fit, main = "")
 ```
 
-Variable importance is now split nearly evenly.
+Variable importance is now split nearly evenly between `x1` and `x2`, even though only `x1` is causal.
 
 Task: understand why this is - remember:
 
@@ -202,7 +209,7 @@ Rgraphviz::plot(pc.gmG8@graph )
 
 ## Causal Inference on Dynamic Data
 
-When working with dynamic data, we can use an additional piece of information - the cause usually precedes the effect, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as *Granger causality*, or Granger methods. Here an example:
+When working with dynamic data, we can use an additional piece of information: the cause usually precedes the effect, which means we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing is known as **Granger causality**. Here is an example:
 
 ```{r chunk_chapter6_21, message=FALSE, warning=FALSE, eval=TRUE}
 library(lmtest)

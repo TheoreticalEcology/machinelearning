@@ -2,9 +2,16 @@
 output: html_document
 editor_options:
   chunk_output_type: console
+fig-cap-location: margin
 ---
 
 # Datasets {#sec-datasets}
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(fig.align = "center")
+```
+
 
 ```{r}
 #| echo: false
@@ -56,8 +63,8 @@ library(missRanger)
 library(dplyr)
 set.seed(123)
 
-titanic_imputed = titanic %>% select(-name, -ticket, -cabin, -boat, -home.dest)
-titanic_imputed = missRanger::missRanger(data = titanic_imputed %>%
+titanic_imputed = titanic |> select(-name, -ticket, -cabin, -boat, -home.dest)
+titanic_imputed = missRanger::missRanger(data = titanic_imputed |>
                                            select(-survived), verbose = 0)
 titanic_imputed$survived = titanic$survived
 ```
@@ -119,12 +126,12 @@ library(missRanger)
 library(dplyr)
 set.seed(123)
 
-plant_poll_imputed = plant_poll %>% select(diameter,
+plant_poll_imputed = plant_poll |> select(diameter,
                                            corolla,
                                            tongue,
                                            body,
                                            interaction)
-plant_poll_imputed = missRanger::missRanger(data = plant_poll_imputed %>%
+plant_poll_imputed = missRanger::missRanger(data = plant_poll_imputed |>
                                               select(-interaction), verbose = 0)
 plant_poll_imputed$interaction = plant_poll$interaction
 ```
@@ -155,6 +162,86 @@ head(preds)
 write.csv(data.frame(y = preds), file = "glm.csv")
 ```
 
+## Species distribution modeling (SDM) {#sec-sdm}
+
+This data set is based on the <a href="https://www.kaggle.com/competitions/geolifeclef-2025" target="_blank" rel="noopener">GeoLifeCLEF 2025</a> challenge and poses a multi-species distribution modeling task: for a set of geographic sites (which we call *communities*), predict which of 448 plant species are present, using environmental predictors that describe each site. Unlike the other data sets, the response is not a single column but a **presence-absence matrix** — one binary label per species for every community.
+
+**Response variable:** presence/absence of each of the 448 species (a community $\times$ species matrix).
+
+**Predictors:** environmental variables characterizing each community — e.g. bioclimatic variables (`Bio1`–`Bio19`, such as mean annual temperature and precipitation), soil properties (e.g. SoilGrids pH), elevation, and similar geographic layers.
+
+### Data structure
+
+For both the training and test communities you get two tables:
+
+-   an environmental table (`env_df`) — one row per community, one column per environmental predictor;
+-   a presence-absence label table (`labels`) — a community $\times$ species matrix of 0/1, with species in the columns (named `sp_9`, `sp_53`, `sp_96`, …).
+
+The test set contains **2000 communities** and **448 species**. The labels of the test communities are withheld — those are what you predict and submit.
+
+The same data is also available in **long format**, which is often more convenient for modeling. In long format there is one row per community $\times$ species combination, with the columns `community`, `species`, `present` (0/1), plus the environmental predictors of that community repeated across its species:
+
+```
+community  species  present  Bio1  Bio2  ...  Elevation
+   212      sp_3       1      ...   ...        ...
+   212      sp_7       0      ...   ...        ...
+```
+
+Wide and long are two views of the same data; you can always convert between them. For example, to turn a long label table back into the wide matrix:
+
+```{r chunk_sdm_reshape, eval=FALSE}
+library(data.table)
+
+wide = dcast(labels_long$test, community ~ species, value.var = "present")
+M    = as.matrix(wide[, -1])
+rownames(M) = wide$community
+```
+
+*(A download link / loading code for the data will be added here once available.)*
+
+### A minimal working example
+
+There are two natural modeling strategies:
+
+1.  **Long format + a single binary classifier** with the species included as a predictor (e.g. a random forest or DNN on the long table). This gives a presence probability for every community $\times$ species row directly.
+2.  **Wide format + a multi-output model** that predicts the full 2000 $\times$ 448 matrix at once.
+
+A simple example using the long table:
+
+```{r chunk_sdm_model, eval=FALSE}
+library(ranger)
+set.seed(123)
+
+rf = ranger(present ~ ., data = train_long,
+            classification = TRUE, probability = TRUE)
+
+# presence probability per community x species row:
+preds = predict(rf, data = test_long)$predictions[, 2]
+```
+
+### Submission format — long or wide
+
+You can submit your predictions in **either** format; the leaderboard accepts both.
+
+**Wide** — a 2000 $\times$ 448 matrix of presence probabilities, communities in rows and species in columns, in the same species order as the label matrix (`sp_9`, `sp_53`, …):
+
+```{r chunk_sdm_sub_wide, eval=FALSE}
+write.csv(pred_matrix, file = "sdm.csv", row.names = FALSE)
+```
+
+**Long** — the 896,000 (= 2000 $\times$ 448) probabilities stacked into a single column. The scorer rebuilds the matrix with `matrix(y, nrow = 2000)`, which fills it **column-by-column**, so the values must be ordered *all 2000 communities of species 1, then all of species 2, …* — exactly what `as.vector()` of the wide matrix produces:
+
+```{r chunk_sdm_sub_long, eval=FALSE}
+write.csv(data.frame(y = as.vector(pred_matrix)),
+          file = "sdm.csv", row.names = FALSE)
+```
+
+Two checks before uploading: `dim(pred_matrix)` should be `2000 x 448`, and the saved file should have either 448 value columns (wide) or 896,000 rows (long). If you build the long vector directly from a long-format prediction (like the random forest above), make sure its rows are in community-within-species order, so the reshape lines up with the species columns of the label matrix — otherwise the values misalign and the score collapses.
+
+**Evaluation metric:** submissions are scored with a **weighted AUC** — the mean of the per-species AUC values, weighted so that rare species count more than common ones.
+
+Then submit the csv on <a href="http://rhsbio7.uni-regensburg.de:8500" target="_blank" rel="noopener">http://rhsbio7.uni-regensburg.de:8500</a>.
+
 ## Wine
 
 The data set is a collection of wines of different quality. The aim is to predict the quality of the wine based on physiochemical predictors.
@@ -183,7 +270,7 @@ library(missRanger)
 library(dplyr)
 set.seed(123)
 
-wine_imputed = missRanger::missRanger(data = wine %>% select(-quality), verbose = 0)
+wine_imputed = missRanger::missRanger(data = wine |> select(-quality), verbose = 0)
 wine_imputed$quality = wine$quality
 ```
 
@@ -238,7 +325,7 @@ library(missRanger)
 library(dplyr)
 set.seed(123)
 
-nasa_imputed = missRanger::missRanger(data = nasa %>% select(-Hazardous),
+nasa_imputed = missRanger::missRanger(data = nasa |> select(-Hazardous),
                                       maxiter = 1, num.trees = 5L, verbose = 0)
 nasa_imputed$Hazardous = nasa$Hazardous
 ```
@@ -298,9 +385,9 @@ labels = EcoData::dataset_flower()$labels
 Let's visualize a flower:
 
 ```{r chunk_chapter8_27}
-train[100,,,] %>%
-  image_to_array() %>%
-  as.raster() %>%
+train[100,,,] |>
+  image_to_array() |>
+  as.raster() |>
   plot()
 ```
 
@@ -308,20 +395,20 @@ train[100,,,] %>%
 
 ```{r chunk_chapter8_28, eval=FALSE, warning=FALSE}
 model = keras_model_sequential()
-model %>% 
+model |> 
   layer_conv_2d(filters = 4L, kernel_size = 2L,
-                input_shape = list(80L, 80L, 3L)) %>% 
-  layer_max_pooling_2d() %>% 
-  layer_flatten() %>% 
+                input_shape = list(80L, 80L, 3L)) |> 
+  layer_max_pooling_2d() |> 
+  layer_flatten() |> 
   layer_dense(units = 5L, activation = "softmax")
 
 ### Model fitting ###
 
-model %>% 
+model |> 
   compile(loss = loss_categorical_crossentropy, 
           optimizer = optimizer_adamax(learning_rate = 0.01))
 
-model %>% 
+model |> 
   fit(x = train, y = keras::k_one_hot(labels, 5L))
 
 
@@ -331,12 +418,12 @@ model %>%
 
 ```{r chunk_chapter8_29, eval=FALSE}
 # Prediction on training data:
-pred = apply(model %>% predict(train), 1, which.max)
+pred = apply(model |> predict(train), 1, which.max)
 Metrics::accuracy(pred - 1L, labels)
 table(pred)
 
 # Prediction for the submission server:
-pred = model %>% predict(test) %>% apply(1, which.max) - 1L
+pred = model |> predict(test) |> apply(1, which.max) - 1L
 table(pred)
 ```
 

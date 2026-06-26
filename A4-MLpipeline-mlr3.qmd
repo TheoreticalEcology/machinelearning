@@ -2,9 +2,16 @@
 output: html_document
 editor_options:
   chunk_output_type: console
+fig-cap-location: margin
 ---
 
 # Machine learning framework - mlr3 {#workflow-mlr3}
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(fig.align = "center")
+```
+
 
 
 As we have seen today, many of the machine learning algorithms are distributed over several packages but the general machine learning pipeline is very similar for all models: feature engineering, feature selection, hyperparameter tuning and cross-validation.
@@ -47,7 +54,7 @@ str(nasa)
 Let's drop time, name and ID variable and create a classification task:
 
 ```{r chunk_chapter4_66}
-data = nasa %>% select(-Orbit.Determination.Date,
+data = nasa |> select(-Orbit.Determination.Date,
                        -Close.Approach.Date, -Name, -Neo.Reference.ID)
 data$Hazardous = as.factor(data$Hazardous)
 
@@ -237,13 +244,13 @@ library(missRanger)
 data(titanic_ml)
 data = titanic_ml
 data = 
-  data %>% select(survived, sex, age, fare, pclass)
+  data |> select(survived, sex, age, fare, pclass)
 data[,-1] = missRanger(data[,-1], verbose = 0)
 
 data_sub =
-  data %>%
+  data |>
     mutate(age = scales::rescale(age, c(0, 1)),
-           fare = scales::rescale(fare, c(0, 1))) %>%
+           fare = scales::rescale(fare, c(0, 1))) |>
     mutate(sex = as.integer(sex) - 1L,
            pclass = as.integer(pclass - 1L))
 data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
@@ -303,7 +310,7 @@ write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv")
 
 <!-- data =  -->
 
-<!--   data %>% select(survived, sex, age, fare, pclass) -->
+<!--   data |> select(survived, sex, age, fare, pclass) -->
 
 <!-- # missRanger uses a random forest to impute NAs (RF is trained on the data to predict values for the NAs) -->
 
@@ -311,11 +318,11 @@ write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv")
 
 <!-- data_sub = -->
 
-<!--   data %>% -->
+<!--   data |> -->
 
 <!--     mutate(age = scales::rescale(age, c(0, 1)), -->
 
-<!--            fare = scales::rescale(fare, c(0, 1))) %>% -->
+<!--            fare = scales::rescale(fare, c(0, 1))) |> -->
 
 <!--     mutate(sex = as.integer(sex) - 1L, -->
 
@@ -453,7 +460,7 @@ If you need help, take a look at the solution, go through it line by line and tr
 Prepare data
 
 ```{r}
-data = titanic_ml %>% select(-name, -ticket, -name, -body)
+data = titanic_ml |> select(-name, -ticket, -name, -body)
 data$pclass = as.factor(data$pclass)
 data$sex = as.factor(data$sex)
 data$survived = as.factor(data$survived)

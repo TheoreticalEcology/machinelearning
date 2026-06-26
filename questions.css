@@ -47,3 +47,128 @@ div.callout-warning .callout-icon::before {
 div.callout-warning.callout-style-default .callout-title {
   background-color: #ff86e0
 }
+
+
+/* ============================================================
+   Exercise component (used in A2-MachineLearningTasks for now)
+   Works on both the light (cosmo) and dark (darkly) themes:
+   colours are semi-transparent and body text is inherited,
+   never forced to black.
+   ============================================================ */
+
+/* When a page uses margin captions/notes, Quarto turns the page into a
+   CSS grid. Custom divs it doesn't know about would otherwise stretch
+   across the whole grid (body + margins), so pin our cards to the body
+   column. Harmless when the grid is not active. */
+.page-columns .exercise,
+.page-columns .quiz {
+  grid-column: body-content-start / body-content-end;
+}
+
+/* ---- course palette --------------------------------------------------
+   exercise = purple, self-check quiz = teal, hint = coral.
+   All values are palette stops with semi-transparent tints so they read
+   on both the light (cosmo) and dark (darkly) themes. Tweak here once and
+   every card updates. */
+:root {
+  --ex-accent:    #534AB7;            /* purple 600 */
+  --ex-bg:        rgba(83, 74, 183, 0.06);
+  --ex-border:    rgba(83, 74, 183, 0.32);
+  --ex-badge-txt: #EEEDFE;            /* purple 50  */
+
+  --quiz-accent:    #0F6E56;          /* teal 600 */
+  --quiz-bg:        rgba(15, 110, 86, 0.06);
+  --quiz-border:    rgba(15, 110, 86, 0.32);
+  --quiz-badge-txt: #E1F5EE;          /* teal 50  */
+
+  --hint-accent: #D85A30;             /* coral 400 — legible in both modes */
+  --hint-bg:     rgba(216, 90, 48, 0.09);
+}
+
+/* shared card structure */
+.exercise, .quiz {
+  position: relative;
+  margin: 1.8em 0;
+  padding: 1.7em 1.3em 1.1em 1.3em;
+  border: 1px solid;
+  border-radius: 12px;
+}
+
+.exercise { background-color: var(--ex-bg);   border-color: var(--ex-border); }
+.quiz     { background-color: var(--quiz-bg); border-color: var(--quiz-border); }
+
+/* badge sitting on the top-left border */
+.exercise::before, .quiz::before {
+  position: absolute;
+  top: -0.85em;
+  left: 1em;
+  padding: 0.3em 0.85em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  border-radius: 7px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+
+.exercise::before { content: "✎  EXERCISE";     background-color: var(--ex-accent);   color: var(--ex-badge-txt); }
+.quiz::before     { content: "✓  TEST YOURSELF"; background-color: var(--quiz-accent); color: var(--quiz-badge-txt); }
+
+.exercise > :first-child, .quiz > :first-child { margin-top: 0; }
+
+.exercise > h4 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.15em;
+}
+
+/* small "difficulty / time" line under the title */
+.exercise-meta {
+  display: inline-block;
+  margin-bottom: 0.9em;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* nested hint (callout-tip) → coral, distinct from the purple card.
+   The title keeps the theme's text colour so it stays legible in dark mode. */
+.exercise div.callout-tip,
+.quiz div.callout-tip {
+  border-left-color: var(--hint-accent) !important;
+  background-color: var(--hint-bg);
+}
+
+/* reveal-solution button picks up the card's own accent */
+.exercise .webex-solution > button,
+.quiz .webex-solution > button {
+  cursor: pointer;
+  height: 2em;          /* match the fixed height of the collapsed solution box */
+  line-height: 2em;     /* vertically centre the label */
+  padding: 0 1.1em;     /* horizontal padding only, so the button is not clipped */
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid;
+  border-radius: 8px;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+.exercise .webex-solution > button {
+  color: var(--ex-accent);
+  background-color: rgba(83, 74, 183, 0.08);
+  border-color: var(--ex-border);
+}
+.quiz .webex-solution > button {
+  color: var(--quiz-accent);
+  background-color: rgba(15, 110, 86, 0.08);
+  border-color: var(--quiz-border);
+}
+
+.exercise .webex-solution > button:hover { background-color: rgba(83, 74, 183, 0.16); }
+.quiz .webex-solution > button:hover     { background-color: rgba(15, 110, 86, 0.16); }
+
+.exercise .webex-solution > button:active,
+.quiz .webex-solution > button:active { transform: translateY(1px); }
+
+/* self-check "check answers" button inside the quiz card */
+.quiz .webex-check-button {
+  margin-top: 0.6em;
+}

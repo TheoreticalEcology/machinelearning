@@ -2,17 +2,22 @@
 output: html_document
 editor_options:
   chunk_output_type: console
+fig-cap-location: margin
 ---
 
 # Tree-based Algorithms
 
+```{r}
+#| include: false
+knitr::opts_chunk$set(fig.align = "center")
+```
+
 ## Classification and Regression Trees
 
-Tree-based algorithms use a series of if-then rules to generate predictions from one or more decision trees. In this lecture, we will explore regression and classification trees by the example of the airquality data set. There is one important hyperparameter for regression trees: "minsplit".
+Tree-based algorithms use a series of if-then rules to generate predictions from one or more **decision trees**. In this lecture, we will explore **regression** and **classification trees** using the airquality dataset. There is one important hyperparameter for regression trees: `minsplit`.
 
--   It controls the depth of tree (see the help of rpart for a description).
--   It controls the complexity of the tree and can thus also be seen as a regularization parameter.
-
+- It controls the depth of tree (see the help of rpart for a description).
+- It controls the complexity of the tree and can thus also be seen as a regularization parameter.
 
 ```{r chunk_chapter4_22, results='hide', message=FALSE, warning=FALSE}
 library(rpart)
@@ -23,35 +28,35 @@ data = airquality[complete.cases(airquality),]
 
 Fit and visualize one(!) regression tree:
 
-```{r}
+```{r, fig.cap="A single regression tree for Ozone. Each split shows the rule and each leaf the predicted value."}
 rt = rpart(Ozone~., data = data, control = rpart.control(minsplit = 10))
 rpart.plot(rt)
 ```
 
 Visualize the predictions:
 
-```{r chunk_chapter4_24}
+```{r chunk_chapter4_24, fig.cap="Regression-tree predictions (red) against temperature. The step-like shape is characteristic of trees."}
 pred = predict(rt, data)
-plot(data$Temp, data$Ozone)
+plot(data$Temp, data$Ozone, xlab = "Temperature", ylab = "Ozone")
 lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 ```
 
-The angular form of the prediction line is typical for regression trees and is a weakness of it.
+The angular, step-like form of the prediction line is typical for regression trees and is one of their weaknesses.
 
 ## Random Forest
 
-To overcome this weakness, a random forest uses an ensemble of regression/classification trees. In principle, a random forest is nothing more than a normal regression/classification tree, but it uses the idea of "wisdom of the crowd": by asking many people (regression/classification trees), you can make a more informed decision (prediction/classification). For example, if you wanted to buy a new phone, you wouldn't go directly to the store, but you would search the Internet and ask your friends and family.
+To overcome this weakness, a **random forest** uses an **ensemble** of regression/classification trees. In principle, a random forest is nothing more than a normal regression/classification tree, but it uses the idea of the "wisdom of the crowd": by asking many people (the individual trees), you can make a more informed decision (prediction/classification). For example, if you wanted to buy a new phone, you wouldn't go directly to the store, but you would search the Internet and ask your friends and family.
 
 There are two randomization steps with the random forest that are responsible for their success:
 
--   **Bootstrap samples** for each tree (we will sample observations with replacement from the data set. For the phone this is like not everyone has experience about each phone).
--   At each split, we will **sample a subset of predictors** that is then considered as potential splitting criterion (for the phone this is like that not everyone has the same decision criteria). Annotation: While building a decision tree (random forests consist of many decision trees), one splits the data at some point according to their features. For example if you have females and males, big and small people in a crowd, you con split this crowd by gender and then by size or by size and then by gender to build a decision tree.
+- **Bootstrap samples** for each tree (we will sample observations with replacement from the data set. For the phone this is like not everyone has experience about each phone).
+- At each split, we will **sample a subset of predictors** that is then considered as potential splitting criterion (for the phone this is like that not everyone has the same decision criteria). Annotation: While building a decision tree (random forests consist of many decision trees), one splits the data at some point according to their features. For example, if you have females and males, tall and short people in a crowd, you can split this crowd by gender and then by size, or by size and then by gender, to build a decision tree.
 
 Applying the random forest follows the same principle as for the methods before: We visualize the data (we have already done this so often for the airquality data set, thus we skip it here), fit the algorithm and then plot the outcomes.
 
 Fit a random forest and visualize the predictions:
 
-```{r chunk_chapter4_25, message=FALSE, warning=FALSE}
+```{r chunk_chapter4_25, message=FALSE, warning=FALSE, fig.cap="Random-forest predictions (red) against temperature. Averaging many trees gives a smoother fit than a single tree."}
 library(randomForest)
 set.seed(123)
 
@@ -72,17 +77,17 @@ rf$importance
 There are several important hyperparameters in a random forest that we can tune to get better results:
 
 | Hyperparameter | Explanation |
-|-----------------|-------------------------------------------------------|
+|----|----|
 | mtry | Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data). |
 | minimum node size | Minimal number of observations allowed in a node (before the branching is canceled) |
 | max depth | Maximum number of tree depth |
 
 ## Boosted Regression Trees
 
-A boosted regression tree (BRT) starts with a simple regression tree (weak learner) and then sequentially fits additional trees to improve the results. There are two different strategies to do this:
+A **boosted regression tree (BRT)** starts with a simple regression tree (a weak learner) and then sequentially fits additional trees to improve the results. There are two main strategies:
 
--   *AdaBoost*: Wrong classified observations (by the previous tree) will get a higher weight and therefore the next trees will focus on difficult/missclassified observations.
--   *Gradient boosting* (state of the art): Each sequential model will be fit on the residual errors of the previous model (strongly simplified, the actual algorithm is complex).
+- **AdaBoost**: misclassified observations (from the previous tree) get a higher weight, so the next trees focus on the difficult/misclassified observations.
+- **Gradient boosting** (state of the art): each sequential model is fit on the residual errors of the previous model (strongly simplified — the actual algorithm is complex).
 
 We can fit a boosted regression tree using xgboost, but before we have to transform the data into a `xgb.Dmatrix` (which is a xgboost specific data type, the package sadly doesn't support R matrices or data.frames).
 
@@ -102,11 +107,11 @@ The parameter "nrounds" controls how many sequential trees we fit, in our exampl
 
 Let us visualize the predictions for different numbers of trees:
 
-```{r chunk_chapter4_29__BRT2, cache=TRUE}
+```{r chunk_chapter4_29__BRT2, cache=TRUE, fig.cap="Boosted-tree predictions using 1, 2, 3, and 4 trees (panel titles). With more sequential trees the fit gradually improves."}
 oldpar = par(mfrow = c(2, 2))
 for(i in 1:4){
   pred = predict(brt, newdata = data_xg, ntreelimit = i)
-  plot(data$Temp, data$Ozone, main = i)
+  plot(data$Temp, data$Ozone, main = i, xlab = "Temperature", ylab = "Ozone")
   lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 }
 par(oldpar)
@@ -114,8 +119,8 @@ par(oldpar)
 
 There are also other ways to control for complexity of the boosted regression tree algorithm:
 
--   max_depth: Maximum depth of each tree.
--   shrinkage (each tree will get a weight and the weight will decrease with the number of trees).
+- max_depth: Maximum depth of each tree.
+- shrinkage (each tree will get a weight and the weight will decrease with the number of trees).
 
 When having specified the final model, we can obtain the importance of the variables like for random forests:
 
@@ -143,7 +148,7 @@ If we do three-folded cross-validation, we actually fit three different boosted 
 Important hyperparameters:
 
 | Hyperparameter | Explanation |
-|------------------|------------------------------------------------------|
+|----|----|
 | eta | learning rate (weighting of the sequential trees) |
 | max depth | maximal depth in the trees (small = low complexity, large = high complexity) |
 | subsample | subsample ratio of the data (bootstrap ratio) |
@@ -152,10 +157,10 @@ Important hyperparameters:
 
 ## Exercise - Trees
 
-::: callout-warning
-#### Question: Understanding complexity in Regression Trees
+::: exercise
+#### Understanding complexity in Regression Trees
 
-The goal of this exercise is to understand how the hyperparameter mincut (minsplit) affects the complexity of regression trees. 
+The goal of this exercise is to understand how the hyperparameter mincut (minsplit) affects the complexity of regression trees.
 
 ```{r chunk_chapter4_task_21, eval=FALSE}
 library(tree)
@@ -179,9 +184,7 @@ Tasks:
 - Read the `tree.control` documentation, what does the mincut parameter do?
 - Try different mincut values and check how the predictions (and the RMSE) change. What was wrong in the snippet above?
 
-:::
-
-`r hide("Click here to see the solution")`
+`r hide("Show solution")`
 
 ```{r chunk_chapter4_task_22, include=TRUE}
 library(tree)
@@ -208,14 +211,13 @@ for(i in c(1, 2, 3, 5, 10, 15, 25, 50, 54, 55, 56, 57, 75, 100)){ doTask(i) }
 
 Approximately at mincut = 15, prediction is the best (mind overfitting). After mincut = 56, the prediction has no information at all and the RMSE stays constant.
 
-Mind the complete cases of the airquality data set, that was the error. 
-`r unhide()`
+Mind the complete cases of the airquality data set, that was the error. `r unhide()`
+:::
 
-::: callout-warning
-#### Question: Understanding complexity in Random forest
+::: exercise
+#### Understanding complexity in Random forest
 
-The goal of this exercise is to understand how the hyperparameter nodesize affects the complexity of random forest. 
-
+The goal of this exercise is to understand how the hyperparameter nodesize affects the complexity of random forest.
 
 ```{r chunk_chapter4_task_23, message=FALSE, warning=FALSE}
 library(randomForest)
@@ -238,9 +240,7 @@ Tasks:
 - Check the documentation of the `randomForest` function and read the description of the nodesize parameter
 - Try different nodesize values and describe how the predictions change
 
-:::
-
-`r hide("Click here to see the solution")`
+`r hide("Show solution")`
 
 ```{r chunk_chapter4_task_24, message=FALSE, warning=FALSE, include=TRUE}
 library(randomForest)
@@ -268,14 +268,15 @@ for(nodesize in c(1, 15, 50, 100)){
 Nodesize affects the complexity. In other words: The bigger the nodesize, the smaller the trees and the more bias/less variance.
 
 `r unhide()`
+:::
 
-::: callout-warning
-#### Question: Understanding complexity in Boosted regression trees
+::: exercise
+#### Understanding complexity in Boosted regression trees
 
 The goal of this exercise is to understand how complexity in BRT affects predictions. For that, we will simulate data with two predictors `x1` and `x2` and the `y` response variable will be an interaction of the two predictors:
 
-$$y = e^{-x_1^2 - x_2^2} $$
-We can visualize the simulated data as an image (x1 and x2 on the x and y axis, and the y values as colors)
+$$y = e^{-x_1^2 - x_2^2} $$ We can visualize the simulated data as an image (x1 and x2 on the x and y axis, and the y values as colors)
+
 ```{r chunk_chapter4_task_25, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
 library(xgboost)
 library(animation)
@@ -294,8 +295,6 @@ axis(2, at = seq(0, 1, length.out = 10),
      labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
 
 ```
-
-
 
 ```{r, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
 
@@ -321,7 +320,6 @@ saveGIF(
 )
 ```
 
-
 ![](./images/boosting.gif){width="370"}
 
 Tasks:
@@ -329,9 +327,8 @@ Tasks:
 - Run the code above and try different **max_depth** values and describe what you see!
 
 Tip: have a look at the boosting.gif.
-:::
 
-`r hide("Click here to see the solution")`
+`r hide("Show solution")`
 
 ```{r chunk_chapter4_task_27, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE, include=TRUE}
 library(xgboost)
@@ -384,20 +381,20 @@ We see that for high values of max_depth, the predictions "smooth out" faster. O
 
 Just some examples:
 
--   ![](./images/boosting_3_0.1.gif){width="370"}
--   ![](./images/boosting_6_0.7.gif){width="370"}
--   ![](./images/boosting_20_0.9.gif){width="370"}
+- ![](./images/boosting_3_0.1.gif){width="370"}
+- ![](./images/boosting_6_0.7.gif){width="370"}
+- ![](./images/boosting_20_0.9.gif){width="370"}
 
 `r unhide()`
+:::
 
-
-:::: callout-warning
-#### Question: Hyperparameter tuning of boosted regression trees
+:::: exercise
+#### Hyperparameter tuning of boosted regression trees
 
 Important hyperparameters:
 
 | Hyperparameter | Explanation |
-|------------------|------------------------------------------------------|
+|----|----|
 | eta | learning rate (weighting of the sequential trees) |
 | max depth | maximal depth in the trees (small = low complexity, large = high complexity) |
 | subsample | subsample ratio of the data (bootstrap ratio) |
@@ -415,13 +412,13 @@ library(missRanger)
 data(titanic_ml)
 data = titanic_ml
 data = 
-  data %>% select(survived, sex, age, fare, pclass)
+  data |> select(survived, sex, age, fare, pclass)
 data[,-1] = missRanger(data[,-1], verbose = 0)
 
 data_sub =
-  data %>%
+  data |>
     mutate(age = scales::rescale(age, c(0, 1)),
-           fare = scales::rescale(fare, c(0, 1))) %>%
+           fare = scales::rescale(fare, c(0, 1))) |>
     mutate(sex = as.integer(sex) - 1L,
            pclass = as.integer(pclass - 1L))
 data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
@@ -470,9 +467,8 @@ results = data.frame(depth = hyper_depth, eta = hyper_eta, AUC = tuning_results)
 print(results)
 ```
 :::
-::::
 
-`r hide("Click here to see the solution")`
+`r hide("Show solution")`
 
 ```{r}
 library(xgboost)
@@ -525,14 +521,14 @@ write.csv(data.frame(y = predictions), file = "Max_titanic_xgboost.csv")
 ```
 
 `r unhide()`
+::::
 
-::: callout-warning
+::: exercise
 #### Bonus: Implement a BRT on your own!
 
 You can easily implement a BRT or boosted linear model using the rpart package or the lm function.
-:::
 
-`r hide("Click here to see the solution")`
+`r hide("Show solution")`
 
 Go through the code line by line and try to understand it. Ask, if you have any questions:
 
@@ -604,19 +600,18 @@ plot(data[,2], pred, xlab = "observed", ylab = "predicted")
 ```
 
 `r unhide()`
+:::
 
-
-
-:::: callout-warning
-#### Question: Hyperparameter tuning of random forest
+:::: exercise
+#### Hyperparameter tuning of random forest
 
 | Hyperparameter | Explanation |
-|-----------------|-------------------------------------------------------|
+|----|----|
 | mtry | Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data). |
 | minimum node size | Minimal number of observations allowed in a node (before the branching is canceled) |
 | max depth | Maximum number of tree depth |
 
-Combing back to the titanic dataset from the morning, we want to optimize min node size in our RF using a simple CV.
+Coming back to the titanic dataset from the morning, we want to optimize the minimum node size in our RF using a simple CV.
 
 Prepare the data:
 
@@ -627,13 +622,13 @@ library(missRanger)
 data(titanic_ml)
 data = titanic_ml
 data = 
-  data %>% select(survived, sex, age, fare, pclass)
+  data |> select(survived, sex, age, fare, pclass)
 data[,-1] = missRanger(data[,-1], verbose = 0)
 
 data_sub =
-  data %>%
+  data |>
     mutate(age = scales::rescale(age, c(0, 1)),
-           fare = scales::rescale(fare, c(0, 1))) %>%
+           fare = scales::rescale(fare, c(0, 1))) |>
     mutate(sex = as.integer(sex) - 1L,
            pclass = as.integer(pclass - 1L))
 data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
@@ -644,13 +639,13 @@ data_obs$survived = as.factor(data_obs$survived)
 
 **Hints:**
 
--   adjust the '`type`' argument in the `predict(…)` method (the default is to predict classes)
--   when predicting probabilities, the randomForest will return a matrix, a column for each class, we are interested in the probability of surviving (so the second column)
+- adjust the '`type`' argument in the `predict(…)` method (the default is to predict classes)
+- when predicting probabilities, the randomForest will return a matrix, a column for each class, we are interested in the probability of surviving (so the second column)
 
 **Bonus:**
 
--   tune min node size (and mtry)
--   use more features
+- tune min node size (and mtry)
+- use more features
 
 ::: {.callout-tip collapse="true" appearance="minimal"}
 ## Code template
@@ -685,9 +680,8 @@ results = data.frame(minnodesize = hyper_minnodesize, AUC = tuning_results)
 print(results)
 ```
 :::
-::::
 
-`r hide("Click here to see the solution")`
+`r hide("Show solution")`
 
 ```{r}
 library(randomForest)
@@ -728,3 +722,4 @@ write.csv(data.frame(y = predict(model, data_new, type = "prob")[,2]), file = "M
 ```
 
 `r unhide()`
+::::

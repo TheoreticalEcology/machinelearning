@@ -2,18 +2,25 @@
 output: html_document
 editor_options:
   chunk_output_type: console
+fig-cap-location: margin
 ---
 
 # Introduction to Machine Learning
 
-**Machine Learning (ML)** is about training an algorithm that can perform certain tasks. The general steps to get the trained model include:
+```{r}
+#| include: false
+# centre all figures produced in this chapter
+knitr::opts_chunk$set(fig.align = "center")
+```
 
-1.  Get some data (observations/training data)
-2.  Establish something that should be done with such data (= task)
-3.  Find an (ML) algorithm that can perform the task
-4.  Operationalize the goal by an error metric (=loss) that is to be minimized
-5.  Train the algorithm to achieve a small loss on the data
-6.  Test the performance of the algorithm
+**Machine Learning (ML)** is about training an algorithm that can perform certain tasks. The general steps to get the trained model are:
+
+1.  Get some data (observations, the **training data**)
+2.  Define what should be done with the data (the **task**)
+3.  Find an (ML) **algorithm** that can perform the task
+4.  Operationalize the goal through an error metric (the **loss**) that is to be minimized
+5.  **Train** the algorithm to achieve a small loss on the data
+6.  Evaluate the **performance** of the algorithm
 
 ::: callout-note
 ## Example
@@ -28,22 +35,22 @@ editor_options:
 
 The goal of this course is that you can answer the following questions:
 
--   What are tasks that we can tackle?
--   What algorithm exist and how can they be set up / tuned / modified?
--   How to define the loss and wow to best train the algorithms?
--   How to do the performance evaluation
+- What tasks can we tackle?
+- What algorithms exist, and how can they be set up, tuned, and modified?
+- How do we define the loss, and how do we best train the algorithms?
+- How do we evaluate model performance?
 
 ## Machine Learning Tasks
 
 Typically we can define roughly three types of ML tasks:
 
--   Supervised learning
--   Unsupervised learning
--   Reinforcement learning
+- Supervised learning
+- Unsupervised learning
+- Reinforcement learning
 
-**Supervised learning**, you train algorithms to predict something (classes = classification or values = regression) from some other data (= features), and you provide it with correct examples of the execution of the task (called training data). A linear regression is an example of supervised learning. Given $y = f(x)$ with $x$ our input feature (e.g. precipitation), $y$ our response (growth), and $f$ an unknown function that maps $x \rightarrow y$ . The goal of supervised learning is to train a ML algorithm to approximate $f$ given observed $(x_i, y_i)$ pairs.
+In **supervised learning**, you train an algorithm to predict something (categories = **classification**, or values = **regression**) from other data, and you provide it with correct examples of the task (the **training data**). The data you predict *from* are the **features** (the predictors, $x$), and the thing you predict is the **response** ($y$). Linear regression is an example of supervised learning. Given $y = f(x)$ with $x$ the input feature (e.g. precipitation), $y$ the response (e.g. growth), and $f$ an unknown function that maps $x \rightarrow y$, the goal of supervised learning is to train an ML algorithm to approximate $f$ from observed $(x_i, y_i)$ pairs.
 
-**Unsupervised learning**, on the other hand, is when you provide the features, but no examples of the correct execution of the task. Clustering techniques are examples of unsupervised learning. (In the example above, $y$ would be unknown).
+In **unsupervised learning**, by contrast, you provide only the features and no examples of the correct output. **Clustering** techniques are a typical example (in the setting above, $y$ would be unknown).
 
 **Reinforcement learning** is a technique that mimics a game-like situation. The algorithm finds a solution through trial and error, receiving either rewards or penalties for each action. As in games, the goal is to maximize the rewards. We will talk more about this technique on the last day of the course.
 
@@ -51,8 +58,8 @@ For now, we will focus on the first two tasks, supervised and unsupervised learn
 
 ### Test questions
 
-::: {.webex-check .webex-box}
-In ML, predictors (or the explaining variables) are often called features: `r webexercises::torf(TRUE)`
+::: {.webex-check .quiz}
+In ML, predictors (the explanatory variables) are often called features: `r webexercises::torf(TRUE)`
 
 In supervised learning the response (y) and the features (x) are known: `r webexercises::torf(TRUE)`
 
@@ -74,36 +81,37 @@ cat("Have a look at the two textbooks on ML (Elements of statistical learning an
 
 ## Unsupervised Learning {#sec-unsupervised}
 
-In unsupervised learning, we want to identify patterns in data without having any examples (supervision) about what the correct patterns / classes are. As an example, consider the iris data set. Here, we have 150 observations of 4 floral traits:
+In **unsupervised learning**, we want to identify patterns in the data without having any examples (supervision) of what the correct patterns or classes are. As an example, consider the iris dataset, which contains 150 observations of 4 floral traits:
 
-```{r chunk-chapter3-1-iris-plot, fig.width=10, fig.height=4, fig.cap="Trait distributions of iris dataset"}
+```{r chunk-chapter3-1-iris-plot, fig.width=10, fig.height=4, fig.cap="Floral traits of all 150 iris individuals; black lines separate the three species."}
 iris = datasets::iris
 colors = hcl.colors(3)
 traits = as.matrix(iris[,1:4])
 species = iris$Species
-image(y = 1:4, x = 1:length(species) , z = traits,
-      ylab = "Floral trait", xlab = "Individual")
+image(y = 1:4, x = 1:length(species), z = traits,
+      ylab = "Floral trait", xlab = "Individual", yaxt = "n")
+axis(2, at = 1:4, labels = colnames(traits), las = 1)
 segments(50.5, 0, 50.5, 5, col = "black", lwd = 2)
 segments(100.5, 0, 100.5, 5, col = "black", lwd = 2)
 ```
 
-The observations are from 3 species and indeed those species tend to have different traits, meaning that the observations form 3 clusters.
+The observations come from 3 species, and because each species tends to have its own characteristic traits, the observations naturally form 3 **clusters**.
 
-```{r chunk-chapter3-2"}
+```{r chunk-chapter3-2, fig.cap="Pairwise scatterplots of the four floral traits, coloured by species."}
 pairs(traits, pch = as.integer(species), col = colors[as.integer(species)])
 ```
 
-However, imagine we don't know what species are, what is basically the situation in which people in the antique have been. The people just noted that some plants have different flowers than others, and decided to give them different names. This kind of process is what unsupervised learning does.
+However, imagine we don't know what the species are — essentially the situation people faced in antiquity. They simply noticed that some plants had different flowers than others and decided to give them different names. This is the kind of process unsupervised learning carries out.
 
 ### K-means Clustering
 
-An example for an unsupervised learning algorithm is k-means clustering, one of the simplest and most popular unsupervised machine learning algorithms (see more on this in section "distance based algorithms").
+An example of an unsupervised learning algorithm is **k-means clustering**, one of the simplest and most popular unsupervised algorithms (we will return to it in the section on distance-based algorithms).
 
-To start with the algorithm, you first have to specify the number of clusters (for our example the number of species). Each cluster has a centroid, which is the assumed or real location representing the center of the cluster (for our example this would be how an average plant of a specific species would look like). The algorithm starts by randomly putting centroids somewhere. Afterwards each data point is assigned to the respective cluster that raises the overall in-cluster sum of squares (variance) related to the distance to the centroid least of all. After the algorithm has placed all data points into a cluster the centroids get updated. By iterating this procedure until the assignment doesn't change any longer, the algorithm can find the (locally) optimal centroids and the data points belonging to this cluster. Note that results might differ according to the initial positions of the centroids. Thus several (locally) optimal solutions might be found.
+To start, you first specify the number of clusters (in our example, the number of species). Each cluster has a **centroid**, the location representing its center (here, what an average plant of a given species looks like). The algorithm begins by placing the centroids randomly. Each data point is then assigned to the cluster whose centroid is closest — more precisely, the assignment that increases the overall **within-cluster sum of squares** (the total squared distance of points to their centroid) the least. Once all points are assigned, the centroids are updated to the mean of their points. By repeating this procedure until the assignments no longer change, the algorithm finds (locally) optimal centroids and the points belonging to each cluster. Note that the result can depend on the initial centroid positions, so several different (locally) optimal solutions may exist.
 
-The "k" in K-means refers to the number of clusters and the 'means' refers to averaging the data-points to find the centroids.
+The "k" in k-means refers to the number of clusters, and "means" refers to averaging the data points to find the centroids.
 
-A typical pipeline for using k-means clustering looks the same as for other algorithms. After having visualized the data, we fit a model, visualize the results and have a look at the performance by use of the confusion matrix. By setting a fixed seed, we can ensure that results are reproducible.
+A typical pipeline for k-means clustering looks the same as for other algorithms: after visualizing the data, we fit a model, visualize the results, and assess the performance with a **confusion matrix**. Setting a fixed random seed (`set.seed`) ensures the results are reproducible.
 
 ```{r chunk_chapter3_9}
 set.seed(123)
@@ -116,18 +124,23 @@ print(kc)
 
 *Visualizing the results.* Color codes true species identity, symbol shows cluster result.
 
-```{r chunk_chapter3_10}
+```{r chunk_chapter3_10, fig.cap="K-means result: colour = true species, symbol = assigned cluster, large symbols = centroids."}
 plot(iris[c("Sepal.Length", "Sepal.Width")],
-     col =  colors[as.integer(species)], pch = kc$cluster)
+     col = colors[as.integer(species)], pch = kc$cluster,
+     xlab = "Sepal length (cm)", ylab = "Sepal width (cm)")
 points(kc$centers[, c("Sepal.Length", "Sepal.Width")],
        col = colors, pch = 1:3, cex = 3)
 ```
 
-We see that there are are some discrepancies. Confusion matrix:
+We see that there are some discrepancies. We can quantify them with a **confusion matrix**:
 
 ```{r chunk_chapter3_11}
 table(iris$Species, kc$cluster)
 ```
+
+::: column-margin
+A **confusion matrix** cross-tabulates the true groups (rows) against the predicted groups (columns). Counts on the **diagonal** are correct matches; **off-diagonal** counts are mistakes. A perfect result has all counts on the diagonal.
+:::
 
 If you want to animate the clustering process, you could run
 
@@ -138,22 +151,22 @@ saveGIF(kmeans.ani(x = traits[,1:2], col = colors),
         interval = 1, ani.width = 800, ani.height = 800)
 ```
 
-**Elbow technique** to determine the probably best suited number of clusters:
+The **elbow technique** helps determine the best-suited number of clusters:
 
-```{r chunk_chapter3_13}
+```{r chunk_chapter3_13, fig.cap="Within-cluster sum of squares vs. K; the red point (K = 2) marks the elbow."}
 set.seed(123)
 
 getSumSq = function(k){ kmeans(traits, k, nstart = 25)$tot.withinss }
 
-#Perform algorithm for different cluster sizes and retrieve variance.
+# Perform the algorithm for different cluster sizes and retrieve the variance.
 iris.kmeans1to10 = sapply(1:10, getSumSq)
 plot(1:10, iris.kmeans1to10, type = "b", pch = 19, frame = FALSE,
      xlab = "Number of clusters K",
-     ylab = "Total within-clusters sum of squares",
+     ylab = "Total within-cluster sum of squares",
      col = c("black", "red", rep("black", 8)))
 ```
 
-Often, one is interested in sparse models. Furthermore, higher k than necessary tends to overfitting. At the kink in the picture, the sum of squares dropped enough and k is still low enough. But keep in mind, this is only a rule of thumb and might be wrong in some special cases.
+Often we prefer **sparse** models, and a higher k than necessary tends to **overfit**. We pick k at the "elbow" (kink) of the curve, where the sum of squares has dropped substantially but k is still low. Keep in mind that this is only a rule of thumb and can be misleading in some cases.
 
 ::: column-margin
 Information criteria such as AIC or BIC can be also used to select the number of clusters and control complexity.
@@ -161,13 +174,13 @@ Information criteria such as AIC or BIC can be also used to select the number of
 
 ## Supervised Learning
 
-The two most prominent branches of supervised learning are regression and classification. The basic distinction between the two is that classification is about predicting a categorical variable, and regression is about predicting a continuous variable.
+The two most prominent branches of supervised learning are **regression** and **classification**. The distinction is simple: **classification** predicts a *categorical* variable (a class label), while **regression** predicts a *continuous* variable (a number).
 
 ### Regression
 
-The random forest (RF) algorithm is possibly the most widely used machine learning algorithm and can be used for regression and classification. We will talk more about the algorithm later.
+The **random forest (RF)** algorithm is possibly the most widely used machine learning algorithm and works for both regression and classification. We will cover how it works in detail later; for now we just use it.
 
-For the moment, we want to go through a typical workflow for a supervised regression: First, we visualize the data. Next, we fit the model and lastly we visualize the results. We will again use the iris data set that we used before. The goal is now to predict Sepal.Length based on the information about the other variables (including species).
+For now, we will go through a typical workflow for supervised regression: first we visualize the data, then we fit the model, and finally we visualize the results. We will again use the iris dataset. The goal is to predict `Sepal.Length` from the other variables (including species).
 
 Fitting the model:
 
@@ -176,19 +189,24 @@ library(randomForest)
 set.seed(123)
 ```
 
-Sepal.Length is a numerical variable:
+`Sepal.Length` is a numerical variable:
 
 ```{r}
 str(iris)
-hist(iris$Sepal.Length)
 ```
 
-The randomForest can be used similar to a linear regression model, we can specify the features using the formula syntax (`~.` means that all other variables should be used as features):
+```{r, fig.cap="Distribution of sepal length (cm)."}
+hist(iris$Sepal.Length, main = "", xlab = "Sepal length (cm)", col = "grey80")
+```
+
+The random forest is used much like a linear regression model: we specify the features with the formula syntax (`~ .` means that all other variables are used as features):
 
 ```{r chunk_chapter3_27}
 m1 = randomForest(Sepal.Length ~ ., data = iris)   # ~.: Against all others.
 print(m1)
 ```
+
+The print-out reports the model's **out-of-bag (OOB)** error. A random forest builds each tree on a random subsample of the data; the observations *not* used for a given tree are its "out-of-bag" data, and predicting them gives an honest performance estimate without a separate test set. For regression this is summarized as the mean of squared residuals and the **% variance explained** (similar to an $R^2$).
 
 ::: column-margin
 In statistics we would use a linear regression model:
@@ -198,42 +216,46 @@ mLM = lm(Sepal.Length~., data = iris)
 ```
 :::
 
-As many other ML algorithms, the RF is not interpretable, so we don't get coefficients that connect the variables to the response. But, at least we get the variable importance which is similar to an anova, telling us which variables were the most important ones:
+Like many other ML algorithms, the random forest is not directly interpretable: we don't get coefficients that link the features to the response. We do, however, get the **variable importance** — similar in spirit to an ANOVA — which ranks how much each feature contributed to the predictions:
 
 ```{r}
-varImpPlot(m1)
+varImpPlot(m1, main = "")
 ```
 
+*Variable importance (RF regression of sepal length): higher values indicate features that contribute more to reducing the prediction error.*
+
 ::: column-margin
-Our liner model would report linear effects, however, the lm cannot keep up with the flexibility of a random forest!
+Our linear model would report linear effects; however, the lm cannot match the flexibility of a random forest!
 
 ```{r}
 coef(mLM)
 ```
 :::
 
-And the finally, we can use the model to make predictions using the predict method:
+Finally, we can use the model to make predictions with the `predict` method:
 
-```{r chunk_chapter3_28}
-plot(predict(m1), iris$Sepal.Length, xlab = "Predicted", ylab = "Observed")
+```{r chunk_chapter3_28, fig.cap="Predicted vs. observed sepal length; the line is 1:1."}
+plot(predict(m1), iris$Sepal.Length,
+     xlab = "Predicted sepal length (cm)", ylab = "Observed sepal length (cm)")
 abline(0, 1)
 ```
 
-To understand the structure of a random forest in more detail, we can use a package from GitHub.
+A random forest is an **ensemble** of many **decision trees**. To inspect one of those individual trees, we can use a package from GitHub:
 
 ```{r chunk_chapter3_29, message=FALSE, warning=FALSE}
 #| fig-width: 12
 #| fig-height: 6
+#| fig-cap: "One regression tree from the random forest."
 reprtree:::plot.getTree(m1, iris)
 ```
 
-Here, one of the regression trees is shown.
+This is just one of the many trees; the random forest averages the predictions of all of them.
 
 ### Classification
 
-With the random forest, we can also do classification. The steps are the same as for regression tasks, but we can additionally see how well it performed by looking at the confusion matrix. Each row of this matrix contains the instances in a predicted class and each column represents the instances in the actual class. Thus the diagonals are the correctly predicted classes and the off-diagonal elements are the falsely classified elements.
+The random forest can also do **classification**. The workflow is the same as for regression, but now we can judge performance with the **confusion matrix** introduced earlier: it tabulates predicted classes against the true classes, so correct predictions land on the **diagonal** and mistakes off it.
 
-Species is a factor with three levels:
+`Species` is a factor with three levels (the three classes to predict):
 
 ```{r}
 str(iris)
@@ -241,13 +263,13 @@ str(iris)
 
 Fitting the model (syntax is the same as for the regression task):
 
-```{r chunk_chapter3_30}
+```{r chunk_chapter3_30, fig.cap="Variable importance (RF classification of species)."}
 set.seed(123)
 library(randomForest)
 m1 = randomForest(Species ~ ., data = iris)
 print(m1)
 
-varImpPlot(m1)
+varImpPlot(m1, main = "")
 ```
 
 Predictions:
@@ -264,18 +286,28 @@ table(predict(m1), as.integer(iris$Species))
 
 Our model made a few errors.
 
-Visualizing results ecologically:
+Visualizing the results:
 
 ```{r chunk_chapter3_32}
-plot(iris$Petal.Width, iris$Petal.Length, col = iris$Species, main = "Observed")
-plot(iris$Petal.Width, iris$Petal.Length, col = predict(m1), main = "Predicted")
+#| layout-ncol: 2
+plot(iris$Petal.Width, iris$Petal.Length, col = iris$Species,
+     xlab = "Petal width (cm)", ylab = "Petal length (cm)")
+mtext("A", side = 3, line = 0.5, adj = 0, font = 2, cex = 1.3)
+plot(iris$Petal.Width, iris$Petal.Length, col = predict(m1),
+     xlab = "Petal width (cm)", ylab = "Petal length (cm)")
+mtext("B", side = 3, line = 0.5, adj = 0, font = 2, cex = 1.3)
 ```
+
+::: column-margin
+**Species in petal trait space:** (A) observed and (B) predicted by the random forest. Misclassifications appear where the colours differ between the two panels.
+:::
 
 Visualizing one of the fitted models:
 
 ```{r chunk_chapter3_31, message=FALSE, warning=FALSE}
 #| fig-width: 8
 #| fig-height: 6
+#| fig-cap: "One classification tree from the random forest."
 reprtree:::plot.getTree(m1, iris)
 ```
 
@@ -286,7 +318,8 @@ knitr::kable(table(predict(m1), iris$Species))
 ```
 
 ## Exercise - Supervised Learning
- <!-- TODO: airqualty -->
+
+<!-- TODO: airqualty -->
 
 ```{r}
 #| results: asis
@@ -299,8 +332,12 @@ opts <- c(
 cat("Using a random forest on the iris dataset, which parameter would be more important (remember there is a function to check this) to predict Petal.Width?", webexercises::longmcq(opts))
 ```
 
-::: callout-warning
-#### Task: Fit random forest
+:::: exercise
+#### Fit a random forest
+
+[**Level:** Beginner · **Time:** \~10 min]{.exercise-meta}
+
+**Goal:** fit a random forest, read its output, then switch the task from classification to regression by changing a single line.
 
 A demonstration with the iris dataset:
 
@@ -315,21 +352,22 @@ iris_scaled[,1:4] = scale(iris_scaled[,1:4])
 model = randomForest(Species~., data = iris_scaled)
 ```
 
-RandomForest is not based on a specific data generating model and thus we will not get effect estimates that tell us how the input features affect the response:
+The random forest is not based on a specific data-generating model, so we do not get effect estimates that tell us how the input features affect the response:
 
 ```{r}
 # no summary method available
-print(model) 
+print(model)
 ```
 
-The confusion matrix explains where (for which species) the model makes wrong predictions / classifications on the OOB splits (OOB = out of bag). Each tree in the random forest is trained on a bootstrap of the data (bootstrap = sample with replacement from the original data, on average, each bootstrap will have 66% of the original data). Observations not used in a specific bootstrap are then used to validate the specific tree, bootstrap errors are at the end averaged for the n trees in the random forest.
+The confusion matrix shows, for each species, where the model classifies correctly versus incorrectly on the **out-of-bag (OOB)** data. Recall that each tree is trained on a **bootstrap** sample of the data (sampling *with replacement*, so on average each bootstrap contains about 63% of the unique observations). The observations left out of a given bootstrap are used to validate that tree, and these errors are averaged over all trees in the forest.
 
-While we don't get effect estimates as in a `lm`, we get the variable importance which reports how important the specific predictors are:
+While we don't get effect estimates as in an `lm`, we do get the **variable importance**, which reports how important each predictor is:
 
 ```{r}
-varImpPlot(model)
+varImpPlot(model, main = "")
 ```
 
+*Variable importance for the random forest classifier trained on the scaled iris features.*
 
 Predictions
 
@@ -337,7 +375,7 @@ Predictions
 head(predict(model))
 ```
 
-The model predicts the species class for each observation
+The model predicts the species class for each observation.
 
 Performance:
 
@@ -345,39 +383,157 @@ Performance:
 table(predict(model), as.integer(iris$Species))
 ```
 
-**Task:**
+**Tasks**
 
--   predict `Sepal.Length` instead of `Species` (classification -\> regression)
--   Plot predicted vs observed (usually used to asses the goodness of the predictions, if the model is good, predicted and observed values should be on one diagonal line)
+1.  Predict `Sepal.Length` instead of `Species`, i.e. turn the classification problem into a regression.
+2.  Plot predicted vs. observed values. If the model is good, the points should fall close to the diagonal.
 
+Quick check — once you predict `Sepal.Length`, which task is the random forest solving? `r webexercises::mcq(c("Classification", answer = "Regression", "Clustering"))`
+
+::: {.callout-tip collapse="true" appearance="simple" icon="false"}
+## Need a hint?
+
+Random forest infers the task type from the response variable, so you do **not** need a different function. Change only the variable on the left-hand side of the `~` in the formula — the rest of the call stays identical.
 :::
 
-`r hide("Click here to see the solution")`
+`r hide("Show solution")`
 
-Regression:
-
-Random Forest automatically infers the type of the task, so we don't have to change much:
+Random forest automatically infers the type of the task, so we don't have to change much:
 
 ```{r, results='hide'}
 model = randomForest(Sepal.Length~., data = iris_scaled)
 ```
 
-The OOB error is now "% Var explained" which is very similar to a $R^2$: 
+The OOB error is now "% Var explained" which is very similar to an $R^2$:
+
 ```{r}
 print(model)
 ```
 
-Plot observed vs predicted:
+Plot observed vs. predicted:
 
 ```{r}
-plot(iris_scaled$Sepal.Length, predict(model), xlim = c(-3, 3), ylim = c(-3, 3))
-abline(a = c(0, 1))
+plot(iris_scaled$Sepal.Length, predict(model), xlim = c(-3, 3), ylim = c(-3, 3),
+     xlab = "Observed sepal length (scaled)", ylab = "Predicted sepal length (scaled)")
+abline(a = 0, b = 1)
 ```
+
+*Predicted vs. observed (scaled) sepal length; points close to the 1:1 line indicate accurate predictions.*
 
 Calculate $R^2$:
 
 ```{r}
-cor(iris_scaled$Sepal.Length, predict(model))**2
+cor(iris_scaled$Sepal.Length, predict(model))^2
 ```
 
 `r unhide()`
+::::
+
+## Exercise - Train your first model and predict
+
+The iris data above is small and clean, so almost any model works well. Let's move to a larger, messier, ecological dataset — the **plant–pollinator** database — and walk through the core workflow: **fit** a model, then **make predictions** with it.
+
+:::: exercise
+#### Train a random forest and make predictions
+
+[**Level:** Beginner · **Time:** \~20 min]{.exercise-meta}
+
+**Goal:** train your first random forest on a real dataset, read its performance, and make predictions — both as **classes** and as **probabilities**.
+
+**Working alone or in a group?** This exercise works both ways, and either way you each write your own code:
+
+- *On your own:* work through the tasks and note your answers to the discussion questions.
+- *In a group of 3–4:* everyone fits and predicts independently, then you pool your answers and discuss together.
+
+Prepare the data. We use only four trait predictors and a subsample of the observations — no feature engineering yet, that comes in later chapters:
+
+```{r, message=FALSE, warning=FALSE}
+library(EcoData)
+library(randomForest)
+library(missRanger)
+library(dplyr)
+set.seed(123)
+
+data(plantPollinator_df)
+
+# four trait predictors + the response; keep only the labelled observations
+dat = plantPollinator_df |>
+  select(diameter, corolla, tongue, body, interaction) |>
+  filter(!is.na(interaction))
+
+# impute the few missing trait values (only to remove NAs)
+dat[, 1:4] = missRanger(dat[, 1:4], verbose = 0)
+dat$interaction = as.factor(dat$interaction)
+
+# the data set is large - subsample so a random forest fits in seconds
+set.seed(123)
+dat = dat[sample(nrow(dat), min(2000, nrow(dat))), ]
+```
+
+**1. Fit the model.** Train a random forest to predict whether a plant and a pollinator interact, and read its **out-of-bag (OOB)** error and confusion matrix:
+
+```{r}
+set.seed(123)
+rf = randomForest(interaction ~ ., data = dat)
+print(rf)   # OOB error rate + confusion matrix
+```
+
+**2. Make predictions.** A classifier can return two kinds of prediction — try both:
+
+```{r}
+# (a) the predicted class: does this pair interact, yes or no?
+pred_class = predict(rf)
+head(pred_class)
+
+# (b) the predicted probability of each class
+pred_prob = predict(rf, type = "prob")
+head(pred_prob)
+```
+
+The **class** is simply the **probability** turned into a yes/no decision at a threshold (0.5 by default).
+
+**3. Hyperparameter teaser.** Every algorithm has **hyperparameters** — settings you choose *before* training that change how it behaves (the random forest has `ntree`, `mtry`, `nodesize`, and more). Change one and refit, then see whether the OOB error moves:
+
+```{r}
+set.seed(123)
+rf2 = randomForest(interaction ~ ., data = dat, nodesize = 50)
+print(rf2)
+```
+
+Don't worry yet about *which* values are good — that is exactly what the next chapter is about. For now it's enough to see that these knobs exist and that they change the model.
+
+Now discuss (or, if working alone, note down your answers):
+
+- When would you rather have a **probability** than a hard **class** label? (Think about ranking the most likely interactions, or choosing your own threshold.)
+- What does the **confusion matrix** tell you about *which kinds* of mistakes the model makes?
+- Did changing the hyperparameter in step 3 move the OOB error — a little or a lot?
+
+Quick check — what does `predict(rf, type = "prob")` return? `r webexercises::mcq(c(answer = "the probability of each class", "the single most likely class", "the OOB error"))`
+
+::: {.callout-tip collapse="true" appearance="simple" icon="false"}
+## Need a hint?
+
+`predict(rf)` returns the predicted **class** (a factor). Add `type = "prob"` to get a matrix with one **probability** column per class. To turn probabilities back into classes yourself, compare the probability of the positive class against a threshold such as 0.5.
+:::
+
+`r hide("Show solution")`
+
+```{r}
+set.seed(123)
+rf = randomForest(interaction ~ ., data = dat)
+
+# classes and probabilities side by side for the first few observations
+head(data.frame(class = predict(rf),
+                predict(rf, type = "prob")))
+
+# turning probabilities into classes with a 0.5 threshold reproduces the classes
+prob_positive = predict(rf, type = "prob")[, 2]
+manual_class = ifelse(prob_positive > 0.5, levels(dat$interaction)[2],
+                                            levels(dat$interaction)[1])
+head(manual_class)
+```
+
+Probabilities are more informative than a bare class: they let you *rank* candidate interactions and choose a threshold that fits your goal (e.g. be more cautious before predicting an interaction). The confusion matrix shows whether the errors are mostly false positives or false negatives. Changing `nodesize` (or another hyperparameter) shifts the OOB error a little — *why* and *how* to choose these values is the subject of the next chapter.
+
+`r unhide()`
+::::

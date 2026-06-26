@@ -2,29 +2,36 @@
 output: html_document
 editor_options:
   chunk_output_type: console
+fig-cap-location: margin
 ---
 
 # Managing algorithmic complexity
 
+```{r}
+#| include: false
+# centre all figures produced in this chapter
+knitr::opts_chunk$set(fig.align = "center")
+```
+
 ## Estimating error on the validation data
 
-You probably remember from statistics that a more complex model always fits the training data better. The decisive question, however, is if it also works better on new (independent) data. Technically, we call this the **out-of-sample error**, as opposed to the i**n-sample error**, which is the error on the training data.
+You probably remember from statistics that a more complex model always fits the training data better. The decisive question, however, is whether it also works better on new (independent) data. Technically, we call this the **out-of-sample error**, as opposed to the **in-sample error**, which is the error on the training data.
 
-Error can be measured in different ways, but usually we calculate some **kind of accuracy** (especially for classification tasks) or how much variance is explained by our model (regression tasks). We also distinguish between the error used to train the model and the error used to validate the model. The error used internally by the ML algorithms to train the model is what we usually call the loss. The smaller the loss, the smaller the error of the model, and vice versa for larger losses.
+Error can be measured in different ways, but usually we calculate some kind of **accuracy** (especially for classification tasks) or how much variance is explained by our model (regression tasks). We also distinguish between the error used to *train* the model and the error used to *validate* it. The error the ML algorithm uses internally to train the model is what we call the **loss**: the smaller the loss, the better the model fits.
 
-While we can use losses to validate the model, losses are often not interpretable as they are often in the range $[0, \infty[$ and they cannot be generalized to other datasets because they are often data specific. Therefore, in practice, we usually use **interpretable losses, validation metrics,** during validation that can be also used to compare the models over different datasets (Model A achieves 80% accuarcy on dataset A and 70% accuracy on dataset B), here is an overview of some common validation metrics and their interpretation:
+Losses can be used to validate a model, but they are often hard to interpret (they frequently live in the range $[0, \infty[$) and are not comparable across datasets because they are data-specific. Therefore, in practice, we use interpretable **validation metrics** that *can* be compared across datasets (e.g. model A achieves 80% accuracy on dataset A and 70% on dataset B). Here is an overview of some common validation metrics and their interpretation:
 
 Validation metrics for classification tasks:
 
 | Validation Metric | Range | Classification Types | Explanation |
-|------------------|------------------|------------------|------------------|
+|----|----|----|----|
 | **A**rea **U**nder the **C**urve (AUC) | $[0, 1]$ | Binary Classification Tasks (e.g. Titanic Dataset, survived or died) | The ability of our models to distinguish between 0 and 1. Requires probability predictions. An AUC of 0.5 means that the algorithm is making random predictions. Lower than 0.5 –\> worse than random |
 | Accuracy | $[0, 1]$ | All types of classifications (including multiclass tasks) | The accuracy of our models, how many of the predicted classes are correct. The baseline accuracy depends on the distributions of the classes (if one class occurs 99% in the data, a random model that will only predict this class, will achieve already a very high accuracy |
 
 Validation metrics for regression tasks:
 
 | Validation Metric | Range | Explanation |
-|------------------------|------------------------|------------------------|
+|----|----|----|
 | $R^2$ | $[0, 1]$ | How much variance is explained by our model. We usually use the sum of squares $R^2$ |
 | Correlation factors (Pearson or Spearman) | $[-1, 1]$ | Measures correlation between predictions and observations. Spearman (rank correlation factor) can be useful for skewed distributed responses (or non-normal distributed responses, such as count data). |
 | **R**oot **m**ean **s**quared **e**rror (RMSE) | $[0, \infty[$ | RMSE is not a really interpretable but it is still used as a common validation metrics (is also used as a loss to train models). The RMSE reports how much variance is unexplained (so smaller RMSE is better). However, RMSE is not really comparable between different data sets. |
@@ -62,7 +69,7 @@ cor(predict(m1), data[train,]$medv)
 cor(predict(m2), data[train,]$medv)
 ```
 
-Conclusion: m2 (more complex) is much better on training. As a next step, we are testing the predictive ability on hold-out (aka valikation, out-of-sample error).
+The more complex model `m2` is clearly better on the training data. As a next step, we test the predictive ability on the hold-out data (the **validation** set, i.e. the out-of-sample error):
 
 ```{r}
 cor(predict(m1, newdata = data[-train,] ), 
@@ -76,9 +83,9 @@ Now, m2 is much worse!
 
 ### Overfitting vs. underfitting
 
-The phenomenon that the predictive error drops significantly when going from the training to the validation data signals overfitting, i.e. a too complex model!
+When the predictive performance drops sharply going from the training to the validation data, this signals **overfitting** — the model is too complex and has fit noise in the training data.
 
-What about m1 - is m1 just complex enough, or is it too simple? Underfitting cannot be directly diagnosed, you just have to try around if making the model more complex can improve results on the validation data. Let's try a random forest
+What about `m1` — is it just complex enough, or too simple? **Underfitting** cannot be diagnosed as directly; you have to test whether making the model more complex improves results on the validation data. Let's try a random forest:
 
 ```{r, message=FALSE}
 library(randomForest)
@@ -92,11 +99,15 @@ No drop on validation data (i.e. no overfitting), but error on training and vali
 
 ### Validation vs. cross-validation {#sec-cv}
 
-A problem with the validation split is that we test only on a certain fraction of the data (say: 20% in a 80/20 split).
+A problem with a single validation split is that we test only on one fraction of the data (say 20% in an 80/20 split), so the estimate is noisy.
 
-If computationally possible, a better method to estimate error is cross-validation. The idea of cross-validation is to perform the train/validation split again and again until all data was used for the validation, and then average the validation error over this data.
+If it is computationally feasible, a better way to estimate the error is **cross-validation**: we repeat the train/validation split again and again until every observation has been used for validation exactly once, and then average the validation error.
 
-Here an example of a k-fold cross-validation, which is akin to 5x an 80/20 split.
+Here is an example of a **k-fold cross-validation**, which is akin to repeating an 80/20 split five times.
+
+::: column-margin
+In **k-fold cross-validation** the data is split into $k$ equal parts ("folds"). Each fold serves once as the validation set while the model trains on the other $k-1$ folds; the $k$ error estimates are then averaged. Larger $k$ uses more data for training but costs more computation.
+:::
 
 ```{r}
 k = 5 # folds
@@ -115,19 +126,19 @@ cor(pred, data$medv)
 
 ### The bias-variance trade-off
 
-What we have just seen in the previous chapter is an example of the bias-variance trade-off. The idea is that we look at the error of the model on new test data. The total error comes from 2 contributions:
+What we have just seen is an example of the **bias-variance trade-off**. The idea is to look at the error of the model on new test data, which comes from two contributions:
 
--   Bias = **systematic error** that comes from the fact that the model is not flexible enough, related to underfitting
+- **Bias** = systematic error that arises because the model is not flexible enough — related to underfitting.
 
--   Variance = **statistical error** that comes from that fact that estimates of the model parameters get more uncertain when we add complexity
+- **Variance** = statistical error that arises because the estimates of the model parameters become more uncertain as we add complexity.
 
 Optimizing the bias-variance trade-off means adjusting the complexity of the model which can be achieved by:
 
--   Feature selection (more features increases the flexibility of the model)
+- Feature selection (more features increases the flexibility of the model)
 
--   Regularization
+- Regularization
 
-::: {.webex-check .webex-box}
+::: {.webex-check .quiz}
 ![](images/biasVarianceTradeoff.png)
 
 ```{r}
@@ -170,34 +181,28 @@ Regularization means adding information or structure to a system in order to sol
 
 **Shrinkage estimators** are based on the idea of adding a penalty to the loss function that penalizes deviations of the model parameters from a particular value (typically 0). In this way, estimates are *"shrunk"* to the specified default value. In practice, the most important penalties are the least absolute shrinkage and selection operator; also *Lasso* or *LASSO*, where the penalty is proportional to the sum of absolute deviations ($L1$ penalty), and the *Tikhonov regularization* aka *Ridge regression*, where the penalty is proportional to the sum of squared distances from the reference ($L2$ penalty). Thus, the loss function that we optimize is given by
 
-$$
-loss = fit - \lambda \cdot d
-$$
+$$loss = fit - \lambda \cdot d$$
 
 where fit refers to the standard loss function, $\lambda$ is the strength of the regularization, and $d$ is the chosen metric, e.g. $L1$ or$L2$:
 
-$$
-loss_{L1} = fit - \lambda \cdot \Vert weights \Vert_1
-$$
+$$loss_{L1} = fit - \lambda \cdot \Vert weights \Vert_1$$
 
-$$
-loss_{L2} = fit - \lambda \cdot \Vert weights \Vert_2
-$$
+$$loss_{L2} = fit - \lambda \cdot \Vert weights \Vert_2$$
 
 $\lambda$ and possibly d are typically optimized under cross-validation. $L1$ and $L2$ can be also combined what is then called *elastic net* (see @zou2005).
 
-**Model averaging** refers to an entire set of techniques, including *boosting*, *bagging* and other averaging techniques. The general principle is that predictions are made by combining (= averaging) several models. This is based on on the insight that it is often more efficient having many simpler models and average them, than one "super model". The reasons are complicated, and explained in more detail in @dormann2018.
+**Model averaging** refers to an entire set of techniques, including *boosting*, *bagging*, and other averaging methods. The general principle is that predictions are made by combining (averaging) several models. This rests on the insight that it is often more efficient to have many simpler models and average them than to build one "super model". The reasons are subtle, and explained in more detail in @dormann2018.
 
-A particular important application of averaging is *boosting*, where the idea is that many weak learners are combined to a model average, resulting in a strong learner. Another related method is *bootstrap aggregating*, also called *bagging*. Idea here is to *boostrap* (use random sampling with replacement ) the data, and average the bootstrapped predictions.
+A particularly important application of averaging is **boosting**, where many weak learners are combined into a model average, resulting in a strong learner. A related method is **bootstrap aggregating**, also called **bagging**: the idea is to *bootstrap* the data (sample it with replacement) and average the predictions over the bootstrapped models.
 
 To see how these techniques work in practice, let's first focus on LASSO and Ridge regularization for weights in neural networks. We can imagine that the LASSO and Ridge act similar to a rubber band on the weights that pulls them to zero if the data does not strongly push them away from zero. This leads to important weights, which are supported by the data, being estimated as different from zero, whereas unimportant model structures are reduced (shrunken) to zero.
 
 LASSO $\left(penalty \propto \sum_{}^{} \mathrm{abs}(weights) \right)$ and Ridge $\left(penalty \propto \sum_{}^{} weights^{2} \right)$ have slightly different properties. They are best understood if we express those as the effective prior preference they create on the parameters:
 
-```{r chunk_chapter4_10, echo = F}
+```{r chunk_chapter4_10, echo = F, fig.cap="Effective parameter priors implied by the two penalties: LASSO (left) places a sharp peak at zero, Ridge (right) is smoother around zero."}
 oldpar = par(mfrow = c(1, 2))
-curve(dexp(abs(x)), -5, 5, main = "LASSO prior")
-curve(dnorm(abs(x)), -5, 5, main = "Ridge prior")
+curve(dexp(abs(x)), -5, 5, main = "LASSO prior", xlab = "weight", ylab = "density")
+curve(dnorm(abs(x)), -5, 5, main = "Ridge prior", xlab = "weight", ylab = "density")
 par(oldpar)
 ```
 
@@ -218,9 +223,11 @@ library(glmnet)
 data(BostonHousing)
 data = BostonHousing
 Y = data$medv
-X = data %>% select(-medv, -chas) %>% scale()
+X = data |> select(-medv, -chas) |> scale()
+```
 
-hist(cor(X))
+```{r, fig.cap="Distribution of the pairwise correlations among the (scaled) predictors."}
+hist(cor(X), main = "", xlab = "Pairwise correlation", col = "grey80")
 ```
 
 ```{r}
@@ -244,38 +251,38 @@ cbind(coef(m2, s = 0.001), coef(m2, s = 0.5))
 
 #### Elastic-net - Example
 
-By setting $alpha$ to a value between 0 and 1.0, we use a combination of LASSO and Rdige:
+By setting $\alpha$ to a value between 0 and 1.0, we use a combination of LASSO and Ridge:
 
 ```{r}
 m3 = glmnet(y = Y, x = X, alpha = 0.5)
 cbind(coef(m3, s = 0.001), coef(m3, s = 0.5))
 ```
 
-## Hyperparameter tuning
+## Hyperparameter tuning {#sec-tuning}
 
 ### What is a hyperparameter?
 
-Generally, parameters such as $\lambda$ and $\alpha$ that, for example, control the complexity of the model or other model features such as learning or the optimization are called hyperparameters.
+Parameters such as $\lambda$ and $\alpha$ — which control the complexity of the model, or other aspects such as the learning or optimization — are called **hyperparameters**. Unlike ordinary parameters, they are not learned from the data during training but set beforehand.
 
-Hyperparameter tuning describes the process of finding the optimal set of hyperparameters for a certain task. They are usually data specific, so they have to tuned for each dataset.
+**Hyperparameter tuning** is the process of finding the optimal set of hyperparameters for a given task. They are usually data-specific, so they have to be tuned for each dataset.
 
-Let's have a look at this using our glmnet example - we can plot the effect of $\lambda$ on the effect estimates:
+Let's have a look at this using our glmnet example — we can plot the effect of $\lambda$ on the coefficient estimates:
 
-```{r}
+```{r, fig.cap="Ridge coefficient paths: each line is one coefficient as the penalty (top axis: number of non-zero coefficients) increases."}
 plot(m1)
 ```
 
 So which lambda should we choose now? If we calculate the model fit for different lambdas (e.g. using the RMSE):
 
-```{r}
+```{r, fig.cap="Training RMSE as a function of the penalty $\\lambda$. The smallest $\\lambda$ (least regularization) gives the lowest training error."}
 lambdas = seq(0.001, 1.5, length.out = 100)
-RMSEs = 
+RMSEs =
   sapply(lambdas, function(l) {
     prediction = predict(m1, newx = X, s = l)
     RMSE = Metrics::rmse(Y, prediction)
     return(RMSE)
     })
-plot(lambdas, RMSEs)
+plot(lambdas, RMSEs, xlab = "Lambda", ylab = "RMSE", type = "l")
 ```
 
 We see that the lowest lambda achieved the highest RMSE - which is not surprising because the unconstrained model, the most complex model, has the highest fit, so no bias but probably high variance (with respect to the bias-variance tradeoff).
@@ -292,7 +299,7 @@ library(glmnet)
 data(BostonHousing)
 data = BostonHousing
 Y = data$medv
-X = data %>% select(-medv, -chas) %>% scale()
+X = data |> select(-medv, -chas) |> scale()
 
 # Split data
 indices = sample.int(nrow(X), 0.2*nrow(X))
@@ -313,9 +320,9 @@ Metrics::rmse(test_Y, pred)
 
 Let's do it again for different values of lambdas:
 
-```{r}
+```{r, fig.cap="Test RMSE versus $\\lambda$; the red line marks the $\\lambda$ with the lowest test error. Unlike the training error, this optimum is no longer at the smallest $\\lambda$."}
 lambdas = seq(0.0000001, 0.5, length.out = 100)
-RMSEs = 
+RMSEs =
   sapply(lambdas, function(l) {
     prediction = predict(m1, newx = test_X, s = l)
     return(Metrics::rmse(test_Y, prediction))
@@ -324,9 +331,9 @@ plot(lambdas, RMSEs, xlab = "Lambda", ylab = "RMSE", type = "l", las = 2)
 abline(v = lambdas[which.min(RMSEs)], col = "red", lwd = 1.5)
 ```
 
-Alternatively, you automatically run a CV to determine the hyperparameters for glmnet, using the `cv.glmnet` function which does per default a 5xCV (so 5 splits) and in each split different values for $\lambda$ are tested
+Alternatively, you can run a cross-validation automatically to determine the hyperparameters for glmnet, using the `cv.glmnet` function. By default it does a 5-fold CV and tests different values of $\lambda$ in each split:
 
-```{r}
+```{r, fig.cap="Cross-validated RMSE versus $\\log(\\lambda)$ from `cv.glmnet`. Dotted lines mark the minimum-error $\\lambda$ and the largest $\\lambda$ within one standard error of it."}
 m1 = glmnet::cv.glmnet(x = X, y = Y, alpha = 0.5, nfolds = 5)
 m1
 plot(m1)
@@ -379,167 +386,77 @@ cor(finalPred,
     data[validation,]$medv)
 ```
 
-## Exercise - Predicting survival rate of titanic passengers
+## Exercise - Hyperparameter sensitivity and the bias-variance tradeoff
 
-<!-- The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower). We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>. -->
+The goal of this exercise is to *see* the bias-variance tradeoff: we change one hyperparameter that controls model complexity and watch how the **training** and **validation** errors respond.
 
-The titanic dataset is a collection of data about the titanic passengers and their survival status. The goal is to train a model that can predict whether a passenger survives or not based on their features (e.g. their passenger class):
+:::: exercise
+#### How nodesize controls complexity
 
--   Response variable: `survived` survival status of the passengers
+[**Level:** Beginner · **Time:** \~20 min]{.exercise-meta}
 
-<!-- -->
+**Goal:** sweep the random forest hyperparameter `nodesize` and plot the training and validation error together to reveal under- and overfitting.
 
--   Features: all other variables
+`nodesize` is the minimum number of observations in a terminal node: **larger `nodesize` -> smaller, simpler trees -> lower complexity** (and vice versa).
 
-You can also find a small explanation of the dataset in the Appendix of the book.
+**Working alone or in a group?**
 
-In the following exercise we will also use a new technique called data imputation:
+- *On your own:* run the sweep below, then repeat it for a second lever (e.g. `mtry` or `ntree`) and check whether the same pattern appears.
+- *In a group of 3-4:* each person sweeps a *different* complexity lever (`nodesize`, `mtry`, `maxnodes`), then compare your curves and discuss whether the train-vs-validation pattern is the same for all of them.
 
-Most ML algorithms (including statistical models) **cannot handle missing data**, observations with NAs would normally be dropped from the dataset. To prevent that, we use data imputation to fill NAs in the dataset. In short, we use an algorithm, e.g. random forest, loop over the columns, treat these columns as response variables, train the RF on this column and then make predictions for the NAs in this column. By doing this, we can fill in the NAs in our data set. **However, exclude the actual response variable (here survival) from the data imputation, otherwise it would be data leakage!**
-
-::: callout-warning
-### Task: Tune random forest model for the Titanic dataset
-
-Tune the **nodesize** hyperparameter, from the randomForest help:
-
-nodesize = Minimum size of terminal nodes. Setting this number larger causes smaller trees to be grown (and thus take less time). Note that the default values are different for classification (1) and regression (5).
-
-**Nodesize determines the complexity of the individual trees (we will talk about the exact working tomorrow)**
-
-**1. Prepare data**
+We use the Boston housing data and a single train/validation split:
 
 ```{r}
-library(randomForest) # alternative faster random forest implementation
-library(EcoData)
+library(randomForest)
+library(mlbench)
+set.seed(123)
 
-data(titanic_ml)
-titanic_df = titanic_ml
-summary(titanic_df)
+data(BostonHousing)
+data = BostonHousing
+n = nrow(data)
+train = sample(n, round(0.7 * n))
 
-# data imputation - fill NA using the missRanger package column 2 is our response variable
-titanic_df[,-2] = missRanger::missRanger(titanic_df[,-2], verbose = 0)
-
-# remove name column, too many levels
-titanic_df = subset(titanic_df, select = c(-name, -home.dest, -ticket, -cabin))
-
-# change response to factor
-titanic_df$survived = as.factor(titanic_df$survived)
-
-# remove NAs
-df = titanic_df[complete.cases(titanic_df),] # remove NAs
-
-
-# Example:
-rf = randomForest(survived~., 
-                  data = df[1:300,], 
-                  min.node.size = 20) # we want our model to predict probabilities!
-
-# the predict function of the ranger will return an object, the actual predictions
-# are inside a matrix with the name predictions
-pred = predict(rf, newdata = df[-(1:300),], type = "prob")[,2]
-Metrics::auc(as.integer(df[-(1:300),]$survived)-1, pred)
-
+rmse = function(obs, pred) sqrt(mean((obs - pred)^2))
 ```
 
-**2. Create an outer split**
+**Tasks**
 
-**3. Tune nodesize under nested Cross-Validation on the training split from step 2**
+1. For a grid of `nodesize` values, fit a random forest on the training data and record both the **training** RMSE and the **validation** RMSE.
+2. Plot both error curves against `nodesize` in one figure.
+3. Describe what happens to each curve, and read off the `nodesize` with the lowest validation error -- the bias-variance sweet spot.
 
-**4. Create submissions**
+Quick check -- a large gap between training and validation error is a sign of: `r webexercises::mcq(c(answer = "high variance (overfitting)", "high bias (underfitting)", "a perfectly tuned model"))`
 
-**We separated data from the original dataset**. Observations with NA in the survived column are held back by us to simulate a real-world scenario where you have training data to train your model, and then use the model in production on new data where you have no information about the response variable.
+::: {.callout-tip collapse="true" appearance="simple" icon=false}
+## Need a hint?
 
-So, 654 observations will serve as training data:
-
-```{r}
-# Training data data:
-sum(!is.na(titanic_ml$survived))
-```
-
-And 655 observations will serve as validation data:
-
-```{r}
-# Outer test/validation data:
-sum(is.na(titanic_ml$survived))
-```
-
-The goal is to tune/train your model (under k-Cross Validation) on the training data and make predictions for the validation data;
-
-After tuning your model on the training data (again, where the response variable is not NA) and you are happy with your model, you can make predictions for the observations where the response is unknown and upload the predictions to our server (<http://rhsbio7.uni-regensburg.de:8500/>, ignore the unsecure warning and UR VPN is required). The server will report your final performance and compare it with other predictions):
-
-How to create your submission file:
-
-```{r}
-newdata = titanic_df[is.na(titanic_df$survived), ]
-predictions = predict(rf, newdata = newdata, type = "prob")[,2]
-
-write.csv(data.frame(y = predictions), file = "rf_max.csv")
-```
-
-**Important**:
-
-1.  The predictions must be probabilities
-2.  Predictions must the same number of observations as in the raw titanic_ml\$response == NA column, this is why we impute the NA in the features, otherwise these observations would be dropped. So `nrow(data.frame(y = predictions)) == 655`
+Loop over `nodesize = c(1, 3, 5, 10, 20, 40, 80, 150)`. For each value, fit `randomForest(medv ~ ., data = data[train, ], nodesize = ...)`, then compute `rmse()` once on `data[train, ]` (training error) and once on `data[-train, ]` (validation error). Remember: small `nodesize` = complex model.
 :::
 
-`r hide("Click here to see the solution")`
+`r hide("Show solution")`
 
 ```{r}
-set.seed(42)
-n = nrow(df)
-# outer split
-validation = sample.int(n, round(0.2*n))
-dat = df[-validation,]
+nodesizes = c(1, 3, 5, 10, 20, 40, 80, 150)
+res = data.frame(nodesize = nodesizes, training = NA, validation = NA)
 
-# inner split
-nI = nrow(dat)
-hyperparameter = data.frame(nodesize = seq(10, 500, by = 25))
-m = nrow(hyperparameter)
-k = 5 # folds
-split = sample.int(k, nI, replace = T)
-
-
-# making predictions for all hyperparameters / splits
-pred = matrix(NA, nI, m)
-for(l in 1:m){
-  # loop over the hyperparameters and do CV for each hyperparameter
-  for(i in 1:k){
-    m1 = randomForest(survived~., data = dat[split != i,], nodesize = hyperparameter$nodesize[l])
-    pred[split == i,l] = predict(m1, newdata = dat[split == i,], type = "prob")[,2]
-  }
+for (i in seq_along(nodesizes)) {
+  rf = randomForest(medv ~ ., data = data[train, ], nodesize = nodesizes[i])
+  res$training[i]   = rmse(data$medv[train],  predict(rf, data[train, ]))
+  res$validation[i] = rmse(data$medv[-train], predict(rf, data[-train, ]))
 }
 
-# getting best hyperparameter option on test
-innerLoss = function(x) Metrics::auc(dat$survived, x)
-res = apply(pred, 2, innerLoss)
-choice = which.max(res) 
-
-# fitting model again with best hyperparameters 
-# and all test / validation data 
-mFinal = randomForest(survived~., data = dat, nodesize = hyperparameter$nodesize[choice])
-
-# testing final prediction on validation data 
-finalPred = predict(mFinal, newdata = df[validation,], type = "prob")[,2]
-
-Metrics::auc(df[validation,]$survived, finalPred)
+matplot(res$nodesize, res[, c("training", "validation")],
+        type = "b", pch = 19, log = "x", col = c("black", "red"),
+        xlab = "nodesize (larger = simpler model)", ylab = "RMSE")
+legend("topleft", c("training", "validation"),
+       col = c("black", "red"), pch = 19, bty = "n")
 ```
 
-Create submissions:
+*Training vs. validation RMSE as the random forest is made simpler (larger nodesize). The training error grows with simplicity while the validation error is U-shaped; the gap between the curves reflects the variance.*
 
-```{r}
-newdata = titanic_df[is.na(titanic_df$survived), ]
-predictions = predict(rf, newdata = newdata, type = "prob")[,2]
-
-write.csv(data.frame(y = predictions), file = "rf_max.csv")
-```
-
-And upload the csv file
-
-**Important**:
-
-1.  The predictions must be probabilities
-2.  Predictions must the same number of observations as in the raw titanic_ml\$response == NA column, this is why we impute the NA in the features, otherwise these observations would be dropped.
+As the trees are forced to be simpler (larger `nodesize`), the **training** error rises steadily -- a more complex model always fits the training data better. The **validation** error is U-shaped: very complex models (tiny `nodesize`) overfit, while overly simple models underfit. The lowest point of the validation curve is the best bias-variance compromise, and the vertical gap between the two curves reflects the **variance** of the model.
 
 `r unhide()`
+::::
 
 ## References {.unnumbered}

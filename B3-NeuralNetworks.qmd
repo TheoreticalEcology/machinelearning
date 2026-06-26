@@ -2,11 +2,18 @@
 output: html_document
 editor_options:
   chunk_output_type: console
+fig-cap-location: margin
 ---
 
 # Artificial Neural Networks
 
-Artificial neural networks are biologically inspired, the idea is that inputs are processed by weights, the neurons, the signals then accumulate at hidden nodes (axioms), and only if the sum of activations of several neurons exceed a certain threshold, the signal will be passed on.
+```{r}
+#| include: false
+knitr::opts_chunk$set(fig.align = "center")
+```
+
+
+**Artificial neural networks** are biologically inspired: inputs are processed by **weights** at the **neurons**, the signals then accumulate at hidden nodes (analogous to axons), and only if the summed activation exceeds a certain threshold is the signal passed on.
 
 ```{r}
 library(cito)
@@ -64,7 +71,7 @@ head(predict(model, type = "response"))
 
 ## Validation split in deep learning
 
-In cito, we can directly tell the `dnn` function to automatically use a random subset of the data as validation data, which is validated after each epoch (each iteration of the optimization), allowing us to monitor but also to invervene in the training:
+In cito, we can directly tell the `dnn` function to automatically use a random subset of the data as validation data, which is validated after each epoch (each iteration of the optimization), allowing us to monitor but also to intervene in the training:
 
 ```{r}
 #| message: false
@@ -108,22 +115,30 @@ In DL, the optimization (the training of the DNN) is challenging as we have to o
 cito visualizes the training (see graphic). The reason for this is that the training can easily fail if the learning rate (lr) is poorly chosen. If the lr is too high, the optimizer "jumps" over good local optima, while it gets stuck in local optima if the lr is too small:
 
 ```{r}
-model = dnn(Ozone~., 
-            hidden = c(10L, 10L), 
-            activation = c("selu", "selu"), 
+model = dnn(Ozone~.,
+            hidden = c(10L, 10L),
+            activation = c("selu", "selu"),
             loss = "mse", lr = 0.4, data = data, epochs = 150L, verbose = FALSE)
 ```
+
+::: column-margin
+Training curve with a **too-high** learning rate: the loss is wiggly and may even diverge instead of steadily decreasing.
+:::
 
 If too high, the training will either directly fail (because the loss jumps to infinity) or the loss will be very wiggly and doesn't decrease over the number of epochs.
 
 ```{r}
-model = dnn(Ozone~., 
-            hidden = c(10L, 10L), 
-            activation = c("selu", "selu"), 
+model = dnn(Ozone~.,
+            hidden = c(10L, 10L),
+            activation = c("selu", "selu"),
             loss = "mse", lr = 0.0001, data = data, epochs = 150L, verbose = FALSE)
 ```
 
-If too low, the loss will be very wiggly but doesn't decrease.
+::: column-margin
+Training curve with a **too-low** learning rate: the loss decreases only very slowly over the epochs.
+:::
+
+If too low, the loss decreases only very slowly over the epochs.
 
 ::: callout-note
 ## Learning rate scheduler
@@ -148,11 +163,11 @@ The architecture of the NN can be specified by the `hidden` argument, it is a ve
 
 Example:
 
-```{r}
+```{r, fig.cap="Training curve for a well-chosen learning rate: the loss decreases smoothly and levels off."}
 data = airquality[complete.cases(airquality),] # DNN cannot handle NAs!
 data = scale(data)
 
-model = dnn(Ozone~., 
+model = dnn(Ozone~.,
             hidden = c(10L, 10L), # Architecture, number of hidden layers and nodes in each layer
             activation = c("selu", "selu"), # activation functions for the specific hidden layer
             loss = "mse", lr = 0.01, data = data, epochs = 150L, verbose = FALSE)
@@ -180,7 +195,7 @@ summary(model)
 
 Be careful that you don't accidentally set all weights to 0 because of a too high regularization. We check the weights of the first layer:
 
-```{r}
+```{r, fig.cap="Weights of the first layer. Watch out that regularization does not shrink all of them to zero."}
 fields::image.plot(coef(model)[[1]][[1]]) # weights of the first layer
 ```
 
@@ -189,7 +204,7 @@ fields::image.plot(coef(model)[[1]][[1]]) # weights of the first layer
 cito has a feature to automatically tune hyperparameters under Cross Validation!
 
 -   if you pass the function `tune(...)` to a hyperparameter, this hyperparameter will be automatically tuned
--   in the `tuning = config_tuning(...)` argument, you can specify the cross-validation strategy and the number of hyperparameters that shoudl be tested
+-   in the `tuning = config_tuning(...)` argument, you can specify the cross-validation strategy and the number of hyperparameters that should be tested
 -   after the tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
 
 Minimal example with the iris dataset:
@@ -215,8 +230,8 @@ model_tuned$tuning
 
 ## Exercise
 
-::: callout-warning
-#### Question: Hyperparameter tuning dnn - Titanic dataset
+:::: exercise
+#### Tune a DNN — Titanic dataset
 
 Tune architecture
 
@@ -260,13 +275,13 @@ library(missRanger)
 data(titanic_ml)
 data = titanic_ml
 data =
-  data %>% select(survived, sex, age, fare, pclass)
+  data |> select(survived, sex, age, fare, pclass)
 data[,-1] = missRanger(data[,-1], verbose = 0)
 
 data_sub =
-  data %>%
+  data |>
     mutate(age = scales::rescale(age, c(0, 1)),
-           fare = scales::rescale(fare, c(0, 1))) %>%
+           fare = scales::rescale(fare, c(0, 1))) |>
     mutate(sex = as.integer(sex) - 1L,
            pclass = as.integer(pclass - 1L))
 data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
@@ -291,10 +306,10 @@ predictions = predict(model, newdata = data_new, type = "response") # change pre
 
 write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv")
 ```
-:::
+::::
 
-::: callout-warning
-#### Question: Hyperparameter tuning - Plant-pollinator dataset
+:::: exercise
+#### Tune a DNN — Plant-pollinator dataset
 
 The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower). We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>.
 
@@ -317,7 +332,7 @@ plant_poll[, sapply(plant_poll, is.numeric)] = scale(plant_poll[, sapply(plant_p
 df = plant_poll[complete.cases(plant_poll),] # remove NAs
 
 # remove factors with only one level 
-data_obs = df %>% select(-crop, -insect, -season, -colour, -guild, -feeding, -composite)
+data_obs = df |> select(-crop, -insect, -season, -colour, -guild, -feeding, -composite)
 
 # change response to integer (because cito wants integer 0/1 for binomial data)
 data_obs$interaction = as.integer(data_obs$interaction) - 1 
@@ -370,7 +385,7 @@ write.csv(data.frame(y = predictions), file = "my_submission.csv")
 
 <!-- plant_poll = plantPollinator_df -->
 
-<!-- plant_poll_imputed = plant_poll %>% select(diameter, -->
+<!-- plant_poll_imputed = plant_poll |> select(diameter, -->
 
 <!--                                            corolla, -->
 
@@ -390,7 +405,7 @@ write.csv(data.frame(y = predictions), file = "my_submission.csv")
 
 <!-- # Remove response variable interaction -->
 
-<!-- plant_poll_imputed = missRanger::missRanger(data = plant_poll_imputed %>% -->
+<!-- plant_poll_imputed = missRanger::missRanger(data = plant_poll_imputed |> -->
 
 <!--                                               select(-interaction), verbose = 0) -->
 
@@ -446,9 +461,8 @@ Your Tasks:
 
 -   Use cito to tune learning parameters and the regularization
 -   Submit your predictions to <http://rhsbio7.uni-regensburg.de:8500/>
-:::
 
-`r hide("Click here to see the solution")`
+`r hide("Show solution")`
 
 Minimal example:
 
@@ -482,3 +496,4 @@ write.csv(data.frame(y = predictions), file = "Max_plant_.csv")
 ```
 
 `r unhide()`
+::::

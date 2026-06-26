@@ -2,9 +2,16 @@
 output: html_document
 editor_options:
   chunk_output_type: console
+fig-cap-location: margin
 ---
 
 # Recurrent Neural Networks (RNN)
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(fig.align = "center")
+```
+
 
 ```{r}
 #| echo: false
@@ -66,7 +73,7 @@ net = nn_module(
   }, 
   forward = function(x) {
     x = self$lstm(x)
-    # two outputs -> [batch, seq_len, hidden] , last hidden state
+    # two outputs -> prediction from the last timestep, [batch, seq_len, hidden] , last hidden state
     x = x[[1]][,dim(x[[1]])[2], ]
     return(self$linear(x))
   }
@@ -104,8 +111,6 @@ preds = as.matrix(model(torch_tensor(X_test)))
 
 
 
-
-
 matplot(cbind(as.vector(preds[1:48,]),  
               as.vector(Y_test[1:48,])), 
         col = c("darkblue", "darkred"),
@@ -119,6 +124,98 @@ legend("topright", bty = "n",
 
 ```
 
+<!-- ```{r} -->
+
+
+<!-- net = nn_module( -->
+<!--   initialize = function() { -->
+<!--     self$encoder = nn_lstm(input_size = 21L, hidden_size = 50L ,batch_first = TRUE) -->
+<!--     self$decoder = nn_lstm(input_size = 21L, hidden_size = 50L ,batch_first = TRUE) -->
+<!--     self$linear = nn_linear(50,  1L) -->
+<!--     self$projection = nn_linear(50, 21) -->
+<!--   },  -->
+<!--   forward = function(x, n_steps = 6L) { -->
+<!--     xx = self$encoder(x) -->
+<!--     hidden_decoder = xx[[2]] # [] -->
+<!--     input_t = x[,dim(x)[2],,drop=F] # last time step -->
+
+<!--     outputs = list() -->
+<!--     for(n in 1:n_steps) { -->
+<!--       x = self$decoder(input_t, hidden_decoder) -->
+<!--       output_sequence = x[[1]] -->
+<!--       hidden_decoder = x[[2]] -->
+<!--       pred = self$linear(output_sequence |> nnf_relu() )$squeeze(2) -->
+<!--       step_pred = self$projection(output_sequence |> nnf_relu() )$squeeze(2) -->
+<!--       outputs = c(outputs, pred) -->
+<!--       input_t = step_pred$unsqueeze(2) -->
+<!--     } -->
+<!--     return(torch_cat(outputs,2)) -->
+<!--   } -->
+<!-- ) -->
+
+<!-- # training loop -->
+<!-- model = net() -->
+
+<!-- train_dl = dataloader(tensor_dataset(torch_tensor(X_train), torch_tensor(Y_train)), batch_size = 100L, shuffle = TRUE ) -->
+
+<!-- opt = optim_adam(params = model$parameters, lr = 0.01) -->
+<!-- epochs = 100L -->
+<!-- overall_train_loss = c() -->
+<!-- for(e in 1:epochs) { -->
+<!--   losses = losses_val = c() -->
+<!--   model$train() # -> dropout is on -->
+<!--   coro::loop( -->
+<!--     for(batch in train_dl) { -->
+<!--       x = batch[[1]] # Feature matrix/tensor -->
+<!--       y = batch[[2]] # Response matrix/tensor -->
+<!--       opt$zero_grad() # reset optimizer -->
+<!--       pred = model(x) -->
+<!--       loss = nnf_mse_loss(pred, y) -->
+<!--       loss$backward() -->
+<!--       opt$step() # update weights -->
+<!--       losses = c(losses, loss$item()) -->
+<!--     } -->
+<!--   ) -->
+<!--   overall_train_loss = c(overall_train_loss, mean(losses)) -->
+<!--   cat(sprintf("Loss at epoch: %d train: %3f\n", e, mean(losses))) -->
+
+<!-- } -->
+
+<!-- preds = as.matrix(model(torch_tensor(X_test))) -->
+
+
+<!-- matplot(cbind(as.vector(preds[1:48,]),   -->
+<!--               as.vector(Y_test[1:48,])),  -->
+<!--         col = c("darkblue", "darkred"), -->
+<!--         type = "l",  -->
+<!--         pch = c(15, 16), -->
+<!--         xlab = "week", ylab = "Drought") -->
+<!-- legend("topright", bty = "n",  -->
+<!--        col = c("darkblue", "darkred"), -->
+<!--       pch = c(15, 16),  -->
+<!--       legend = c("Prediction", "True Values")) -->
+
+
+<!-- model$eval() -->
+<!-- preds = as.matrix(model$forward(torch_tensor(X_test)[1,,,drop=F], n_steps = 6*300 )) -->
+
+<!-- preds = matrix(preds[1,], 300, 6, byrow = T) -->
+
+<!-- matplot(cbind(as.vector(preds[,]),   -->
+<!--               as.vector(Y_test[,])),  -->
+<!--         col = c("darkblue", "darkred"), -->
+<!--         type = "l",  -->
+<!--         pch = c(15, 16), -->
+<!--         xlab = "week", ylab = "Drought") -->
+<!-- legend("topright", bty = "n",  -->
+<!--        col = c("darkblue", "darkred"), -->
+<!--       pch = c(15, 16),  -->
+<!--       legend = c("Prediction", "True Values")) -->
+
+
+
+
+<!-- ``` -->
 
 
 
@@ -139,29 +236,29 @@ legend("topright", bty = "n",
 <!-- input1 = layer_input(shape = inputDimension1) -->
 <!-- input2 = layer_input(shape = inputDimension2) -->
 
-<!-- modelInput2 = input2 %>% -->
-<!--   layer_dropout(rate = 0.5) %>% -->
+<!-- modelInput2 = input2 |> -->
+<!--   layer_dropout(rate = 0.5) |> -->
 <!--   layer_dense(units = inputDimension2, activation = "gelu") -->
 
-<!-- modelMemory = input1 %>% -->
-<!--   layer_embedding(input_dim = inputDimension1, output_dim = 64L) %>% -->
-<!--   layer_lstm(units = 64L) %>% -->
-<!--   layer_dropout(rate = 0.5) %>% -->
+<!-- modelMemory = input1 |> -->
+<!--   layer_embedding(input_dim = inputDimension1, output_dim = 64L) |> -->
+<!--   layer_lstm(units = 64L) |> -->
+<!--   layer_dropout(rate = 0.5) |> -->
 <!--   layer_dense(units = 2L, activation = "sigmoid") -->
 
-<!-- modelDeep = input1 %>% -->
-<!--   layer_dropout(rate = 0.5) %>% -->
-<!--   layer_dense(units = 64L, activation = "relu") %>% -->
-<!--   layer_dropout(rate = 0.3) %>% -->
-<!--   layer_dense(units = 64L, activation = "relu") %>% -->
-<!--   layer_dense(units = 64L, activation = "relu") %>% -->
+<!-- modelDeep = input1 |> -->
+<!--   layer_dropout(rate = 0.5) |> -->
+<!--   layer_dense(units = 64L, activation = "relu") |> -->
+<!--   layer_dropout(rate = 0.3) |> -->
+<!--   layer_dense(units = 64L, activation = "relu") |> -->
+<!--   layer_dense(units = 64L, activation = "relu") |> -->
 <!--   layer_dense(units = 5L, activation = "sigmoid") -->
 
-<!-- modelMain = layer_concatenate(c(modelMemory, modelDeep, modelInput2)) %>% -->
-<!--   layer_dropout(rate = 0.25) %>% -->
-<!--   layer_dense(units = 64L, activation = "relu") %>% -->
-<!--   layer_dropout(rate = 0.3) %>% -->
-<!--   layer_dense(units = 64L, activation = "relu") %>% -->
+<!-- modelMain = layer_concatenate(c(modelMemory, modelDeep, modelInput2)) |> -->
+<!--   layer_dropout(rate = 0.25) |> -->
+<!--   layer_dense(units = 64L, activation = "relu") |> -->
+<!--   layer_dropout(rate = 0.3) |> -->
+<!--   layer_dense(units = 64L, activation = "relu") |> -->
 <!--   layer_dense(units = 2L, activation = "sigmoid") -->
 
 <!-- model = keras_model( -->
@@ -170,7 +267,7 @@ legend("topright", bty = "n",
 <!-- ) -->
 
 <!-- summary(model) -->
-<!-- # model %>% plot_model() -->
+<!-- # model |> plot_model() -->
 <!-- ``` -->
 
 <!-- ## Torch -->
