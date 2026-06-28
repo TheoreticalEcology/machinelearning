@@ -711,7 +711,7 @@ F-statistic: 471.8 on 1 and 504 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre><code>[1] 0.9211876</code></pre>
 </div>
 </div>
-<p>The model with all features and their potential interactions has the highest <span class="math inline">\(R^2\)</span>, but it also has the highest uncertainty because there are on average only 5 observations for each parameter (92 parameters and 506 observations). So how do we decide which level of complexity is appropriate for our task? For the data we use to train the model, <span class="math inline">\(R^2\)</span> will always get better with higher model complexity, so it is a poor decision criterion. We will show this in the <a href="#sec-cv" class="quarto-xref"><span class="quarto-unresolved-ref">sec-cv</span></a> section. In short, the idea is that we need to split the data so that we have an evaluation (test) dataset that wasn’t used to train the model, which we can then use in turn to see if our model generalizes well to new data.</p>
+<p>The model with all features and their potential interactions has the highest <span class="math inline">\(R^2\)</span>, but it also has the highest uncertainty because there are on average only 5 observations for each parameter (92 parameters and 506 observations). So how do we decide which level of complexity is appropriate for our task? For the data we use to train the model, <span class="math inline">\(R^2\)</span> will always get better with higher model complexity, so it is a poor decision criterion. We will show this in the <a href="#sec-cv" class="quarto-xref"><span>Section 3.1.3</span></a> section. In short, the idea is that we need to split the data so that we have an evaluation (test) dataset that wasn’t used to train the model, which we can then use in turn to see if our model generalizes well to new data.</p>
 </section>
 <section id="regularization" class="level3 page-columns page-full" data-number="3.2.3">
 <h3 data-number="3.2.3" class="anchored" data-anchor-id="regularization"><span class="header-section-number">3.2.3</span> Regularization</h3>
@@ -972,49 +972,52 @@ min 0.0105    78   23.80 3.247      12
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co"># outer split</span></span>
 <span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>validation <span class="ot">=</span> <span class="fu">sample.int</span>(n, <span class="fu">round</span>(<span class="fl">0.2</span><span class="sc">*</span>n))</span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> data[<span class="sc">-</span>validation,]</span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a><span class="co"># inner split</span></span>
-<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>nI <span class="ot">=</span> <span class="fu">nrow</span>(dat)</span>
-<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>hyperparameter <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">mtry =</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">5</span>))</span>
-<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="fu">nrow</span>(hyperparameter)</span>
-<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>k <span class="ot">=</span> <span class="dv">5</span> <span class="co"># folds</span></span>
-<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>split <span class="ot">=</span> <span class="fu">sample.int</span>(k, nI, <span class="at">replace =</span> T)</span>
-<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>dat_X <span class="ot">=</span> X[<span class="sc">-</span>validation,]</span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>dat_Y <span class="ot">=</span> Y[<span class="sc">-</span>validation]</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a><span class="co"># inner split</span></span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>nI <span class="ot">=</span> <span class="fu">nrow</span>(dat_X)</span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>hyperparameter <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">alpha =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">1</span>))</span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="fu">nrow</span>(hyperparameter)</span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>k <span class="ot">=</span> <span class="dv">5</span> <span class="co"># folds</span></span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>split <span class="ot">=</span> <span class="fu">sample.int</span>(k, nI, <span class="at">replace =</span> T)</span>
 <span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a><span class="co"># making predictions for all hyperparameters / splits</span></span>
-<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, nI, m)</span>
-<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(l <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>m){</span>
-<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>k){</span>
-<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>    m1 <span class="ot">=</span> <span class="fu">randomForest</span>(medv<span class="sc">~</span>., <span class="at">data =</span> dat[split <span class="sc">!=</span> i,], <span class="at">mtry =</span> hyperparameter<span class="sc">$</span>mtry[l])</span>
-<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a>    pred[split <span class="sc">==</span> i,l] <span class="ot">=</span> <span class="fu">predict</span>(m1, <span class="at">newdata =</span> dat[split <span class="sc">==</span> i,])</span>
-<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a><span class="co"># getting best hyperparameter option on test</span></span>
-<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a>innerLoss <span class="ot">=</span> <span class="cf">function</span>(x) <span class="fu">cor</span>(x, dat<span class="sc">$</span>medv)</span>
-<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">2</span>, innerLoss)</span>
-<span id="cb54-25"><a href="#cb54-25" aria-hidden="true" tabindex="-1"></a>choice <span class="ot">=</span> <span class="fu">which.max</span>(res) </span>
-<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-27"><a href="#cb54-27" aria-hidden="true" tabindex="-1"></a><span class="co"># fitting model again with best hyperparameters </span></span>
-<span id="cb54-28"><a href="#cb54-28" aria-hidden="true" tabindex="-1"></a><span class="co"># and all test / validation data </span></span>
-<span id="cb54-29"><a href="#cb54-29" aria-hidden="true" tabindex="-1"></a>mFinal <span class="ot">=</span> <span class="fu">randomForest</span>(medv<span class="sc">~</span>., <span class="at">data =</span> dat, <span class="at">mtry =</span> hyperparameter<span class="sc">$</span>mtry[choice])</span>
-<span id="cb54-30"><a href="#cb54-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-31"><a href="#cb54-31" aria-hidden="true" tabindex="-1"></a><span class="co"># testing final prediction on validation data </span></span>
-<span id="cb54-32"><a href="#cb54-32" aria-hidden="true" tabindex="-1"></a>finalPred <span class="ot">=</span> <span class="fu">predict</span>(mFinal, <span class="at">newdata =</span> data[validation,])</span>
-<span id="cb54-33"><a href="#cb54-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-34"><a href="#cb54-34" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(finalPred, </span>
-<span id="cb54-35"><a href="#cb54-35" aria-hidden="true" tabindex="-1"></a>    data[validation,]<span class="sc">$</span>medv)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a><span class="co"># making predictions for all hyperparameters / splits</span></span>
+<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, nI, m)</span>
+<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(l <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>m){</span>
+<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>k){</span>
+<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a>    m1 <span class="ot">=</span> <span class="fu">glmnet</span>(<span class="at">y =</span> dat_Y[split <span class="sc">!=</span> i], <span class="at">x =</span> dat_X[split <span class="sc">!=</span> i,],</span>
+<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a>                <span class="at">alpha =</span> hyperparameter<span class="sc">$</span>alpha[l])</span>
+<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a>    pred[split <span class="sc">==</span> i,l] <span class="ot">=</span> <span class="fu">predict</span>(m1, <span class="at">newx =</span> dat_X[split <span class="sc">==</span> i,], <span class="at">s =</span> <span class="fl">0.01</span>)</span>
+<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a><span class="co"># getting best hyperparameter option on test</span></span>
+<span id="cb54-25"><a href="#cb54-25" aria-hidden="true" tabindex="-1"></a>innerLoss <span class="ot">=</span> <span class="cf">function</span>(x) <span class="fu">cor</span>(x, dat_Y)</span>
+<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">2</span>, innerLoss)</span>
+<span id="cb54-27"><a href="#cb54-27" aria-hidden="true" tabindex="-1"></a>choice <span class="ot">=</span> <span class="fu">which.max</span>(res)</span>
+<span id="cb54-28"><a href="#cb54-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-29"><a href="#cb54-29" aria-hidden="true" tabindex="-1"></a><span class="co"># fitting model again with best hyperparameters</span></span>
+<span id="cb54-30"><a href="#cb54-30" aria-hidden="true" tabindex="-1"></a><span class="co"># and all test / validation data</span></span>
+<span id="cb54-31"><a href="#cb54-31" aria-hidden="true" tabindex="-1"></a>mFinal <span class="ot">=</span> <span class="fu">glmnet</span>(<span class="at">y =</span> dat_Y, <span class="at">x =</span> dat_X, <span class="at">alpha =</span> hyperparameter<span class="sc">$</span>alpha[choice])</span>
+<span id="cb54-32"><a href="#cb54-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-33"><a href="#cb54-33" aria-hidden="true" tabindex="-1"></a><span class="co"># testing final prediction on validation data</span></span>
+<span id="cb54-34"><a href="#cb54-34" aria-hidden="true" tabindex="-1"></a>finalPred <span class="ot">=</span> <span class="fu">predict</span>(mFinal, <span class="at">newx =</span> X[validation,], <span class="at">s =</span> <span class="fl">0.01</span>)</span>
+<span id="cb54-35"><a href="#cb54-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-36"><a href="#cb54-36" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(finalPred,</span>
+<span id="cb54-37"><a href="#cb54-37" aria-hidden="true" tabindex="-1"></a>    Y[validation])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.9375104</code></pre>
+<pre><code>            [,1]
+s=0.01 0.8647243</code></pre>
 </div>
 </div>
 </section>
 </section>
-<section id="exercise---hyperparameter-sensitivity-and-the-bias-variance-tradeoff" class="level2 page-columns page-full" data-number="3.4">
+<section id="exercise---hyperparameter-sensitivity-and-the-bias-variance-tradeoff" class="level2" data-number="3.4">
 <h2 data-number="3.4" class="anchored" data-anchor-id="exercise---hyperparameter-sensitivity-and-the-bias-variance-tradeoff"><span class="header-section-number">3.4</span> Exercise - Hyperparameter sensitivity and the bias-variance tradeoff</h2>
 <p>The goal of this exercise is to <em>see</em> the bias-variance tradeoff: we change one hyperparameter that controls model complexity and watch how the <strong>training</strong> and <strong>validation</strong> errors respond.</p>
-<section id="how-nodesize-controls-complexity" class="level4 exercise page-columns page-full" data-number="3.4.0.1">
+<section id="how-nodesize-controls-complexity" class="level4 exercise" data-number="3.4.0.1">
 <h4 data-number="3.4.0.1" class="anchored" data-anchor-id="how-nodesize-controls-complexity"><span class="header-section-number">3.4.0.1</span> How nodesize controls complexity</h4>
 <p><span class="exercise-meta"><strong>Level:</strong> Beginner · <strong>Time:</strong> ~20 min</span></p>
 <p><strong>Goal:</strong> sweep the random forest hyperparameter <code>nodesize</code> and plot the training and validation error together to reveal under- and overfitting.</p>
@@ -1060,11 +1063,11 @@ Need a hint?
 </div>
 </div>
 </div>
-<div class="webex-solution page-columns page-full">
+<div class="webex-solution">
 <button>
 Show solution
 </button>
-<div class="cell page-columns page-full" data-layout-align="center">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>nodesizes <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">40</span>, <span class="dv">80</span>, <span class="dv">150</span>)</span>
 <span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">nodesize =</span> nodesizes, <span class="at">training =</span> <span class="cn">NA</span>, <span class="at">validation =</span> <span class="cn">NA</span>)</span>
 <span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1079,15 +1082,15 @@ Show solution
 <span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">xlab =</span> <span class="st">"nodesize (larger = simpler model)"</span>, <span class="at">ylab =</span> <span class="st">"RMSE"</span>)</span>
 <span id="cb57-13"><a href="#cb57-13" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"training"</span>, <span class="st">"validation"</span>),</span>
 <span id="cb57-14"><a href="#cb57-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"red"</span>), <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">bty =</span> <span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display page-columns page-full">
-<div class="quarto-figure quarto-figure-center page-columns page-full">
-<figure class="figure page-columns page-full">
-<p><img src="A3-BiasVarianceTradeOff_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="margin-caption">Training vs.&nbsp;validation RMSE as the random forest is made simpler (larger nodesize). The training error grows with simplicity while the validation error is U-shaped; the gap between the curves reflects the variance.</figcaption>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="A3-BiasVarianceTradeOff_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
+<p><em>Training vs.&nbsp;validation RMSE as the random forest is made simpler (larger nodesize). The training error grows with simplicity while the validation error is U-shaped; the gap between the curves reflects the variance.</em></p>
 <p>As the trees are forced to be simpler (larger <code>nodesize</code>), the <strong>training</strong> error rises steadily – a more complex model always fits the training data better. The <strong>validation</strong> error is U-shaped: very complex models (tiny <code>nodesize</code>) overfit, while overly simple models underfit. The lowest point of the validation curve is the best bias-variance compromise, and the vertical gap between the two curves reflects the <strong>variance</strong> of the model.</p>
 </div>
 </section>

@@ -687,7 +687,7 @@ write.csv(data.frame(y = predictions), file = "Max_1.csv")
 <!-- `r unhide()` -->
 
 :::: exercise
-#### Tune a random forest (Titanic)
+#### Tune a random forest (Plant-pollinator)
 
 [**Level:** Intermediate · **Time:** \~40 min]{.exercise-meta}
 
@@ -697,7 +697,7 @@ write.csv(data.frame(y = predictions), file = "Max_1.csv")
 | minimum node size | Minimal number of observations allowed in a node (before the branching is canceled) |
 | max depth | Maximum number of tree depth |
 
-Coming back to the titanic dataset from the morning, we want to optimize nodesize, max depth, and mtry in our RF using a simple CV.
+Using the plant-pollinator dataset (see @sec-plantpoll), we want to optimize nodesize, max depth, and mtry in our RF using a simple CV. The task is to predict whether a plant and a pollinator interact, based on their traits.
 
 Prepare the data:
 
@@ -705,32 +705,25 @@ Prepare the data:
 library(EcoData)
 library(dplyr)
 library(missRanger)
-data(titanic_ml)
-data = titanic_ml
-data = 
-  data |> select(survived, sex, age, fare, pclass)
+data(plantPollinator_df)
+data = plantPollinator_df
+data =
+  data |> select(interaction, diameter, corolla, tongue, body)
 
 # data imputation without the response variable!
-data[,-1] = missRanger(data[,-1], verbose = 0) 
+data[,-1] = missRanger(data[,-1], verbose = 0)
 
-data$survived = as.factor(data$survived)
+data$interaction = as.factor(data$interaction)
 
-data_sub =
-  data |> 
-    mutate(age = scales::rescale(age, c(0, 1)),
-           fare = scales::rescale(fare, c(0, 1))) |> 
-    mutate(sex = as.integer(sex) - 1L,
-           pclass = as.integer(pclass - 1L))
-data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
-data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
-data_sub$survived = as.factor(data_sub$survived)
-data_obs$survived = as.factor(data_obs$survived)
+data_sub = data
+data_new = data_sub[is.na(data_sub$interaction),] # for which we want to make predictions at the end
+data_obs = data_sub[!is.na(data_sub$interaction),] # data with known response
 ```
 
 **Hints:**
 
 - adjust the '`type`' argument in the `predict(…)` method (the default is to predict classes)
-- when predicting probabilities, the randomForest will return a matrix, a column for each class, we are interested in the probability of surviving (so the second column)
+- when predicting probabilities, the randomForest will return a matrix, a column for each class, we are interested in the probability of an interaction (so the second column)
 - tune nodesize, mtry, and maxnodes
 - use more features and do feature engineering!
 
@@ -739,7 +732,7 @@ data_obs$survived = as.factor(data_obs$survived)
 
 ```{r, eval=FALSE}
 library(randomForest)
-data_obs = data_sub[!is.na(data_sub$survived),]
+data_obs = data_sub[!is.na(data_sub$interaction),]
 set.seed(42)
 
 cv = 3
@@ -753,10 +746,10 @@ tuning_results =
           train_inner = data_obs[inner_split != j, ]
           test_inner = data_obs[inner_split == j, ]
           
-          model = randomForest(survived~.,data = train_inner, nodesize = hyper_minnodesize[k])
+          model = randomForest(interaction~.,data = train_inner, nodesize = hyper_minnodesize[k])
           predictions = predict(model, newdata=test_inner, type = "prob")[,2]
-          
-          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
+
+          auc_inner[j]= Metrics::auc(test_inner$interaction, predictions)
         }
       return(mean(auc_inner))
     })
@@ -771,7 +764,7 @@ print(results)
 
 ```{r}
 library(randomForest)
-data_obs = data_sub[!is.na(data_sub$survived),]
+data_obs = data_sub[!is.na(data_sub$interaction),]
 set.seed(42)
 
 cv = 3
@@ -785,12 +778,12 @@ tuning_results =
           inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
           train_inner = data_obs[inner_split != j, ]
           test_inner = data_obs[inner_split == j, ]
-          model = randomForest(survived~.,data = train_inner, 
-                               nodesize = hyper_minnodesize[k], 
+          model = randomForest(interaction~.,data = train_inner,
+                               nodesize = hyper_minnodesize[k],
                                mtry = hyper_mtry[k])
           predictions = predict(model, test_inner, type="prob")[,2]
-          
-          auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
+
+          auc_inner[j]= Metrics::auc(test_inner$interaction, predictions)
         }
       return(mean(auc_inner))
     })
@@ -807,11 +800,11 @@ print(best_hyper)
 Make predictions for the submission server:
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
-model = randomForest(survived~.,data = data_obs, 
-                     nodesize = best_hyper[1,1], 
+model = randomForest(interaction~.,data = data_obs,
+                     nodesize = best_hyper[1,1],
                      mtry = best_hyper[1,2])
 
-write.csv(data.frame(y = predict(model, newdata=data_new, type="prob")[,2]), file = "Max_titanic_rf.csv")
+write.csv(data.frame(y = predict(model, newdata=data_new, type="prob")[,2]), file = "Max_plant_poll_rf.csv")
 ```
 
 `r unhide()`

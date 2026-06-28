@@ -830,7 +830,7 @@ Transforming factors with more than two levels
 <h2 data-number="4.2" class="anchored" data-anchor-id="modelling"><span class="header-section-number">4.2</span> Modelling</h2>
 <section id="split-data-for-final-predictions" class="level3" data-number="4.2.1">
 <h3 data-number="4.2.1" class="anchored" data-anchor-id="split-data-for-final-predictions"><span class="header-section-number">4.2.1</span> Split data for final predictions</h3>
-<p>The concepts behind training/validation splits, cross-validation, and hyperparameter tuning were covered in <a href="A3-BiasVarianceTradeOff.html#sec-tuning" class="quarto-xref"><span>Section 3.3</span></a>; here we simply apply them inside the pipeline. To tune and evaluate our models, we split the data into training and testing data. The testing data are the observations where the response is NA:</p>
+<p>The concepts behind training/validation splits, cross-validation, and hyperparameter tuning were covered in <a href="#sec-tuning" class="quarto-xref"><span class="quarto-unresolved-ref">sec-tuning</span></a>; here we simply apply them inside the pipeline. To tune and evaluate our models, we split the data into training and testing data. The testing data are the observations where the response is NA:</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data_sub<span class="sc">$</span>survived)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -846,7 +846,7 @@ Transforming factors with more than two levels
 </section>
 <section id="hyperparameter-optimization" class="level3 page-columns page-full" data-number="4.2.2">
 <h3 data-number="4.2.2" class="anchored" data-anchor-id="hyperparameter-optimization"><span class="header-section-number">4.2.2</span> Hyperparameter optimization</h3>
-<p>We now tune our hyperparameters (see <a href="A3-BiasVarianceTradeOff.html#sec-tuning" class="quarto-xref"><span>Section 3.3</span></a> for the underlying concepts). Strictly, we should run a nested CV on the training data (<code>data_obs</code>); here we treat the submission server’s test data as the outer split, so a single <span class="math inline">\(n\)</span>-fold cross-validation serves as our inner loop.</p>
+<p>We now tune our hyperparameters (see <a href="#sec-tuning" class="quarto-xref"><span class="quarto-unresolved-ref">sec-tuning</span></a> for the underlying concepts). Strictly, we should run a nested CV on the training data (<code>data_obs</code>); here we treat the submission server’s test data as the outer split, so a single <span class="math inline">\(n\)</span>-fold cross-validation serves as our inner loop.</p>
 
 <div class="no-row-height column-margin column-container"><div class="">
 <p>A common tuning strategy is <strong>random search</strong>: sample random hyperparameter combinations and keep the one with the lowest validation error.</p>
@@ -870,16 +870,16 @@ Fitting final model...</code></pre>
 <pre><code># A tibble: 10 × 5
    steps  test train models     lr
    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;   &lt;dbl&gt;
- 1     1  323.     0 NA     0.0146
- 2     2  314.     0 NA     0.0284
- 3     3  309.     0 NA     0.0358
- 4     4  313.     0 NA     0.0815
- 5     5  315.     0 NA     0.0180
- 6     6  315.     0 NA     0.0526
- 7     7  314.     0 NA     0.0767
- 8     8  316.     0 NA     0.0296
- 9     9  314.     0 NA     0.0442
-10    10  337.     0 NA     0.0673</code></pre>
+ 1     1  319.     0 NA     0.0146
+ 2     2  317.     0 NA     0.0284
+ 3     3  313.     0 NA     0.0358
+ 4     4  314.     0 NA     0.0815
+ 5     5  320.     0 NA     0.0180
+ 6     6  317.     0 NA     0.0526
+ 7     7  324.     0 NA     0.0767
+ 8     8  314.     0 NA     0.0296
+ 9     9  313.     0 NA     0.0442
+10    10  314.     0 NA     0.0673</code></pre>
 </div>
 </div>
 <!-- ```{r} -->
@@ -1067,8 +1067,8 @@ Fitting final model...</code></pre>
 <!-- 
 </div>
  -->
-<section id="tune-a-random-forest-titanic" class="level4 exercise" data-number="4.4.0.1">
-<h4 data-number="4.4.0.1" class="anchored" data-anchor-id="tune-a-random-forest-titanic"><span class="header-section-number">4.4.0.1</span> Tune a random forest (Titanic)</h4>
+<section id="tune-a-random-forest-plant-pollinator" class="level4 exercise" data-number="4.4.0.1">
+<h4 data-number="4.4.0.1" class="anchored" data-anchor-id="tune-a-random-forest-plant-pollinator"><span class="header-section-number">4.4.0.1</span> Tune a random forest (Plant-pollinator)</h4>
 <p><span class="exercise-meta"><strong>Level:</strong> Intermediate · <strong>Time:</strong> ~40 min</span></p>
 <table class="caption-top table">
 <colgroup>
@@ -1096,37 +1096,30 @@ Fitting final model...</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Coming back to the titanic dataset from the morning, we want to optimize nodesize, max depth, and mtry in our RF using a simple CV.</p>
+<p>Using the plant-pollinator dataset (see <a href="#sec-plantpoll" class="quarto-xref"><span class="quarto-unresolved-ref">sec-plantpoll</span></a>), we want to optimize nodesize, max depth, and mtry in our RF using a simple CV. The task is to predict whether a plant and a pollinator interact, based on their traits.</p>
 <p>Prepare the data:</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
 <span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(titanic_ml)</span>
-<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> titanic_ml</span>
-<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> </span>
-<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">|&gt;</span> <span class="fu">select</span>(survived, sex, age, fare, pclass)</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(plantPollinator_df)</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> plantPollinator_df</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">|&gt;</span> <span class="fu">select</span>(interaction, diameter, corolla, tongue, body)</span>
 <span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a><span class="co"># data imputation without the response variable!</span></span>
-<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>data[,<span class="sc">-</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">missRanger</span>(data[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">verbose =</span> <span class="dv">0</span>) </span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>data[,<span class="sc">-</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">missRanger</span>(data[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">verbose =</span> <span class="dv">0</span>)</span>
 <span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>survived <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>survived)</span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>interaction <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>interaction)</span>
 <span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a>data_sub <span class="ot">=</span></span>
-<span id="cb47-15"><a href="#cb47-15" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">|&gt;</span> </span>
-<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">age =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(age, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
-<span id="cb47-17"><a href="#cb47-17" aria-hidden="true" tabindex="-1"></a>           <span class="at">fare =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(fare, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))) <span class="sc">|&gt;</span> </span>
-<span id="cb47-18"><a href="#cb47-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">sex =</span> <span class="fu">as.integer</span>(sex) <span class="sc">-</span> <span class="dv">1</span>L,</span>
-<span id="cb47-19"><a href="#cb47-19" aria-hidden="true" tabindex="-1"></a>           <span class="at">pclass =</span> <span class="fu">as.integer</span>(pclass <span class="sc">-</span> <span class="dv">1</span>L))</span>
-<span id="cb47-20"><a href="#cb47-20" aria-hidden="true" tabindex="-1"></a>data_new <span class="ot">=</span> data_sub[<span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># for which we want to make predictions at the end</span></span>
-<span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># data with known response</span></span>
-<span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a>data_sub<span class="sc">$</span>survived <span class="ot">=</span> <span class="fu">as.factor</span>(data_sub<span class="sc">$</span>survived)</span>
-<span id="cb47-23"><a href="#cb47-23" aria-hidden="true" tabindex="-1"></a>data_obs<span class="sc">$</span>survived <span class="ot">=</span> <span class="fu">as.factor</span>(data_obs<span class="sc">$</span>survived)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a>data_sub <span class="ot">=</span> data</span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true" tabindex="-1"></a>data_new <span class="ot">=</span> data_sub[<span class="fu">is.na</span>(data_sub<span class="sc">$</span>interaction),] <span class="co"># for which we want to make predictions at the end</span></span>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>interaction),] <span class="co"># data with known response</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Hints:</strong></p>
 <ul>
 <li>adjust the ‘<code>type</code>’ argument in the <code>predict(…)</code> method (the default is to predict classes)</li>
-<li>when predicting probabilities, the randomForest will return a matrix, a column for each class, we are interested in the probability of surviving (so the second column)</li>
+<li>when predicting probabilities, the randomForest will return a matrix, a column for each class, we are interested in the probability of an interaction (so the second column)</li>
 <li>tune nodesize, mtry, and maxnodes</li>
 <li>use more features and do feature engineering!</li>
 </ul>
@@ -1144,7 +1137,7 @@ Code template
 <div class="callout-body-container callout-body">
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),]</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>interaction),]</span>
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
 <span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
@@ -1158,10 +1151,10 @@ Code template
 <span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">!=</span> j, ]</span>
 <span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">==</span> j, ]</span>
 <span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">randomForest</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">nodesize =</span> hyper_minnodesize[k])</span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">randomForest</span>(interaction<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">nodesize =</span> hyper_minnodesize[k])</span>
 <span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>          predictions <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata=</span>test_inner, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
-<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, predictions)</span>
+<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>interaction, predictions)</span>
 <span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a>        }</span>
 <span id="cb48-21"><a href="#cb48-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
 <span id="cb48-22"><a href="#cb48-22" aria-hidden="true" tabindex="-1"></a>    })</span>
@@ -1199,7 +1192,7 @@ Attaching package: 'randomForest'</code></pre>
 
     margin</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),]</span>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>interaction),]</span>
 <span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
 <span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
@@ -1213,12 +1206,12 @@ Attaching package: 'randomForest'</code></pre>
 <span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a>          inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
 <span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">!=</span> j, ]</span>
 <span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">==</span> j, ]</span>
-<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">randomForest</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> train_inner, </span>
-<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a>                               <span class="at">nodesize =</span> hyper_minnodesize[k], </span>
+<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">randomForest</span>(interaction<span class="sc">~</span>.,<span class="at">data =</span> train_inner,</span>
+<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a>                               <span class="at">nodesize =</span> hyper_minnodesize[k],</span>
 <span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a>                               <span class="at">mtry =</span> hyper_mtry[k])</span>
 <span id="cb55-18"><a href="#cb55-18" aria-hidden="true" tabindex="-1"></a>          predictions <span class="ot">=</span> <span class="fu">predict</span>(model, test_inner, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
-<span id="cb55-19"><a href="#cb55-19" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb55-20"><a href="#cb55-20" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>survived, predictions)</span>
+<span id="cb55-19"><a href="#cb55-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-20"><a href="#cb55-20" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>interaction, predictions)</span>
 <span id="cb55-21"><a href="#cb55-21" aria-hidden="true" tabindex="-1"></a>        }</span>
 <span id="cb55-22"><a href="#cb55-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
 <span id="cb55-23"><a href="#cb55-23" aria-hidden="true" tabindex="-1"></a>    })</span>
@@ -1228,42 +1221,42 @@ Attaching package: 'randomForest'</code></pre>
 <span id="cb55-27"><a href="#cb55-27" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   minnodesize mtry       AUC
-1           49    2 0.8227486
-2          153    3 0.8056210
-3           74    3 0.8137476
-4          228    2 0.8030547
-5          146    2 0.8071787
-6          122    4 0.7886566
-7          300    4 0.7532434
-8          128    4 0.7968824
-9           24    2 0.8315223
-10          89    2 0.8152354
-11         165    1 0.7905841
-12         110    4 0.7920487
-13          20    1 0.8230159
-14         291    4 0.7646267
-15         283    2 0.7987973
-16         109    4 0.8011483
-17           5    2 0.8287636
-18         212    3 0.7989852
-19         259    4 0.7704779
-20         292    3 0.7997120</code></pre>
+1           49    2 0.5835193
+2          153    3 0.5714731
+3           74    3 0.5721217
+4          228    2 0.5566654
+5          146    2 0.5760548
+6          122    4 0.5712892
+7          300    4 0.5729671
+8          128    4 0.5787068
+9           24    2 0.5874661
+10          89    2 0.5768594
+11         165    1 0.5706318
+12         110    4 0.5826862
+13          20    1 0.5939613
+14         291    4 0.5671993
+15         283    2 0.5671889
+16         109    4 0.5753962
+17           5    2 0.5772464
+18         212    3 0.5783617
+19         259    4 0.5716520
+20         292    3 0.5612958</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co"># highest AUC / best hyperparameters</span></span>
 <span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>best_hyper <span class="ot">=</span> results[<span class="fu">which.max</span>(results<span class="sc">$</span>AUC),]</span>
 <span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(best_hyper)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  minnodesize mtry       AUC
-9          24    2 0.8315223</code></pre>
+<pre><code>   minnodesize mtry       AUC
+13          20    1 0.5939613</code></pre>
 </div>
 </div>
 <p>Make predictions for the submission server:</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">randomForest</span>(survived<span class="sc">~</span>.,<span class="at">data =</span> data_obs, </span>
-<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">nodesize =</span> best_hyper[<span class="dv">1</span>,<span class="dv">1</span>], </span>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">randomForest</span>(interaction<span class="sc">~</span>.,<span class="at">data =</span> data_obs,</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">nodesize =</span> best_hyper[<span class="dv">1</span>,<span class="dv">1</span>],</span>
 <span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">mtry =</span> best_hyper[<span class="dv">1</span>,<span class="dv">2</span>])</span>
 <span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">predict</span>(model, <span class="at">newdata=</span>data_new, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]), <span class="at">file =</span> <span class="st">"Max_titanic_rf.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">predict</span>(model, <span class="at">newdata=</span>data_new, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]), <span class="at">file =</span> <span class="st">"Max_plant_poll_rf.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </section>

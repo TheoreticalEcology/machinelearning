@@ -351,11 +351,12 @@ If we have several nested splits, we talk about a nested validation / cross-vali
 ```{r}
 # outer split
 validation = sample.int(n, round(0.2*n))
-dat = data[-validation,]
+dat_X = X[-validation,]
+dat_Y = Y[-validation]
 
 # inner split
-nI = nrow(dat)
-hyperparameter = data.frame(mtry = c(3,5))
+nI = nrow(dat_X)
+hyperparameter = data.frame(alpha = c(0, 0.5, 1))
 m = nrow(hyperparameter)
 k = 5 # folds
 split = sample.int(k, nI, replace = T)
@@ -365,25 +366,26 @@ split = sample.int(k, nI, replace = T)
 pred = matrix(NA, nI, m)
 for(l in 1:m){
   for(i in 1:k){
-    m1 = randomForest(medv~., data = dat[split != i,], mtry = hyperparameter$mtry[l])
-    pred[split == i,l] = predict(m1, newdata = dat[split == i,])
+    m1 = glmnet(y = dat_Y[split != i], x = dat_X[split != i,],
+                alpha = hyperparameter$alpha[l])
+    pred[split == i,l] = predict(m1, newx = dat_X[split == i,], s = 0.01)
   }
 }
 
 # getting best hyperparameter option on test
-innerLoss = function(x) cor(x, dat$medv)
+innerLoss = function(x) cor(x, dat_Y)
 res = apply(pred, 2, innerLoss)
-choice = which.max(res) 
+choice = which.max(res)
 
-# fitting model again with best hyperparameters 
-# and all test / validation data 
-mFinal = randomForest(medv~., data = dat, mtry = hyperparameter$mtry[choice])
+# fitting model again with best hyperparameters
+# and all test / validation data
+mFinal = glmnet(y = dat_Y, x = dat_X, alpha = hyperparameter$alpha[choice])
 
-# testing final prediction on validation data 
-finalPred = predict(mFinal, newdata = data[validation,])
+# testing final prediction on validation data
+finalPred = predict(mFinal, newx = X[validation,], s = 0.01)
 
-cor(finalPred, 
-    data[validation,]$medv)
+cor(finalPred,
+    Y[validation])
 ```
 
 ## Exercise - Hyperparameter sensitivity and the bias-variance tradeoff
@@ -397,7 +399,7 @@ The goal of this exercise is to *see* the bias-variance tradeoff: we change one 
 
 **Goal:** sweep the random forest hyperparameter `nodesize` and plot the training and validation error together to reveal under- and overfitting.
 
-`nodesize` is the minimum number of observations in a terminal node: **larger `nodesize` -> smaller, simpler trees -> lower complexity** (and vice versa).
+`nodesize` is the minimum number of observations in a terminal node: **larger `nodesize` -\> smaller, simpler trees -\> lower complexity** (and vice versa).
 
 **Working alone or in a group?**
 
@@ -421,13 +423,13 @@ rmse = function(obs, pred) sqrt(mean((obs - pred)^2))
 
 **Tasks**
 
-1. For a grid of `nodesize` values, fit a random forest on the training data and record both the **training** RMSE and the **validation** RMSE.
-2. Plot both error curves against `nodesize` in one figure.
-3. Describe what happens to each curve, and read off the `nodesize` with the lowest validation error -- the bias-variance sweet spot.
+1.  For a grid of `nodesize` values, fit a random forest on the training data and record both the **training** RMSE and the **validation** RMSE.
+2.  Plot both error curves against `nodesize` in one figure.
+3.  Describe what happens to each curve, and read off the `nodesize` with the lowest validation error -- the bias-variance sweet spot.
 
 Quick check -- a large gap between training and validation error is a sign of: `r webexercises::mcq(c(answer = "high variance (overfitting)", "high bias (underfitting)", "a perfectly tuned model"))`
 
-::: {.callout-tip collapse="true" appearance="simple" icon=false}
+::: {.callout-tip collapse="true" appearance="simple" icon="false"}
 ## Need a hint?
 
 Loop over `nodesize = c(1, 3, 5, 10, 20, 40, 80, 150)`. For each value, fit `randomForest(medv ~ ., data = data[train, ], nodesize = ...)`, then compute `rmse()` once on `data[train, ]` (training error) and once on `data[-train, ]` (validation error). Remember: small `nodesize` = complex model.
