@@ -461,4 +461,100 @@ As the trees are forced to be simpler (larger `nodesize`), the **training** erro
 `r unhide()`
 ::::
 
+## Exercise - Tuning and submission with the plant-pollinator data
+
+In the previous exercise we *watched* the bias-variance tradeoff on a single hyperparameter. Here we put it to work: we tune a model with cross-validation, pick the hyperparameters with the best out-of-sample performance, and submit predictions for held-out observations to the submission server.
+
+:::: exercise
+#### Tune a random forest and submit your predictions
+
+[**Level:** Intermediate · **Time:** \~30 min]{.exercise-meta}
+
+**Goal:** use cross-validation to tune a random forest on the plant-pollinator data (see @sec-plantpoll), then create predictions for the unlabelled observations and submit them.
+
+The task is a **classification** problem: predict whether a plant and a pollinator *interact* (`interaction`), based on their traits. Because the classes are imbalanced, we score models with the **AUC** rather than the accuracy.
+
+We use a single cross-validation on the labelled data as our tuning loop. The unlabelled rows (`interaction` is `NA`) are the observations we predict and submit -- their true labels are withheld and act as the outer test split.
+
+Prepare the data:
+
+```{r}
+library(EcoData)
+library(dplyr)
+library(missRanger)
+data(plantPollinator_df)
+data = plantPollinator_df
+
+data = data |> select(interaction, diameter, corolla, tongue, body)
+
+# impute missing values WITHOUT the response variable!
+data[, -1] = missRanger(data[, -1], verbose = 0)
+data$interaction = as.factor(data$interaction)
+
+data_obs = data[!is.na(data$interaction), ] # labelled data, for tuning
+data_new = data[is.na(data$interaction), ]  # unlabelled data, to predict and submit
+```
+
+**Tasks**
+
+1.  Build a grid of `nodesize` (and optionally `mtry`) values. For each combination, run a $k$-fold cross-validation on `data_obs` and record the mean **AUC**.
+2.  Pick the hyperparameters with the highest cross-validated AUC -- and notice how small `nodesize` (complex model) does *not* automatically win, just as the validation error in the previous exercise was U-shaped.
+3.  Refit the model with the best hyperparameters on **all** of `data_obs`, predict the interaction probabilities for `data_new`, and write the submission file.
+
+Quick check -- we tune on the cross-validated AUC rather than the training AUC because: `r webexercises::mcq(c(answer = "the training AUC keeps rising with complexity and would always pick the most complex model", "the training AUC is impossible to compute", "AUC can only be measured out-of-sample"))`
+
+::: {.callout-tip collapse="true" appearance="simple" icon="false"}
+## Need a hint?
+
+For probabilities, use `predict(model, newdata, type = "prob")[, 2]` (the second column is the probability of an interaction). Score each fold with `Metrics::auc(observed, predicted)`. Remember: large `nodesize` = simpler trees.
+:::
+
+`r hide("Show solution")`
+
+```{r, eval=FALSE}
+library(randomForest)
+set.seed(42)
+
+cv = 3
+hyper_minnodesize = sample(300, 20)
+hyper_mtry = sample(4, 20, replace = TRUE)
+
+tuning_results =
+  sapply(1:length(hyper_minnodesize), function(k) {
+    auc_inner = NULL
+    for (j in 1:cv) {
+      inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
+      train_inner = data_obs[inner_split != j, ]
+      test_inner  = data_obs[inner_split == j, ]
+      model = randomForest(interaction ~ ., data = train_inner,
+                           nodesize = hyper_minnodesize[k],
+                           mtry = hyper_mtry[k])
+      predictions = predict(model, test_inner, type = "prob")[, 2]
+      auc_inner[j] = Metrics::auc(test_inner$interaction, predictions)
+    }
+    return(mean(auc_inner))
+  })
+
+results = data.frame(minnodesize = hyper_minnodesize,
+                     mtry = hyper_mtry, AUC = tuning_results)
+best_hyper = results[which.max(results$AUC), ]
+print(best_hyper)
+```
+
+Refit with the best hyperparameters and create the submission file:
+
+```{r, eval=FALSE}
+model = randomForest(interaction ~ ., data = data_obs,
+                     nodesize = best_hyper[1, 1],
+                     mtry = best_hyper[1, 2])
+
+write.csv(data.frame(y = predict(model, newdata = data_new, type = "prob")[, 2]),
+          file = "plant_poll_submission.csv")
+```
+
+Submit your `plant_poll_submission.csv` to the submission server at <a href="http://132.199.73.15:8500" target="_blank" rel="noopener">http://132.199.73.15:8500</a> (the University of Regensburg VPN is required) and see where your tuned model lands on the leaderboard.
+
+`r unhide()`
+::::
+
 ## References {.unnumbered}

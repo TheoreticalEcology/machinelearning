@@ -436,6 +436,7 @@ window.Quarto = {
   <li><a href="#nested-cross-validation" id="toc-nested-cross-validation" class="nav-link" data-scroll-target="#nested-cross-validation"><span class="header-section-number">3.3.3</span> Nested (cross)-validation</a></li>
   </ul></li>
   <li><a href="#exercise---hyperparameter-sensitivity-and-the-bias-variance-tradeoff" id="toc-exercise---hyperparameter-sensitivity-and-the-bias-variance-tradeoff" class="nav-link" data-scroll-target="#exercise---hyperparameter-sensitivity-and-the-bias-variance-tradeoff"><span class="header-section-number">3.4</span> Exercise - Hyperparameter sensitivity and the bias-variance tradeoff</a></li>
+  <li><a href="#exercise---tuning-and-submission-with-the-plant-pollinator-data" id="toc-exercise---tuning-and-submission-with-the-plant-pollinator-data" class="nav-link" data-scroll-target="#exercise---tuning-and-submission-with-the-plant-pollinator-data"><span class="header-section-number">3.5</span> Exercise - Tuning and submission with the plant-pollinator data</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/A3-BiasVarianceTradeOff.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
@@ -1092,6 +1093,101 @@ Show solution
 </div>
 <p><em>Training vs.&nbsp;validation RMSE as the random forest is made simpler (larger nodesize). The training error grows with simplicity while the validation error is U-shaped; the gap between the curves reflects the variance.</em></p>
 <p>As the trees are forced to be simpler (larger <code>nodesize</code>), the <strong>training</strong> error rises steadily – a more complex model always fits the training data better. The <strong>validation</strong> error is U-shaped: very complex models (tiny <code>nodesize</code>) overfit, while overly simple models underfit. The lowest point of the validation curve is the best bias-variance compromise, and the vertical gap between the two curves reflects the <strong>variance</strong> of the model.</p>
+</div>
+</section>
+</section>
+<section id="exercise---tuning-and-submission-with-the-plant-pollinator-data" class="level2" data-number="3.5">
+<h2 data-number="3.5" class="anchored" data-anchor-id="exercise---tuning-and-submission-with-the-plant-pollinator-data"><span class="header-section-number">3.5</span> Exercise - Tuning and submission with the plant-pollinator data</h2>
+<p>In the previous exercise we <em>watched</em> the bias-variance tradeoff on a single hyperparameter. Here we put it to work: we tune a model with cross-validation, pick the hyperparameters with the best out-of-sample performance, and submit predictions for held-out observations to the submission server.</p>
+<section id="tune-a-random-forest-and-submit-your-predictions" class="level4 exercise" data-number="3.5.0.1">
+<h4 data-number="3.5.0.1" class="anchored" data-anchor-id="tune-a-random-forest-and-submit-your-predictions"><span class="header-section-number">3.5.0.1</span> Tune a random forest and submit your predictions</h4>
+<p><span class="exercise-meta"><strong>Level:</strong> Intermediate · <strong>Time:</strong> ~30 min</span></p>
+<p><strong>Goal:</strong> use cross-validation to tune a random forest on the plant-pollinator data (see <a href="Appendix-Datasets.html#sec-plantpoll" class="quarto-xref"><span>Section A.3</span></a>), then create predictions for the unlabelled observations and submit them.</p>
+<p>The task is a <strong>classification</strong> problem: predict whether a plant and a pollinator <em>interact</em> (<code>interaction</code>), based on their traits. Because the classes are imbalanced, we score models with the <strong>AUC</strong> rather than the accuracy.</p>
+<p>We use a single cross-validation on the labelled data as our tuning loop. The unlabelled rows (<code>interaction</code> is <code>NA</code>) are the observations we predict and submit – their true labels are withheld and act as the outer test split.</p>
+<p>Prepare the data:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(plantPollinator_df)</span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> plantPollinator_df</span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> data <span class="sc">|&gt;</span> <span class="fu">select</span>(interaction, diameter, corolla, tongue, body)</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a><span class="co"># impute missing values WITHOUT the response variable!</span></span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>data[, <span class="sc">-</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">missRanger</span>(data[, <span class="sc">-</span><span class="dv">1</span>], <span class="at">verbose =</span> <span class="dv">0</span>)</span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>interaction <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>interaction)</span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data[<span class="sc">!</span><span class="fu">is.na</span>(data<span class="sc">$</span>interaction), ] <span class="co"># labelled data, for tuning</span></span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>data_new <span class="ot">=</span> data[<span class="fu">is.na</span>(data<span class="sc">$</span>interaction), ]  <span class="co"># unlabelled data, to predict and submit</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Tasks</strong></p>
+<ol type="1">
+<li>Build a grid of <code>nodesize</code> (and optionally <code>mtry</code>) values. For each combination, run a <span class="math inline">\(k\)</span>-fold cross-validation on <code>data_obs</code> and record the mean <strong>AUC</strong>.</li>
+<li>Pick the hyperparameters with the highest cross-validated AUC – and notice how small <code>nodesize</code> (complex model) does <em>not</em> automatically win, just as the validation error in the previous exercise was U-shaped.</li>
+<li>Refit the model with the best hyperparameters on <strong>all</strong> of <code>data_obs</code>, predict the interaction probabilities for <code>data_new</code>, and write the submission file.</li>
+</ol>
+<p>Quick check – we tune on the cross-validated AUC rather than the training AUC because: <select class="webex-select"><option value="blank"></option><option value="answer">the training AUC keeps rising with complexity and would always pick the most complex model</option><option value="">the training AUC is impossible to compute</option><option value="">AUC can only be measured out-of-sample</option></select></p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Need a hint?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>For probabilities, use <code>predict(model, newdata, type = "prob")[, 2]</code> (the second column is the probability of an interaction). Score each fold with <code>Metrics::auc(observed, predicted)</code>. Remember: large <code>nodesize</code> = simpler trees.</p>
+</div>
+</div>
+</div>
+<div class="webex-solution">
+<button>
+Show solution
+</button>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>hyper_minnodesize <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">300</span>, <span class="dv">20</span>)</span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>hyper_mtry <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">4</span>, <span class="dv">20</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>tuning_results <span class="ot">=</span></span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a>    auc_inner <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a>      inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
+<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>      train_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">!=</span> j, ]</span>
+<span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>      test_inner  <span class="ot">=</span> data_obs[inner_split <span class="sc">==</span> j, ]</span>
+<span id="cb59-15"><a href="#cb59-15" aria-hidden="true" tabindex="-1"></a>      model <span class="ot">=</span> <span class="fu">randomForest</span>(interaction <span class="sc">~</span> ., <span class="at">data =</span> train_inner,</span>
+<span id="cb59-16"><a href="#cb59-16" aria-hidden="true" tabindex="-1"></a>                           <span class="at">nodesize =</span> hyper_minnodesize[k],</span>
+<span id="cb59-17"><a href="#cb59-17" aria-hidden="true" tabindex="-1"></a>                           <span class="at">mtry =</span> hyper_mtry[k])</span>
+<span id="cb59-18"><a href="#cb59-18" aria-hidden="true" tabindex="-1"></a>      predictions <span class="ot">=</span> <span class="fu">predict</span>(model, test_inner, <span class="at">type =</span> <span class="st">"prob"</span>)[, <span class="dv">2</span>]</span>
+<span id="cb59-19"><a href="#cb59-19" aria-hidden="true" tabindex="-1"></a>      auc_inner[j] <span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>interaction, predictions)</span>
+<span id="cb59-20"><a href="#cb59-20" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb59-21"><a href="#cb59-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
+<span id="cb59-22"><a href="#cb59-22" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb59-23"><a href="#cb59-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-24"><a href="#cb59-24" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">minnodesize =</span> hyper_minnodesize,</span>
+<span id="cb59-25"><a href="#cb59-25" aria-hidden="true" tabindex="-1"></a>                     <span class="at">mtry =</span> hyper_mtry, <span class="at">AUC =</span> tuning_results)</span>
+<span id="cb59-26"><a href="#cb59-26" aria-hidden="true" tabindex="-1"></a>best_hyper <span class="ot">=</span> results[<span class="fu">which.max</span>(results<span class="sc">$</span>AUC), ]</span>
+<span id="cb59-27"><a href="#cb59-27" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(best_hyper)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Refit with the best hyperparameters and create the submission file:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">randomForest</span>(interaction <span class="sc">~</span> ., <span class="at">data =</span> data_obs,</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">nodesize =</span> best_hyper[<span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">mtry =</span> best_hyper[<span class="dv">1</span>, <span class="dv">2</span>])</span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> data_new, <span class="at">type =</span> <span class="st">"prob"</span>)[, <span class="dv">2</span>]),</span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">file =</span> <span class="st">"plant_poll_submission.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Submit your <code>plant_poll_submission.csv</code> to the submission server at <a href="http://132.199.73.15:8500" target="_blank" rel="noopener">http://132.199.73.15:8500</a> (the University of Regensburg VPN is required) and see where your tuned model lands on the leaderboard.</p>
 </div>
 </section>
 </section>
