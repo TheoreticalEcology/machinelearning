@@ -12,7 +12,6 @@ fig-cap-location: margin
 knitr::opts_chunk$set(fig.align = "center")
 ```
 
-
 ```{r}
 #| echo: false
 #| include: false
@@ -30,7 +29,6 @@ You can download the data sets we use in the course <a href="http://132.199.73.1
 devtools::install_github(repo = "florianhartig/EcoData", subdir = "EcoData",
                          dependencies = TRUE, build_vignettes = FALSE)
 ```
-
 
 ## Machine learning pipeline / workflow
 
@@ -63,7 +61,7 @@ library(missRanger)
 library(dplyr)
 set.seed(123)
 
-titanic_imputed = titanic |> select(-name, -ticket, -cabin, -boat, -home.dest)
+titanic_imputed = titanic |> select(!any_of(c("name", "ticket", "cabin", "boat", "home.dest")))
 titanic_imputed = missRanger::missRanger(data = titanic_imputed |>
                                            select(-survived), verbose = 0)
 titanic_imputed$survived = titanic$survived
@@ -174,14 +172,14 @@ This data set is based on the <a href="https://www.kaggle.com/competitions/geoli
 
 For both the training and test communities you get two tables:
 
--   an environmental table (`env_df`) — one row per community, one column per environmental predictor;
--   a presence-absence label table (`labels`) — a community $\times$ species matrix of 0/1, with species in the columns (named `sp_9`, `sp_53`, `sp_96`, …).
+- an environmental table (`env_df`) — one row per community, one column per environmental predictor;
+- a presence-absence label table (`labels`) — a community $\times$ species matrix of 0/1, with species in the columns (named `sp_9`, `sp_53`, `sp_96`, …).
 
 The test set contains **2000 communities** and **448 species**. The labels of the test communities are withheld — those are what you predict and submit.
 
 The same data is also available in **long format**, which is often more convenient for modeling. In long format there is one row per community $\times$ species combination, with the columns `community`, `species`, `present` (0/1), plus the environmental predictors of that community repeated across its species:
 
-```
+```         
 community  species  present  Bio1  Bio2  ...  Elevation
    212      sp_3       1      ...   ...        ...
    212      sp_7       0      ...   ...        ...
@@ -366,8 +364,8 @@ A collection of over 4000 flower images of 5 plant species. The data set is from
 
 **Notes:**
 
--   Check out convolutional neural network notebooks on kaggle (they are often written in Python but you can still copy the architectures), e.g. <a href="https://www.kaggle.com/alirazaaliqadri/flower-recognition-tensorflow-keras-sequential" target="_blank" rel="noopener">this one</a>.
--   Last year's winners have used a transfer learning approach (they achieved around 70% accuracy), check out this <a href="https://www.kaggle.com/stpeteishii/flower-name-classify-densenet201" target="_blank" rel="noopener">notebook</a>, see also the section about transfer learning \@ref(transfer).
+- Check out convolutional neural network notebooks on kaggle (they are often written in Python but you can still copy the architectures), e.g. <a href="https://www.kaggle.com/alirazaaliqadri/flower-recognition-tensorflow-keras-sequential" target="_blank" rel="noopener">this one</a>.
+- Last year's winners have used a transfer learning approach (they achieved around 70% accuracy), check out this <a href="https://www.kaggle.com/stpeteishii/flower-name-classify-densenet201" target="_blank" rel="noopener">notebook</a>, see also the section about transfer learning \@ref(transfer).
 
 **Response variable:** "Plant species"
 
