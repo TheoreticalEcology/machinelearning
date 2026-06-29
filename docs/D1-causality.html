@@ -75,8 +75,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-43df0d6f53b733b42d37fa7808e17715.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-dc56911d8e933baf1abbb4e47a580568.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-b15e647865e4bb38ea51c183c4bcaf1b.min.css" rel="prefetch" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-12b812c39f22d88ee807e48c382f9dd4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-fab269e7788c4bbef189c63d745cb483.min.css" rel="prefetch" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -146,7 +146,7 @@ window.Quarto = {
 <meta name="citation_reference" content="citation_title=Deep learning as a tool for ecology and evolution;,citation_author=Marek L Borowiec;,citation_author=Rebecca B Dikow;,citation_author=Paul B Frandsen;,citation_author=Alexander McKeeken;,citation_author=Gabriele Valentini;,citation_author=Alexander E White;,citation_publication_date=2022;,citation_cover_date=2022;,citation_year=2022;,citation_issue=8;,citation_volume=13;,citation_journal_title=Methods in Ecology and Evolution;,citation_publisher=Wiley Online Library;">
 </head>
 
-<body class="nav-sidebar floating">
+<body class="nav-sidebar floating slimcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -405,7 +405,7 @@ window.Quarto = {
 <div class="toc-actions"><ul><li><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/D1-causality.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content">
+<main class="content page-columns page-full" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./D2-explainableAI.html">Explainable AI and causal ML</a></li><li class="breadcrumb-item"><a href="./D1-causality.html"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Causal Inference and Machine Learning</span></a></li></ol></nav>
 <div class="quarto-title">
@@ -428,13 +428,13 @@ window.Quarto = {
 
 <p>xAI aims at explaining how predictions are being made. In general, xAI != causality. xAI methods measure which variables are used for predictions by the algorithm, or how far variables improve predictions. The important point to note here: If a variable causes something, we could also expect that it helps predicting the very thing. The opposite, however, is not generally true - very often it is possible that a variable that doesn’t cause anything can predict something.</p>
 <p>In statistics courses (in particular our course: Advanced Biostatistics), we discuss the issue of causality at full length. Here, we don’t want to go into the details, but again, you should in general resist to interpret indicators of importance in xAI as causal effects. They tell you something about what’s going on in the algorithm, not about what’s going on in reality.</p>
-<section id="causalInference" class="level2" data-number="9.1">
+<section id="causalInference" class="level2 page-columns page-full" data-number="9.1">
 <h2 data-number="9.1" class="anchored" data-anchor-id="causalInference"><span class="header-section-number">9.1</span> Causal Inference on Static Data</h2>
-<p>Methods for causal inference depend on whether we have dynamic or static data. The latter is the more common case. With static data, the problem is confounding. If you have several correlated predictors, you can get spurious correlations between a given predictor and the response, although there is no causal effect in general.</p>
+<p>Methods for <strong>causal inference</strong> depend on whether we have dynamic or static data. The latter is the more common case. With static data, the central problem is <strong>confounding</strong>: if you have several correlated predictors, you can get spurious correlations between a given predictor and the response even when there is no causal effect.</p>
 <p>Multiple regression and few other methods are able to correct for other predictors and thus isolate the causal effect. The same is not necessarily true for machine learning algorithms and xAI methods. This is not a bug, but a feature - for making good predictions, it is often no problem, but rather an advantage to also use non-causal predictors.</p>
 <p>Here an example for the indicators of variable importance in the random forest algorithm. The purpose of this script is to show that random forest variable importance will split importance values for collinear variables evenly, even if collinearity is low enough so that variables are separable and would be correctly separated by an lm / ANOVA.</p>
 <p>We first simulate a data set with 2 predictors that are strongly correlated, but only one of them has an effect on the response.</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>randomForest 4.7-1.2</code></pre>
@@ -456,7 +456,7 @@ window.Quarto = {
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> x1 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>lm / anova correctly identify <span class="math inline">\(x1\)</span> as causal variable.</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -481,20 +481,21 @@ F-statistic: 43.96 on 2 and 997 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 <p>Fit random forest and show variable importance:</p>
-<div class="cell">
+<div class="cell page-columns page-full" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">=</span> <span class="fu">randomForest</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">importance =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">varImpPlot</span>(fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">varImpPlot</span>(fit, <span class="at">main =</span> <span class="st">""</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display page-columns page-full">
+<div class="quarto-figure quarto-figure-center page-columns page-full">
+<figure class="figure page-columns page-full">
 <p><img src="D1-causality_files/figure-html/chunk_chapter6_12-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="margin-caption">Random-forest variable importance for two strongly collinear predictors, only one of which (x1) is causal. The importance is split nearly evenly between them.</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Variable importance is now split nearly evenly.</p>
+<p>Variable importance is now split nearly evenly between <code>x1</code> and <code>x2</code>, even though only <code>x1</code> is causal.</p>
 <p>Task: understand why this is - remember:</p>
 <ul>
 <li>How the random forest works - variables are randomly hidden from the regression tree when the trees for the forest are built.</li>
@@ -516,34 +517,22 @@ Note
 <li>We can trust DNN more “causally” than the other algorithms, in the sense that an effect in the DNN is not just a consequence of collinearity.</li>
 <li>Causality (or the ability to correctly estimate causal effects) is important for predicting out-of-distribution, e.g., changing collinearity structures</li>
 </ul>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cito)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>nn.fit <span class="ot">=</span> <span class="fu">dnn</span>(y<span class="sc">~</span>x1<span class="sc">+</span>x2, <span class="at">loss =</span> <span class="st">"mse"</span>, <span class="at">data =</span> <span class="fu">data.frame</span>(<span class="at">y =</span> y, <span class="at">x1=</span>x1, <span class="at">x2=</span>x2), <span class="at">verbose =</span> F, <span class="at">plot =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Registered S3 methods overwritten by 'reformulas':
-  method       from
-  head.call    cito
-  head.formula cito
-  head.name    cito</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nn.fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>nn.fit <span class="ot">=</span> <span class="fu">dnn</span>(y<span class="sc">~</span>x1<span class="sc">+</span>x2, <span class="at">loss =</span> <span class="st">"mse"</span>, <span class="at">data =</span> <span class="fu">data.frame</span>(<span class="at">y =</span> y, <span class="at">x1=</span>x1, <span class="at">x2=</span>x2), <span class="at">verbose =</span> F, <span class="at">plot =</span> F)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nn.fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Summary of Deep Neural Network Model
 
 Feature Importance:
   variable importance_1
-1       x1   0.13864303
-2       x2   0.00346932
+1       x1 0.0630418740
+2       x2 0.0007653622
 
 Average Conditional Effects:
-   Response_1
-x1  0.9445299
-x2  0.1204029
-
-Standard Deviation of Conditional Effects:
-   Response_1
-x1 0.04281256
-x2 0.06451134</code></pre>
+        [,1]
+x1 0.9181841
+x2 0.1584080</code></pre>
 </div>
 </div>
 </div>
@@ -586,43 +575,43 @@ x2 0.06451134</code></pre>
 <section id="automatic-causal-discovery" class="level2" data-number="9.2">
 <h2 data-number="9.2" class="anchored" data-anchor-id="automatic-causal-discovery"><span class="header-section-number">9.2</span> Automatic Causal Discovery</h2>
 <p>But how to get the causal graph? In statistics, it is common to “guess” it and afterwards do residual checks, in the same way as we guess the structure of a regression. For more complicated problems, however, this is unsatisfying. Some groups therefore work on so-called causal discovery algorithms, i.e.&nbsp;algorithms that automatically generate causal graphs from data. One of the most classic algorithms of this sort is the <em>PC algorithm</em>. Here an example using the pcalg package:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pcalg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pcalg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Loading the data:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"gmG"</span>, <span class="at">package =</span> <span class="st">"pcalg"</span>) <span class="co"># Loads data sets gmG and gmG8.</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>suffStat <span class="ot">=</span> <span class="fu">list</span>(<span class="at">C =</span> <span class="fu">cor</span>(gmG8<span class="sc">$</span>x), <span class="at">n =</span> <span class="fu">nrow</span>(gmG8<span class="sc">$</span>x))</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>varNames <span class="ot">=</span> gmG8<span class="sc">$</span>g<span class="sc">@</span>nodes</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"gmG"</span>, <span class="at">package =</span> <span class="st">"pcalg"</span>) <span class="co"># Loads data sets gmG and gmG8.</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>suffStat <span class="ot">=</span> <span class="fu">list</span>(<span class="at">C =</span> <span class="fu">cor</span>(gmG8<span class="sc">$</span>x), <span class="at">n =</span> <span class="fu">nrow</span>(gmG8<span class="sc">$</span>x))</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>varNames <span class="ot">=</span> gmG8<span class="sc">$</span>g<span class="sc">@</span>nodes</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>First, the skeleton algorithm creates a basic graph without connections (a skeleton of the graph).</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>skel.gmG8 <span class="ot">=</span> <span class="fu">skeleton</span>(suffStat, <span class="at">indepTest =</span> gaussCItest,</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="at">labels =</span> varNames, <span class="at">alpha =</span> <span class="fl">0.01</span>)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>Rgraphviz<span class="sc">::</span><span class="fu">plot</span>(skel.gmG8<span class="sc">@</span>graph)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>skel.gmG8 <span class="ot">=</span> <span class="fu">skeleton</span>(suffStat, <span class="at">indepTest =</span> gaussCItest,</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="at">labels =</span> varNames, <span class="at">alpha =</span> <span class="fl">0.01</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>Rgraphviz<span class="sc">::</span><span class="fu">plot</span>(skel.gmG8<span class="sc">@</span>graph)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>What is missing here is the direction of the errors. The PC algorithm now makes tests for conditional independence, which allows fixing a part (but typically not all) of the directions of the causal arrows.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>pc.gmG8 <span class="ot">=</span> <span class="fu">pc</span>(suffStat, <span class="at">indepTest =</span> gaussCItest,</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="at">labels =</span> varNames, <span class="at">alpha =</span> <span class="fl">0.01</span>)</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>Rgraphviz<span class="sc">::</span><span class="fu">plot</span>(pc.gmG8<span class="sc">@</span>graph )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>pc.gmG8 <span class="ot">=</span> <span class="fu">pc</span>(suffStat, <span class="at">indepTest =</span> gaussCItest,</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="at">labels =</span> varNames, <span class="at">alpha =</span> <span class="fl">0.01</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>Rgraphviz<span class="sc">::</span><span class="fu">plot</span>(pc.gmG8<span class="sc">@</span>graph )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="causal-inference-on-dynamic-data" class="level2" data-number="9.3">
 <h2 data-number="9.3" class="anchored" data-anchor-id="causal-inference-on-dynamic-data"><span class="header-section-number">9.3</span> Causal Inference on Dynamic Data</h2>
-<p>When working with dynamic data, we can use an additional piece of information - the cause usually precedes the effect, which means that we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing for causality is known as <em>Granger causality</em>, or Granger methods. Here an example:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="do">## What came first: the chicken or the egg?</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(ChickEgg)</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(egg <span class="sc">~</span> chicken, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>When working with dynamic data, we can use an additional piece of information: the cause usually precedes the effect, which means we can test for a time-lag between cause and effect to determine the direction of causality. This way of testing is known as <strong>Granger causality</strong>. Here is an example:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="do">## What came first: the chicken or the egg?</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(ChickEgg)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(egg <span class="sc">~</span> chicken, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Granger causality test
 
@@ -632,7 +621,7 @@ Model 2: egg ~ Lags(egg, 1:3)
 1     44                 
 2     47 -3 0.5916 0.6238</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(chicken <span class="sc">~</span> egg, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grangertest</span>(chicken <span class="sc">~</span> egg, <span class="at">order =</span> <span class="dv">3</span>, <span class="at">data =</span> ChickEgg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Granger causality test
 

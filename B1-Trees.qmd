@@ -7,7 +7,7 @@ fig-cap-location: margin
 
 # Tree-based Algorithms
 
-```{r}
+```{r chunk_chapter4_setup}
 #| include: false
 knitr::opts_chunk$set(fig.align = "center")
 ```
@@ -28,7 +28,7 @@ data = airquality[complete.cases(airquality),]
 
 Fit and visualize one(!) regression tree:
 
-```{r, fig.cap="A single regression tree for Ozone. Each split shows the rule and each leaf the predicted value."}
+```{r chunk_chapter4_23, fig.cap="A single regression tree for Ozone. Each split shows the rule and each leaf the predicted value."}
 rt = rpart(Ozone~., data = data, control = rpart.control(minsplit = 10))
 rpart.plot(rt)
 ```
@@ -77,7 +77,7 @@ rf$importance
 There are several important hyperparameters in a random forest that we can tune to get better results:
 
 | Hyperparameter | Explanation |
-|----|----|
+|------------------------------------|------------------------------------|
 | mtry | Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data). |
 | minimum node size | Minimal number of observations allowed in a node (before the branching is canceled) |
 | max depth | Maximum number of tree depth |
@@ -99,8 +99,7 @@ data = airquality[complete.cases(airquality),]
 ```
 
 ```{r chunk_chapter4_28__BRT1, cache=TRUE}
-data_xg = xgb.DMatrix(data = as.matrix(scale(data[,-1])), label = data$Ozone)
-brt = xgboost(data_xg, nrounds = 16L)
+brt = xgboost(x= as.matrix(scale(data[,-1])), y = data$Ozone , nrounds = 16L)
 ```
 
 The parameter "nrounds" controls how many sequential trees we fit, in our example this was 16. When we predict on new data, we can limit the number of trees used to prevent overfitting (remember: each new tree tries to improve the predictions of the previous trees).
@@ -110,7 +109,7 @@ Let us visualize the predictions for different numbers of trees:
 ```{r chunk_chapter4_29__BRT2, cache=TRUE, fig.cap="Boosted-tree predictions using 1, 2, 3, and 4 trees (panel titles). With more sequential trees the fit gradually improves."}
 oldpar = par(mfrow = c(2, 2))
 for(i in 1:4){
-  pred = predict(brt, newdata = data_xg, ntreelimit = i)
+  pred = predict(brt, newdata = as.matrix(scale(data[,-1])), iteration_range = c(1, i))
   plot(data$Temp, data$Ozone, main = i, xlab = "Temperature", ylab = "Ozone")
   lines(data$Temp[order(data$Temp)], pred[order(data$Temp)], col = "red")
 }
@@ -135,9 +134,9 @@ One important strength of xgboost is that we can directly do a cross-validation 
 ```{r chunk_chapter4_31__BRT4, cache=TRUE}
 set.seed(123)
 
-brt = xgboost(data_xg, nrounds = 5L)
+brt = xgboost(x = as.matrix(scale(data[,-1])), y = data$Ozone, nrounds = 5L)
 brt_cv = xgboost::xgb.cv(data = data_xg, nfold = 3L,
-                         nrounds = 3L, nthreads = 4L)
+                         nrounds = 3L)
 print(brt_cv)
 ```
 
@@ -148,7 +147,7 @@ If we do three-folded cross-validation, we actually fit three different boosted 
 Important hyperparameters:
 
 | Hyperparameter | Explanation |
-|----|----|
+|------------------------------------|------------------------------------|
 | eta | learning rate (weighting of the sequential trees) |
 | max depth | maximal depth in the trees (small = low complexity, large = high complexity) |
 | subsample | subsample ratio of the data (bootstrap ratio) |
@@ -251,12 +250,12 @@ data = airquality[complete.cases(airquality),]
 
 for(nodesize in c(1, 15, 50, 100)){
   for(mtry in c(1, 3, 5)){
-    rf = randomForest(Ozone~., data = data, nodesize = nodesize)
-    
+    rf = randomForest(Ozone~., data = data, nodesize = nodesize, mtry = mtry)
+
     pred = predict(rf, data)
-    
+
     plot(data$Temp, data$Ozone, main = paste0(
-        "    nodesize: ", nodesize,
+        "    nodesize: ", nodesize, "    mtry: ", mtry,
         "\nRMSE: ", round(sqrt(mean((data$Ozone - pred)^2)), 2)
       )
     )
@@ -296,18 +295,18 @@ axis(2, at = seq(0, 1, length.out = 10),
 
 ```
 
-```{r, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
+```{r chunk_chapter4_task_26, results='hide', message=FALSE, warning=FALSE, eval=FALSE, purl=FALSE}
 
-model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
-                         nrounds = 500L, verbose = 0L)
-pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
-               ntreelimit = 10L)
+model = xgboost::xgboost(x = as.matrix(x), y = y,
+                         nrounds = 500L)
+pred = predict(model, newdata = as.matrix(x),
+               iteration_range = c(1, 10L))
 
 saveGIF(
   {
     for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
-      pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
-                     ntreelimit = i)
+      pred = predict(model, newdata =  as.matrix(x),
+                     iteration_range = c(1, i))
       image(matrix(pred, 100, 100), main = paste0("Trees: ", i),
             axes = FALSE, las = 2)
       axis(1, at = seq(0, 1, length.out = 10),
@@ -347,18 +346,17 @@ axis(2, at = seq(0, 1, length.out = 10),
      labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
 
 for(max_depth in c(3, 6, 10, 20)){
-  model = xgboost::xgboost(xgb.DMatrix(data = as.matrix(x), label = y),
+  model = xgboost::xgboost(x = as.matrix(x), y = y,
                            max_depth = max_depth,
-                           nrounds = 500, verbose = 0L)
+                           nrounds = 500)
 
   saveGIF(
     {
       for(i in c(1, 2, 4, 8, 12, 20, 40, 80, 200)){
-        pred = predict(model, newdata = xgb.DMatrix(data = as.matrix(x)),
-                       ntreelimit = i)
+        pred = predict(model, newdata = as.matrix(x),
+                       iteration_range = c(1, i))
         image(matrix(pred, 100, 100),
-              main = paste0("eta: ", eta,
-                            "    max_depth: ", max_depth,
+              main = paste0("max_depth: ", max_depth,
                             "    Trees: ", i),
               axes = FALSE, las = 2)
         axis(1, at = seq(0, 1, length.out = 10),
@@ -367,7 +365,7 @@ for(max_depth in c(3, 6, 10, 20)){
              labels = round(seq(-3, 3, length.out = 10), 1), las = 2)
       }
     },
-    movie.name = paste0("boosting_", max_depth, "_", eta, ".gif"),
+    movie.name = paste0("boosting_", max_depth, ".gif"),
     autobrowse = FALSE
   )
 }
@@ -394,7 +392,7 @@ Just some examples:
 Important hyperparameters:
 
 | Hyperparameter | Explanation |
-|----|----|
+|------------------------------------|------------------------------------|
 | eta | learning rate (weighting of the sequential trees) |
 | max depth | maximal depth in the trees (small = low complexity, large = high complexity) |
 | subsample | subsample ratio of the data (bootstrap ratio) |
@@ -405,7 +403,7 @@ The goal of this exercise is to tune a BRT on the titanic_ml dataset and beat ye
 
 Prepare the data:
 
-```{r}
+```{r chunk_chapter4_brt_data}
 library(EcoData)
 library(dplyr)
 library(missRanger)
@@ -432,7 +430,7 @@ Tasks:
 ::: {.callout-tip collapse="true" appearance="minimal"}
 ## Code template
 
-```{r, eval=FALSE}
+```{r chunk_chapter4_brt_template, eval=FALSE}
 library(xgboost)
 set.seed(42)
 data_obs = data_sub[!is.na(data_sub$survived),] 
@@ -440,21 +438,22 @@ cv = 3
 
 split = sample.int(cv, nrow(data_obs), replace = T)
 
-# sample minnodesize values (must be integers)
+# sample max_depth and eta values
 hyper_depth = ...
 hyper_eta = ...
 
 tuning_results =
-    sapply(1:length(hyper_minnodesize), function(k) {
+    sapply(1:length(hyper_depth), function(k) {
         auc_inner = NULL
         for(j in 1:cv) {
-          split = outer_split == j
+          inner_split = split == j
           train_inner = data_obs[!inner_split, ]
           test_inner = data_obs[inner_split, ]
+
+          X = as.matrix(train_inner[,-1])
+          Y = train_inner$survived
           
-          data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
-          
-          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic")
+          model = xgboost(x = X, y = Y, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic")
           predictions = predict(model, newdata = as.matrix(test_inner)[,-1])
           
           auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
@@ -470,7 +469,7 @@ print(results)
 
 `r hide("Show solution")`
 
-```{r}
+```{r chunk_chapter4_brt_tuning}
 library(xgboost)
 set.seed(42)
 data_obs = data_sub[!is.na(data_sub$survived),] 
@@ -479,7 +478,7 @@ cv = 3
 split = sample.int(cv, nrow(data_obs), replace = T)
 
 # sample minnodesize values (must be integers)
-hyper_depth = sample(200, 20)
+hyper_depth = sample(2:10, 20, replace = TRUE)
 hyper_eta = runif(20, 0, 1)
 
 
@@ -493,8 +492,13 @@ tuning_results =
           
           data_xg = xgb.DMatrix(data = as.matrix(train_inner[,-1]), label = train_inner$survived)
           
-          model = xgboost(data_xg, nrounds = 16L, eta = hyper_eta[k], max_depth = hyper_depth[k], objective = "reg:logistic", verbose = 0)
-          predictions = predict(model, newdata = as.matrix(test_inner)[,-1])
+          model = xgb.train(data = data_xg, 
+                            nrounds = 16L, 
+                            xgb.params(
+                              eta = hyper_eta[k], 
+                              max_depth = hyper_depth[k], 
+                              objective = "reg:logistic"))
+          predictions = predict(model, newdata = as.matrix(test_inner[,-1]))
           
           auc_inner[j]= Metrics::auc(test_inner$survived, predictions)
         }
@@ -509,12 +513,12 @@ print(results)
 
 Make predictions:
 
-```{r, results='hide', warning=FALSE, message=FALSE}
+```{r chunk_chapter4_brt_predict, results='hide', warning=FALSE, message=FALSE}
 data_xg = xgb.DMatrix(data = as.matrix(data_obs[,-1]), label = data_obs$survived)
 
-model = xgboost(data_xg, nrounds = 16L, eta = results[which.max(results$AUC), 2], max_depth = results[which.max(results$AUC), 1], objective = "reg:logistic")
+model = xgb.train(data = data_xg, nrounds = 16L, params = xgb.params(eta = results[which.max(results$AUC), 2], max_depth = results[which.max(results$AUC), 1], objective = "reg:logistic"))
 
-predictions = predict(model, newdata = as.matrix(data_new)[,-1])
+predictions = predict(model, newdata = as.matrix(data_new[,-1]))
 
 # Single predictions from the ensemble model:
 write.csv(data.frame(y = predictions), file = "Max_titanic_xgboost.csv")
@@ -532,7 +536,7 @@ You can easily implement a BRT or boosted linear model using the rpart package o
 
 Go through the code line by line and try to understand it. Ask, if you have any questions:
 
-```{r, echo = FALSE}
+```{r chunk_chapter4_naivebrt_helpers, echo = TRUE}
 library(tree)
 #### Helper function for single tree fit.
 get_model_tree = function(x, y, ...){
@@ -591,7 +595,7 @@ predict.naiveBRT = function(model, newdata) {
 
 Let's try it:
 
-```{r}
+```{r chunk_chapter4_naivebrt_demo}
 data = model.matrix(~. , data = airquality)
 
 model = get_boosting_model(x = data[,-2], y = data[,2], n_trees = 5L )
@@ -606,7 +610,7 @@ plot(data[,2], pred, xlab = "observed", ylab = "predicted")
 #### Hyperparameter tuning of random forest
 
 | Hyperparameter | Explanation |
-|----|----|
+|------------------------------------|------------------------------------|
 | mtry | Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data). |
 | minimum node size | Minimal number of observations allowed in a node (before the branching is canceled) |
 | max depth | Maximum number of tree depth |
@@ -615,7 +619,7 @@ Coming back to the titanic dataset from the morning, we want to optimize the min
 
 Prepare the data:
 
-```{r}
+```{r chunk_chapter4_rf_data}
 library(EcoData)
 library(dplyr)
 library(missRanger)
@@ -650,7 +654,7 @@ data_obs$survived = as.factor(data_obs$survived)
 ::: {.callout-tip collapse="true" appearance="minimal"}
 ## Code template
 
-```{r, eval=FALSE}
+```{r chunk_chapter4_rf_template, eval=FALSE}
 library(randomForest)
 set.seed(42)
 data_obs = data_sub[!is.na(data_sub$survived),] 
@@ -683,7 +687,7 @@ print(results)
 
 `r hide("Show solution")`
 
-```{r}
+```{r chunk_chapter4_rf_tuning}
 library(randomForest)
 set.seed(42)
 data_obs = data_sub[!is.na(data_sub$survived),] 
@@ -715,7 +719,7 @@ print(results)
 
 Make predictions:
 
-```{r, results='hide', warning=FALSE, message=FALSE}
+```{r chunk_chapter4_rf_predict, results='hide', warning=FALSE, message=FALSE}
 model = randomForest(survived~.,data = data_obs, nodesize = results[which.max(results$AUC),1])
 
 write.csv(data.frame(y = predict(model, data_new, type = "prob")[,2]), file = "Max_titanic_rf.csv")

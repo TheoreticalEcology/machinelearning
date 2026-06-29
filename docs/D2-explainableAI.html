@@ -75,8 +75,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-43df0d6f53b733b42d37fa7808e17715.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-dc56911d8e933baf1abbb4e47a580568.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-b15e647865e4bb38ea51c183c4bcaf1b.min.css" rel="prefetch" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-12b812c39f22d88ee807e48c382f9dd4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-fab269e7788c4bbef189c63d745cb483.min.css" rel="prefetch" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -408,7 +408,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 data-number="8.1" class="anchored" data-anchor-id="a-practical-example"><span class="header-section-number">8.1</span> A Practical Example</h2>
 <p>In this lecture we will work with an African Elephant occurrence dataset.</p>
 <p>We will fit a random forest and use the iml package for xAI, see <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>.</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(iml)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger) <span class="co"># different random Forest package!</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
@@ -507,7 +507,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> <span class="fu">ranger</span>(<span class="fu">as.factor</span>(Presence) <span class="sc">~</span> ., <span class="at">data =</span> data, <span class="at">probability =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -528,7 +528,7 @@ ranger Package
 <p>The cito package has quite extensive xAI functionalities. However, ranger, as most other machine learning packages, has no extensive xAI functionalities. Thus, to do xAI with ranger, we have to use a generic xAI package that can handle almost all machine learning models.</p>
 <p>When we want to use such a generic package, we first have to create a predictor object, that holds the model and the data. The <code>iml</code> package uses R6 classes, that means new objects can be created by calling <code>Predictor$new()</code>. (Do not worry if you do not know what R6 classes are, just use the command.)</p>
 <p>To make the xAI tools available to many different packages/algorithms, the <code>iml</code> package expects that the ML algorithm specific predict method to be wrapped in a generic predict function in the form of <code>function(model, newdata) predict(model, newdata)</code> and the function wrapper should return a vector of predictions:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>predict_wrapper <span class="ot">=</span> <span class="cf">function</span>(model, newdata) <span class="fu">predict</span>(model, <span class="at">data=</span>newdata)<span class="sc">$</span>predictions[,<span class="dv">2</span>]</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>predictor <span class="ot">=</span> Predictor<span class="sc">$</span><span class="fu">new</span>(rf, <span class="at">data =</span> data[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">y =</span> data[,<span class="dv">1</span>], <span class="at">predict.function =</span> predict_wrapper)</span>
@@ -539,7 +539,7 @@ ranger Package
 <section id="featurepermutation-importance" class="level2" data-number="8.2">
 <h2 data-number="8.2" class="anchored" data-anchor-id="featurepermutation-importance"><span class="header-section-number">8.2</span> Feature/Permutation Importance</h2>
 <p>Feature importance should not be confused with random forest variable importance, although they are related. It tells us how important each variable is for prediction, can be computed for all machine learning models, and is based on a permutation approach (see the book):</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>imp <span class="ot">=</span> FeatureImp<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">loss =</span> <span class="st">"ce"</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(imp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -548,7 +548,7 @@ ranger Package
 <section id="partial-dependencies" class="level2" data-number="8.3">
 <h2 data-number="8.3" class="anchored" data-anchor-id="partial-dependencies"><span class="header-section-number">8.3</span> Partial Dependencies</h2>
 <p>Partial dependencies are similar to <code>allEffects</code> plots for normal regressions. The idea is to visualize “marginal effects” of predictors (with the “feature” argument we specify the variable we want to visualize):</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>eff <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">"bio9"</span>, <span class="at">method =</span> <span class="st">"pdp"</span>,</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">grid.size =</span> <span class="dv">30</span>)</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -558,7 +558,7 @@ ranger Package
 <section id="accumulated-local-effects" class="level2" data-number="8.4">
 <h2 data-number="8.4" class="anchored" data-anchor-id="accumulated-local-effects"><span class="header-section-number">8.4</span> Accumulated Local Effects</h2>
 <p>Accumulated local effects (ALE) are basically partial dependencies plots but try to correct for correlations between predictors.</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>ale <span class="ot">=</span> FeatureEffect<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">feature =</span> <span class="st">"bio9"</span>, <span class="at">method =</span> <span class="st">"ale"</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>ale<span class="sc">$</span><span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -567,7 +567,7 @@ ranger Package
 <section id="friedmans-h-statistic" class="level2" data-number="8.5">
 <h2 data-number="8.5" class="anchored" data-anchor-id="friedmans-h-statistic"><span class="header-section-number">8.5</span> Friedman’s H-statistic</h2>
 <p>The H-statistic can be used to find interactions between predictors. However, again, keep in mind that the H-statistic is sensible to correlation between predictors:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>interact <span class="ot">=</span> Interaction<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="st">"bio9"</span>,<span class="at">grid.size =</span> <span class="dv">5</span>L)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(interact)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -575,7 +575,7 @@ ranger Package
 <section id="global-explainer---simplifying-the-machine-learning-model" class="level2" data-number="8.6">
 <h2 data-number="8.6" class="anchored" data-anchor-id="global-explainer---simplifying-the-machine-learning-model"><span class="header-section-number">8.6</span> Global Explainer - Simplifying the Machine Learning Model</h2>
 <p>Another idea is simplifying the machine learning model with another simpler model such as a decision tree. We create predictions with the machine learning model for a lot of different input values and then we fit a decision tree on these predictions. We can then interpret the easier model.</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(partykit)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>tree <span class="ot">=</span> TreeSurrogate<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">maxdepth =</span> <span class="dv">2</span>)</span>
@@ -586,7 +586,7 @@ ranger Package
 <h2 data-number="8.7" class="anchored" data-anchor-id="local-explainer---lime-explaining-single-instances-observations"><span class="header-section-number">8.7</span> Local Explainer - LIME Explaining Single Instances (observations)</h2>
 <p>The global approach is to simplify the entire machine learning-black-box model via a simpler model, which is then interpretable.</p>
 <p>However, sometimes we are only interested in understanding how single predictions are generated. The LIME (Local interpretable model-agnostic explanations) approach explores the feature space around one observation and based on this locally fits a simpler model (e.g.&nbsp;a linear model):</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>lime.explain <span class="ot">=</span> LocalModel<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">x.interest =</span> data[<span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>])</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>lime.explain<span class="sc">$</span>results</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lime.explain)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -595,7 +595,7 @@ ranger Package
 <section id="local-explainer---shapley" class="level2" data-number="8.8">
 <h2 data-number="8.8" class="anchored" data-anchor-id="local-explainer---shapley"><span class="header-section-number">8.8</span> Local Explainer - Shapley</h2>
 <p>The Shapley method computes the so called Shapley value, feature contributions for single predictions, and is based on an approach from cooperative game theory. The idea is that each feature value of the instance is a “player” in a game, where the prediction is the reward. The Shapley value tells us how to fairly distribute the reward among the features.</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>shapley <span class="ot">=</span> Shapley<span class="sc">$</span><span class="fu">new</span>(predictor, <span class="at">x.interest =</span> data[<span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>])</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>shapley<span class="sc">$</span><span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -603,8 +603,8 @@ ranger Package
 <section id="uncertainties---the-bootstrap" class="level2" data-number="8.9">
 <h2 data-number="8.9" class="anchored" data-anchor-id="uncertainties---the-bootstrap"><span class="header-section-number">8.9</span> Uncertainties - the bootstrap</h2>
 <p>Standard xAI method do not provide reliable uncertainties on the fitted curves. If you want uncertainties or p-values, the most common method is the bootstrap.</p>
-<p>In a bootstrap, is instead of splitting up the data in test / validation, we sample from the data with replacement and fit the models repeatedly. The idea is to get an estimate about the variability we would expect if we created another dataset of the same size.</p>
-<div class="cell">
+<p>In a bootstrap, instead of splitting up the data in test / validation, we sample from the data with replacement and fit the models repeatedly. The idea is to get an estimate about the variability we would expect if we created another dataset of the same size.</p>
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>k <span class="ot">=</span> <span class="dv">10</span> <span class="co"># bootstrap samples</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="fu">nrow</span>(data)</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>error <span class="ot">=</span> <span class="fu">rep</span>(<span class="cn">NA</span>, k)</span>
@@ -625,18 +625,10 @@ ranger Package
 </section>
 <section id="exercises" class="level2" data-number="8.10">
 <h2 data-number="8.10" class="anchored" data-anchor-id="exercises"><span class="header-section-number">8.10</span> Exercises</h2>
-<div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-xAI in cito
-</div>
-</div>
-<div class="callout-body-container callout-body">
+<section id="xai-in-cito" class="level4 exercise" data-number="8.10.0.1">
+<h4 data-number="8.10.0.1" class="anchored" data-anchor-id="xai-in-cito"><span class="header-section-number">8.10.0.1</span> xAI in cito</h4>
 <p>Data preparation</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(iml)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cito)</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
@@ -650,8 +642,8 @@ xAI in cito
 <span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co"># we will subsample data (absences) to reduce runtime</span></span>
 <span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>data_sub <span class="ot">=</span> data[<span class="fu">sample.int</span>(<span class="fu">nrow</span>(data), <span class="dv">500</span>),]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Cito includes serveral xAI methods directly out of the box</p>
-<div class="cell">
+<p>cito includes several xAI methods directly out of the box</p>
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">dnn</span>(Presence<span class="sc">~</span>., <span class="at">data =</span> data_sub, <span class="at">batchsize =</span> <span class="dv">200</span>L,<span class="at">loss =</span> <span class="st">"binomial"</span>, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">lr =</span> <span class="fl">0.15</span>, <span class="at">epochs =</span> <span class="dv">300</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Try the following commands:</p>
@@ -661,37 +653,28 @@ xAI in cito
 <li><code>ALE(dnn)</code></li>
 </ul>
 <p>Moreover, try to refit the model with the option <code>bootstrap = 5</code>. This may take a short while. Observe how the xAI options change.</p>
-</div>
-</div>
 <div class="webex-solution">
 <button>
-Click here to see the solution for cito
+Show solution — cito
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">dnn</span>(Presence<span class="sc">~</span>., <span class="at">data =</span> data_sub, <span class="at">batchsize =</span> <span class="dv">200</span>L, <span class="at">bootstrap =</span> <span class="dv">5</span>L, <span class="at">loss =</span> <span class="st">"binomial"</span>, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">lr =</span> <span class="fl">0.15</span>, <span class="at">epochs =</span> <span class="dv">300</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model, <span class="at">n_permute =</span> <span class="dv">10</span>L)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">PDP</span>(model)</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ALE</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
-<div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Question
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</section>
+<section id="interpret-a-fitted-model-titanic" class="level4 exercise" data-number="8.10.0.2">
+<h4 data-number="8.10.0.2" class="anchored" data-anchor-id="interpret-a-fitted-model-titanic"><span class="header-section-number">8.10.0.2</span> Interpret a fitted model (Titanic)</h4>
 <p>Use the Titanic_ml dataset and fit a random forest, dnn or a BRT using xgboost. Explore / interpret the fitted model using <code>iml</code> (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>).</p>
 <p>Tip:</p>
 <p>If you use iml, you need to provide a proper prediction function wrapper:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># random Forest (ranger), regression:</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>predict_wrapper <span class="ot">=</span> <span class="cf">function</span>(model, newdata) <span class="fu">predict</span>(model, <span class="at">data=</span>newdata)<span class="sc">$</span>predictions</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -702,7 +685,7 @@ Question
 <span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>predict_wrapper <span class="ot">=</span> <span class="cf">function</span>(model, newdata) <span class="fu">predict</span>(model, <span class="fu">as.matrix</span>(newdata))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Prepare the data</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger) <span class="co"># for imputation</span></span>
@@ -711,7 +694,7 @@ Question
 <span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> titanic_ml</span>
 <span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co"># feature selection</span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> data <span class="sc">%&gt;%</span> <span class="fu">select</span>(survived, sex, age, fare, pclass)<span class="co"># play around with the features</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> data <span class="sc">|&gt;</span> <span class="fu">select</span>(survived, sex, age, fare, pclass)<span class="co"># play around with the features</span></span>
 <span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="co"># imputation - remove response variable!</span></span>
 <span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)</span>
@@ -719,20 +702,18 @@ Question
 <span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>data_imputed[,<span class="sc">-</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">missRanger</span>(data_imputed[,<span class="sc">-</span><span class="dv">1</span>])</span>
 <span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data_imputed)</span>
 <span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>data_imputed <span class="ot">=</span> data_imputed <span class="sc">%&gt;%</span> </span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>data_imputed <span class="ot">=</span> data_imputed <span class="sc">|&gt;</span> </span>
 <span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">age =</span> (age <span class="sc">-</span> <span class="fu">mean</span>(age))<span class="sc">/</span><span class="fu">sd</span>(age), <span class="at">fare =</span> (fare <span class="sc">-</span> <span class="fu">mean</span>(fare))<span class="sc">/</span><span class="fu">sd</span>(fare),</span>
 <span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">sex =</span> <span class="fu">as.integer</span>(sex), <span class="at">pclass =</span> <span class="fu">as.integer</span>(pclass))</span>
 <span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_imputed[<span class="sc">!</span><span class="fu">is.na</span>(data_imputed<span class="sc">$</span>survived), ]</span>
 <span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>data_new <span class="ot">=</span> data_imputed[<span class="fu">is.na</span>(data_imputed<span class="sc">$</span>survived), ]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-</div>
 <div class="webex-solution">
 <button>
-Click here to see the solution for RF
+Show solution — RF
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"iml"</span>)</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
@@ -773,9 +754,9 @@ Click here to see the solution for RF
 </div>
 <div class="webex-solution">
 <button>
-Click here to see the solution for xgboost
+Show solution — xgboost
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"iml"</span>)</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
@@ -812,9 +793,9 @@ Click here to see the solution for xgboost
 </div>
 <div class="webex-solution">
 <button>
-Click here to see the solution for cito
+Show solution — cito
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cito)</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>data_obs<span class="sc">$</span>survived <span class="ot">=</span> <span class="fu">as.integer</span>(data_obs<span class="sc">$</span>survived) <span class="sc">-</span> <span class="dv">1</span></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>nn <span class="ot">=</span> <span class="fu">dnn</span>(survived<span class="sc">~</span>., <span class="at">data =</span> data_obs, <span class="at">loss =</span> <span class="st">"binomial"</span>, <span class="at">lr=</span> <span class="fl">0.03</span>, <span class="at">epochs =</span> <span class="dv">300</span>)</span>
@@ -822,6 +803,7 @@ Click here to see the solution for cito
 <span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nn)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
+</section>
 <!-- ::: callout-warning -->
 <!-- #### Question -->
 <!-- As we show in Section 13 of this chapter, a random forest will partition the importance of variables across collinear predictors, while a linear regression model (`lm()`) can identify which predictor is causally affecting the response (at least in theory, if all confounders are controlled). What about a boosted regression tree or an artificial neural network? Take the random forest example and add a boosted regression tree (easier, you can use e.g. <https://rdrr.io/cran/xgboost/man/xgb.importance.html>) or an artificial neural network and see if they are better than the random forest at identifying causal predictors. -->
@@ -937,38 +919,38 @@ Click here to see the solution for cito
 <!-- rm(retVal) -->
 <!-- classNumber = length(table(labelsTrain)) -->
 <!-- model = keras_model_sequential() -->
-<!-- model %>% -->
+<!-- model |> -->
 <!--     layer_dense(units = 200L, activation = "leaky_relu", -->
 <!--     kernel_regularizer = regularizer_l2(0.00035), -->
-<!--     input_shape = ncol(train)) %>% -->
-<!--     layer_dropout(0.45) %>% -->
+<!--     input_shape = ncol(train)) |> -->
+<!--     layer_dropout(0.45) |> -->
 <!--     layer_dense(units = 100L, activation = "relu", -->
-<!--     bias_regularizer = regularizer_l1_l2(0.5)) %>% -->
-<!--     layer_dropout(0.2) %>% -->
+<!--     bias_regularizer = regularizer_l1_l2(0.5)) |> -->
+<!--     layer_dropout(0.2) |> -->
 <!--     layer_dense(units = 100L, activation = "leaky_relu", -->
 <!--     kernel_regularizer = regularizer_l2(0.00035), -->
-<!--     bias_regularizer = regularizer_l1_l2(0.1)) %>% -->
-<!--     layer_dropout(0.25) %>% -->
-<!--     layer_dense(units = 50L, activation = "gelu") %>% -->
-<!--     layer_dense(units = 25L, activation = "elu") %>% -->
-<!--     layer_dropout(0.35) %>% -->
+<!--     bias_regularizer = regularizer_l1_l2(0.1)) |> -->
+<!--     layer_dropout(0.25) |> -->
+<!--     layer_dense(units = 50L, activation = "gelu") |> -->
+<!--     layer_dense(units = 25L, activation = "elu") |> -->
+<!--     layer_dropout(0.35) |> -->
 <!--     # We need probabilities. So we use the softmax function. -->
 <!--     # Remember, the labels MUST start at 0! -->
 <!--     layer_dense(units = classNumber, activation = "softmax") -->
-<!-- model %>% -->
+<!-- model |> -->
 <!--     keras::compile(loss = loss_binary_crossentropy, -->
 <!--                    optimizer = optimizer_adamax(learning_rate = 0.015)) -->
 <!-- model_history =  -->
-<!--     model %>% # Mind the matrix property (no data.frame)! -->
+<!--     model |> # Mind the matrix property (no data.frame)! -->
 <!--         fit(x = as.matrix(train), y = k_one_hot(labelsTrain, classNumber), -->
 <!--             epochs = 80L, batch = 12L, shuffle = TRUE) -->
 <!-- plot(model_history) -->
 <!-- # Accuracy on training set (!) -->
-<!-- pred = predict(model, as.matrix(train)) %>% apply(1, which.max) - 1 -->
+<!-- pred = predict(model, as.matrix(train)) |> apply(1, which.max) - 1 -->
 <!-- Metrics::accuracy(pred, labelsTrain) -->
 <!-- table(pred, labelsTrain) -->
 <!-- # Accuracy on test set -->
-<!-- pred = predict(model, as.matrix(test)) %>% apply(1, which.max) - 1 -->
+<!-- pred = predict(model, as.matrix(test)) |> apply(1, which.max) - 1 -->
 <!-- Metrics::accuracy(pred, labelsTest) -->
 <!-- table(pred, labelsTest) -->
 <!-- ``` -->
@@ -987,34 +969,34 @@ Click here to see the solution for cito
 <!-- rm(retVal) -->
 <!-- classNumber = length(table(labelsTrain)) -->
 <!-- model = keras_model_sequential() -->
-<!-- model %>% -->
+<!-- model |> -->
 <!--     layer_dense(units = 200L, activation = "leaky_relu", -->
 <!--     kernel_regularizer = regularizer_l2(0.00035), -->
-<!--     input_shape = ncol(train)) %>% -->
-<!--     layer_dropout(0.45) %>% -->
+<!--     input_shape = ncol(train)) |> -->
+<!--     layer_dropout(0.45) |> -->
 <!--     layer_dense(units = 100L, activation = "relu", -->
-<!--     bias_regularizer = regularizer_l1_l2(0.5)) %>% -->
-<!--     layer_dropout(0.2) %>% -->
+<!--     bias_regularizer = regularizer_l1_l2(0.5)) |> -->
+<!--     layer_dropout(0.2) |> -->
 <!--     layer_dense(units = 100L, activation = "leaky_relu", -->
 <!--     kernel_regularizer = regularizer_l2(0.00035), -->
-<!--     bias_regularizer = regularizer_l1_l2(0.1)) %>% -->
-<!--     layer_dropout(0.25) %>% -->
-<!--     layer_dense(units = 50L, activation = "gelu") %>% -->
-<!--     layer_dense(units = 25L, activation = "elu") %>% -->
-<!--     layer_dropout(0.35) %>% -->
+<!--     bias_regularizer = regularizer_l1_l2(0.1)) |> -->
+<!--     layer_dropout(0.25) |> -->
+<!--     layer_dense(units = 50L, activation = "gelu") |> -->
+<!--     layer_dense(units = 25L, activation = "elu") |> -->
+<!--     layer_dropout(0.35) |> -->
 <!--     # We need probabilities. So we use the softmax function. -->
 <!--     # Remember, the labels MUST start at 0! -->
 <!--     layer_dense(units = classNumber, activation = "softmax") -->
-<!-- model %>% -->
+<!-- model |> -->
 <!--     keras::compile(loss = loss_binary_crossentropy, -->
 <!--                    optimizer = optimizer_adamax(learning_rate = 0.015)) -->
 <!-- model_history =  -->
-<!--     model %>% # Mind the matrix property (no data.frame)! -->
+<!--     model |> # Mind the matrix property (no data.frame)! -->
 <!--         fit(x = as.matrix(train), y = k_one_hot(labelsTrain, classNumber), -->
 <!--             epochs = 80L, batch = 12L, shuffle = TRUE) -->
 <!-- plot(model_history) -->
 <!-- # Accuracy on training set (!) -->
-<!-- pred = predict(model, as.matrix(train)) %>% apply(1, which.max) - 1 -->
+<!-- pred = predict(model, as.matrix(train)) |> apply(1, which.max) - 1 -->
 <!-- Metrics::accuracy(pred, labelsTrain) -->
 <!-- table(pred, labelsTrain) -->
 <!-- # Reverse subtraction (for start at 0) and create submission file. -->

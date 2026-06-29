@@ -736,16 +736,17 @@ data_obs = data_sub[!is.na(data_sub$interaction),]
 set.seed(42)
 
 cv = 3
-hyper_minnodesize = ... # 
+hyper_minnodesize = ... #
+split = sample.int(cv, nrow(data_obs), replace = TRUE)
 
 tuning_results =
     sapply(1:length(hyper_minnodesize), function(k) {
         auc_inner = NULL
         for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
-          
+          inner_split = split == j
+          train_inner = data_obs[!inner_split, ]
+          test_inner = data_obs[inner_split, ]
+
           model = randomForest(interaction~.,data = train_inner, nodesize = hyper_minnodesize[k])
           predictions = predict(model, newdata=test_inner, type = "prob")[,2]
 
@@ -770,14 +771,15 @@ set.seed(42)
 cv = 3
 hyper_minnodesize = sample(300, 20)
 hyper_mtry = sample(4, 20, replace = TRUE)
+split = sample.int(cv, nrow(data_obs), replace = TRUE)
 
 tuning_results =
     sapply(1:length(hyper_minnodesize), function(k) {
         auc_inner = NULL
         for(j in 1:cv) {
-          inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv))
-          train_inner = data_obs[inner_split != j, ]
-          test_inner = data_obs[inner_split == j, ]
+          inner_split = split == j
+          train_inner = data_obs[!inner_split, ]
+          test_inner = data_obs[inner_split, ]
           model = randomForest(interaction~.,data = train_inner,
                                nodesize = hyper_minnodesize[k],
                                mtry = hyper_mtry[k])

@@ -75,8 +75,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-43df0d6f53b733b42d37fa7808e17715.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-dc56911d8e933baf1abbb4e47a580568.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-b15e647865e4bb38ea51c183c4bcaf1b.min.css" rel="prefetch" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-12b812c39f22d88ee807e48c382f9dd4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-fab269e7788c4bbef189c63d745cb483.min.css" rel="prefetch" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -431,7 +431,7 @@ window.Quarto = {
 <p>We can use TensorFlow directly from R (see <a href="#sec-tensorflowintro" class="quarto-xref"><span class="quarto-unresolved-ref">sec-tensorflowintro</span></a> for an introduction to TensorFlow), and we could use this knowledge to implement a neural network in TensorFlow directly in R. However, this can be quite cumbersome. For simple problems, it is usually faster to use a higher-level API that helps us implement the machine learning models in TensorFlow. The most common of these is Keras.</p>
 <p>Keras is a powerful framework for building and training neural networks with just a few lines of code. As of the end of 2018, Keras and TensorFlow are fully interoperable, allowing us to take advantage of the best of both.</p>
 <p>The goal of this lesson is to familiarize you with Keras. If you have TensorFlow installed, you can find Keras inside TensorFlow: tf.keras. However, the RStudio team has built an R package on top of tf.keras that is more convenient to use. To load the Keras package, type</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>
@@ -447,7 +447,7 @@ Attaching package: 'keras3'</code></pre>
 <section id="example-workflow-in-keras-torch" class="level2" data-number="10.1">
 <h2 data-number="10.1" class="anchored" data-anchor-id="example-workflow-in-keras-torch"><span class="header-section-number">10.1</span> Example workflow in Keras / Torch</h2>
 <p>We build a small classifier to predict the three species of the iris data set. Load the necessary packages and data sets:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras3)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -473,12 +473,12 @@ Attaching package: 'torch'</code></pre>
 </div>
 </div>
 <p>For neural networks, it is beneficial to scale the predictors (scaling = centering and standardization, see ?scale). We also split our data into predictors (X) and response (Y = the three species).</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>X <span class="ot">=</span> <span class="fu">scale</span>(iris[,<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>])</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">=</span> iris[,<span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Additionally, Keras/TensorFlow cannot handle factors and we have to create contrasts (one-hot encoding). To do so, we have to specify the number of categories. This can be tricky for a beginner, because in other programming languages like Python and C++, arrays start at zero. Thus, when we would specify 3 as number of classes for our three species, we would have the classes 0,1,2,3. Keep this in mind.</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">=</span> keras3<span class="sc">::</span><span class="fu">to_categorical</span>(<span class="fu">as.integer</span>(Y) <span class="sc">-</span> <span class="dv">1</span>L, <span class="dv">3</span>)</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(Y) <span class="co"># 3 columns, one for each level of the response.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -497,7 +497,7 @@ Attaching package: 'torch'</code></pre>
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" aria-current="page">Keras</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Torch</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>(<span class="fu">shape</span>(<span class="dv">4</span>L))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
@@ -514,7 +514,7 @@ Attaching package: 'torch'</code></pre>
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true">Keras</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false">Torch</a></li></ul>
 <div class="tab-content">
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">|&gt;</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">20</span>L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">20</span>L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">|&gt;</span></span>
@@ -524,7 +524,7 @@ Attaching package: 'torch'</code></pre>
 </div>
 <div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
 <p>The Torch syntax is very similar, we will give a list of layers to the “nn_sequential” function. Here, we have to specify the softmax activation function as an extra layer:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>model_torch <span class="ot">=</span> </span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_sequential</span>(</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nn_linear</span>(<span class="dv">4</span>L, <span class="dv">20</span>L),</span>
@@ -546,7 +546,7 @@ Attaching package: 'torch'</code></pre>
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true">Keras</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false">Torch</a></li></ul>
 <div class="tab-content">
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">|&gt;</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">compile</span>(<span class="at">loss =</span> keras3<span class="sc">::</span>loss_categorical_crossentropy,</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>          keras3<span class="sc">::</span><span class="fu">optimizer_adamax</span>(<span class="at">learning_rate =</span> <span class="fl">0.001</span>))</span>
@@ -570,9 +570,9 @@ Attaching package: 'torch'</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="C2-DeepNeuralNetworks_files/figure-html/chunk_chapter3_68-1.png" class="img-fluid figure-img" width="109"></p>
+<p><img src="C2-DeepNeuralNetworks_files/figure-html/chunk_chapter3_68-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="109"></p>
 </figure>
 </div>
 </div>
@@ -580,7 +580,7 @@ Attaching package: 'torch'</code></pre>
 </div>
 <div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
 <p>Specify optimizer and the parameters which will be trained (in our case the parameters of the network):</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>optimizer_torch <span class="ot">=</span> <span class="fu">optim_adam</span>(<span class="at">params =</span> model_torch<span class="sc">$</span>parameters, <span class="at">lr =</span> <span class="fl">0.001</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
@@ -591,7 +591,7 @@ Attaching package: 'torch'</code></pre>
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true">Keras</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false">Torch</a></li></ul>
 <div class="tab-content">
 <div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras3)</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -602,65 +602,65 @@ Attaching package: 'torch'</code></pre>
 <span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">batch_size =</span> <span class="dv">20</span>L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Epoch 1/30
-8/8 - 0s - 41ms/step - loss: 1.0091
+8/8 - 0s - 46ms/step - loss: 1.2556
 Epoch 2/30
-8/8 - 0s - 3ms/step - loss: 0.9684
+8/8 - 0s - 2ms/step - loss: 1.1782
 Epoch 3/30
-8/8 - 0s - 3ms/step - loss: 0.9349
+8/8 - 0s - 2ms/step - loss: 1.1073
 Epoch 4/30
-8/8 - 0s - 3ms/step - loss: 0.9041
+8/8 - 0s - 2ms/step - loss: 1.0450
 Epoch 5/30
-8/8 - 0s - 3ms/step - loss: 0.8767
+8/8 - 0s - 2ms/step - loss: 1.0014
 Epoch 6/30
-8/8 - 0s - 3ms/step - loss: 0.8500
+8/8 - 0s - 2ms/step - loss: 0.9555
 Epoch 7/30
-8/8 - 0s - 3ms/step - loss: 0.8258
+8/8 - 0s - 2ms/step - loss: 0.9134
 Epoch 8/30
-8/8 - 0s - 3ms/step - loss: 0.8019
+8/8 - 0s - 2ms/step - loss: 0.8703
 Epoch 9/30
-8/8 - 0s - 3ms/step - loss: 0.7805
+8/8 - 0s - 2ms/step - loss: 0.8319
 Epoch 10/30
-8/8 - 0s - 3ms/step - loss: 0.7610
+8/8 - 0s - 2ms/step - loss: 0.7952
 Epoch 11/30
-8/8 - 0s - 3ms/step - loss: 0.7437
+8/8 - 0s - 2ms/step - loss: 0.7613
 Epoch 12/30
-8/8 - 0s - 3ms/step - loss: 0.7281
+8/8 - 0s - 2ms/step - loss: 0.7321
 Epoch 13/30
-8/8 - 0s - 3ms/step - loss: 0.7127
+8/8 - 0s - 2ms/step - loss: 0.7040
 Epoch 14/30
-8/8 - 0s - 2ms/step - loss: 0.6998
+8/8 - 0s - 2ms/step - loss: 0.6794
 Epoch 15/30
-8/8 - 0s - 3ms/step - loss: 0.6874
+8/8 - 0s - 2ms/step - loss: 0.6560
 Epoch 16/30
-8/8 - 0s - 3ms/step - loss: 0.6759
+8/8 - 0s - 2ms/step - loss: 0.6333
 Epoch 17/30
-8/8 - 0s - 3ms/step - loss: 0.6645
+8/8 - 0s - 2ms/step - loss: 0.6117
 Epoch 18/30
-8/8 - 0s - 3ms/step - loss: 0.6536
+8/8 - 0s - 2ms/step - loss: 0.5905
 Epoch 19/30
-8/8 - 0s - 3ms/step - loss: 0.6428
+8/8 - 0s - 2ms/step - loss: 0.5709
 Epoch 20/30
-8/8 - 0s - 3ms/step - loss: 0.6326
+8/8 - 0s - 2ms/step - loss: 0.5512
 Epoch 21/30
-8/8 - 0s - 3ms/step - loss: 0.6222
+8/8 - 0s - 2ms/step - loss: 0.5333
 Epoch 22/30
-8/8 - 0s - 3ms/step - loss: 0.6116
+8/8 - 0s - 2ms/step - loss: 0.5162
 Epoch 23/30
-8/8 - 0s - 3ms/step - loss: 0.6005
+8/8 - 0s - 2ms/step - loss: 0.4992
 Epoch 24/30
-8/8 - 0s - 3ms/step - loss: 0.5894
+8/8 - 0s - 2ms/step - loss: 0.4838
 Epoch 25/30
-8/8 - 0s - 3ms/step - loss: 0.5779
+8/8 - 0s - 2ms/step - loss: 0.4687
 Epoch 26/30
-8/8 - 0s - 3ms/step - loss: 0.5672
+8/8 - 0s - 2ms/step - loss: 0.4535
 Epoch 27/30
-8/8 - 0s - 3ms/step - loss: 0.5556
+8/8 - 0s - 2ms/step - loss: 0.4395
 Epoch 28/30
-8/8 - 0s - 3ms/step - loss: 0.5439
+8/8 - 0s - 2ms/step - loss: 0.4256
 Epoch 29/30
-8/8 - 0s - 3ms/step - loss: 0.5325
+8/8 - 0s - 2ms/step - loss: 0.4129
 Epoch 30/30
-8/8 - 0s - 2ms/step - loss: 0.5207</code></pre>
+8/8 - 0s - 1ms/step - loss: 0.4003</code></pre>
 </div>
 </div>
 </div>
@@ -674,7 +674,7 @@ Epoch 30/30
 <li>Update weights.</li>
 <li>Go to step 1 and repeat.</li>
 </ol>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">torch_manual_seed</span>(<span class="dv">321</span>L)</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
@@ -719,24 +719,24 @@ Epoch 30/30
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true">Keras</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false">Torch</a></li></ul>
 <div class="tab-content">
 <div id="tabset-5-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-5-1-tab">
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model_history)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="C2-DeepNeuralNetworks_files/figure-html/chunk_chapter3_72-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="C2-DeepNeuralNetworks_files/figure-html/chunk_chapter3_72-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
 <div id="tabset-5-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-2-tab">
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(log_losses, <span class="at">xlab =</span> <span class="st">"steps"</span>, <span class="at">ylab =</span> <span class="st">"loss"</span>, <span class="at">las =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="C2-DeepNeuralNetworks_files/figure-html/chunk_chapter3_73-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="C2-DeepNeuralNetworks_files/figure-html/chunk_chapter3_73-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -749,40 +749,40 @@ Epoch 30/30
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-6-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-1" role="tab" aria-controls="tabset-6-1" aria-selected="true">Keras</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-2" role="tab" aria-controls="tabset-6-2" aria-selected="false">Torch</a></li></ul>
 <div class="tab-content">
 <div id="tabset-6-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-6-1-tab">
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">predict</span>(model, X) <span class="co"># Probabilities for each class.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>5/5 - 0s - 9ms/step</code></pre>
+<pre><code>5/5 - 0s - 7ms/step</code></pre>
 </div>
 </div>
 <p>Get probabilities:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(predictions) <span class="co"># Quasi-probabilities for each species.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>          [,1]       [,2]        [,3]
-[1,] 0.9778623 0.01867981 0.003457977
-[2,] 0.9399117 0.05284167 0.007246608
-[3,] 0.9727422 0.02348044 0.003777272
-[4,] 0.9631907 0.03240500 0.004404361
-[5,] 0.9832864 0.01411382 0.002599736
-[6,] 0.9793835 0.01658982 0.004026664</code></pre>
+<pre><code>          [,1]        [,2]       [,3]
+[1,] 0.9802799 0.005181812 0.01453824
+[2,] 0.9519382 0.015641008 0.03242085
+[3,] 0.9742026 0.007208264 0.01858893
+[4,] 0.9663295 0.009986465 0.02368405
+[5,] 0.9842038 0.004111482 0.01168478
+[6,] 0.9813843 0.005535400 0.01308033</code></pre>
 </div>
 </div>
 <p>For each plant, we want to know for which species we got the highest probability:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">=</span> <span class="fu">apply</span>(predictions, <span class="dv">1</span>, which.max) </span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(preds)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- [38] 1 1 1 1 1 1 1 1 1 1 1 1 1 3 3 3 2 3 2 3 2 2 2 2 3 2 3 2 3 3 2 2 2 3 2 2 2
- [75] 2 3 3 3 3 2 2 2 2 3 3 3 3 2 2 2 2 3 2 2 2 2 2 2 2 2 3 3 3 3 3 3 2 3 3 3 3
+ [38] 1 1 1 1 1 1 1 1 1 1 1 1 1 3 3 3 2 3 2 3 2 2 2 2 3 2 2 2 3 2 2 2 2 3 2 2 2
+ [75] 2 3 2 3 2 2 2 2 2 2 2 2 3 2 2 2 2 3 2 2 2 2 2 2 2 2 3 3 3 3 3 3 2 3 3 3 3
 [112] 3 3 3 3 3 3 3 3 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 3 3 3 3 3 3 3 3 3 3 3 3 3
 [149] 3 3</code></pre>
 </div>
 </div>
 </div>
 <div id="tabset-6-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-2-tab">
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>model_torch<span class="sc">$</span><span class="fu">eval</span>()</span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>preds_torch <span class="ot">=</span> <span class="fu">model_torch</span>(<span class="fu">torch_tensor</span>(X))</span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>preds_torch <span class="ot">=</span> <span class="fu">apply</span>(preds_torch, <span class="dv">1</span>, which.max) </span>
@@ -791,7 +791,7 @@ Epoch 30/30
 <pre><code>  [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
  [38] 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 3 2 2 2
  [75] 2 2 2 2 2 2 2 2 2 3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3
-[112] 3 3 3 3 3 3 3 3 2 3 3 3 3 3 3 3 3 3 2 3 3 3 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3
+[112] 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3
 [149] 3 3</code></pre>
 </div>
 </div>
@@ -803,39 +803,39 @@ Epoch 30/30
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-7-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-1" role="tab" aria-controls="tabset-7-1" aria-selected="true">Keras</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-2" role="tab" aria-controls="tabset-7-2" aria-selected="false">Torch</a></li></ul>
 <div class="tab-content">
 <div id="tabset-7-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-7-1-tab">
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(preds <span class="sc">==</span> <span class="fu">as.integer</span>(iris<span class="sc">$</span>Species))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.8533333</code></pre>
+<pre><code>[1] 0.9</code></pre>
 </div>
 </div>
 </div>
 <div id="tabset-7-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-2-tab">
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(preds_torch <span class="sc">==</span> <span class="fu">as.integer</span>(iris<span class="sc">$</span>Species))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.96</code></pre>
+<pre><code>[1] 0.98</code></pre>
 </div>
 </div>
 </div>
 </div>
 </div>
 <p><strong>8. Plot predictions, to see if we have done a good job:</strong></p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(iris<span class="sc">$</span>Sepal.Length, iris<span class="sc">$</span>Petal.Length, <span class="at">col =</span> iris<span class="sc">$</span>Species,</span>
 <span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Observed"</span>)</span>
 <span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(iris<span class="sc">$</span>Sepal.Length, iris<span class="sc">$</span>Petal.Length, <span class="at">col =</span> preds,</span>
 <span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Predicted"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="C2-DeepNeuralNetworks_files/figure-html/chunk_chapter3_79-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="C2-DeepNeuralNetworks_files/figure-html/chunk_chapter3_79-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning in par(oldpar): graphical parameter "cin" cannot be set</code></pre>
 </div>
@@ -879,7 +879,7 @@ Task: Regression with keras
 <div class="tab-content">
 <div id="tabset-8-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-8-1-tab">
 <p>Before we start, load and prepare the data set:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras3)</span>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -895,7 +895,7 @@ Task: Regression with keras
  Mean   : 42.13   Mean   :185.9   Mean   : 9.958   Mean   :77.88  
  3rd Qu.: 63.25   3rd Qu.:258.8   3rd Qu.:11.500   3rd Qu.:85.00  
  Max.   :168.00   Max.   :334.0   Max.   :20.700   Max.   :97.00  
- NA's   :37       NA's   :7                                       
+ NAs    :37       NAs    :7                                       
      Month            Day      
  Min.   :5.000   Min.   : 1.0  
  1st Qu.:6.000   1st Qu.: 8.0  
@@ -913,7 +913,7 @@ Task: Regression with keras
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> data[<span class="fu">complete.cases</span>(data),]  <span class="co"># Remove NAs.</span></span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -941,7 +941,7 @@ Solution
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">scale</span>(data[,<span class="dv">2</span><span class="sc">:</span><span class="dv">6</span>])</span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> data[,<span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -953,7 +953,7 @@ Solution
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
 <span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras3)</span>
 <span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">keras_model_sequential</span>(<span class="fu">shape</span>(<span class="dv">5</span>L))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -962,7 +962,7 @@ Solution
 <ol start="4" type="1">
 <li><strong>Add hidden layers (input and output layer are already specified, you have to add hidden layers between them):</strong></li>
 </ol>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">|&gt;</span></span>
 <span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">20</span>L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>   ....</span>
@@ -976,7 +976,7 @@ Solution
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">|&gt;</span></span>
 <span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">20</span>L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">20</span>L, <span class="at">activation =</span> <span class="st">"relu"</span>) <span class="sc">|&gt;</span></span>
@@ -987,7 +987,7 @@ Solution
 <ol start="5" type="1">
 <li><strong>Compile the model</strong></li>
 </ol>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">|&gt;</span></span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">compile</span>(<span class="at">loss =</span> keras3<span class="sc">::</span>loss_mean_squared_error, <span class="fu">optimizer_adamax</span>(<span class="at">learning_rate =</span> <span class="fl">0.05</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -999,212 +999,212 @@ Solution
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>model_history <span class="ot">=</span></span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  model <span class="sc">|&gt;</span></span>
 <span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit</span>(<span class="at">x =</span> x, <span class="at">y =</span> <span class="fu">as.numeric</span>(y), <span class="at">epochs =</span> <span class="dv">100</span>L,</span>
 <span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">batch_size =</span> <span class="dv">20</span>L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Epoch 1/100
-6/6 - 0s - 54ms/step - loss: 2498.1033
+6/6 - 0s - 68ms/step - loss: 2583.7832
 Epoch 2/100
-6/6 - 0s - 4ms/step - loss: 901.0377
+6/6 - 0s - 2ms/step - loss: 1224.5074
 Epoch 3/100
-6/6 - 0s - 3ms/step - loss: 465.5430
+6/6 - 0s - 2ms/step - loss: 580.1188
 Epoch 4/100
-6/6 - 0s - 4ms/step - loss: 390.5018
+6/6 - 0s - 2ms/step - loss: 426.2945
 Epoch 5/100
-6/6 - 0s - 4ms/step - loss: 349.1705
+6/6 - 0s - 2ms/step - loss: 373.4685
 Epoch 6/100
-6/6 - 0s - 4ms/step - loss: 334.8552
+6/6 - 0s - 2ms/step - loss: 370.5801
 Epoch 7/100
-6/6 - 0s - 4ms/step - loss: 328.4256
+6/6 - 0s - 2ms/step - loss: 319.2535
 Epoch 8/100
-6/6 - 0s - 4ms/step - loss: 328.2533
+6/6 - 0s - 2ms/step - loss: 312.7421
 Epoch 9/100
-6/6 - 0s - 4ms/step - loss: 317.9826
+6/6 - 0s - 2ms/step - loss: 309.2173
 Epoch 10/100
-6/6 - 0s - 4ms/step - loss: 318.7128
+6/6 - 0s - 2ms/step - loss: 309.1399
 Epoch 11/100
-6/6 - 0s - 4ms/step - loss: 306.6119
+6/6 - 0s - 2ms/step - loss: 286.4998
 Epoch 12/100
-6/6 - 0s - 4ms/step - loss: 312.1312
+6/6 - 0s - 2ms/step - loss: 295.1701
 Epoch 13/100
-6/6 - 0s - 3ms/step - loss: 298.1062
+6/6 - 0s - 2ms/step - loss: 297.6746
 Epoch 14/100
-6/6 - 0s - 4ms/step - loss: 308.5615
+6/6 - 0s - 2ms/step - loss: 278.2731
 Epoch 15/100
-6/6 - 0s - 4ms/step - loss: 300.3846
+6/6 - 0s - 2ms/step - loss: 272.1208
 Epoch 16/100
-6/6 - 0s - 3ms/step - loss: 313.3854
+6/6 - 0s - 2ms/step - loss: 266.7280
 Epoch 17/100
-6/6 - 0s - 3ms/step - loss: 299.6471
+6/6 - 0s - 2ms/step - loss: 265.2815
 Epoch 18/100
-6/6 - 0s - 3ms/step - loss: 306.5469
+6/6 - 0s - 2ms/step - loss: 254.6072
 Epoch 19/100
-6/6 - 0s - 3ms/step - loss: 309.6739
+6/6 - 0s - 2ms/step - loss: 247.1465
 Epoch 20/100
-6/6 - 0s - 3ms/step - loss: 302.1554
+6/6 - 0s - 2ms/step - loss: 246.5428
 Epoch 21/100
-6/6 - 0s - 3ms/step - loss: 319.6404
+6/6 - 0s - 2ms/step - loss: 234.5454
 Epoch 22/100
-6/6 - 0s - 3ms/step - loss: 296.3943
+6/6 - 0s - 2ms/step - loss: 233.8824
 Epoch 23/100
-6/6 - 0s - 3ms/step - loss: 304.6011
+6/6 - 0s - 2ms/step - loss: 223.2329
 Epoch 24/100
-6/6 - 0s - 3ms/step - loss: 305.2535
+6/6 - 0s - 2ms/step - loss: 223.2842
 Epoch 25/100
-6/6 - 0s - 3ms/step - loss: 296.4977
+6/6 - 0s - 2ms/step - loss: 220.8457
 Epoch 26/100
-6/6 - 0s - 3ms/step - loss: 321.8782
+6/6 - 0s - 2ms/step - loss: 227.9173
 Epoch 27/100
-6/6 - 0s - 3ms/step - loss: 286.9942
+6/6 - 0s - 2ms/step - loss: 202.6751
 Epoch 28/100
-6/6 - 0s - 3ms/step - loss: 307.0777
+6/6 - 0s - 2ms/step - loss: 202.7275
 Epoch 29/100
-6/6 - 0s - 3ms/step - loss: 289.0710
+6/6 - 0s - 2ms/step - loss: 198.5322
 Epoch 30/100
-6/6 - 0s - 3ms/step - loss: 291.0422
+6/6 - 0s - 2ms/step - loss: 191.6902
 Epoch 31/100
-6/6 - 0s - 3ms/step - loss: 294.8492
+6/6 - 0s - 2ms/step - loss: 190.8451
 Epoch 32/100
-6/6 - 0s - 3ms/step - loss: 296.9902
+6/6 - 0s - 2ms/step - loss: 194.4536
 Epoch 33/100
-6/6 - 0s - 3ms/step - loss: 274.3746
+6/6 - 0s - 2ms/step - loss: 189.0284
 Epoch 34/100
-6/6 - 0s - 3ms/step - loss: 314.2931
+6/6 - 0s - 2ms/step - loss: 169.7274
 Epoch 35/100
-6/6 - 0s - 3ms/step - loss: 284.9017
+6/6 - 0s - 2ms/step - loss: 179.6897
 Epoch 36/100
-6/6 - 0s - 3ms/step - loss: 289.7855
+6/6 - 0s - 2ms/step - loss: 181.8974
 Epoch 37/100
-6/6 - 0s - 3ms/step - loss: 287.2884
+6/6 - 0s - 2ms/step - loss: 167.8817
 Epoch 38/100
-6/6 - 0s - 3ms/step - loss: 279.1912
+6/6 - 0s - 2ms/step - loss: 178.7078
 Epoch 39/100
-6/6 - 0s - 4ms/step - loss: 299.3198
+6/6 - 0s - 2ms/step - loss: 154.0434
 Epoch 40/100
-6/6 - 0s - 4ms/step - loss: 298.3962
+6/6 - 0s - 2ms/step - loss: 150.4841
 Epoch 41/100
-6/6 - 0s - 4ms/step - loss: 296.8012
+6/6 - 0s - 2ms/step - loss: 153.6603
 Epoch 42/100
-6/6 - 0s - 4ms/step - loss: 288.2070
+6/6 - 0s - 2ms/step - loss: 145.8491
 Epoch 43/100
-6/6 - 0s - 4ms/step - loss: 306.7628
+6/6 - 0s - 2ms/step - loss: 137.3782
 Epoch 44/100
-6/6 - 0s - 3ms/step - loss: 285.8872
+6/6 - 0s - 2ms/step - loss: 155.2221
 Epoch 45/100
-6/6 - 0s - 3ms/step - loss: 285.1398
+6/6 - 0s - 2ms/step - loss: 143.3021
 Epoch 46/100
-6/6 - 0s - 3ms/step - loss: 304.4249
+6/6 - 0s - 2ms/step - loss: 130.6962
 Epoch 47/100
-6/6 - 0s - 3ms/step - loss: 273.3715
+6/6 - 0s - 2ms/step - loss: 129.2626
 Epoch 48/100
-6/6 - 0s - 3ms/step - loss: 280.0021
+6/6 - 0s - 2ms/step - loss: 133.3086
 Epoch 49/100
-6/6 - 0s - 3ms/step - loss: 273.6143
+6/6 - 0s - 2ms/step - loss: 124.0961
 Epoch 50/100
-6/6 - 0s - 3ms/step - loss: 272.2939
+6/6 - 0s - 2ms/step - loss: 123.4151
 Epoch 51/100
-6/6 - 0s - 3ms/step - loss: 276.5786
+6/6 - 0s - 2ms/step - loss: 114.0201
 Epoch 52/100
-6/6 - 0s - 3ms/step - loss: 271.6053
+6/6 - 0s - 2ms/step - loss: 112.7646
 Epoch 53/100
-6/6 - 0s - 3ms/step - loss: 268.0160
+6/6 - 0s - 2ms/step - loss: 107.6510
 Epoch 54/100
-6/6 - 0s - 3ms/step - loss: 274.5173
+6/6 - 0s - 2ms/step - loss: 111.9228
 Epoch 55/100
-6/6 - 0s - 3ms/step - loss: 263.0834
+6/6 - 0s - 2ms/step - loss: 103.4712
 Epoch 56/100
-6/6 - 0s - 3ms/step - loss: 269.8439
+6/6 - 0s - 2ms/step - loss: 105.7016
 Epoch 57/100
-6/6 - 0s - 3ms/step - loss: 264.0655
+6/6 - 0s - 2ms/step - loss: 98.4644
 Epoch 58/100
-6/6 - 0s - 4ms/step - loss: 265.5551
+6/6 - 0s - 2ms/step - loss: 93.3955
 Epoch 59/100
-6/6 - 0s - 4ms/step - loss: 272.8403
+6/6 - 0s - 2ms/step - loss: 101.1204
 Epoch 60/100
-6/6 - 0s - 3ms/step - loss: 266.6149
+6/6 - 0s - 2ms/step - loss: 121.2879
 Epoch 61/100
-6/6 - 0s - 3ms/step - loss: 272.6976
+6/6 - 0s - 2ms/step - loss: 88.0049
 Epoch 62/100
-6/6 - 0s - 3ms/step - loss: 269.5123
+6/6 - 0s - 2ms/step - loss: 94.4545
 Epoch 63/100
-6/6 - 0s - 3ms/step - loss: 266.6290
+6/6 - 0s - 2ms/step - loss: 86.9356
 Epoch 64/100
-6/6 - 0s - 3ms/step - loss: 264.7144
+6/6 - 0s - 2ms/step - loss: 88.6070
 Epoch 65/100
-6/6 - 0s - 3ms/step - loss: 277.7432
+6/6 - 0s - 2ms/step - loss: 82.0084
 Epoch 66/100
-6/6 - 0s - 3ms/step - loss: 258.9519
+6/6 - 0s - 2ms/step - loss: 76.1421
 Epoch 67/100
-6/6 - 0s - 3ms/step - loss: 265.8469
+6/6 - 0s - 2ms/step - loss: 75.9876
 Epoch 68/100
-6/6 - 0s - 3ms/step - loss: 271.1631
+6/6 - 0s - 2ms/step - loss: 75.9665
 Epoch 69/100
-6/6 - 0s - 3ms/step - loss: 254.8403
+6/6 - 0s - 2ms/step - loss: 71.5078
 Epoch 70/100
-6/6 - 0s - 3ms/step - loss: 265.5042
+6/6 - 0s - 2ms/step - loss: 76.0107
 Epoch 71/100
-6/6 - 0s - 3ms/step - loss: 256.5101
+6/6 - 0s - 2ms/step - loss: 73.3942
 Epoch 72/100
-6/6 - 0s - 3ms/step - loss: 262.5606
+6/6 - 0s - 2ms/step - loss: 70.1762
 Epoch 73/100
-6/6 - 0s - 4ms/step - loss: 251.6421
+6/6 - 0s - 2ms/step - loss: 74.4771
 Epoch 74/100
-6/6 - 0s - 4ms/step - loss: 267.1255
+6/6 - 0s - 2ms/step - loss: 66.6722
 Epoch 75/100
-6/6 - 0s - 3ms/step - loss: 242.8577
+6/6 - 0s - 2ms/step - loss: 69.7106
 Epoch 76/100
-6/6 - 0s - 3ms/step - loss: 270.4315
+6/6 - 0s - 2ms/step - loss: 69.8622
 Epoch 77/100
-6/6 - 0s - 3ms/step - loss: 262.1392
+6/6 - 0s - 2ms/step - loss: 67.8093
 Epoch 78/100
-6/6 - 0s - 3ms/step - loss: 244.3012
+6/6 - 0s - 2ms/step - loss: 66.4879
 Epoch 79/100
-6/6 - 0s - 3ms/step - loss: 252.9988
+6/6 - 0s - 2ms/step - loss: 63.0677
 Epoch 80/100
-6/6 - 0s - 3ms/step - loss: 251.2216
+6/6 - 0s - 2ms/step - loss: 62.0795
 Epoch 81/100
-6/6 - 0s - 3ms/step - loss: 244.5091
+6/6 - 0s - 2ms/step - loss: 63.7733
 Epoch 82/100
-6/6 - 0s - 3ms/step - loss: 255.4844
+6/6 - 0s - 2ms/step - loss: 58.5516
 Epoch 83/100
-6/6 - 0s - 3ms/step - loss: 236.8943
+6/6 - 0s - 2ms/step - loss: 62.3472
 Epoch 84/100
-6/6 - 0s - 3ms/step - loss: 241.2098
+6/6 - 0s - 2ms/step - loss: 59.0619
 Epoch 85/100
-6/6 - 0s - 3ms/step - loss: 253.1217
+6/6 - 0s - 2ms/step - loss: 55.7700
 Epoch 86/100
-6/6 - 0s - 3ms/step - loss: 237.4809
+6/6 - 0s - 2ms/step - loss: 71.4128
 Epoch 87/100
-6/6 - 0s - 3ms/step - loss: 257.5538
+6/6 - 0s - 2ms/step - loss: 67.2055
 Epoch 88/100
-6/6 - 0s - 3ms/step - loss: 239.2589
+6/6 - 0s - 2ms/step - loss: 75.2621
 Epoch 89/100
-6/6 - 0s - 3ms/step - loss: 232.0303
+6/6 - 0s - 2ms/step - loss: 68.0639
 Epoch 90/100
-6/6 - 0s - 3ms/step - loss: 237.4416
+6/6 - 0s - 2ms/step - loss: 64.0046
 Epoch 91/100
-6/6 - 0s - 4ms/step - loss: 228.2105
+6/6 - 0s - 2ms/step - loss: 61.3025
 Epoch 92/100
-6/6 - 0s - 3ms/step - loss: 238.8170
+6/6 - 0s - 2ms/step - loss: 81.2110
 Epoch 93/100
-6/6 - 0s - 3ms/step - loss: 229.8240
+6/6 - 0s - 2ms/step - loss: 84.9573
 Epoch 94/100
-6/6 - 0s - 3ms/step - loss: 225.7728
+6/6 - 0s - 2ms/step - loss: 79.0373
 Epoch 95/100
-6/6 - 0s - 3ms/step - loss: 225.3193
+6/6 - 0s - 2ms/step - loss: 76.5688
 Epoch 96/100
-6/6 - 0s - 3ms/step - loss: 215.8254
+6/6 - 0s - 2ms/step - loss: 63.2632
 Epoch 97/100
-6/6 - 0s - 3ms/step - loss: 220.8841
+6/6 - 0s - 2ms/step - loss: 76.6287
 Epoch 98/100
-6/6 - 0s - 4ms/step - loss: 219.9174
+6/6 - 0s - 2ms/step - loss: 78.7332
 Epoch 99/100
-6/6 - 0s - 3ms/step - loss: 221.7522
+6/6 - 0s - 2ms/step - loss: 60.8517
 Epoch 100/100
-6/6 - 0s - 3ms/step - loss: 208.1270</code></pre>
+6/6 - 0s - 2ms/step - loss: 66.9034</code></pre>
 </div>
 </div>
 </div>
@@ -1215,12 +1215,12 @@ Epoch 100/100
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model_history)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="C2-DeepNeuralNetworks_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="C2-DeepNeuralNetworks_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -1233,17 +1233,17 @@ Solution
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>pred_keras <span class="ot">=</span> <span class="fu">predict</span>(model, x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>4/4 - 0s - 11ms/step</code></pre>
+<pre><code>4/4 - 0s - 8ms/step</code></pre>
 </div>
 </div>
 </div>
 <ol start="9" type="1">
 <li><strong>Compare your Keras model to a linear model:</strong></li>
 </ol>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">=</span> <span class="fu">lm</span>(Ozone <span class="sc">~</span> ., <span class="at">data =</span> data)</span>
 <span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>pred_lm <span class="ot">=</span> <span class="fu">predict</span>(fit, data)</span>
 <span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>rmse_lm <span class="ot">=</span> <span class="fu">mean</span>(<span class="fu">sqrt</span>((y <span class="sc">-</span> pred_lm)<span class="sc">^</span><span class="dv">2</span>))</span>
@@ -1254,13 +1254,13 @@ Solution
 </div>
 <div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rmse_keras)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 10.24392</code></pre>
+<pre><code>[1] 5.756085</code></pre>
 </div>
 </div>
 </div>
 <div id="tabset-8-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-8-2-tab">
 <p>Before we start, load and prepare the data set:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
 <span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> airquality</span>
@@ -1273,7 +1273,7 @@ Solution
  Mean   : 42.13   Mean   :185.9   Mean   : 9.958   Mean   :77.88  
  3rd Qu.: 63.25   3rd Qu.:258.8   3rd Qu.:11.500   3rd Qu.:85.00  
  Max.   :168.00   Max.   :334.0   Max.   :20.700   Max.   :97.00  
- NA's   :37       NA's   :7                                       
+ NAs    :37       NAs    :7                                       
      Month            Day      
  Min.   :5.000   Min.   : 1.0  
  1st Qu.:6.000   1st Qu.: 8.0  
@@ -1285,9 +1285,9 @@ Solution
 </div>
 <div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="C2-DeepNeuralNetworks_files/figure-html/chunk_chapter3_task_26_torch-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="C2-DeepNeuralNetworks_files/figure-html/chunk_chapter3_task_26_torch-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -1299,7 +1299,7 @@ Solution
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> data[<span class="fu">complete.cases</span>(data),]  <span class="co"># Remove NAs.</span></span>
 <span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -1327,7 +1327,7 @@ Solution
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">scale</span>(data[,<span class="dv">2</span><span class="sc">:</span><span class="dv">6</span>])</span>
 <span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> data[,<span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -1335,7 +1335,7 @@ Solution
 <ol start="3" type="1">
 <li><strong>Pass a list of layer objects to a sequential network class of torch (input and output layer are already specified, you have to add hidden layers between them):</strong></li>
 </ol>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>model_torch <span class="ot">=</span> </span>
 <span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_sequential</span>(</span>
 <span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nn_linear</span>(<span class="dv">5</span>L, <span class="dv">20</span>L),</span>
@@ -1351,7 +1351,7 @@ Solution
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
 <span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>model_torch <span class="ot">=</span> </span>
@@ -1370,14 +1370,14 @@ Solution
 <li><strong>Create optimizer</strong></li>
 </ol>
 <p>We have to pass the network’s parameters to the optimizer (how is this different to keras?)</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>optimizer_torch <span class="ot">=</span> <span class="fu">optim_adam</span>(<span class="at">params =</span> model_torch<span class="sc">$</span>parameters, <span class="at">lr =</span> <span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ol start="5" type="1">
 <li><strong>Fit model</strong></li>
 </ol>
 <p>In torch we write the trainings loop on our own. Complete the trainings loop:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate number of training steps.</span></span>
 <span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>epochs <span class="ot">=</span> ...</span>
 <span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> <span class="dv">32</span></span>
@@ -1416,7 +1416,7 @@ Solution
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate number of training steps.</span></span>
 <span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>epochs <span class="ot">=</span> <span class="dv">100</span></span>
 <span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> <span class="dv">32</span></span>
@@ -1465,12 +1465,12 @@ Solution
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="at">y =</span> log_losses, <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span>steps, <span class="at">xlab =</span> <span class="st">"Epoch"</span>, <span class="at">ylab =</span> <span class="st">"MSE"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="C2-DeepNeuralNetworks_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="C2-DeepNeuralNetworks_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -1483,7 +1483,7 @@ Solution
 <button>
 Solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>pred_torch <span class="ot">=</span> <span class="fu">model_torch</span>(X_torch)</span>
 <span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>pred_torch <span class="ot">=</span> <span class="fu">as.numeric</span>(pred_torch) <span class="co"># cast torch to R object </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -1491,7 +1491,7 @@ Solution
 <ol start="8" type="1">
 <li><strong>Compare your Torch model with a linear model:</strong></li>
 </ol>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">=</span> <span class="fu">lm</span>(Ozone <span class="sc">~</span> ., <span class="at">data =</span> data)</span>
 <span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>pred_lm <span class="ot">=</span> <span class="fu">predict</span>(fit, data)</span>
 <span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>rmse_lm <span class="ot">=</span> <span class="fu">mean</span>(<span class="fu">sqrt</span>((y <span class="sc">-</span> pred_lm)<span class="sc">^</span><span class="dv">2</span>))</span>
@@ -1502,7 +1502,7 @@ Solution
 </div>
 <div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rmse_torch)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 6.897065</code></pre>
+<pre><code>[1] 6.897069</code></pre>
 </div>
 </div>
 </div>
@@ -1527,7 +1527,7 @@ Task: Titanic dataset
 <button>
 Solution Torch
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
 <span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -1549,13 +1549,13 @@ Attaching package: 'dplyr'</code></pre>
 <span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(titanic_ml)</span>
 <span id="cb83-4"><a href="#cb83-4" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> titanic_ml</span>
 <span id="cb83-5"><a href="#cb83-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span></span>
-<span id="cb83-6"><a href="#cb83-6" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span> <span class="fu">select</span>(survived, sex, age, fare, pclass)</span>
+<span id="cb83-6"><a href="#cb83-6" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">|&gt;</span> <span class="fu">select</span>(survived, sex, age, fare, pclass)</span>
 <span id="cb83-7"><a href="#cb83-7" aria-hidden="true" tabindex="-1"></a>data[,<span class="sc">-</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">missRanger</span>(data[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">verbose =</span> <span class="dv">0</span>)</span>
 <span id="cb83-8"><a href="#cb83-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb83-9"><a href="#cb83-9" aria-hidden="true" tabindex="-1"></a>data_sub <span class="ot">=</span></span>
-<span id="cb83-10"><a href="#cb83-10" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
+<span id="cb83-10"><a href="#cb83-10" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">|&gt;</span></span>
 <span id="cb83-11"><a href="#cb83-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">age =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(age, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
-<span id="cb83-12"><a href="#cb83-12" aria-hidden="true" tabindex="-1"></a>           <span class="at">fare =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(fare, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb83-12"><a href="#cb83-12" aria-hidden="true" tabindex="-1"></a>           <span class="at">fare =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(fare, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))) <span class="sc">|&gt;</span></span>
 <span id="cb83-13"><a href="#cb83-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">sex =</span> <span class="fu">as.integer</span>(sex) <span class="sc">-</span> <span class="dv">1</span>L,</span>
 <span id="cb83-14"><a href="#cb83-14" aria-hidden="true" tabindex="-1"></a>           <span class="at">pclass =</span> <span class="fu">as.integer</span>(pclass <span class="sc">-</span> <span class="dv">1</span>L))</span>
 <span id="cb83-15"><a href="#cb83-15" aria-hidden="true" tabindex="-1"></a>data_new <span class="ot">=</span> data_sub[<span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># for which we want to make predictions at the end</span></span>
@@ -1566,7 +1566,7 @@ Attaching package: 'dplyr'</code></pre>
 <span id="cb83-20"><a href="#cb83-20" aria-hidden="true" tabindex="-1"></a>Xtest <span class="ot">=</span> data_new[,<span class="sc">-</span><span class="dv">1</span>] <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>() <span class="sc">|&gt;</span> <span class="fu">torch_tensor</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Dataset:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>train_indices <span class="ot">=</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">400</span></span>
 <span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a>val_indices <span class="ot">=</span> <span class="dv">401</span><span class="sc">:</span><span class="fu">nrow</span>(Xtorch)</span>
 <span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a>dataset_train<span class="ot">=</span> torch<span class="sc">::</span><span class="fu">tensor_dataset</span>(Xtorch[train_indices,], Ytorch[train_indices,])</span>
@@ -1602,7 +1602,7 @@ Attaching package: 'dplyr'</code></pre>
 </div>
 </div>
 <p>Model:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb88"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="co"># blueprint</span></span>
 <span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a>net <span class="ot">=</span> <span class="fu">nn_module</span>(</span>
 <span id="cb88-3"><a href="#cb88-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># first function tells torch how to build the network</span></span>
@@ -1630,7 +1630,7 @@ Attaching package: 'dplyr'</code></pre>
 <span id="cb88-25"><a href="#cb88-25" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Training loop:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb89"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a>train_dl <span class="ot">=</span> torch<span class="sc">::</span><span class="fu">dataloader</span>(dataset_train, <span class="at">batch_size =</span> <span class="dv">150</span>L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb89-2"><a href="#cb89-2" aria-hidden="true" tabindex="-1"></a>val_dl <span class="ot">=</span> torch<span class="sc">::</span><span class="fu">dataloader</span>(dataset_val, <span class="at">batch_size =</span> <span class="dv">150</span>L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb89-3"><a href="#cb89-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1724,7 +1724,7 @@ Loss at epoch: 32 train: 0.520432 eval: 0.482531
 Loss at epoch: 33 train: 0.551853 eval: 0.476946
 Loss at epoch: 34 train: 0.531947 eval: 0.478664
 Loss at epoch: 35 train: 0.526163 eval: 0.485173
-Loss at epoch: 36 train: 0.553211 eval: 0.486571
+Loss at epoch: 36 train: 0.553210 eval: 0.486571
 Loss at epoch: 37 train: 0.524824 eval: 0.482460
 Loss at epoch: 38 train: 0.527222 eval: 0.471737
 Loss at epoch: 39 train: 0.535728 eval: 0.478461
@@ -1771,7 +1771,7 @@ Loss at epoch: 79 train: 0.529169 eval: 0.470275
 Loss at epoch: 80 train: 0.507615 eval: 0.476921
 Loss at epoch: 81 train: 0.527837 eval: 0.474002
 Loss at epoch: 82 train: 0.520113 eval: 0.472925
-Loss at epoch: 83 train: 0.513032 eval: 0.463895
+Loss at epoch: 83 train: 0.513032 eval: 0.463894
 Loss at epoch: 84 train: 0.512073 eval: 0.470341
 Loss at epoch: 85 train: 0.536100 eval: 0.475027
 Loss at epoch: 86 train: 0.518713 eval: 0.476431
@@ -1779,430 +1779,430 @@ Loss at epoch: 87 train: 0.515439 eval: 0.476523
 Loss at epoch: 88 train: 0.518799 eval: 0.475238
 Loss at epoch: 89 train: 0.509792 eval: 0.470036
 Loss at epoch: 90 train: 0.538611 eval: 0.468533
-Loss at epoch: 91 train: 0.520392 eval: 0.476044
-Loss at epoch: 92 train: 0.552518 eval: 0.473782
-Loss at epoch: 93 train: 0.521309 eval: 0.476037
-Loss at epoch: 94 train: 0.528442 eval: 0.483846
-Loss at epoch: 95 train: 0.504562 eval: 0.486744
-Loss at epoch: 96 train: 0.506207 eval: 0.480809
-Loss at epoch: 97 train: 0.517122 eval: 0.478596
-Loss at epoch: 98 train: 0.520612 eval: 0.478937
-Loss at epoch: 99 train: 0.513192 eval: 0.472131
-Loss at epoch: 100 train: 0.521539 eval: 0.477064
-Loss at epoch: 101 train: 0.542996 eval: 0.469449
-Loss at epoch: 102 train: 0.528102 eval: 0.483352
-Loss at epoch: 103 train: 0.556344 eval: 0.487392
-Loss at epoch: 104 train: 0.525589 eval: 0.481893
-Loss at epoch: 105 train: 0.507550 eval: 0.477635
-Loss at epoch: 106 train: 0.526855 eval: 0.488782
-Loss at epoch: 107 train: 0.512394 eval: 0.473428
-Loss at epoch: 108 train: 0.500325 eval: 0.486692
-Loss at epoch: 109 train: 0.539331 eval: 0.480352
-Loss at epoch: 110 train: 0.502052 eval: 0.479354
-Loss at epoch: 111 train: 0.503382 eval: 0.485309
-Loss at epoch: 112 train: 0.506593 eval: 0.456416
-Loss at epoch: 113 train: 0.513503 eval: 0.471576
-Loss at epoch: 114 train: 0.500376 eval: 0.465450
-Loss at epoch: 115 train: 0.495770 eval: 0.486544
-Loss at epoch: 116 train: 0.529493 eval: 0.465582
-Loss at epoch: 117 train: 0.529156 eval: 0.483786
-Loss at epoch: 118 train: 0.525348 eval: 0.483837
-Loss at epoch: 119 train: 0.524843 eval: 0.485120
-Loss at epoch: 120 train: 0.529329 eval: 0.478986
-Loss at epoch: 121 train: 0.514253 eval: 0.476671
-Loss at epoch: 122 train: 0.532410 eval: 0.471552
-Loss at epoch: 123 train: 0.549683 eval: 0.475882
-Loss at epoch: 124 train: 0.537721 eval: 0.470775
-Loss at epoch: 125 train: 0.532292 eval: 0.478319
-Loss at epoch: 126 train: 0.515394 eval: 0.479779
-Loss at epoch: 127 train: 0.538956 eval: 0.498512
-Loss at epoch: 128 train: 0.519865 eval: 0.474230
-Loss at epoch: 129 train: 0.531616 eval: 0.469329
-Loss at epoch: 130 train: 0.544439 eval: 0.474695
-Loss at epoch: 131 train: 0.515902 eval: 0.485917
-Loss at epoch: 132 train: 0.522327 eval: 0.472809
-Loss at epoch: 133 train: 0.516905 eval: 0.475261
-Loss at epoch: 134 train: 0.525487 eval: 0.478491
-Loss at epoch: 135 train: 0.495121 eval: 0.479740
-Loss at epoch: 136 train: 0.525603 eval: 0.481157
-Loss at epoch: 137 train: 0.533950 eval: 0.477023
-Loss at epoch: 138 train: 0.511709 eval: 0.479740
-Loss at epoch: 139 train: 0.513323 eval: 0.477410
-Loss at epoch: 140 train: 0.523308 eval: 0.476431
-Loss at epoch: 141 train: 0.535427 eval: 0.483635
+Loss at epoch: 91 train: 0.520385 eval: 0.476044
+Loss at epoch: 92 train: 0.552512 eval: 0.473783
+Loss at epoch: 93 train: 0.521310 eval: 0.476037
+Loss at epoch: 94 train: 0.528451 eval: 0.483846
+Loss at epoch: 95 train: 0.504565 eval: 0.486744
+Loss at epoch: 96 train: 0.506201 eval: 0.480809
+Loss at epoch: 97 train: 0.517127 eval: 0.478596
+Loss at epoch: 98 train: 0.520610 eval: 0.478937
+Loss at epoch: 99 train: 0.513190 eval: 0.472132
+Loss at epoch: 100 train: 0.521543 eval: 0.477064
+Loss at epoch: 101 train: 0.542991 eval: 0.469449
+Loss at epoch: 102 train: 0.528103 eval: 0.483352
+Loss at epoch: 103 train: 0.556345 eval: 0.487392
+Loss at epoch: 104 train: 0.525585 eval: 0.481894
+Loss at epoch: 105 train: 0.507554 eval: 0.477635
+Loss at epoch: 106 train: 0.526854 eval: 0.488782
+Loss at epoch: 107 train: 0.512393 eval: 0.473428
+Loss at epoch: 108 train: 0.500329 eval: 0.486692
+Loss at epoch: 109 train: 0.539327 eval: 0.480352
+Loss at epoch: 110 train: 0.502053 eval: 0.479354
+Loss at epoch: 111 train: 0.503383 eval: 0.485309
+Loss at epoch: 112 train: 0.506590 eval: 0.456416
+Loss at epoch: 113 train: 0.513507 eval: 0.471576
+Loss at epoch: 114 train: 0.500375 eval: 0.465450
+Loss at epoch: 115 train: 0.495769 eval: 0.486544
+Loss at epoch: 116 train: 0.529496 eval: 0.465582
+Loss at epoch: 117 train: 0.529153 eval: 0.483786
+Loss at epoch: 118 train: 0.525349 eval: 0.483837
+Loss at epoch: 119 train: 0.524844 eval: 0.485120
+Loss at epoch: 120 train: 0.529326 eval: 0.478986
+Loss at epoch: 121 train: 0.514256 eval: 0.476671
+Loss at epoch: 122 train: 0.532409 eval: 0.471552
+Loss at epoch: 123 train: 0.549682 eval: 0.475882
+Loss at epoch: 124 train: 0.537724 eval: 0.470775
+Loss at epoch: 125 train: 0.532290 eval: 0.478319
+Loss at epoch: 126 train: 0.515395 eval: 0.479779
+Loss at epoch: 127 train: 0.538957 eval: 0.498512
+Loss at epoch: 128 train: 0.519862 eval: 0.474230
+Loss at epoch: 129 train: 0.531618 eval: 0.469329
+Loss at epoch: 130 train: 0.544438 eval: 0.474695
+Loss at epoch: 131 train: 0.515901 eval: 0.485917
+Loss at epoch: 132 train: 0.522329 eval: 0.472809
+Loss at epoch: 133 train: 0.516902 eval: 0.475261
+Loss at epoch: 134 train: 0.525488 eval: 0.478491
+Loss at epoch: 135 train: 0.495122 eval: 0.479740
+Loss at epoch: 136 train: 0.525601 eval: 0.481157
+Loss at epoch: 137 train: 0.533952 eval: 0.477023
+Loss at epoch: 138 train: 0.511708 eval: 0.479740
+Loss at epoch: 139 train: 0.513322 eval: 0.477410
+Loss at epoch: 140 train: 0.523309 eval: 0.476431
+Loss at epoch: 141 train: 0.535425 eval: 0.483635
 Loss at epoch: 142 train: 0.518885 eval: 0.479784
 Loss at epoch: 143 train: 0.515777 eval: 0.473884
-Loss at epoch: 144 train: 0.545930 eval: 0.475854
-Loss at epoch: 145 train: 0.515613 eval: 0.479400
-Loss at epoch: 146 train: 0.523143 eval: 0.477056
+Loss at epoch: 144 train: 0.545928 eval: 0.475854
+Loss at epoch: 145 train: 0.515615 eval: 0.479400
+Loss at epoch: 146 train: 0.523142 eval: 0.477056
 Loss at epoch: 147 train: 0.531391 eval: 0.489133
-Loss at epoch: 148 train: 0.541232 eval: 0.478018
-Loss at epoch: 149 train: 0.515095 eval: 0.481644
+Loss at epoch: 148 train: 0.541234 eval: 0.478018
+Loss at epoch: 149 train: 0.515093 eval: 0.481644
 Loss at epoch: 150 train: 0.534159 eval: 0.474542
-Loss at epoch: 151 train: 0.529138 eval: 0.475298
-Loss at epoch: 152 train: 0.526667 eval: 0.480136
-Loss at epoch: 153 train: 0.532573 eval: 0.466376
-Loss at epoch: 154 train: 0.487993 eval: 0.475270
+Loss at epoch: 151 train: 0.529139 eval: 0.475298
+Loss at epoch: 152 train: 0.526665 eval: 0.480136
+Loss at epoch: 153 train: 0.532574 eval: 0.466376
+Loss at epoch: 154 train: 0.487992 eval: 0.475270
 Loss at epoch: 155 train: 0.537415 eval: 0.479676
-Loss at epoch: 156 train: 0.527781 eval: 0.477555
-Loss at epoch: 157 train: 0.513761 eval: 0.478965
+Loss at epoch: 156 train: 0.527782 eval: 0.477555
+Loss at epoch: 157 train: 0.513758 eval: 0.478965
 Loss at epoch: 158 train: 0.523775 eval: 0.471459
-Loss at epoch: 159 train: 0.500876 eval: 0.470136
-Loss at epoch: 160 train: 0.548869 eval: 0.472939
-Loss at epoch: 161 train: 0.526359 eval: 0.475895
-Loss at epoch: 162 train: 0.511202 eval: 0.470212
-Loss at epoch: 163 train: 0.529021 eval: 0.468295
-Loss at epoch: 164 train: 0.524786 eval: 0.482668
-Loss at epoch: 165 train: 0.529483 eval: 0.472731
-Loss at epoch: 166 train: 0.514303 eval: 0.469538
-Loss at epoch: 167 train: 0.525693 eval: 0.480762
-Loss at epoch: 168 train: 0.527319 eval: 0.475783
-Loss at epoch: 169 train: 0.510581 eval: 0.473204
-Loss at epoch: 170 train: 0.520810 eval: 0.464590
-Loss at epoch: 171 train: 0.528076 eval: 0.477770
-Loss at epoch: 172 train: 0.510208 eval: 0.468734
-Loss at epoch: 173 train: 0.523263 eval: 0.477500
-Loss at epoch: 174 train: 0.508092 eval: 0.470660
-Loss at epoch: 175 train: 0.511997 eval: 0.471968
-Loss at epoch: 176 train: 0.498540 eval: 0.467518
-Loss at epoch: 177 train: 0.511547 eval: 0.479472
-Loss at epoch: 178 train: 0.500742 eval: 0.471070
-Loss at epoch: 179 train: 0.525906 eval: 0.478152
-Loss at epoch: 180 train: 0.540614 eval: 0.477761
-Loss at epoch: 181 train: 0.541392 eval: 0.476630
+Loss at epoch: 159 train: 0.500879 eval: 0.470135
+Loss at epoch: 160 train: 0.548872 eval: 0.472939
+Loss at epoch: 161 train: 0.526362 eval: 0.475895
+Loss at epoch: 162 train: 0.511208 eval: 0.470212
+Loss at epoch: 163 train: 0.529025 eval: 0.468295
+Loss at epoch: 164 train: 0.524789 eval: 0.482668
+Loss at epoch: 165 train: 0.529482 eval: 0.472732
+Loss at epoch: 166 train: 0.514301 eval: 0.469538
+Loss at epoch: 167 train: 0.525686 eval: 0.480762
+Loss at epoch: 168 train: 0.527314 eval: 0.475783
+Loss at epoch: 169 train: 0.510569 eval: 0.473204
+Loss at epoch: 170 train: 0.520806 eval: 0.464590
+Loss at epoch: 171 train: 0.528082 eval: 0.477770
+Loss at epoch: 172 train: 0.510214 eval: 0.468734
+Loss at epoch: 173 train: 0.523259 eval: 0.477500
+Loss at epoch: 174 train: 0.508094 eval: 0.470660
+Loss at epoch: 175 train: 0.511994 eval: 0.471968
+Loss at epoch: 176 train: 0.498541 eval: 0.467518
+Loss at epoch: 177 train: 0.511548 eval: 0.479472
+Loss at epoch: 178 train: 0.500741 eval: 0.471070
+Loss at epoch: 179 train: 0.525904 eval: 0.478152
+Loss at epoch: 180 train: 0.540611 eval: 0.477761
+Loss at epoch: 181 train: 0.541401 eval: 0.476630
 Loss at epoch: 182 train: 0.502372 eval: 0.471854
-Loss at epoch: 183 train: 0.539383 eval: 0.471883
-Loss at epoch: 184 train: 0.508666 eval: 0.482836
-Loss at epoch: 185 train: 0.521211 eval: 0.473917
-Loss at epoch: 186 train: 0.503343 eval: 0.489341
-Loss at epoch: 187 train: 0.508412 eval: 0.465929
-Loss at epoch: 188 train: 0.514390 eval: 0.469254
-Loss at epoch: 189 train: 0.495561 eval: 0.472431
-Loss at epoch: 190 train: 0.524247 eval: 0.460994
-Loss at epoch: 191 train: 0.533367 eval: 0.474138
-Loss at epoch: 192 train: 0.512015 eval: 0.471551
-Loss at epoch: 193 train: 0.519604 eval: 0.483742
-Loss at epoch: 194 train: 0.502653 eval: 0.479629
-Loss at epoch: 195 train: 0.534692 eval: 0.473837
-Loss at epoch: 196 train: 0.538500 eval: 0.476177
-Loss at epoch: 197 train: 0.519311 eval: 0.478281
-Loss at epoch: 198 train: 0.536126 eval: 0.474546
-Loss at epoch: 199 train: 0.503548 eval: 0.475096
-Loss at epoch: 200 train: 0.511502 eval: 0.472484
-Loss at epoch: 201 train: 0.511936 eval: 0.471478
-Loss at epoch: 202 train: 0.531843 eval: 0.478301
-Loss at epoch: 203 train: 0.528174 eval: 0.467283
-Loss at epoch: 204 train: 0.530655 eval: 0.469709
-Loss at epoch: 205 train: 0.526465 eval: 0.470500
+Loss at epoch: 183 train: 0.539392 eval: 0.471883
+Loss at epoch: 184 train: 0.508677 eval: 0.482836
+Loss at epoch: 185 train: 0.521213 eval: 0.473917
+Loss at epoch: 186 train: 0.503348 eval: 0.489341
+Loss at epoch: 187 train: 0.508416 eval: 0.465929
+Loss at epoch: 188 train: 0.514389 eval: 0.469254
+Loss at epoch: 189 train: 0.495558 eval: 0.472430
+Loss at epoch: 190 train: 0.524242 eval: 0.460994
+Loss at epoch: 191 train: 0.533373 eval: 0.474138
+Loss at epoch: 192 train: 0.512011 eval: 0.471551
+Loss at epoch: 193 train: 0.519609 eval: 0.483742
+Loss at epoch: 194 train: 0.502651 eval: 0.479629
+Loss at epoch: 195 train: 0.534696 eval: 0.473837
+Loss at epoch: 196 train: 0.538492 eval: 0.476177
+Loss at epoch: 197 train: 0.519315 eval: 0.478281
+Loss at epoch: 198 train: 0.536124 eval: 0.474546
+Loss at epoch: 199 train: 0.503554 eval: 0.475096
+Loss at epoch: 200 train: 0.511498 eval: 0.472484
+Loss at epoch: 201 train: 0.511937 eval: 0.471478
+Loss at epoch: 202 train: 0.531837 eval: 0.478301
+Loss at epoch: 203 train: 0.528176 eval: 0.467283
+Loss at epoch: 204 train: 0.530651 eval: 0.469709
+Loss at epoch: 205 train: 0.526469 eval: 0.470500
 Loss at epoch: 206 train: 0.543161 eval: 0.475500
 Loss at epoch: 207 train: 0.517044 eval: 0.479633
-Loss at epoch: 208 train: 0.515619 eval: 0.475840
-Loss at epoch: 209 train: 0.509115 eval: 0.477979
-Loss at epoch: 210 train: 0.523525 eval: 0.466606
-Loss at epoch: 211 train: 0.511375 eval: 0.460718
-Loss at epoch: 212 train: 0.517891 eval: 0.457429
-Loss at epoch: 213 train: 0.504721 eval: 0.461188
-Loss at epoch: 214 train: 0.518254 eval: 0.477680
-Loss at epoch: 215 train: 0.508817 eval: 0.468159
-Loss at epoch: 216 train: 0.513196 eval: 0.468719
-Loss at epoch: 217 train: 0.520213 eval: 0.480611
-Loss at epoch: 218 train: 0.506910 eval: 0.476310
-Loss at epoch: 219 train: 0.506539 eval: 0.460607
-Loss at epoch: 220 train: 0.510304 eval: 0.455342
-Loss at epoch: 221 train: 0.515913 eval: 0.471227
-Loss at epoch: 222 train: 0.513890 eval: 0.484910
-Loss at epoch: 223 train: 0.529532 eval: 0.469285
-Loss at epoch: 224 train: 0.509295 eval: 0.477103
-Loss at epoch: 225 train: 0.510787 eval: 0.477365
-Loss at epoch: 226 train: 0.521620 eval: 0.470862
-Loss at epoch: 227 train: 0.552735 eval: 0.472625
-Loss at epoch: 228 train: 0.503338 eval: 0.466224
-Loss at epoch: 229 train: 0.511244 eval: 0.484182
-Loss at epoch: 230 train: 0.550620 eval: 0.480171
-Loss at epoch: 231 train: 0.518718 eval: 0.480032
-Loss at epoch: 232 train: 0.513876 eval: 0.478171
-Loss at epoch: 233 train: 0.524864 eval: 0.481846
-Loss at epoch: 234 train: 0.504239 eval: 0.466469
-Loss at epoch: 235 train: 0.500711 eval: 0.471786
-Loss at epoch: 236 train: 0.503917 eval: 0.470299
-Loss at epoch: 237 train: 0.520559 eval: 0.480239
-Loss at epoch: 238 train: 0.538831 eval: 0.481764
-Loss at epoch: 239 train: 0.520653 eval: 0.478511
-Loss at epoch: 240 train: 0.509144 eval: 0.481923
-Loss at epoch: 241 train: 0.509922 eval: 0.471383
-Loss at epoch: 242 train: 0.517133 eval: 0.474773
-Loss at epoch: 243 train: 0.509163 eval: 0.476303
-Loss at epoch: 244 train: 0.499063 eval: 0.479805
-Loss at epoch: 245 train: 0.533093 eval: 0.464295
-Loss at epoch: 246 train: 0.508919 eval: 0.465948
-Loss at epoch: 247 train: 0.516644 eval: 0.476382
-Loss at epoch: 248 train: 0.519940 eval: 0.475304
-Loss at epoch: 249 train: 0.523438 eval: 0.470279
-Loss at epoch: 250 train: 0.518099 eval: 0.477193
-Loss at epoch: 251 train: 0.517551 eval: 0.472268
-Loss at epoch: 252 train: 0.517131 eval: 0.464533
-Loss at epoch: 253 train: 0.508258 eval: 0.466979
-Loss at epoch: 254 train: 0.507807 eval: 0.479228
-Loss at epoch: 255 train: 0.497602 eval: 0.476629
-Loss at epoch: 256 train: 0.501601 eval: 0.483492
-Loss at epoch: 257 train: 0.536535 eval: 0.483428
-Loss at epoch: 258 train: 0.498128 eval: 0.477615
-Loss at epoch: 259 train: 0.508529 eval: 0.479367
-Loss at epoch: 260 train: 0.498868 eval: 0.477609
-Loss at epoch: 261 train: 0.525070 eval: 0.478738
-Loss at epoch: 262 train: 0.493277 eval: 0.477766
-Loss at epoch: 263 train: 0.527595 eval: 0.481134
-Loss at epoch: 264 train: 0.513322 eval: 0.484504
-Loss at epoch: 265 train: 0.497188 eval: 0.483946
-Loss at epoch: 266 train: 0.515891 eval: 0.472165
-Loss at epoch: 267 train: 0.515239 eval: 0.470791
-Loss at epoch: 268 train: 0.486143 eval: 0.475409
-Loss at epoch: 269 train: 0.514652 eval: 0.469806
-Loss at epoch: 270 train: 0.516380 eval: 0.465741
-Loss at epoch: 271 train: 0.517942 eval: 0.475236
-Loss at epoch: 272 train: 0.527605 eval: 0.478818
-Loss at epoch: 273 train: 0.505747 eval: 0.483225
-Loss at epoch: 274 train: 0.522335 eval: 0.474751
-Loss at epoch: 275 train: 0.526779 eval: 0.463789
-Loss at epoch: 276 train: 0.544610 eval: 0.479575
-Loss at epoch: 277 train: 0.497088 eval: 0.477863
-Loss at epoch: 278 train: 0.503466 eval: 0.477036
-Loss at epoch: 279 train: 0.520230 eval: 0.486980
-Loss at epoch: 280 train: 0.500994 eval: 0.479368
-Loss at epoch: 281 train: 0.508005 eval: 0.468456
-Loss at epoch: 282 train: 0.503601 eval: 0.474429
-Loss at epoch: 283 train: 0.497745 eval: 0.477840
-Loss at epoch: 284 train: 0.506749 eval: 0.475127
-Loss at epoch: 285 train: 0.518292 eval: 0.471714
-Loss at epoch: 286 train: 0.497848 eval: 0.478583
-Loss at epoch: 287 train: 0.510573 eval: 0.466624
-Loss at epoch: 288 train: 0.520358 eval: 0.475869
-Loss at epoch: 289 train: 0.502438 eval: 0.468359
-Loss at epoch: 290 train: 0.499502 eval: 0.468596
-Loss at epoch: 291 train: 0.511164 eval: 0.481586
-Loss at epoch: 292 train: 0.515578 eval: 0.473793
-Loss at epoch: 293 train: 0.540023 eval: 0.474243
-Loss at epoch: 294 train: 0.483646 eval: 0.483440
-Loss at epoch: 295 train: 0.499257 eval: 0.465031
-Loss at epoch: 296 train: 0.506763 eval: 0.476127
-Loss at epoch: 297 train: 0.502007 eval: 0.479268
-Loss at epoch: 298 train: 0.527459 eval: 0.470687
-Loss at epoch: 299 train: 0.503935 eval: 0.489158
-Loss at epoch: 300 train: 0.532213 eval: 0.477268
-Loss at epoch: 301 train: 0.515937 eval: 0.478095
-Loss at epoch: 302 train: 0.512991 eval: 0.486248
-Loss at epoch: 303 train: 0.529440 eval: 0.481875
-Loss at epoch: 304 train: 0.497512 eval: 0.474714
-Loss at epoch: 305 train: 0.518154 eval: 0.482828
-Loss at epoch: 306 train: 0.510891 eval: 0.479378
-Loss at epoch: 307 train: 0.511579 eval: 0.469754
-Loss at epoch: 308 train: 0.525084 eval: 0.465501
-Loss at epoch: 309 train: 0.515277 eval: 0.478518
-Loss at epoch: 310 train: 0.490920 eval: 0.488164
-Loss at epoch: 311 train: 0.498140 eval: 0.475063
-Loss at epoch: 312 train: 0.510525 eval: 0.463179
-Loss at epoch: 313 train: 0.514674 eval: 0.479161
-Loss at epoch: 314 train: 0.499929 eval: 0.476219
-Loss at epoch: 315 train: 0.495891 eval: 0.476772
-Loss at epoch: 316 train: 0.515579 eval: 0.461296
-Loss at epoch: 317 train: 0.513432 eval: 0.468931
-Loss at epoch: 318 train: 0.511828 eval: 0.467864
-Loss at epoch: 319 train: 0.526295 eval: 0.462116
-Loss at epoch: 320 train: 0.493885 eval: 0.474014
-Loss at epoch: 321 train: 0.515045 eval: 0.472723
-Loss at epoch: 322 train: 0.519315 eval: 0.477456
-Loss at epoch: 323 train: 0.515790 eval: 0.474233
-Loss at epoch: 324 train: 0.512640 eval: 0.472020
-Loss at epoch: 325 train: 0.516458 eval: 0.465115
-Loss at epoch: 326 train: 0.521442 eval: 0.475927
-Loss at epoch: 327 train: 0.529877 eval: 0.467917
-Loss at epoch: 328 train: 0.504019 eval: 0.478946
-Loss at epoch: 329 train: 0.515719 eval: 0.478433
-Loss at epoch: 330 train: 0.515022 eval: 0.471327
-Loss at epoch: 331 train: 0.526155 eval: 0.482792
-Loss at epoch: 332 train: 0.506914 eval: 0.479751
-Loss at epoch: 333 train: 0.515165 eval: 0.477726
-Loss at epoch: 334 train: 0.508698 eval: 0.481943
-Loss at epoch: 335 train: 0.503392 eval: 0.475020
-Loss at epoch: 336 train: 0.511191 eval: 0.469472
-Loss at epoch: 337 train: 0.516447 eval: 0.467252
-Loss at epoch: 338 train: 0.499755 eval: 0.472216
-Loss at epoch: 339 train: 0.500429 eval: 0.471359
-Loss at epoch: 340 train: 0.502073 eval: 0.479270
-Loss at epoch: 341 train: 0.512032 eval: 0.452738
-Loss at epoch: 342 train: 0.514965 eval: 0.472179
-Loss at epoch: 343 train: 0.499858 eval: 0.477576
-Loss at epoch: 344 train: 0.506614 eval: 0.481273
-Loss at epoch: 345 train: 0.539589 eval: 0.471980
-Loss at epoch: 346 train: 0.504980 eval: 0.465976
-Loss at epoch: 347 train: 0.522742 eval: 0.466492
-Loss at epoch: 348 train: 0.536209 eval: 0.475267
-Loss at epoch: 349 train: 0.516090 eval: 0.479547
-Loss at epoch: 350 train: 0.518387 eval: 0.472879
-Loss at epoch: 351 train: 0.509542 eval: 0.471686
-Loss at epoch: 352 train: 0.512149 eval: 0.474047
-Loss at epoch: 353 train: 0.521854 eval: 0.467641
-Loss at epoch: 354 train: 0.497158 eval: 0.475143
-Loss at epoch: 355 train: 0.507110 eval: 0.468417
-Loss at epoch: 356 train: 0.507705 eval: 0.476855
-Loss at epoch: 357 train: 0.506504 eval: 0.468806
-Loss at epoch: 358 train: 0.511705 eval: 0.466145
-Loss at epoch: 359 train: 0.486156 eval: 0.471627
-Loss at epoch: 360 train: 0.524531 eval: 0.464871
-Loss at epoch: 361 train: 0.537135 eval: 0.480881
-Loss at epoch: 362 train: 0.497421 eval: 0.478087
-Loss at epoch: 363 train: 0.505873 eval: 0.481051
-Loss at epoch: 364 train: 0.529919 eval: 0.469590
-Loss at epoch: 365 train: 0.507262 eval: 0.465545
-Loss at epoch: 366 train: 0.505488 eval: 0.473796
-Loss at epoch: 367 train: 0.511497 eval: 0.475992
-Loss at epoch: 368 train: 0.524693 eval: 0.464133
-Loss at epoch: 369 train: 0.523909 eval: 0.469205
-Loss at epoch: 370 train: 0.491022 eval: 0.474732
-Loss at epoch: 371 train: 0.530235 eval: 0.465720
-Loss at epoch: 372 train: 0.496792 eval: 0.474071
-Loss at epoch: 373 train: 0.522428 eval: 0.482350
-Loss at epoch: 374 train: 0.501861 eval: 0.483875
-Loss at epoch: 375 train: 0.518763 eval: 0.473002
-Loss at epoch: 376 train: 0.520727 eval: 0.469772
-Loss at epoch: 377 train: 0.520035 eval: 0.481091
-Loss at epoch: 378 train: 0.519716 eval: 0.484875
-Loss at epoch: 379 train: 0.516215 eval: 0.475415
-Loss at epoch: 380 train: 0.499082 eval: 0.475147
-Loss at epoch: 381 train: 0.529229 eval: 0.475681
-Loss at epoch: 382 train: 0.532435 eval: 0.485580
-Loss at epoch: 383 train: 0.531546 eval: 0.483242
-Loss at epoch: 384 train: 0.510418 eval: 0.476269
-Loss at epoch: 385 train: 0.515485 eval: 0.486933
-Loss at epoch: 386 train: 0.532891 eval: 0.469876
-Loss at epoch: 387 train: 0.499574 eval: 0.483714
-Loss at epoch: 388 train: 0.516007 eval: 0.473191
-Loss at epoch: 389 train: 0.511539 eval: 0.476372
-Loss at epoch: 390 train: 0.517493 eval: 0.472065
-Loss at epoch: 391 train: 0.530827 eval: 0.481969
-Loss at epoch: 392 train: 0.509783 eval: 0.477736
-Loss at epoch: 393 train: 0.510914 eval: 0.479178
-Loss at epoch: 394 train: 0.530239 eval: 0.486025
-Loss at epoch: 395 train: 0.501546 eval: 0.490109
-Loss at epoch: 396 train: 0.516433 eval: 0.477811
-Loss at epoch: 397 train: 0.512753 eval: 0.469816
-Loss at epoch: 398 train: 0.526281 eval: 0.467045
-Loss at epoch: 399 train: 0.530430 eval: 0.465997
-Loss at epoch: 400 train: 0.513842 eval: 0.479103
-Loss at epoch: 401 train: 0.509782 eval: 0.471138
-Loss at epoch: 402 train: 0.537638 eval: 0.476323
-Loss at epoch: 403 train: 0.541526 eval: 0.475983
-Loss at epoch: 404 train: 0.523840 eval: 0.490951
-Loss at epoch: 405 train: 0.513676 eval: 0.477369
-Loss at epoch: 406 train: 0.517969 eval: 0.477747
-Loss at epoch: 407 train: 0.525017 eval: 0.484733
-Loss at epoch: 408 train: 0.519244 eval: 0.471192
-Loss at epoch: 409 train: 0.492734 eval: 0.487100
-Loss at epoch: 410 train: 0.519094 eval: 0.468944
-Loss at epoch: 411 train: 0.504315 eval: 0.470885
-Loss at epoch: 412 train: 0.520118 eval: 0.477972
-Loss at epoch: 413 train: 0.489506 eval: 0.473217
-Loss at epoch: 414 train: 0.498978 eval: 0.480649
-Loss at epoch: 415 train: 0.509001 eval: 0.472903
-Loss at epoch: 416 train: 0.496523 eval: 0.472550
-Loss at epoch: 417 train: 0.515926 eval: 0.481268
-Loss at epoch: 418 train: 0.497877 eval: 0.469926
-Loss at epoch: 419 train: 0.523717 eval: 0.476545
-Loss at epoch: 420 train: 0.526472 eval: 0.467497
-Loss at epoch: 421 train: 0.516970 eval: 0.476736
-Loss at epoch: 422 train: 0.501430 eval: 0.472998
-Loss at epoch: 423 train: 0.532158 eval: 0.473279
-Loss at epoch: 424 train: 0.530787 eval: 0.478201
-Loss at epoch: 425 train: 0.524955 eval: 0.476005
-Loss at epoch: 426 train: 0.519830 eval: 0.474286
-Loss at epoch: 427 train: 0.520321 eval: 0.479192
-Loss at epoch: 428 train: 0.488042 eval: 0.481723
-Loss at epoch: 429 train: 0.496308 eval: 0.475191
-Loss at epoch: 430 train: 0.525220 eval: 0.468320
-Loss at epoch: 431 train: 0.516577 eval: 0.470414
-Loss at epoch: 432 train: 0.509879 eval: 0.469362
-Loss at epoch: 433 train: 0.493520 eval: 0.482091
-Loss at epoch: 434 train: 0.512467 eval: 0.464280
-Loss at epoch: 435 train: 0.510716 eval: 0.468429
-Loss at epoch: 436 train: 0.493728 eval: 0.467846
-Loss at epoch: 437 train: 0.489570 eval: 0.474102
-Loss at epoch: 438 train: 0.503926 eval: 0.477575
-Loss at epoch: 439 train: 0.524978 eval: 0.468184
-Loss at epoch: 440 train: 0.514782 eval: 0.467043
-Loss at epoch: 441 train: 0.511905 eval: 0.475220
-Loss at epoch: 442 train: 0.514798 eval: 0.473226
-Loss at epoch: 443 train: 0.518089 eval: 0.478857
-Loss at epoch: 444 train: 0.516903 eval: 0.483481
-Loss at epoch: 445 train: 0.505125 eval: 0.489821
-Loss at epoch: 446 train: 0.528740 eval: 0.478487
-Loss at epoch: 447 train: 0.477229 eval: 0.472500
-Loss at epoch: 448 train: 0.531543 eval: 0.475358
-Loss at epoch: 449 train: 0.523741 eval: 0.479963
-Loss at epoch: 450 train: 0.528408 eval: 0.470418
-Loss at epoch: 451 train: 0.528204 eval: 0.463587
-Loss at epoch: 452 train: 0.527615 eval: 0.481948
-Loss at epoch: 453 train: 0.536807 eval: 0.487509
-Loss at epoch: 454 train: 0.517664 eval: 0.478869
-Loss at epoch: 455 train: 0.510771 eval: 0.475032
-Loss at epoch: 456 train: 0.508355 eval: 0.475232
-Loss at epoch: 457 train: 0.502757 eval: 0.477478
-Loss at epoch: 458 train: 0.515725 eval: 0.462765
-Loss at epoch: 459 train: 0.536536 eval: 0.468692
-Loss at epoch: 460 train: 0.485713 eval: 0.477087
-Loss at epoch: 461 train: 0.509616 eval: 0.477641
-Loss at epoch: 462 train: 0.494418 eval: 0.471959
-Loss at epoch: 463 train: 0.510116 eval: 0.473534
-Loss at epoch: 464 train: 0.516791 eval: 0.475728
-Loss at epoch: 465 train: 0.520223 eval: 0.481416
-Loss at epoch: 466 train: 0.538791 eval: 0.475302
-Loss at epoch: 467 train: 0.489708 eval: 0.466824
-Loss at epoch: 468 train: 0.517756 eval: 0.469977
-Loss at epoch: 469 train: 0.500657 eval: 0.478755
-Loss at epoch: 470 train: 0.527623 eval: 0.479292
-Loss at epoch: 471 train: 0.503840 eval: 0.476414
-Loss at epoch: 472 train: 0.501803 eval: 0.478360
-Loss at epoch: 473 train: 0.529980 eval: 0.478686
-Loss at epoch: 474 train: 0.523608 eval: 0.486472
-Loss at epoch: 475 train: 0.525104 eval: 0.487407
-Loss at epoch: 476 train: 0.505346 eval: 0.473849
-Loss at epoch: 477 train: 0.524340 eval: 0.479403
-Loss at epoch: 478 train: 0.529387 eval: 0.461537
-Loss at epoch: 479 train: 0.518149 eval: 0.467916
-Loss at epoch: 480 train: 0.510534 eval: 0.478324
-Loss at epoch: 481 train: 0.527116 eval: 0.479129
-Loss at epoch: 482 train: 0.521791 eval: 0.468847
-Loss at epoch: 483 train: 0.520450 eval: 0.476467
-Loss at epoch: 484 train: 0.512662 eval: 0.463004
-Loss at epoch: 485 train: 0.505028 eval: 0.470153
-Loss at epoch: 486 train: 0.516295 eval: 0.483002
-Loss at epoch: 487 train: 0.515090 eval: 0.478547
-Loss at epoch: 488 train: 0.516906 eval: 0.480072
-Loss at epoch: 489 train: 0.504679 eval: 0.476964
-Loss at epoch: 490 train: 0.507341 eval: 0.481446
-Loss at epoch: 491 train: 0.503827 eval: 0.472731
-Loss at epoch: 492 train: 0.521697 eval: 0.469121
-Loss at epoch: 493 train: 0.511479 eval: 0.473363
-Loss at epoch: 494 train: 0.522605 eval: 0.464062
-Loss at epoch: 495 train: 0.515275 eval: 0.482088
-Loss at epoch: 496 train: 0.514939 eval: 0.477791
-Loss at epoch: 497 train: 0.525112 eval: 0.472561
-Loss at epoch: 498 train: 0.487629 eval: 0.474489
-Loss at epoch: 499 train: 0.496753 eval: 0.487747
-Loss at epoch: 500 train: 0.519756 eval: 0.476542</code></pre>
+Loss at epoch: 208 train: 0.515614 eval: 0.475840
+Loss at epoch: 209 train: 0.509124 eval: 0.477978
+Loss at epoch: 210 train: 0.523524 eval: 0.466607
+Loss at epoch: 211 train: 0.511380 eval: 0.460721
+Loss at epoch: 212 train: 0.517890 eval: 0.457432
+Loss at epoch: 213 train: 0.504734 eval: 0.461191
+Loss at epoch: 214 train: 0.518254 eval: 0.477686
+Loss at epoch: 215 train: 0.508818 eval: 0.468161
+Loss at epoch: 216 train: 0.513204 eval: 0.468721
+Loss at epoch: 217 train: 0.520195 eval: 0.480618
+Loss at epoch: 218 train: 0.506905 eval: 0.476326
+Loss at epoch: 219 train: 0.506508 eval: 0.460589
+Loss at epoch: 220 train: 0.510053 eval: 0.455492
+Loss at epoch: 221 train: 0.516267 eval: 0.471518
+Loss at epoch: 222 train: 0.513971 eval: 0.485523
+Loss at epoch: 223 train: 0.530749 eval: 0.469554
+Loss at epoch: 224 train: 0.509351 eval: 0.477320
+Loss at epoch: 225 train: 0.511342 eval: 0.477069
+Loss at epoch: 226 train: 0.524018 eval: 0.470267
+Loss at epoch: 227 train: 0.550424 eval: 0.473120
+Loss at epoch: 228 train: 0.503433 eval: 0.466155
+Loss at epoch: 229 train: 0.512986 eval: 0.484537
+Loss at epoch: 230 train: 0.549369 eval: 0.479204
+Loss at epoch: 231 train: 0.515657 eval: 0.482275
+Loss at epoch: 232 train: 0.524579 eval: 0.476466
+Loss at epoch: 233 train: 0.519156 eval: 0.480778
+Loss at epoch: 234 train: 0.503309 eval: 0.465615
+Loss at epoch: 235 train: 0.506810 eval: 0.473072
+Loss at epoch: 236 train: 0.505293 eval: 0.469841
+Loss at epoch: 237 train: 0.525412 eval: 0.482561
+Loss at epoch: 238 train: 0.534675 eval: 0.480504
+Loss at epoch: 239 train: 0.524243 eval: 0.484386
+Loss at epoch: 240 train: 0.519421 eval: 0.484048
+Loss at epoch: 241 train: 0.515823 eval: 0.474394
+Loss at epoch: 242 train: 0.516562 eval: 0.477639
+Loss at epoch: 243 train: 0.510733 eval: 0.478213
+Loss at epoch: 244 train: 0.503600 eval: 0.480220
+Loss at epoch: 245 train: 0.532044 eval: 0.467035
+Loss at epoch: 246 train: 0.510658 eval: 0.468014
+Loss at epoch: 247 train: 0.517972 eval: 0.477927
+Loss at epoch: 248 train: 0.522469 eval: 0.478788
+Loss at epoch: 249 train: 0.525220 eval: 0.487686
+Loss at epoch: 250 train: 0.527013 eval: 0.479130
+Loss at epoch: 251 train: 0.528323 eval: 0.475973
+Loss at epoch: 252 train: 0.530939 eval: 0.467716
+Loss at epoch: 253 train: 0.515805 eval: 0.474608
+Loss at epoch: 254 train: 0.509961 eval: 0.480325
+Loss at epoch: 255 train: 0.513699 eval: 0.476894
+Loss at epoch: 256 train: 0.502379 eval: 0.481129
+Loss at epoch: 257 train: 0.529551 eval: 0.476972
+Loss at epoch: 258 train: 0.500921 eval: 0.473843
+Loss at epoch: 259 train: 0.508131 eval: 0.471771
+Loss at epoch: 260 train: 0.497336 eval: 0.472340
+Loss at epoch: 261 train: 0.521637 eval: 0.473521
+Loss at epoch: 262 train: 0.487709 eval: 0.476102
+Loss at epoch: 263 train: 0.523535 eval: 0.473934
+Loss at epoch: 264 train: 0.508724 eval: 0.485500
+Loss at epoch: 265 train: 0.502699 eval: 0.483857
+Loss at epoch: 266 train: 0.518721 eval: 0.471847
+Loss at epoch: 267 train: 0.512571 eval: 0.471997
+Loss at epoch: 268 train: 0.490275 eval: 0.477381
+Loss at epoch: 269 train: 0.516848 eval: 0.467807
+Loss at epoch: 270 train: 0.524427 eval: 0.463323
+Loss at epoch: 271 train: 0.514383 eval: 0.476072
+Loss at epoch: 272 train: 0.540817 eval: 0.482552
+Loss at epoch: 273 train: 0.514328 eval: 0.477244
+Loss at epoch: 274 train: 0.517317 eval: 0.476928
+Loss at epoch: 275 train: 0.531181 eval: 0.471515
+Loss at epoch: 276 train: 0.532073 eval: 0.483029
+Loss at epoch: 277 train: 0.505782 eval: 0.481627
+Loss at epoch: 278 train: 0.513663 eval: 0.475461
+Loss at epoch: 279 train: 0.523320 eval: 0.484358
+Loss at epoch: 280 train: 0.499192 eval: 0.478119
+Loss at epoch: 281 train: 0.512460 eval: 0.467533
+Loss at epoch: 282 train: 0.509104 eval: 0.471820
+Loss at epoch: 283 train: 0.502510 eval: 0.475175
+Loss at epoch: 284 train: 0.508605 eval: 0.472311
+Loss at epoch: 285 train: 0.514123 eval: 0.469272
+Loss at epoch: 286 train: 0.501304 eval: 0.477695
+Loss at epoch: 287 train: 0.518710 eval: 0.464192
+Loss at epoch: 288 train: 0.515399 eval: 0.472017
+Loss at epoch: 289 train: 0.502455 eval: 0.466244
+Loss at epoch: 290 train: 0.496864 eval: 0.467315
+Loss at epoch: 291 train: 0.519704 eval: 0.487092
+Loss at epoch: 292 train: 0.519911 eval: 0.469312
+Loss at epoch: 293 train: 0.538106 eval: 0.479243
+Loss at epoch: 294 train: 0.490536 eval: 0.483145
+Loss at epoch: 295 train: 0.502872 eval: 0.468161
+Loss at epoch: 296 train: 0.504024 eval: 0.476353
+Loss at epoch: 297 train: 0.506255 eval: 0.480121
+Loss at epoch: 298 train: 0.505431 eval: 0.474386
+Loss at epoch: 299 train: 0.504813 eval: 0.484131
+Loss at epoch: 300 train: 0.503565 eval: 0.476274
+Loss at epoch: 301 train: 0.510889 eval: 0.477768
+Loss at epoch: 302 train: 0.508477 eval: 0.477331
+Loss at epoch: 303 train: 0.525038 eval: 0.477769
+Loss at epoch: 304 train: 0.504952 eval: 0.472575
+Loss at epoch: 305 train: 0.523386 eval: 0.479984
+Loss at epoch: 306 train: 0.508400 eval: 0.478158
+Loss at epoch: 307 train: 0.517463 eval: 0.467139
+Loss at epoch: 308 train: 0.528200 eval: 0.463948
+Loss at epoch: 309 train: 0.521008 eval: 0.478674
+Loss at epoch: 310 train: 0.495604 eval: 0.486210
+Loss at epoch: 311 train: 0.500471 eval: 0.473305
+Loss at epoch: 312 train: 0.517805 eval: 0.460996
+Loss at epoch: 313 train: 0.518790 eval: 0.475819
+Loss at epoch: 314 train: 0.501703 eval: 0.474406
+Loss at epoch: 315 train: 0.485399 eval: 0.475816
+Loss at epoch: 316 train: 0.518349 eval: 0.460355
+Loss at epoch: 317 train: 0.512160 eval: 0.466745
+Loss at epoch: 318 train: 0.519759 eval: 0.471981
+Loss at epoch: 319 train: 0.535186 eval: 0.460937
+Loss at epoch: 320 train: 0.494801 eval: 0.477672
+Loss at epoch: 321 train: 0.520469 eval: 0.473929
+Loss at epoch: 322 train: 0.520619 eval: 0.481180
+Loss at epoch: 323 train: 0.510922 eval: 0.476046
+Loss at epoch: 324 train: 0.518529 eval: 0.471420
+Loss at epoch: 325 train: 0.503383 eval: 0.465534
+Loss at epoch: 326 train: 0.527935 eval: 0.479353
+Loss at epoch: 327 train: 0.523825 eval: 0.467312
+Loss at epoch: 328 train: 0.505603 eval: 0.479437
+Loss at epoch: 329 train: 0.501625 eval: 0.478837
+Loss at epoch: 330 train: 0.513835 eval: 0.471850
+Loss at epoch: 331 train: 0.525275 eval: 0.478710
+Loss at epoch: 332 train: 0.496257 eval: 0.476064
+Loss at epoch: 333 train: 0.538520 eval: 0.473198
+Loss at epoch: 334 train: 0.510984 eval: 0.478703
+Loss at epoch: 335 train: 0.517980 eval: 0.469465
+Loss at epoch: 336 train: 0.517193 eval: 0.469070
+Loss at epoch: 337 train: 0.506403 eval: 0.471323
+Loss at epoch: 338 train: 0.496319 eval: 0.471952
+Loss at epoch: 339 train: 0.506925 eval: 0.475447
+Loss at epoch: 340 train: 0.499264 eval: 0.483092
+Loss at epoch: 341 train: 0.507511 eval: 0.455090
+Loss at epoch: 342 train: 0.508442 eval: 0.472726
+Loss at epoch: 343 train: 0.502474 eval: 0.477400
+Loss at epoch: 344 train: 0.514926 eval: 0.479394
+Loss at epoch: 345 train: 0.513743 eval: 0.472380
+Loss at epoch: 346 train: 0.509662 eval: 0.468073
+Loss at epoch: 347 train: 0.521902 eval: 0.465777
+Loss at epoch: 348 train: 0.529585 eval: 0.474689
+Loss at epoch: 349 train: 0.514988 eval: 0.477527
+Loss at epoch: 350 train: 0.516498 eval: 0.470009
+Loss at epoch: 351 train: 0.508134 eval: 0.468780
+Loss at epoch: 352 train: 0.514881 eval: 0.474098
+Loss at epoch: 353 train: 0.520519 eval: 0.467602
+Loss at epoch: 354 train: 0.490488 eval: 0.474828
+Loss at epoch: 355 train: 0.514379 eval: 0.470948
+Loss at epoch: 356 train: 0.506796 eval: 0.476393
+Loss at epoch: 357 train: 0.506227 eval: 0.469901
+Loss at epoch: 358 train: 0.507227 eval: 0.466749
+Loss at epoch: 359 train: 0.485148 eval: 0.472376
+Loss at epoch: 360 train: 0.520054 eval: 0.467672
+Loss at epoch: 361 train: 0.546853 eval: 0.480188
+Loss at epoch: 362 train: 0.496344 eval: 0.477256
+Loss at epoch: 363 train: 0.505053 eval: 0.479151
+Loss at epoch: 364 train: 0.538462 eval: 0.470025
+Loss at epoch: 365 train: 0.505589 eval: 0.465718
+Loss at epoch: 366 train: 0.507061 eval: 0.474969
+Loss at epoch: 367 train: 0.506313 eval: 0.476936
+Loss at epoch: 368 train: 0.524341 eval: 0.464428
+Loss at epoch: 369 train: 0.530350 eval: 0.468567
+Loss at epoch: 370 train: 0.498768 eval: 0.477846
+Loss at epoch: 371 train: 0.526616 eval: 0.465228
+Loss at epoch: 372 train: 0.497891 eval: 0.472782
+Loss at epoch: 373 train: 0.525339 eval: 0.481577
+Loss at epoch: 374 train: 0.507321 eval: 0.481362
+Loss at epoch: 375 train: 0.515342 eval: 0.471700
+Loss at epoch: 376 train: 0.521832 eval: 0.475076
+Loss at epoch: 377 train: 0.509817 eval: 0.470422
+Loss at epoch: 378 train: 0.517471 eval: 0.479301
+Loss at epoch: 379 train: 0.509605 eval: 0.471687
+Loss at epoch: 380 train: 0.498275 eval: 0.472003
+Loss at epoch: 381 train: 0.523970 eval: 0.473069
+Loss at epoch: 382 train: 0.516649 eval: 0.481613
+Loss at epoch: 383 train: 0.514557 eval: 0.481566
+Loss at epoch: 384 train: 0.516053 eval: 0.477219
+Loss at epoch: 385 train: 0.519658 eval: 0.478508
+Loss at epoch: 386 train: 0.522005 eval: 0.470170
+Loss at epoch: 387 train: 0.497051 eval: 0.472776
+Loss at epoch: 388 train: 0.510730 eval: 0.473959
+Loss at epoch: 389 train: 0.504158 eval: 0.475189
+Loss at epoch: 390 train: 0.520336 eval: 0.474377
+Loss at epoch: 391 train: 0.518448 eval: 0.481263
+Loss at epoch: 392 train: 0.502027 eval: 0.480843
+Loss at epoch: 393 train: 0.510954 eval: 0.472917
+Loss at epoch: 394 train: 0.526083 eval: 0.487496
+Loss at epoch: 395 train: 0.512081 eval: 0.488424
+Loss at epoch: 396 train: 0.530006 eval: 0.485900
+Loss at epoch: 397 train: 0.523105 eval: 0.471185
+Loss at epoch: 398 train: 0.525018 eval: 0.462362
+Loss at epoch: 399 train: 0.512209 eval: 0.463494
+Loss at epoch: 400 train: 0.515195 eval: 0.474969
+Loss at epoch: 401 train: 0.502022 eval: 0.468208
+Loss at epoch: 402 train: 0.531424 eval: 0.474714
+Loss at epoch: 403 train: 0.553018 eval: 0.475594
+Loss at epoch: 404 train: 0.529607 eval: 0.487787
+Loss at epoch: 405 train: 0.506626 eval: 0.484579
+Loss at epoch: 406 train: 0.521344 eval: 0.488432
+Loss at epoch: 407 train: 0.532550 eval: 0.482522
+Loss at epoch: 408 train: 0.514365 eval: 0.471815
+Loss at epoch: 409 train: 0.499597 eval: 0.488428
+Loss at epoch: 410 train: 0.512336 eval: 0.470922
+Loss at epoch: 411 train: 0.507526 eval: 0.471504
+Loss at epoch: 412 train: 0.521590 eval: 0.477798
+Loss at epoch: 413 train: 0.483543 eval: 0.473289
+Loss at epoch: 414 train: 0.497161 eval: 0.477603
+Loss at epoch: 415 train: 0.505566 eval: 0.470803
+Loss at epoch: 416 train: 0.494948 eval: 0.470138
+Loss at epoch: 417 train: 0.510987 eval: 0.479195
+Loss at epoch: 418 train: 0.503284 eval: 0.468012
+Loss at epoch: 419 train: 0.512072 eval: 0.472886
+Loss at epoch: 420 train: 0.519233 eval: 0.464120
+Loss at epoch: 421 train: 0.518350 eval: 0.471993
+Loss at epoch: 422 train: 0.498078 eval: 0.469219
+Loss at epoch: 423 train: 0.526457 eval: 0.472894
+Loss at epoch: 424 train: 0.528673 eval: 0.479130
+Loss at epoch: 425 train: 0.523184 eval: 0.478274
+Loss at epoch: 426 train: 0.521867 eval: 0.473376
+Loss at epoch: 427 train: 0.518926 eval: 0.480358
+Loss at epoch: 428 train: 0.497829 eval: 0.478989
+Loss at epoch: 429 train: 0.494543 eval: 0.474262
+Loss at epoch: 430 train: 0.527538 eval: 0.468123
+Loss at epoch: 431 train: 0.522624 eval: 0.469795
+Loss at epoch: 432 train: 0.508244 eval: 0.471630
+Loss at epoch: 433 train: 0.502272 eval: 0.473637
+Loss at epoch: 434 train: 0.503187 eval: 0.464021
+Loss at epoch: 435 train: 0.509804 eval: 0.467804
+Loss at epoch: 436 train: 0.500676 eval: 0.470794
+Loss at epoch: 437 train: 0.485055 eval: 0.473179
+Loss at epoch: 438 train: 0.504366 eval: 0.478785
+Loss at epoch: 439 train: 0.523417 eval: 0.472895
+Loss at epoch: 440 train: 0.530904 eval: 0.467910
+Loss at epoch: 441 train: 0.511571 eval: 0.479981
+Loss at epoch: 442 train: 0.520959 eval: 0.473096
+Loss at epoch: 443 train: 0.523833 eval: 0.479704
+Loss at epoch: 444 train: 0.517118 eval: 0.486276
+Loss at epoch: 445 train: 0.512361 eval: 0.487281
+Loss at epoch: 446 train: 0.521949 eval: 0.478811
+Loss at epoch: 447 train: 0.488914 eval: 0.476561
+Loss at epoch: 448 train: 0.534302 eval: 0.477986
+Loss at epoch: 449 train: 0.514539 eval: 0.481816
+Loss at epoch: 450 train: 0.528654 eval: 0.470389
+Loss at epoch: 451 train: 0.534299 eval: 0.457609
+Loss at epoch: 452 train: 0.514223 eval: 0.478209
+Loss at epoch: 453 train: 0.528604 eval: 0.483782
+Loss at epoch: 454 train: 0.519513 eval: 0.475026
+Loss at epoch: 455 train: 0.512645 eval: 0.478744
+Loss at epoch: 456 train: 0.508628 eval: 0.477504
+Loss at epoch: 457 train: 0.499922 eval: 0.477763
+Loss at epoch: 458 train: 0.510791 eval: 0.464382
+Loss at epoch: 459 train: 0.526895 eval: 0.467799
+Loss at epoch: 460 train: 0.484194 eval: 0.474601
+Loss at epoch: 461 train: 0.509845 eval: 0.476484
+Loss at epoch: 462 train: 0.491061 eval: 0.469835
+Loss at epoch: 463 train: 0.504380 eval: 0.469853
+Loss at epoch: 464 train: 0.493590 eval: 0.475725
+Loss at epoch: 465 train: 0.528887 eval: 0.476686
+Loss at epoch: 466 train: 0.519810 eval: 0.474631
+Loss at epoch: 467 train: 0.494452 eval: 0.466604
+Loss at epoch: 468 train: 0.514266 eval: 0.477190
+Loss at epoch: 469 train: 0.511016 eval: 0.478259
+Loss at epoch: 470 train: 0.524920 eval: 0.471554
+Loss at epoch: 471 train: 0.502275 eval: 0.467442
+Loss at epoch: 472 train: 0.484630 eval: 0.482822
+Loss at epoch: 473 train: 0.527309 eval: 0.471671
+Loss at epoch: 474 train: 0.506493 eval: 0.484661
+Loss at epoch: 475 train: 0.518805 eval: 0.482189
+Loss at epoch: 476 train: 0.502731 eval: 0.470868
+Loss at epoch: 477 train: 0.514229 eval: 0.480329
+Loss at epoch: 478 train: 0.536573 eval: 0.457654
+Loss at epoch: 479 train: 0.511348 eval: 0.467604
+Loss at epoch: 480 train: 0.505698 eval: 0.479433
+Loss at epoch: 481 train: 0.534767 eval: 0.481740
+Loss at epoch: 482 train: 0.527413 eval: 0.472127
+Loss at epoch: 483 train: 0.534855 eval: 0.473602
+Loss at epoch: 484 train: 0.504592 eval: 0.464408
+Loss at epoch: 485 train: 0.506635 eval: 0.469453
+Loss at epoch: 486 train: 0.517497 eval: 0.484332
+Loss at epoch: 487 train: 0.518464 eval: 0.476367
+Loss at epoch: 488 train: 0.515330 eval: 0.479235
+Loss at epoch: 489 train: 0.507609 eval: 0.478145
+Loss at epoch: 490 train: 0.507875 eval: 0.481723
+Loss at epoch: 491 train: 0.506054 eval: 0.474830
+Loss at epoch: 492 train: 0.527727 eval: 0.469630
+Loss at epoch: 493 train: 0.507301 eval: 0.473889
+Loss at epoch: 494 train: 0.518091 eval: 0.463911
+Loss at epoch: 495 train: 0.516095 eval: 0.482625
+Loss at epoch: 496 train: 0.513880 eval: 0.476892
+Loss at epoch: 497 train: 0.508010 eval: 0.473305
+Loss at epoch: 498 train: 0.495459 eval: 0.472958
+Loss at epoch: 499 train: 0.495860 eval: 0.479942
+Loss at epoch: 500 train: 0.528116 eval: 0.472794</code></pre>
 </div>
 </div>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="fu">matplot</span>(<span class="fu">cbind</span>(overall_train_loss, overall_val_loss), <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"#2262AA"</span>, <span class="st">"#F82211"</span>), <span class="at">xlab =</span> <span class="st">"epoch"</span>, <span class="at">ylab =</span> <span class="st">"Loss"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="C2-DeepNeuralNetworks_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="C2-DeepNeuralNetworks_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>Predictions</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb92"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span><span class="fu">eval</span>()</span>
 <span id="cb92-2"><a href="#cb92-2" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">model</span>(Xtest)</span>
 <span id="cb92-3"><a href="#cb92-3" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">as.numeric</span>(predictions)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2231,7 +2231,7 @@ Bonus Task: More details on the inner working of Keras
 <li>Make predictions and calculate loss</li>
 <li>Update parameters based on the gradients at the loss (go back to 1. and repeat)</li>
 </ol>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb93"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
 <span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras3)</span>
 <span id="cb93-3"><a href="#cb93-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2329,26 +2329,26 @@ $bY
 <span id="cb95-26"><a href="#cb95-26" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb95-27"><a href="#cb95-27" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Loss:  1557.822 
-Loss:  535.293 
-Loss:  257.8709 
-Loss:  414.4994 
-Loss:  266.5392 
-Loss:  273.8187 
-Loss:  462.1133 
-Loss:  213.2619 
-Loss:  160.4091 
-Loss:  220.8277 
-Loss:  204.1039 
-Loss:  255.8575 
-Loss:  283.8352 
-Loss:  210.2289 
-Loss:  109.0514 
-Loss:  223.2329 
-Loss:  212.3341 
-Loss:  189.9011 
-Loss:  394.5446 
-Loss:  355.501 </code></pre>
+<pre><code>Loss:  791.1702 
+Loss:  565.0102 
+Loss:  227.8721 
+Loss:  433.94 
+Loss:  249.7119 
+Loss:  267.342 
+Loss:  459.2249 
+Loss:  220.3579 
+Loss:  170.5558 
+Loss:  226.4373 
+Loss:  219.0724 
+Loss:  263.7924 
+Loss:  296.0156 
+Loss:  207.1823 
+Loss:  114.477 
+Loss:  235.504 
+Loss:  212.073 
+Loss:  196.9773 
+Loss:  390.8371 
+Loss:  338.5375 </code></pre>
 </div>
 </div>
 </div>
@@ -2359,7 +2359,7 @@ Loss:  355.501 </code></pre>
 <li>Create an instance of the dataset object by calling it and passing the actual data to it</li>
 <li>Pass the initiated dataset to the dataloader function</li>
 </ol>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb97"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
 <span id="cb97-2"><a href="#cb97-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb97-3"><a href="#cb97-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> airquality</span>
@@ -2388,7 +2388,7 @@ Loss:  355.501 </code></pre>
 </div>
 <p>Our dataloader is again an object which has to be initiated. The initiated object returns a list of two elements, batch x and batch y. The initated object stops returning batches when the dataset was completly transversed (no worries, we don’t have to all of this ourselves).</p>
 <p>Our training loop has changed:</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb98"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a>model_torch <span class="ot">=</span> <span class="fu">nn_sequential</span>(</span>
 <span id="cb98-2"><a href="#cb98-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_linear</span>(<span class="dv">5</span>L, <span class="dv">50</span>L),</span>
 <span id="cb98-3"><a href="#cb98-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nn_relu</span>(),</span>
@@ -2417,21 +2417,21 @@ Loss:  355.501 </code></pre>
 <span id="cb98-26"><a href="#cb98-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="sc">!</span>epoch<span class="sc">%%</span><span class="dv">10</span>) <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"Loss at epoch %d: %3f</span><span class="sc">\n</span><span class="st">"</span>, epoch, <span class="fu">mean</span>(train_loss)))</span>
 <span id="cb98-27"><a href="#cb98-27" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Loss at epoch 10: 345.274590
-Loss at epoch 20: 297.495075
-Loss at epoch 30: 262.274246
-Loss at epoch 40: 249.399567
-Loss at epoch 50: 175.385204</code></pre>
+<pre><code>Loss at epoch 10: 345.274540
+Loss at epoch 20: 297.495060
+Loss at epoch 30: 262.274254
+Loss at epoch 40: 249.399551
+Loss at epoch 50: 175.385212</code></pre>
 </div>
 </div>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb100"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(train_losses, <span class="at">type =</span> <span class="st">"o"</span>, <span class="at">pch =</span> <span class="dv">15</span>,</span>
 <span id="cb100-2"><a href="#cb100-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">col =</span> <span class="st">"darkblue"</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">xlab =</span> <span class="st">"Epoch"</span>,</span>
 <span id="cb100-3"><a href="#cb100-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">ylab =</span> <span class="st">"Loss"</span>, <span class="at">las =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="C2-DeepNeuralNetworks_files/figure-html/unnamed-chunk-26-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="C2-DeepNeuralNetworks_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -2448,7 +2448,7 @@ Loss at epoch 50: 175.385204</code></pre>
 <button>
 Click here to see the solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb101"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb101-1"><a href="#cb101-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
 <span id="cb101-2"><a href="#cb101-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras3)</span>
 <span id="cb101-3"><a href="#cb101-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2502,32 +2502,32 @@ Click here to see the solution
 <span id="cb101-51"><a href="#cb101-51" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb101-52"><a href="#cb101-52" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Loss:  0.002853865 
-Loss:  0.0003605809 
-Loss:  0.000210291 
-Loss:  0.0001443397 
-Loss:  0.0004835225 
-Loss:  0.0002404193 
-Loss:  6.717737e-05 
-Loss:  0.0001725789 
-Loss:  0.0001153304 
-Loss:  0.0001410306 
-Loss:  0.0001124292 
-Loss:  9.977348e-05 
-Loss:  0.0001150258 
-Loss:  8.43777e-05 
-Loss:  5.691138e-05 
-Loss:  3.515561e-05 
-Loss:  4.100632e-05 
-Loss:  4.900979e-05 
-Loss:  7.684245e-05 
-Loss:  3.479642e-05 
-Loss:  3.521714e-05 
-Loss:  5.605527e-05 
-Loss:  2.567601e-05 
-Loss:  4.744987e-05 
-Loss:  5.685146e-05 
-Loss:  2.848717e-05 </code></pre>
+<pre><code>Loss:  0.001579812 
+Loss:  0.0001605991 
+Loss:  0.0001431753 
+Loss:  9.653417e-05 
+Loss:  0.0005707085 
+Loss:  0.0001572969 
+Loss:  5.728692e-05 
+Loss:  0.0001013055 
+Loss:  0.0001994215 
+Loss:  0.0001015761 
+Loss:  0.0001608634 
+Loss:  9.900527e-05 
+Loss:  9.729955e-05 
+Loss:  5.037519e-05 
+Loss:  7.064258e-05 
+Loss:  3.252558e-05 
+Loss:  3.820525e-05 
+Loss:  2.374595e-05 
+Loss:  6.579894e-05 
+Loss:  2.712306e-05 
+Loss:  2.761289e-05 
+Loss:  7.726238e-05 
+Loss:  1.650726e-05 
+Loss:  6.581881e-05 
+Loss:  4.340721e-05 
+Loss:  3.316883e-05 </code></pre>
 </div>
 </div>
 </div>
@@ -2537,7 +2537,7 @@ Loss:  2.848717e-05 </code></pre>
 <button>
 Click here to see the solution
 </button>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb103"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb103-1"><a href="#cb103-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
 <span id="cb103-2"><a href="#cb103-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb103-3"><a href="#cb103-3" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">scale</span>(iris[,<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>])</span>
@@ -2595,8 +2595,8 @@ Click here to see the solution
 <pre><code>Loss at epoch 10: 13.205854
 Loss at epoch 20: 6.885013
 Loss at epoch 30: 4.659601
-Loss at epoch 40: 3.523017
-Loss at epoch 50: 2.833099</code></pre>
+Loss at epoch 40: 3.523018
+Loss at epoch 50: 2.833100</code></pre>
 </div>
 </div>
 </div>
@@ -2626,51 +2626,67 @@ Loss at epoch 50: 2.833099</code></pre>
 <ul>
 <li><strong>Gradient descent explained</strong></li>
 </ul>
+<div class="cell" data-layout-align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/sDv4f4s2SB8" frameborder="0" allow="accelerometer; autoplay; clipboard-write;
   encrypted-media; gyroscope; picture-in-picture" allowfullscreen="">
 </iframe>
+</div>
 <ul>
 <li>(Stochastic gradient descent explained)</li>
 </ul>
+<div class="cell" data-layout-align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/vMh0zPT0tLI" frameborder="0" allow="accelerometer; autoplay; clipboard-write;
   encrypted-media; gyroscope; picture-in-picture" allowfullscreen="">
 </iframe>
+</div>
 <ul>
 <li>(Entropy explained)</li>
 </ul>
+<div class="cell" data-layout-align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/YtebGVx-Fxw" frameborder="0" allow="accelerometer; autoplay; clipboard-write;
   encrypted-media; gyroscope; picture-in-picture" allowfullscreen="">
 </iframe>
+</div>
 <ul>
 <li><strong>Short explanation of entropy, cross entropy and Kullback–Leibler divergence</strong></li>
 </ul>
+<div class="cell" data-layout-align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/ErfnhcEV1O8" frameborder="0" allow="accelerometer; autoplay; clipboard-write;
   encrypted-media; gyroscope; picture-in-picture" allowfullscreen="">
 </iframe>
+</div>
 <ul>
 <li><strong>Deep Learning (chapter 1)</strong></li>
 </ul>
+<div class="cell" data-layout-align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/aircAruvnKk" frameborder="0" allow="accelerometer; autoplay; clipboard-write;
   encrypted-media; gyroscope; picture-in-picture" allowfullscreen="">
 </iframe>
+</div>
 <ul>
 <li><strong>How neural networks learn - Deep Learning (chapter 2)</strong></li>
 </ul>
+<div class="cell" data-layout-align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/IHZwWFHWa-w" frameborder="0" allow="accelerometer; autoplay; clipboard-write;
   encrypted-media; gyroscope; picture-in-picture" allowfullscreen="">
 </iframe>
+</div>
 <ul>
 <li><strong>Backpropagation - Deep Learning (chapter 3)</strong></li>
 </ul>
+<div class="cell" data-layout-align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/Ilg3gGewQ5U" frameborder="0" allow="accelerometer; autoplay; clipboard-write;
   encrypted-media; gyroscope; picture-in-picture" allowfullscreen="">
 </iframe>
+</div>
 <ul>
 <li><strong>Another video about backpropagation (extends the previous one) - Deep Learning (chapter 4)</strong></li>
 </ul>
+<div class="cell" data-layout-align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/tIeHLnjs5U8" frameborder="0" allow="accelerometer; autoplay; clipboard-write;
   encrypted-media; gyroscope; picture-in-picture" allowfullscreen="">
 </iframe>
+</div>
 <section id="caveats-of-neural-network-optimization" class="level3" data-number="10.3.1">
 <h3 data-number="10.3.1" class="anchored" data-anchor-id="caveats-of-neural-network-optimization"><span class="header-section-number">10.3.1</span> Caveats of neural network optimization</h3>
 <p>Depending on activation functions, it might occur that the network won’t get updated, even with high learning rates (called <em>vanishing gradient</em>, especially for “sigmoid” functions). Furthermore, updates might overshoot (called <em>exploding gradients</em>) or activation functions will result in many zeros (especially for “relu”, <em>dying relu</em>).</p>

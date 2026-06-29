@@ -7,15 +7,14 @@ fig-cap-location: margin
 
 # Artificial Neural Networks
 
-```{r}
+```{r chunk_nn_setup}
 #| include: false
 knitr::opts_chunk$set(fig.align = "center")
 ```
 
-
 **Artificial neural networks** are biologically inspired: inputs are processed by **weights** at the **neurons**, the signals then accumulate at hidden nodes (analogous to axons), and only if the summed activation exceeds a certain threshold is the signal passed on.
 
-```{r}
+```{r chunk_nn_library}
 library(cito)
 ```
 
@@ -23,14 +22,14 @@ library(cito)
 
 Deep neural networks are currently the state of the art in unsupervised learning. Their ability to model different types of data (e.g. graphs, images) is one of the reasons for their rise in recent years. However, requires extensive (programming) knowledge of the underlying deep learning frameworks (e.g. TensorFlow or PyTorch), which we will teach you in two days. For tabular data, we can use packages like cito, which work similarly to regression functions like lm and allow us to train deep neural networks in one line of code:
 
-```{r}
+```{r chunk_nn_iris_fit}
 library(cito)
-nn.fit<- dnn(Species~., data = datasets::iris, loss = "softmax", verbose = FALSE, plot = FALSE)
+nn.fit<- dnn(Species~., data = datasets::iris, loss = "cross-entropy", verbose = FALSE, plot = FALSE)
 ```
 
 cito also supports many of the S3 methods that are available for statistical models, e.g. the summary function:
 
-```{r}
+```{r chunk_nn_iris_summary}
 summary(nn.fit)
 ```
 
@@ -50,21 +49,28 @@ Variable importance can also be computed for non-tree algorithms (although it is
 
 Tasks such as regression and classification are fundamentally different; the former has continuous responses, while the latter has a discrete response. In ML algorithms, these different tasks can be represented by different loss functions (Classical ML algorithms also use loss functions but often they are automatically inferred, also neural networks are much more versatile, supporting more loss functions). Moreover, the tasks can differ even within regression or classification (e.g., in classification, we have binary classification (0 or 1) or multi-class classification (0, 1, or 2)). As a result, especially in DL, we have different specialized loss functions available for specific response types. The table below shows a list of supported loss functions in cito:
 
-| Loss | Type | Example |
-|----|----|----|
-| mse (mean squared error) | Regression | Numeric values |
-| mae (mean absolute error) | Regression | Numeric values, often used for skewed data |
-| softmax | Classification, multi-label | Species |
-| cross-entropy | Classification, binary or multi-class | Survived/non-survived, Multi-species/communities |
-| binomial | Classification, binary or multi-class | Binomial likelihood |
-| poisson | Regression | Count data |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| Loss                      | Type                                  | Example                                          |
++===========================+=======================================+==================================================+
+| mse (mean squared error)  | Regression                            | Numeric values                                   |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| mae (mean absolute error) | Regression                            | Numeric values, often used for skewed data       |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| cross-entropy             | Classification, multi-label           | Species                                          |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| cross-entropy             | Classification, binary or multi-class | Survived/non-survived, Multi-species/communities |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| binomial                  | Classification, binary or multi-class | Binomial likelihood                              |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| poisson                   | Regression                            | Count data                                       |
++---------------------------+---------------------------------------+--------------------------------------------------+
 
-In the iris data, we model `Species` which has 3 response levels, so this is was what we call multilabel and it requires a softmax link and a cross-entropy loss function, in cito we specify that by using the `softmax` loss:
+In the iris data, we model `Species` which has 3 response levels, so this is was what we call multilabel and it requires a cross-entropy link and a cross-entropy loss function, in cito we specify that by using the cross-entropy loss:
 
-```{r}
+```{r chunk_nn_softmax}
 #| message: false
 library(cito)
-model<- dnn(Species~., data = datasets::iris, loss = "softmax", verbose = FALSE)
+model<- dnn(Species~., data = datasets::iris, loss = "cross-entropy", verbose = FALSE)
 head(predict(model, type = "response"))
 
 ```
@@ -73,7 +79,7 @@ head(predict(model, type = "response"))
 
 In cito, we can directly tell the `dnn` function to automatically use a random subset of the data as validation data, which is validated after each epoch (each iteration of the optimization), allowing us to monitor but also to intervene in the training:
 
-```{r}
+```{r chunk_nn_validation}
 #| message: false
 data = airquality[complete.cases(airquality),] # DNN cannot handle NAs!
 data = scale(data)
@@ -114,7 +120,7 @@ In DL, the optimization (the training of the DNN) is challenging as we have to o
 
 cito visualizes the training (see graphic). The reason for this is that the training can easily fail if the learning rate (lr) is poorly chosen. If the lr is too high, the optimizer "jumps" over good local optima, while it gets stuck in local optima if the lr is too small:
 
-```{r}
+```{r chunk_nn_lr_high}
 model = dnn(Ozone~.,
             hidden = c(10L, 10L),
             activation = c("selu", "selu"),
@@ -127,7 +133,7 @@ Training curve with a **too-high** learning rate: the loss is wiggly and may eve
 
 If too high, the training will either directly fail (because the loss jumps to infinity) or the loss will be very wiggly and doesn't decrease over the number of epochs.
 
-```{r}
+```{r chunk_nn_lr_low}
 model = dnn(Ozone~.,
             hidden = c(10L, 10L),
             activation = c("selu", "selu"),
@@ -145,7 +151,7 @@ If too low, the loss decreases only very slowly over the epochs.
 
 Adjusting / reducing the learning rate during training is a common approach in neural networks. The idea is to start with a larger learning rate and then steadily decrease it during training (either systematically or based on specific properties):
 
-```{r}
+```{r chunk_nn_lr_scheduler}
 model = dnn(Ozone~., 
             hidden = c(10L, 10L), 
             activation = c("selu", "selu"), 
@@ -163,7 +169,7 @@ The architecture of the NN can be specified by the `hidden` argument, it is a ve
 
 Example:
 
-```{r, fig.cap="Training curve for a well-chosen learning rate: the loss decreases smoothly and levels off."}
+```{r chunk_nn_architecture, fig.cap="Training curve for a well-chosen learning rate: the loss decreases smoothly and levels off."}
 data = airquality[complete.cases(airquality),] # DNN cannot handle NAs!
 data = scale(data)
 
@@ -179,7 +185,7 @@ summary(model)
 
 We can use $\lambda$ and $\alpha$ to set L1 and L2 regularization on the weights in our NN:
 
-```{r}
+```{r chunk_nn_regularization}
 model = dnn(Ozone~., 
             hidden = c(10L, 10L), 
             activation = c("selu", "selu"), 
@@ -195,7 +201,7 @@ summary(model)
 
 Be careful that you don't accidentally set all weights to 0 because of a too high regularization. We check the weights of the first layer:
 
-```{r, fig.cap="Weights of the first layer. Watch out that regularization does not shrink all of them to zero."}
+```{r chunk_nn_weights, fig.cap="Weights of the first layer. Watch out that regularization does not shrink all of them to zero."}
 fields::image.plot(coef(model)[[1]][[1]]) # weights of the first layer
 ```
 
@@ -203,18 +209,18 @@ fields::image.plot(coef(model)[[1]][[1]]) # weights of the first layer
 
 cito has a feature to automatically tune hyperparameters under Cross Validation!
 
--   if you pass the function `tune(...)` to a hyperparameter, this hyperparameter will be automatically tuned
--   in the `tuning = config_tuning(...)` argument, you can specify the cross-validation strategy and the number of hyperparameters that should be tested
--   after the tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
+- if you pass the function `tune(...)` to a hyperparameter, this hyperparameter will be automatically tuned
+- in the `tuning = config_tuning(...)` argument, you can specify the cross-validation strategy and the number of hyperparameters that should be tested
+- after the tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
 
 Minimal example with the iris dataset:
 
-```{r}
+```{r chunk_nn_tuning_iris}
 df = iris
 df[,1:4] = scale(df[,1:4])
 
 model_tuned = dnn(Species~., 
-                  loss = "softmax",
+                  loss = "cross-entropy",
                   data = iris,
                   lambda = tune(lower = 0.0, upper = 0.2), # you can pass the "tune" function to a hyerparameter
                   tuning = config_tuning(CV = 3, steps = 20L),
@@ -230,30 +236,30 @@ model_tuned$tuning
 
 ## Exercise
 
-:::: exercise
+::: exercise
 #### Tune a DNN — Titanic dataset
 
 Tune architecture
 
--   Tune training parameters (learning rate, batch size) and regularization (lambda and alpha)
+- Tune training parameters (learning rate, batch size) and regularization (lambda and alpha)
 
 **Hints**
 
 cito can automatically tune hyperparameters under Cross Validation!
 
--   passing `tune(...)` to a hyperparameter will tell cito to tune this specific hyperparameter
--   the `tuning = config_tuning(...)` let you specify the cross-validation strategy and the number of hyperparameters that should be tested (steps = number of hyperparameter combinations that should be tried)
--   after tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
+- passing `tune(...)` to a hyperparameter will tell cito to tune this specific hyperparameter
+- the `tuning = config_tuning(...)` let you specify the cross-validation strategy and the number of hyperparameters that should be tested (steps = number of hyperparameter combinations that should be tried)
+- after tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
 
 Minimal example with the iris dataset:
 
-```{r, eval=FALSE}
+```{r chunk_nn_titanic_example, eval=FALSE}
 library(cito)
 df = iris
 df[,1:4] = scale(df[,1:4])
 
 model_tuned = dnn(Species~.,
-                  loss = "softmax",
+                  loss = "cross-entropy",
                   data = iris,
                   lambda = tune(lower = 0.0, upper = 0.2), # you can pass the "tune" function to a hyerparameter
                   tuning = config_tuning(CV = 3, steps = 20L),
@@ -267,7 +273,7 @@ model_tuned$tuning
 # model_tuned is now already the best model!
 ```
 
-```{r,eval=FALSE}
+```{r chunk_nn_titanic_solution, eval=FALSE}
 #| message: false
 library(EcoData)
 library(dplyr)
@@ -306,9 +312,9 @@ predictions = predict(model, newdata = data_new, type = "response") # change pre
 
 write.csv(data.frame(y = predictions[,1]), file = "Max_titanic_dnn.csv")
 ```
-::::
+:::
 
-:::: exercise
+::: exercise
 #### Tune a DNN — Plant-pollinator dataset
 
 The plant-pollinator database is a collection of plant-pollinator interactions with traits for plants and pollinators. The idea is pollinators interact with plants when their traits fit (e.g. the tongue of a bee needs to match the shape of a flower). We explored the advantage of machine learning algorithms over traditional statistical models in predicting species interactions in our paper. If you are interested you can have a look <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13329" target="_blank" rel="noopener">here</a>.
@@ -317,7 +323,7 @@ see @sec-plantpoll for more information about the dataset.
 
 Prepare the data:
 
-```{r}
+```{r chunk_nn_plantpoll_data}
 library(EcoData)
 library(dplyr)
 
@@ -348,7 +354,8 @@ newdata_imputed$interaction = NA
 
 Minimal example in cito:
 
-```{r, eval=FALSE}
+```{r chunk_nn_plantpoll_example, eval=FALSE}
+data_obs$interaction = as.factor(data_obs$interactions)
 library(cito)
 set.seed(42)
 model = dnn(interaction~., 
@@ -459,14 +466,16 @@ write.csv(data.frame(y = predictions), file = "my_submission.csv")
 
 Your Tasks:
 
--   Use cito to tune learning parameters and the regularization
--   Submit your predictions to <http://132.199.73.15:8500/>
+- Use cito to tune learning parameters and the regularization
+- Submit your predictions to <http://132.199.73.15:8500/>
 
 `r hide("Show solution")`
 
 Minimal example:
 
-```{r}
+```{r chunk_nn_plantpoll_tuning, eval=FALSE}
+data_obs$interaction = as.factor(data_obs$interaction)
+
 library(cito)
 set.seed(42)
 model = dnn(interaction~., 
@@ -488,7 +497,7 @@ print(model$tuning)
 
 Make predictions:
 
-```{r, results='hide', warning=FALSE, message=FALSE,eval=FALSE}
+```{r chunk_nn_plantpoll_predict, results='hide', warning=FALSE, message=FALSE, eval=FALSE}
 
 predictions = predict(model, newdata_imputed, type = "response")[,1]
 
@@ -496,4 +505,4 @@ write.csv(data.frame(y = predictions), file = "Max_plant_.csv")
 ```
 
 `r unhide()`
-::::
+:::
