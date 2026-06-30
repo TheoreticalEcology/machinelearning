@@ -14,6 +14,16 @@ knitr::opts_chunk$set(fig.align = "center")
 
 **Artificial neural networks** are biologically inspired: inputs are processed by **weights** at the **neurons**, the signals then accumulate at hidden nodes (analogous to axons), and only if the summed activation exceeds a certain threshold is the signal passed on.
 
+
+IMPORTANT!!!
+
+Install the development version of cito via
+
+```{r,eval=FALSE}
+devtools::install_github('citoverse/cito')
+```
+
+
 ```{r chunk_nn_library}
 library(cito)
 ```
@@ -49,14 +59,21 @@ Variable importance can also be computed for non-tree algorithms (although it is
 
 Tasks such as regression and classification are fundamentally different; the former has continuous responses, while the latter has a discrete response. In ML algorithms, these different tasks can be represented by different loss functions (Classical ML algorithms also use loss functions but often they are automatically inferred, also neural networks are much more versatile, supporting more loss functions). Moreover, the tasks can differ even within regression or classification (e.g., in classification, we have binary classification (0 or 1) or multi-class classification (0, 1, or 2)). As a result, especially in DL, we have different specialized loss functions available for specific response types. The table below shows a list of supported loss functions in cito:
 
-| Loss | Type | Example |
-|----|----|----|
-| mse (mean squared error) | Regression | Numeric values |
-| mae (mean absolute error) | Regression | Numeric values, often used for skewed data |
-| cross-entropy | Classification, multi-label | Species |
-| cross-entropy | Classification, binary or multi-class | Survived/non-survived, Multi-species/communities |
-| binomial | Classification, binary or multi-class | Binomial likelihood |
-| poisson | Regression | Count data |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| Loss                      | Type                                  | Example                                          |
++===========================+=======================================+==================================================+
+| mse (mean squared error)  | Regression                            | Numeric values                                   |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| mae (mean absolute error) | Regression                            | Numeric values, often used for skewed data       |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| cross-entropy             | Classification, multi-label           | Species                                          |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| cross-entropy             | Classification, binary or multi-class | Survived/non-survived, Multi-species/communities |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| binomial                  | Classification, binary or multi-class | Binomial likelihood                              |
++---------------------------+---------------------------------------+--------------------------------------------------+
+| poisson                   | Regression                            | Count data                                       |
++---------------------------+---------------------------------------+--------------------------------------------------+
 
 In the iris data, we model `Species` which has 3 response levels, so this is was what we call multilabel and it requires a cross-entropy link and a cross-entropy loss function, in cito we specify that by using the cross-entropy loss:
 
@@ -434,14 +451,59 @@ write.csv(data.frame(y = predictions), file = "Max_plant_.csv")
 `r unhide()`
 :::
 
-::: exercise
-#### Synthesis: compare the model families
+:::: exercise
+#### Multi-species SDM with cito 
 
-Over the tree and neural-network chapters you have fit a random forest, a boosted regression tree, and a deep neural network to the **same** titanic data. Collect the cross-validated AUCs you obtained for each method and put them side by side.
+Install the development version of cito via
 
-- Which model family performed best on this data set, and by how much?
-- Was the difference large enough to matter, or are the methods roughly comparable here?
-- Titanic is a small, low-dimensional, tabular data set. Which of these methods would you expect to benefit most from much larger or higher-dimensional data?
+```{r,eval=FALSE}
+devtools::install_github('citoverse/cito')
+```
 
-There is no single correct answer here — the point is to connect the methods you have learned and to build a sense of when each one is worth reaching for.
-:::
+
+Minimal example
+
+```{r chunk_sdm_reshape412d, eval=FALSE}
+load("sdm.RData")
+
+library(cito)
+
+
+trainX = sdm_env$train
+testX = sdm_env$test
+
+trainX = missRanger::missRanger(trainX, num.trees = 50L)
+testX = missRanger::missRanger(testX, num.trees = 50L)
+
+trainXs = scale(trainX)[, 1:10]
+testXs = scale(testX)[, 1:10]
+
+colnames(trainXs) = stringr::str_remove(colnames(trainXs), "-")
+colnames(trainXs) = stringr::str_remove(colnames(trainXs), "-")
+colnames(testXs) = colnames(trainXs)
+
+trainXs = trainXs[, - c(1)]
+testXs = testXs[, - c(1)]
+```
+
+
+Fit the model
+
+```{r chunk_sdm_modeldwa, eval=FALSE}
+library(cito)
+m = dnn(X = as.data.frame(trainXs), Y = Y_train, loss = "bernoulli", ce = FALSE, lr = 0.1, epochs = 200L )
+
+probs = predict(m, newdata = testXs, type = "response") 
+
+```
+
+Prepare the submissions!
+
+```{r chunk_sdm_sub_long423, eval=FALSE}
+write.csv(data.frame(y = as.vector(probs)),
+          file = "sdm.csv", row.names = FALSE)
+```
+
+
+::::
+

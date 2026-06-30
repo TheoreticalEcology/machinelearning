@@ -872,6 +872,66 @@ write.csv(data.frame(y = as.vector(preds)),
 
 
 
+:::: exercise
+#### Multi-species SDM with cito 
+
+Install the development version of cito via
+
+```{r,eval=FALSE}
+devtools::install_github('citoverse/cito')
+```
+
+
+Minimal example
+
+```{r chunk_sdm_reshape22, eval=FALSE}
+load("sdm.RData")
+
+library(cito)
+
+
+trainX = sdm_env$train
+testX = sdm_env$test
+
+trainX = missRanger::missRanger(trainX, num.trees = 50L)
+testX = missRanger::missRanger(testX, num.trees = 50L)
+
+trainXs = scale(trainX)[, 1:10]
+testXs = scale(testX)[, 1:10]
+
+colnames(trainXs) = stringr::str_remove(colnames(trainXs), "-")
+colnames(trainXs) = stringr::str_remove(colnames(trainXs), "-")
+colnames(testXs) = colnames(trainXs)
+
+trainXs = trainXs[, - c(1)]
+testXs = testXs[, - c(1)]
+```
+
+
+Fit the model
+
+```{r chunk_sdm_model3, eval=FALSE}
+library(cito)
+m = dnn(X = as.data.frame(trainXs), Y = Y_train, loss = "bernoulli", ce = FALSE, lr = 0.1, epochs = 200L )
+
+probs = predict(m, newdata = testXs, type = "response") 
+
+```
+
+Prepare the submissions!
+
+```{r chunk_sdm_sub_long2, eval=FALSE}
+write.csv(data.frame(y = as.vector(probs)),
+          file = "sdm.csv", row.names = FALSE)
+```
+
+
+::::
+
+
+
+
+
 <!-- :::: callout-warning -->
 
 <!-- #### Question: Hyperparameter tuning BRT -->
