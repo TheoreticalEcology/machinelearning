@@ -12,8 +12,6 @@ fig-cap-location: margin
 knitr::opts_chunk$set(fig.align = "center")
 ```
 
-
-
 As we have seen today, many of the machine learning algorithms are distributed over several packages but the general machine learning pipeline is very similar for all models: feature engineering, feature selection, hyperparameter tuning and cross-validation.
 
 Machine learning frameworks such as `mlr3` or `tidymodels` provide a general interface for the ML pipeline, in particular the training and the hyperparameter tuning with nested CV. They support most ML packages/algorithms.
@@ -22,17 +20,17 @@ Machine learning frameworks such as `mlr3` or `tidymodels` provide a general int
 
 The key features of mlr3 are:
 
--   All common machine learning packages are integrated into mlr3, you can easily switch between different machine learning algorithms.
--   A common 'language'/workflow to specify machine learning pipelines.
--   Support for different cross-validation strategies.
--   Hyperparameter tuning for all supported machine learning algorithms.
--   Ensemble models.
+- All common machine learning packages are integrated into mlr3, you can easily switch between different machine learning algorithms.
+- A common 'language'/workflow to specify machine learning pipelines.
+- Support for different cross-validation strategies.
+- Hyperparameter tuning for all supported machine learning algorithms.
+- Ensemble models.
 
 Useful links:
 
--   <a href="https://mlr3book.mlr-org.com/" target="_blank" rel="noopener">mlr3-book</a> (still in work)
--   <a href="https://mlr3.mlr-org.com/" target="_blank" rel="noopener">mlr3 website</a>
--   <a href="https://cheatsheets.mlr-org.com/mlr3.pdf" target="_blank" rel="noopener">mlr3 cheatsheet</a>
+- <a href="https://mlr3book.mlr-org.com/" target="_blank" rel="noopener">mlr3-book</a> (still in work)
+- <a href="https://mlr3.mlr-org.com/" target="_blank" rel="noopener">mlr3 website</a>
+- <a href="https://cheatsheets.mlr-org.com/mlr3.pdf" target="_blank" rel="noopener">mlr3 cheatsheet</a>
 
 ### mlr3 - The Basic Workflow
 
@@ -85,16 +83,17 @@ preprocessing$plot()
 
 To test our model (glmnet) with 10-fold cross-validated, we will do:
 
--   Specify the missing target rows as validation so that they will be ignored.
--   Specify the cross-validation, the learner (the machine learning model we want to use), and the measurement (AUC).
--   Run (benchmark) our model.
+- Specify the missing target rows as validation so that they will be ignored.
+- Specify the cross-validation, the learner (the machine learning model we want to use), and the measurement (AUC).
+- Run (benchmark) our model.
 
 ```{r chunk_chapter4_69__mlr1}
 set.seed(123)
 
 transformed_task$data()[1,]
-transformed_task$set_row_roles((1:nrow(data))[is.na(data$Hazardous)],
-                               "holdout")
+# Exclude the rows with a missing target from the cross-validation by keeping
+# only the labelled rows in the 'use' role (recent mlr3 removed the 'holdout' role).
+transformed_task$row_roles$use = (1:nrow(data))[!is.na(data$Hazardous)]
 
 cv10 = mlr3::rsmp("cv", folds = 10L)
 EN = lrn("classif.glmnet", predict_type = "prob")
@@ -114,6 +113,8 @@ Very cool! Preprocessing + 10-fold cross-validation model evaluation in a few li
 Let's create the final predictions:
 
 ```{r chunk_chapter4_71__mlr2, eval=FALSE}
+# re-expose the unlabelled rows (excluded from the 'use' role for CV) before predicting
+transformed_task$row_roles$use = 1:nrow(data)
 pred = sapply(1:10, function(i) result$learners[[i]]$predict(transformed_task,
 row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
 dim(pred)
@@ -140,18 +141,18 @@ Define the hyperparameter space of the random forest:
 library(paradox)
 
 EN_pars = 
-    paradox::ParamSet$new(
-      list(paradox::ParamDbl$new("alpha", lower = 0, upper = 1L),
-           paradox::ParamDbl$new("lambda", lower = 0, upper = 0.5 )) )
+    paradox::ps(
+      alpha  = paradox::p_dbl(lower = 0, upper = 1),
+      lambda = paradox::p_dbl(lower = 0, upper = 0.5))
 print(EN_pars)
 ```
 
 To set up the tuning pipeline we need:
 
--   Inner cross-validation resampling object.
--   Tuning criterion (e.g. AUC).
--   Tuning method (e.g. random or block search).
--   Tuning terminator (When should we stop tuning? E.g. after $n$ iterations).
+- Inner cross-validation resampling object.
+- Tuning criterion (e.g. AUC).
+- Tuning method (e.g. random or block search).
+- Tuning terminator (When should we stop tuning? E.g. after $n$ iterations).
 
 ```{r chunk_chapter4_74__mlr4}
 set.seed(123)
@@ -190,6 +191,8 @@ result$aggregate(measurement)
 Let's create the final predictions:
 
 ```{r chunk_chapter4_76, eval=FALSE}
+# re-expose the unlabelled rows (excluded from the 'use' role for CV) before predicting
+transformed_task$row_roles$use = 1:nrow(data)
 pred = sapply(1:3, function(i) result$learners[[i]]$predict(transformed_task,
 row_ids = (1:nrow(data))[is.na(data$Hazardous)])$data$prob[, "1", drop = FALSE])
 dim(pred)
@@ -205,15 +208,15 @@ predictions = apply(pred, 1, mean)
 
 Tune architecture
 
--   Tune training parameters (learning rate, batch size) and regularization
+- Tune training parameters (learning rate, batch size) and regularization
 
 **Hints**
 
 cito has a feature to automatically tune hyperparameters under Cross Validation!
 
--   passing `tune(...)` to a hyperparameter will tell cito to tune this specific hyperparameter
--   the `tuning = config_tuning(...)` let you specify the cross-validation strategy and the number of hyperparameters that should be tested (steps = number of hyperparameter combinations that should be tried)
--   after tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
+- passing `tune(...)` to a hyperparameter will tell cito to tune this specific hyperparameter
+- the `tuning = config_tuning(...)` let you specify the cross-validation strategy and the number of hyperparameters that should be tested (steps = number of hyperparameter combinations that should be tried)
+- after tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model
 
 Minimal example with the iris dataset:
 
@@ -255,7 +258,7 @@ data_sub =
            pclass = as.integer(pclass - 1L))
 data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end
 data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
-
+data_obs$survived = as.factor(data_obs$survived)
 
 model = dnn(survived~., 
           hidden = c(10L, 10L), # change
@@ -484,7 +487,9 @@ preprocessing = po("imputeoor") %>>% po("scale") %>>% po("encode")
 # Run the task.
 transformed_task = preprocessing$train(task)[[1]]
 
-transformed_task$set_row_roles((1:nrow(data))[is.na(data$survived)], "holdout")
+# Exclude the rows with a missing target from the cross-validation by keeping
+# only the labelled rows in the 'use' role (recent mlr3 removed the 'holdout' role).
+transformed_task$row_roles$use = (1:nrow(data))[!is.na(data$survived)]
 ```
 
 Hyperparameter tuning:
@@ -499,9 +504,9 @@ tuner =  mlr3tuning::tnr("random_search")
 terminator = mlr3tuning::trm("evals", n_evals = 5L)
 EN = lrn("classif.glmnet", predict_type = "prob")
 EN_pars = 
-    paradox::ParamSet$new(
-      list(paradox::ParamDbl$new("alpha", lower = 0, upper = 1L),
-           paradox::ParamDbl$new("lambda", lower = 0, upper = 0.5 )) )
+    paradox::ps(
+      alpha  = paradox::p_dbl(lower = 0, upper = 1),
+      lambda = paradox::p_dbl(lower = 0, upper = 0.5))
 
 learner_tuner = AutoTuner$new(learner = EN, 
                               measure = measurement, 
@@ -535,8 +540,11 @@ And we can fit it then on the full data set:
 
 ```{r}
 model$train(transformed_task)
-predictions = model$predict(transformed_task, row_ids = transformed_task$row_roles$holdout)
-predictions = predictions$prob[,1]
+# the unlabelled rows were dropped from the 'use' role for training/CV;
+# re-expose them so we can predict on them by row id
+transformed_task$row_roles$use = 1:nrow(data)
+predictions = model$predict(transformed_task, row_ids = (1:nrow(data))[is.na(data$survived)])
+predictions = predictions$prob[, "1"]
 head(predictions)
 ```
 

@@ -687,13 +687,12 @@ write.csv(data.frame(y = predictions), file = "Max_1.csv")
 <!-- `r unhide()` -->
 
 :::: exercise
-#### Tune a random forest (Plant-pollinator)
+#### Tune random forest (Plant-pollinator)
 
 | Hyperparameter | Explanation |
 |------------------|------------------------------------------------------|
 | mtry | Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data). |
 | minimum node size | Minimal number of observations allowed in a node (before the branching is canceled) |
-| max depth | Maximum number of tree depth |
 
 Using the plant-pollinator dataset (see @sec-plantpoll), we want to optimize nodesize, max depth, and mtry in our RF using a simple CV. The task is to predict whether a plant and a pollinator interact, based on their traits.
 
@@ -809,6 +808,71 @@ write.csv(data.frame(y = predict(model, newdata=data_new, type="prob")[,2]), fil
 
 `r unhide()`
 ::::
+
+:::: exercise
+#### Multi-species SDM with Random Forest
+
+The multi-species SDM dataset requires some data tinkering. For example:
+
+* Think about oversampling the rare species
+* Aggregate human footprint variables and land cover variables
+
+Modelling strategies:
+
+* random forest implementations have weights arguments that can be used to put higher weights on specific levels (e.g. the rare species?)
+
+The dataset is available for download on the submission server or [here](https://www.dropbox.com/scl/fi/2juk5nk5tb87pzzfflqo3/sdm.RData?rlkey=oicnumxp93qmvnw85mpmunrf5&st=b1azbdlk&dl=0) (for external participants)
+
+Here is a minimal example of how to prepare the dataset, fit a simple model, and prepare a submission:
+
+Prepare the data:
+
+```{r chunk_sdm_reshape, eval=FALSE}
+load("sdm.RData")
+
+library(missRanger)
+library(tidyverse)
+
+sdm_long |> summary()
+
+sdm_long[,-3] = sdm_long[,-3]  |>  mutate(across(everything(), ~ifelse(is.na(.), mean(., na.rm = TRUE), .)))
+
+train = sdm_long[!is.na(sdm_long$present), ]
+test = sdm_long[is.na(sdm_long$present), ]
+
+# naive sub sampling of the training data due to computational constraints / we loose rare species?!!!
+indices = sample.int(nrow(train), 5000)
+train$present = as.factor(train$present) # crucial if you use the ranger package!
+
+```
+
+
+Fit the model
+
+```{r chunk_sdm_model, eval=FALSE}
+library(ranger)
+set.seed(123)
+
+rf = ranger(present ~ ., data = train[indices, -c(1, 4)], # without community and survey ID
+            classification = TRUE, probability = TRUE, num.trees = 100L) # only 100 trees to speed up the predictions of the test dataset
+
+# presence probability per community x species row:
+preds = predict(rf, data = test)$predictions[, 2]
+```
+
+Prepare the submissions!
+
+```{r chunk_sdm_sub_long, eval=FALSE}
+write.csv(data.frame(y = as.vector(preds)),
+          file = "sdm.csv", row.names = FALSE)
+```
+
+
+::::
+
+
+
+
 
 <!-- :::: callout-warning -->
 

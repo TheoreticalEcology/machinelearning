@@ -188,16 +188,29 @@ community  species  present  Bio1  Bio2  ...  Elevation
 Wide and long are two views of the same data; you can always convert between them. For example, to turn a long label table back into the wide matrix:
 
 ```{r chunk_sdm_reshape, eval=FALSE}
-library(data.table)
+load("sdm.RData")
 
-wide = dcast(labels_long$test, community ~ species, value.var = "present")
-M    = as.matrix(wide[, -1])
-rownames(M) = wide$community
+library(missRanger)
+library(tidyverse)
+
+sdm_long |> summary()
+
+sdm_long[,-3] = sdm_long[,-3]  |>  mutate(across(everything(), ~ifelse(is.na(.), mean(., na.rm = TRUE), .)))
+
+train = sdm_long[!is.na(sdm_long$present), ]
+test = sdm_long[is.na(sdm_long$present), ]
+
+# sub sample training data due to computational constraints
+indices = sample.int(nrow(train), 5000)
+train$present = as.factor(train$present)
+
 ```
 
-*(A download link / loading code for the data will be added here once available.)*
+
 
 ### A minimal working example
+
+Dataset can be downloaded from the submission server or from [dropbox](https://www.dropbox.com/scl/fi/2juk5nk5tb87pzzfflqo3/sdm.RData?rlkey=oicnumxp93qmvnw85mpmunrf5&st=b1azbdlk&dl=0)
 
 There are two natural modeling strategies:
 
@@ -210,16 +223,26 @@ A simple example using the long table:
 library(ranger)
 set.seed(123)
 
-rf = ranger(present ~ ., data = train_long,
-            classification = TRUE, probability = TRUE)
+rf = ranger(present ~ ., data = train[indices, -c(1, 4)], # without community and survey ID
+            classification = TRUE, probability = TRUE, num.trees = 100L) # only 100 trees to speed up the predictions of the test dataset
 
 # presence probability per community x species row:
-preds = predict(rf, data = test_long)$predictions[, 2]
+preds = predict(rf, data = test)$predictions[, 2]
 ```
 
 ### Submission format — long or wide
 
+
 You can submit your predictions in **either** format; the leaderboard accepts both.
+
+
+**Long** — the 896,000 (= 2000 $\times$ 448) probabilities stacked into a single column. The scorer rebuilds the matrix with `matrix(y, nrow = 2000)`, which fills it **column-by-column**, so the values must be ordered *all 2000 communities of species 1, then all of species 2, …* — exactly what `as.vector()` of the wide matrix produces:
+
+```{r chunk_sdm_sub_long, eval=FALSE}
+write.csv(data.frame(y = as.vector(preds)),
+          file = "sdm.csv", row.names = FALSE)
+```
+
 
 **Wide** — a 2000 $\times$ 448 matrix of presence probabilities, communities in rows and species in columns, in the same species order as the label matrix (`sp_9`, `sp_53`, …):
 
@@ -227,12 +250,6 @@ You can submit your predictions in **either** format; the leaderboard accepts bo
 write.csv(pred_matrix, file = "sdm.csv", row.names = FALSE)
 ```
 
-**Long** — the 896,000 (= 2000 $\times$ 448) probabilities stacked into a single column. The scorer rebuilds the matrix with `matrix(y, nrow = 2000)`, which fills it **column-by-column**, so the values must be ordered *all 2000 communities of species 1, then all of species 2, …* — exactly what `as.vector()` of the wide matrix produces:
-
-```{r chunk_sdm_sub_long, eval=FALSE}
-write.csv(data.frame(y = as.vector(pred_matrix)),
-          file = "sdm.csv", row.names = FALSE)
-```
 
 Two checks before uploading: `dim(pred_matrix)` should be `2000 x 448`, and the saved file should have either 448 value columns (wide) or 896,000 rows (long). If you build the long vector directly from a long-format prediction (like the random forest above), make sure its rows are in community-within-species order, so the reshape lines up with the species columns of the label matrix — otherwise the values misalign and the score collapses.
 
@@ -240,123 +257,123 @@ Two checks before uploading: `dim(pred_matrix)` should be `2000 x 448`, and the 
 
 Then submit the csv on <a href="http://132.199.73.15:8500" target="_blank" rel="noopener">http://132.199.73.15:8500</a>.
 
-## Wine
+<!-- ## Wine -->
 
-The data set is a collection of wines of different quality. The aim is to predict the quality of the wine based on physiochemical predictors.
+<!-- The data set is a collection of wines of different quality. The aim is to predict the quality of the wine based on physiochemical predictors. -->
 
-For inspiration and data exploration notebooks, check out this <a href="https://www.kaggle.com/uciml/red-wine-quality-cortez-et-al-2009" target="_blank" rel="noopener">kaggle competition</a>. For instance, check out this very nice <a href="https://www.kaggle.com/aditimulye/red-wine-quality-assesment-starter-pack" target="_blank" rel="noopener">notebook</a> which removes a few problems from the data.
+<!-- For inspiration and data exploration notebooks, check out this <a href="https://www.kaggle.com/uciml/red-wine-quality-cortez-et-al-2009" target="_blank" rel="noopener">kaggle competition</a>. For instance, check out this very nice <a href="https://www.kaggle.com/aditimulye/red-wine-quality-assesment-starter-pack" target="_blank" rel="noopener">notebook</a> which removes a few problems from the data. -->
 
-**Response variable:** "quality"
+<!-- **Response variable:** "quality" -->
 
-We could theoretically use a regression model for this task but we will stick with a classification model.
+<!-- We could theoretically use a regression model for this task but we will stick with a classification model. -->
 
-A minimal working example:
+<!-- A minimal working example: -->
 
-1.  Load data set:
+<!-- 1.  Load data set: -->
 
-```{r chunk_chapter8_14}
-library(EcoData)
+<!-- ```{r chunk_chapter8_14} -->
+<!-- library(EcoData) -->
 
-data(wine)
-summary(wine)
-```
+<!-- data(wine) -->
+<!-- summary(wine) -->
+<!-- ``` -->
 
-2.  Impute missing values (not our response variable!).
+<!-- 2.  Impute missing values (not our response variable!). -->
 
-```{r chunk_chapter8_15, message=FALSE, warning=FALSE}
-library(missRanger)
-library(dplyr)
-set.seed(123)
+<!-- ```{r chunk_chapter8_15, message=FALSE, warning=FALSE} -->
+<!-- library(missRanger) -->
+<!-- library(dplyr) -->
+<!-- set.seed(123) -->
 
-wine_imputed = missRanger::missRanger(data = wine |> select(-quality), verbose = 0)
-wine_imputed$quality = wine$quality
-```
+<!-- wine_imputed = missRanger::missRanger(data = wine |> select(-quality), verbose = 0) -->
+<!-- wine_imputed$quality = wine$quality -->
+<!-- ``` -->
 
-3.  Split into training and test set:
+<!-- 3.  Split into training and test set: -->
 
-```{r chunk_chapter8_16}
-train = wine_imputed[!is.na(wine$quality), ]
-test = wine_imputed[is.na(wine$quality), ]
-```
+<!-- ```{r chunk_chapter8_16} -->
+<!-- train = wine_imputed[!is.na(wine$quality), ] -->
+<!-- test = wine_imputed[is.na(wine$quality), ] -->
+<!-- ``` -->
 
-4.  Train model:
+<!-- 4.  Train model: -->
 
-```{r chunk_chapter8_17, message=FALSE, warning=FALSE}
-library(ranger)
-set.seed(123)
+<!-- ```{r chunk_chapter8_17, message=FALSE, warning=FALSE} -->
+<!-- library(ranger) -->
+<!-- set.seed(123) -->
 
-rf = ranger(quality~., data = train, classification = TRUE)
-```
+<!-- rf = ranger(quality~., data = train, classification = TRUE) -->
+<!-- ``` -->
 
-5.  Predictions:
+<!-- 5.  Predictions: -->
 
-```{r chunk_chapter8_18}
-preds = predict(rf, data = test)$predictions
-head(preds)
-```
+<!-- ```{r chunk_chapter8_18} -->
+<!-- preds = predict(rf, data = test)$predictions -->
+<!-- head(preds) -->
+<!-- ``` -->
 
-6.  Create submission csv:
+<!-- 6.  Create submission csv: -->
 
-```{r chunk_chapter8_19, eval=FALSE}
-write.csv(data.frame(y = preds), file = "rf.csv")
-```
+<!-- ```{r chunk_chapter8_19, eval=FALSE} -->
+<!-- write.csv(data.frame(y = preds), file = "rf.csv") -->
+<!-- ``` -->
 
-## Nasa
+<!-- ## Nasa -->
 
-A collection about asteroids and their characteristics from kaggle. The aim is to predict whether the asteroids are hazardous or not. For inspiration and data exploration notebooks, check out this <a href="https://www.kaggle.com/shrutimehta/nasa-asteroids-classification" target="_blank" rel="noopener">kaggle competition</a>.
+<!-- A collection about asteroids and their characteristics from kaggle. The aim is to predict whether the asteroids are hazardous or not. For inspiration and data exploration notebooks, check out this <a href="https://www.kaggle.com/shrutimehta/nasa-asteroids-classification" target="_blank" rel="noopener">kaggle competition</a>. -->
 
-**Response variable:** "Hazardous"
+<!-- **Response variable:** "Hazardous" -->
 
-1.  Load data set:
+<!-- 1.  Load data set: -->
 
-```{r chunk_chapter8_20}
-library(EcoData)
+<!-- ```{r chunk_chapter8_20} -->
+<!-- library(EcoData) -->
 
-data(nasa)
-summary(nasa)
-```
+<!-- data(nasa) -->
+<!-- summary(nasa) -->
+<!-- ``` -->
 
-2.  Impute missing values (not our response variable!):
+<!-- 2.  Impute missing values (not our response variable!): -->
 
-```{r chunk_chapter8_21, message=FALSE, warning=FALSE}
-library(missRanger)
-library(dplyr)
-set.seed(123)
+<!-- ```{r chunk_chapter8_21, message=FALSE, warning=FALSE} -->
+<!-- library(missRanger) -->
+<!-- library(dplyr) -->
+<!-- set.seed(123) -->
 
-nasa_imputed = missRanger::missRanger(data = nasa |> select(-Hazardous),
-                                      maxiter = 1, num.trees = 5L, verbose = 0)
-nasa_imputed$Hazardous = nasa$Hazardous
-```
+<!-- nasa_imputed = missRanger::missRanger(data = nasa |> select(-Hazardous), -->
+<!--                                       maxiter = 1, num.trees = 5L, verbose = 0) -->
+<!-- nasa_imputed$Hazardous = nasa$Hazardous -->
+<!-- ``` -->
 
-3.  Split into training and test set:
+<!-- 3.  Split into training and test set: -->
 
-```{r chunk_chapter8_22}
-train = nasa_imputed[!is.na(nasa$Hazardous), ]
-test = nasa_imputed[is.na(nasa$Hazardous), ]
-```
+<!-- ```{r chunk_chapter8_22} -->
+<!-- train = nasa_imputed[!is.na(nasa$Hazardous), ] -->
+<!-- test = nasa_imputed[is.na(nasa$Hazardous), ] -->
+<!-- ``` -->
 
-4.  Train model:
+<!-- 4.  Train model: -->
 
-```{r chunk_chapter8_23, message=FALSE, warning=FALSE}
-library(ranger)
-set.seed(123)
+<!-- ```{r chunk_chapter8_23, message=FALSE, warning=FALSE} -->
+<!-- library(ranger) -->
+<!-- set.seed(123) -->
 
-rf = ranger(Hazardous~., data = train, classification = TRUE,
-            probability = TRUE)
-```
+<!-- rf = ranger(Hazardous~., data = train, classification = TRUE, -->
+<!--             probability = TRUE) -->
+<!-- ``` -->
 
-5.  Predictions:
+<!-- 5.  Predictions: -->
 
-```{r chunk_chapter8_24}
-preds = predict(rf, data = test)$predictions[,2]
-head(preds)
-```
+<!-- ```{r chunk_chapter8_24} -->
+<!-- preds = predict(rf, data = test)$predictions[,2] -->
+<!-- head(preds) -->
+<!-- ``` -->
 
-6.  Create submission csv:
+<!-- 6.  Create submission csv: -->
 
-```{r chunk_chapter8_25, eval=FALSE}
-write.csv(data.frame(y = preds), file = "rf.csv")
-```
+<!-- ```{r chunk_chapter8_25, eval=FALSE} -->
+<!-- write.csv(data.frame(y = preds), file = "rf.csv") -->
+<!-- ``` -->
 
 ## Flower
 

@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Appendix C — Machine learning framework - mlr3 – Machine Learning and Deep Learning with R</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./C1-TensorFlow.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-29e2c20b02301cfff04dc8050bf30c7e.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-43df0d6f53b733b42d37fa7808e17715.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-12b812c39f22d88ee807e48c382f9dd4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-fab269e7788c4bbef189c63d745cb483.min.css" rel="prefetch" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="include/webex.css">
+<meta name="citation_title" content="[Appendix C — Machine learning framework - mlr3]{#workflow-mlr3 .quarto-section-identifier}">
+<meta name="citation_fulltext_html_url" content="https://TheoreticalEcology.github.io/machinelearning/A4-MLpipeline-mlr3.html">
+<meta name="citation_language" content="en">
+<meta name="citation_reference" content="citation_title=Regularization and variable selection via the elastic net;,citation_author=Hui Zou;,citation_author=Trevor Hastie;,citation_publication_date=2005;,citation_cover_date=2005;,citation_year=2005;,citation_issue=2;,citation_volume=67;,citation_journal_title=Journal of the royal statistical society: series B (statistical methodology);,citation_publisher=Wiley Online Library;">
+<meta name="citation_reference" content="citation_title=Model averaging in ecology: A review of bayesian, information-theoretic, and tactical approaches for predictive inference;,citation_author=Carsten F Dormann;,citation_author=Justin M Calabrese;,citation_author=Gurutzeta Guillera-Arroita;,citation_author=Eleni Matechou;,citation_author=Volker Bahn;,citation_author=Kamil Bartoń;,citation_author=Colin M Beale;,citation_author=Simone Ciuti;,citation_author=Jane Elith;,citation_author=Katharina Gerstner;,citation_author=others;,citation_publication_date=2018;,citation_cover_date=2018;,citation_year=2018;,citation_issue=4;,citation_volume=88;,citation_journal_title=Ecological Monographs;,citation_publisher=Wiley Online Library;">
+<meta name="citation_reference" content="citation_title=Dropout: A simple way to prevent neural networks from overfitting;,citation_author=Nitish Srivastava;,citation_author=Geoffrey Hinton;,citation_author=Alex Krizhevsky;,citation_author=Ilya Sutskever;,citation_author=Ruslan Salakhutdinov;,citation_publication_date=2014;,citation_cover_date=2014;,citation_year=2014;,citation_issue=1;,citation_volume=15;,citation_journal_title=The journal of machine learning research;,citation_publisher=JMLR. org;">
+<meta name="citation_reference" content="citation_title=Machine learning and deep learning—a review for ecologists;,citation_author=Maximilian Pichler;,citation_author=Florian Hartig;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_issue=4;,citation_volume=14;,citation_journal_title=Methods in Ecology and Evolution;,citation_publisher=Wiley Online Library;">
+<meta name="citation_reference" content="citation_title=Deep learning as a tool for ecology and evolution;,citation_author=Marek L Borowiec;,citation_author=Rebecca B Dikow;,citation_author=Paul B Frandsen;,citation_author=Alexander McKeeken;,citation_author=Gabriele Valentini;,citation_author=Alexander E White;,citation_publication_date=2022;,citation_cover_date=2022;,citation_year=2022;,citation_issue=8;,citation_volume=13;,citation_journal_title=Methods in Ecology and Evolution;,citation_publisher=Wiley Online Library;">
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./Appendix-Datasets.html">Appendices</a></li><li class="breadcrumb-item"><a href="./A4-MLpipeline-mlr3.html"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Machine learning framework - mlr3</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Machine Learning and Deep Learning with R</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://github.com/TheoreticalEcology/machinelearning" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+    <div class="dropdown">
+      <a href="" title="Share" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label="Share"><i class="bi bi-share"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item sidebar-tools-main-item" href="https://twitter.com/intent/tweet?url=|url|">
+              <i class="bi bi-twitter pe-1"></i>
+            Twitter
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item sidebar-tools-main-item" href="https://www.facebook.com/sharer/sharer.php?u=|url|">
+              <i class="bi bi-facebook pe-1"></i>
+            Facebook
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item sidebar-tools-main-item" href="https://www.linkedin.com/sharing/share-offsite/?url=|url|">
+              <i class="bi bi-linkedin pe-1"></i>
+            LinkedIn
+            </a>
+          </li>
+      </ul>
+    </div>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A1-GettingStarted.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Getting Started</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Machine Learning Basics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A2-MachineLearningTasks.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Introduction to Machine Learning</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A3-BiasVarianceTradeOff.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Managing algorithmic complexity</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A4-MLpipeline.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Machine learning pipeline</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Understanding ML Algorithms</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./B1-Trees.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Tree-based Algorithms</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./B2-Distance.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Distance-based Algorithms</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./B3-NeuralNetworks.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Artificial Neural Networks</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Explainable AI and causal ML</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./D2-explainableAI.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Explainable AI</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./D1-causality.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Causal Inference and Machine Learning</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Appendix-Datasets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Datasets</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./C1-TensorFlow.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Introduction to TensorFlow and Keras</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./A4-MLpipeline-mlr3.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Machine learning framework - mlr3</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-mlr" id="toc-sec-mlr" class="nav-link active" data-scroll-target="#sec-mlr"><span class="header-section-number">C.1</span> mlr3</a>
+  <ul class="collapse">
+  <li><a href="#mlr3---the-basic-workflow" id="toc-mlr3---the-basic-workflow" class="nav-link" data-scroll-target="#mlr3---the-basic-workflow"><span class="header-section-number">C.1.1</span> mlr3 - The Basic Workflow</a></li>
+  <li><a href="#mlr3---hyperparameter-tuning" id="toc-mlr3---hyperparameter-tuning" class="nav-link" data-scroll-target="#mlr3---hyperparameter-tuning"><span class="header-section-number">C.1.2</span> mlr3 - Hyperparameter Tuning</a></li>
+  </ul></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">C.2</span> Exercises</a>
+  <ul class="collapse">
+  <li><a href="#tuning-regularization" id="toc-tuning-regularization" class="nav-link" data-scroll-target="#tuning-regularization"><span class="header-section-number">C.2.1</span> Tuning Regularization</a></li>
+  <li><a href="#bonus-mlr3" id="toc-bonus-mlr3" class="nav-link" data-scroll-target="#bonus-mlr3"><span class="header-section-number">C.2.2</span> Bonus: mlr3</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/A4-MLpipeline-mlr3.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./Appendix-Datasets.html">Appendices</a></li><li class="breadcrumb-item"><a href="./A4-MLpipeline-mlr3.html"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Machine learning framework - mlr3</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span id="workflow-mlr3" class="quarto-section-identifier">Appendix C — Machine learning framework - mlr3</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>As we have seen today, many of the machine learning algorithms are distributed over several packages but the general machine learning pipeline is very similar for all models: feature engineering, feature selection, hyperparameter tuning and cross-validation.</p>
+<p>Machine learning frameworks such as <code>mlr3</code> or <code>tidymodels</code> provide a general interface for the ML pipeline, in particular the training and the hyperparameter tuning with nested CV. They support most ML packages/algorithms.</p>
+<section id="sec-mlr" class="level2" data-number="C.1">
+<h2 data-number="C.1" class="anchored" data-anchor-id="sec-mlr"><span class="header-section-number">C.1</span> mlr3</h2>
+<p>The key features of mlr3 are:</p>
+<ul>
+<li>All common machine learning packages are integrated into mlr3, you can easily switch between different machine learning algorithms.</li>
+<li>A common ‘language’/workflow to specify machine learning pipelines.</li>
+<li>Support for different cross-validation strategies.</li>
+<li>Hyperparameter tuning for all supported machine learning algorithms.</li>
+<li>Ensemble models.</li>
+</ul>
+<p>Useful links:</p>
+<ul>
+<li><a href="https://mlr3book.mlr-org.com/" target="_blank" rel="noopener">mlr3-book</a> (still in work)</li>
+<li><a href="https://mlr3.mlr-org.com/" target="_blank" rel="noopener">mlr3 website</a></li>
+<li><a href="https://cheatsheets.mlr-org.com/mlr3.pdf" target="_blank" rel="noopener">mlr3 cheatsheet</a></li>
+</ul>
+<section id="mlr3---the-basic-workflow" class="level3" data-number="C.1.1">
+<h3 data-number="C.1.1" class="anchored" data-anchor-id="mlr3---the-basic-workflow"><span class="header-section-number">C.1.1</span> mlr3 - The Basic Workflow</h3>
+<p>The mlr3 package actually consists of several packages for different tasks (e.g.&nbsp;mlr3tuning for hyperparameter tuning, mlr3pipelines for data preparation pipes). But let’s start with the basic workflow:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cito)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3learners)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3pipelines)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3tuning)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mlr3measures)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(nasa)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(nasa)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'data.frame':   4687 obs. of  40 variables:
+ $ Neo.Reference.ID            : int  3449084 3702322 3406893 NA 2363305 3017307 2438430 3653917 3519490 2066391 ...
+ $ Name                        : int  NA 3702322 3406893 3082923 2363305 3017307 2438430 3653917 3519490 NA ...
+ $ Absolute.Magnitude          : num  18.7 22.1 24.8 21.6 21.4 18.2 20 21 20.9 16.5 ...
+ $ Est.Dia.in.KM.min.          : num  0.4837 0.1011 0.0291 0.1272 0.1395 ...
+ $ Est.Dia.in.KM.max.          : num  1.0815 0.226 0.0652 0.2845 0.3119 ...
+ $ Est.Dia.in.M.min.           : num  483.7 NA 29.1 127.2 139.5 ...
+ $ Est.Dia.in.M.max.           : num  1081.5 226 65.2 284.5 311.9 ...
+ $ Est.Dia.in.Miles.min.       : num  0.3005 0.0628 NA 0.0791 0.0867 ...
+ $ Est.Dia.in.Miles.max.       : num  0.672 0.1404 0.0405 0.1768 0.1938 ...
+ $ Est.Dia.in.Feet.min.        : num  1586.9 331.5 95.6 417.4 457.7 ...
+ $ Est.Dia.in.Feet.max.        : num  3548 741 214 933 1023 ...
+ $ Close.Approach.Date         : Factor w/ 777 levels "1995-01-01","1995-01-08",..: 511 712 472 239 273 145 428 694 87 732 ...
+ $ Epoch.Date.Close.Approach   : num  NA 1.42e+12 1.21e+12 1.00e+12 1.03e+12 ...
+ $ Relative.Velocity.km.per.sec: num  11.22 13.57 5.75 13.84 4.61 ...
+ $ Relative.Velocity.km.per.hr : num  40404 48867 20718 49821 16583 ...
+ $ Miles.per.hour              : num  25105 30364 12873 30957 10304 ...
+ $ Miss.Dist..Astronomical.    : num  NA 0.0671 0.013 0.0583 0.0381 ...
+ $ Miss.Dist..lunar.           : num  112.7 26.1 NA 22.7 14.8 ...
+ $ Miss.Dist..kilometers.      : num  43348668 10030753 1949933 NA 5694558 ...
+ $ Miss.Dist..miles.           : num  26935614 6232821 1211632 5418692 3538434 ...
+ $ Orbiting.Body               : Factor w/ 1 level "Earth": 1 1 1 1 1 1 1 1 1 1 ...
+ $ Orbit.ID                    : int  NA 8 12 12 91 NA 24 NA NA 212 ...
+ $ Orbit.Determination.Date    : Factor w/ 2680 levels "2014-06-13 15:20:44",..: 69 NA 1377 1774 2275 2554 1919 731 1178 2520 ...
+ $ Orbit.Uncertainity          : int  0 8 6 0 0 0 1 1 1 0 ...
+ $ Minimum.Orbit.Intersection  : num  NA 0.05594 0.00553 NA 0.0281 ...
+ $ Jupiter.Tisserand.Invariant : num  5.58 3.61 4.44 5.5 NA ...
+ $ Epoch.Osculation            : num  2457800 2457010 NA 2458000 2458000 ...
+ $ Eccentricity                : num  0.276 0.57 0.344 0.255 0.22 ...
+ $ Semi.Major.Axis             : num  1.1 NA 1.52 1.11 1.24 ...
+ $ Inclination                 : num  20.06 4.39 5.44 23.9 3.5 ...
+ $ Asc.Node.Longitude          : num  29.85 1.42 170.68 356.18 183.34 ...
+ $ Orbital.Period              : num  419 1040 682 427 503 ...
+ $ Perihelion.Distance         : num  0.794 0.864 0.994 0.828 0.965 ...
+ $ Perihelion.Arg              : num  41.8 359.3 350 268.2 179.2 ...
+ $ Aphelion.Dist               : num  1.4 3.15 2.04 1.39 1.51 ...
+ $ Perihelion.Time             : num  2457736 2456941 2457937 NA 2458070 ...
+ $ Mean.Anomaly                : num  55.1 NA NA 297.4 310.5 ...
+ $ Mean.Motion                 : num  0.859 0.346 0.528 0.843 0.716 ...
+ $ Equinox                     : Factor w/ 1 level "J2000": 1 1 NA 1 1 1 1 1 1 1 ...
+ $ Hazardous                   : int  0 0 0 1 1 0 0 0 1 1 ...</code></pre>
+</div>
+</div>
+<p>Let’s drop time, name and ID variable and create a classification task:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> nasa <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>Orbit.Determination.Date,</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                       <span class="sc">-</span>Close.Approach.Date, <span class="sc">-</span>Name, <span class="sc">-</span>Neo.Reference.ID)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>Hazardous <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>Hazardous)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a classification task.</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>task <span class="ot">=</span> TaskClassif<span class="sc">$</span><span class="fu">new</span>(<span class="at">id =</span> <span class="st">"nasa"</span>, <span class="at">backend =</span> data,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                       <span class="at">target =</span> <span class="st">"Hazardous"</span>, <span class="at">positive =</span> <span class="st">"1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Create a generic pipeline of data transformation (imputation <span class="math inline">\(\rightarrow\)</span> scaling <span class="math inline">\(\rightarrow\)</span> encoding of categorical variables):</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Let's create the preprocessing graph.</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>preprocessing <span class="ot">=</span> <span class="fu">po</span>(<span class="st">"imputeoor"</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">"scale"</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">"encode"</span>) </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the task.</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>transformed_task <span class="ot">=</span> preprocessing<span class="sc">$</span><span class="fu">train</span>(task)[[<span class="dv">1</span>]]</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">missings</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                   Hazardous           Absolute.Magnitude 
+                        4187                            0 
+               Aphelion.Dist           Asc.Node.Longitude 
+                           0                            0 
+                Eccentricity    Epoch.Date.Close.Approach 
+                           0                            0 
+            Epoch.Osculation         Est.Dia.in.Feet.max. 
+                           0                            0 
+        Est.Dia.in.Feet.min.           Est.Dia.in.KM.max. 
+                           0                            0 
+          Est.Dia.in.KM.min.            Est.Dia.in.M.max. 
+                           0                            0 
+           Est.Dia.in.M.min.        Est.Dia.in.Miles.max. 
+                           0                            0 
+       Est.Dia.in.Miles.min.                  Inclination 
+                           0                            0 
+ Jupiter.Tisserand.Invariant                 Mean.Anomaly 
+                           0                            0 
+                 Mean.Motion               Miles.per.hour 
+                           0                            0 
+  Minimum.Orbit.Intersection     Miss.Dist..Astronomical. 
+                           0                            0 
+      Miss.Dist..kilometers.            Miss.Dist..lunar. 
+                           0                            0 
+           Miss.Dist..miles.                     Orbit.ID 
+                           0                            0 
+          Orbit.Uncertainity               Orbital.Period 
+                           0                            0 
+              Perihelion.Arg          Perihelion.Distance 
+                           0                            0 
+             Perihelion.Time  Relative.Velocity.km.per.hr 
+                           0                            0 
+Relative.Velocity.km.per.sec              Semi.Major.Axis 
+                           0                            0 
+               Equinox.J2000             Equinox..MISSING 
+                           0                            0 
+         Orbiting.Body.Earth       Orbiting.Body..MISSING 
+                           0                            0 </code></pre>
+</div>
+</div>
+<p>We can even visualize the preprocessing graph:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>preprocessing<span class="sc">$</span><span class="fu">plot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="A4-MLpipeline-mlr3_files/figure-html/chunk_chapter4_68-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>To test our model (glmnet) with 10-fold cross-validated, we will do:</p>
+<ul>
+<li>Specify the missing target rows as validation so that they will be ignored.</li>
+<li>Specify the cross-validation, the learner (the machine learning model we want to use), and the measurement (AUC).</li>
+<li>Run (benchmark) our model.</li>
+</ul>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span><span class="fu">data</span>()[<span class="dv">1</span>,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Hazardous Absolute.Magnitude Aphelion.Dist Asc.Node.Longitude Eccentricity
+      &lt;fctr&gt;              &lt;num&gt;         &lt;num&gt;              &lt;num&gt;        &lt;num&gt;
+1:         0         -0.8132265    -0.3804201          -1.140837    -0.315606
+   Epoch.Date.Close.Approach Epoch.Osculation Est.Dia.in.Feet.max.
+                       &lt;num&gt;            &lt;num&gt;                &lt;num&gt;
+1:                 -4.792988        0.1402677            0.2714179
+   Est.Dia.in.Feet.min. Est.Dia.in.KM.max. Est.Dia.in.KM.min. Est.Dia.in.M.max.
+                  &lt;num&gt;              &lt;num&gt;              &lt;num&gt;             &lt;num&gt;
+1:            0.3134076          0.3007134          0.2565687         0.2710953
+   Est.Dia.in.M.min. Est.Dia.in.Miles.max. Est.Dia.in.Miles.min. Inclination
+               &lt;num&gt;                 &lt;num&gt;                 &lt;num&gt;       &lt;num&gt;
+1:         0.2916245             0.2620443              0.258651   0.5442288
+   Jupiter.Tisserand.Invariant Mean.Anomaly Mean.Motion Miles.per.hour
+                         &lt;num&gt;        &lt;num&gt;       &lt;num&gt;          &lt;num&gt;
+1:                   0.3840868    -1.028761   0.3193953     -0.2541306
+   Minimum.Orbit.Intersection Miss.Dist..Astronomical. Miss.Dist..kilometers.
+                        &lt;num&gt;                    &lt;num&gt;                  &lt;num&gt;
+1:                  -5.459119                -7.076926              0.2512296
+   Miss.Dist..lunar. Miss.Dist..miles.  Orbit.ID Orbit.Uncertainity
+               &lt;num&gt;             &lt;num&gt;     &lt;num&gt;              &lt;num&gt;
+1:         0.2398625         0.2381077 -9.651472          -1.007087
+   Orbital.Period Perihelion.Arg Perihelion.Distance Perihelion.Time
+            &lt;num&gt;          &lt;num&gt;               &lt;num&gt;           &lt;num&gt;
+1:     -0.3013135      -1.170536         -0.01831583       0.1052611
+   Relative.Velocity.km.per.hr Relative.Velocity.km.per.sec Semi.Major.Axis
+                         &lt;num&gt;                        &lt;num&gt;           &lt;num&gt;
+1:                  -0.2816782                   -0.2841407      -0.2791037
+   Equinox.J2000 Equinox..MISSING Orbiting.Body.Earth Orbiting.Body..MISSING
+           &lt;num&gt;            &lt;num&gt;               &lt;num&gt;                  &lt;num&gt;
+1:             1                0                   1                      0</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exclude the rows with a missing target from the cross-validation by keeping</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># only the labelled rows in the 'use' role (recent mlr3 removed the 'holdout' role).</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span>row_roles<span class="sc">$</span>use <span class="ot">=</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="sc">!</span><span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)]</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>cv10 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> <span class="dv">10</span>L)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>EN <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">"classif.glmnet"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">"classif.auc"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">resample</span>(transformed_task,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                        EN, <span class="at">resampling =</span> cv10, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the average AUC of the holdouts.</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>(measurement)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Very cool! Preprocessing + 10-fold cross-validation model evaluation in a few lines of code!</p>
+<p>Let’s create the final predictions:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># re-expose the unlabelled rows (excluded from the 'use' role for CV) before predicting</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span>row_roles<span class="sc">$</span>use <span class="ot">=</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="cf">function</span>(i) result<span class="sc">$</span>learners[[i]]<span class="sc">$</span><span class="fu">predict</span>(transformed_task,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)])<span class="sc">$</span>data<span class="sc">$</span>prob[, <span class="st">"1"</span>, <span class="at">drop =</span> <span class="cn">FALSE</span>])</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(pred)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">1</span>, mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>You could now submit the predictions <a href="http://132.199.73.15:8500" target="_blank" rel="noopener">here</a>.</p>
+<p>But we are still not happy with the results, let’s do some hyperparameter tuning!</p>
+</section>
+<section id="mlr3---hyperparameter-tuning" class="level3" data-number="C.1.2">
+<h3 data-number="C.1.2" class="anchored" data-anchor-id="mlr3---hyperparameter-tuning"><span class="header-section-number">C.1.2</span> mlr3 - Hyperparameter Tuning</h3>
+<p>With mlr3, we can easily extend the above example to do hyperparameter tuning within nested cross-validation (the tuning has its own inner cross-validation).</p>
+<p>Print the hyperparameter space of our glmnet learner:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>EN<span class="sc">$</span>param_set</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;ParamSet(35)&gt;
+                  id    class lower upper nlevels        default  value
+              &lt;char&gt;   &lt;char&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;         &lt;list&gt; &lt;list&gt;
+ 1:            alpha ParamDbl     0     1     Inf              1 [NULL]
+ 2:          nlambda ParamInt     1   Inf     Inf            100 [NULL]
+ 3: lambda.min.ratio ParamDbl     0     1     Inf &lt;NoDefault[0]&gt; [NULL]
+ 4:           lambda ParamUty    NA    NA     Inf         [NULL] [NULL]
+ 5:      standardize ParamLgl    NA    NA       2           TRUE [NULL]
+ 6:        intercept ParamLgl    NA    NA       2           TRUE [NULL]
+ 7:          exclude ParamUty    NA    NA     Inf         [NULL] [NULL]
+ 8:   penalty.factor ParamUty    NA    NA     Inf &lt;NoDefault[0]&gt; [NULL]
+ 9:     lower.limits ParamUty    NA    NA     Inf           -Inf [NULL]
+10:     upper.limits ParamUty    NA    NA     Inf            Inf [NULL]
+11:    type.logistic ParamFct    NA    NA       2 &lt;NoDefault[0]&gt; [NULL]
+12: type.multinomial ParamFct    NA    NA       2 &lt;NoDefault[0]&gt; [NULL]
+13:            relax ParamLgl    NA    NA       2          FALSE [NULL]
+14:         trace.it ParamInt     0     1       2              0 [NULL]
+15:             maxp ParamInt     1   Inf     Inf &lt;NoDefault[0]&gt; [NULL]
+16:             path ParamLgl    NA    NA       2          FALSE [NULL]
+17:             fdev ParamDbl     0     1     Inf          1e-05 [NULL]
+18:           devmax ParamDbl     0     1     Inf          0.999 [NULL]
+19:              eps ParamDbl     0     1     Inf          1e-06 [NULL]
+20:              big ParamDbl  -Inf   Inf     Inf        9.9e+35 [NULL]
+21:            mnlam ParamInt     1   Inf     Inf              5 [NULL]
+22:             pmin ParamDbl     0     1     Inf          1e-09 [NULL]
+23:             exmx ParamDbl  -Inf   Inf     Inf            250 [NULL]
+24:             prec ParamDbl  -Inf   Inf     Inf          1e-10 [NULL]
+25:             mxit ParamInt     1   Inf     Inf            100 [NULL]
+26:            epsnr ParamDbl     0     1     Inf          1e-06 [NULL]
+27:           mxitnr ParamInt     1   Inf     Inf             25 [NULL]
+28:           thresh ParamDbl     0   Inf     Inf          1e-07 [NULL]
+29:            maxit ParamInt     1   Inf     Inf         100000 [NULL]
+30:            dfmax ParamInt     0   Inf     Inf         [NULL] [NULL]
+31:             pmax ParamInt     0   Inf     Inf         [NULL] [NULL]
+32:            exact ParamLgl    NA    NA       2          FALSE [NULL]
+33:                s ParamDbl     0   Inf     Inf           0.01 [NULL]
+34:            gamma ParamDbl     0     1     Inf              1 [NULL]
+35:  use_pred_offset ParamLgl    NA    NA       2 &lt;NoDefault[0]&gt;   TRUE
+                  id    class lower upper nlevels        default  value
+              &lt;char&gt;   &lt;char&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;         &lt;list&gt; &lt;list&gt;</code></pre>
+</div>
+</div>
+<p>Define the hyperparameter space of the random forest:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(paradox)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>EN_pars <span class="ot">=</span> </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    paradox<span class="sc">::</span><span class="fu">ps</span>(</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">alpha  =</span> paradox<span class="sc">::</span><span class="fu">p_dbl</span>(<span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> <span class="dv">1</span>),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">lambda =</span> paradox<span class="sc">::</span><span class="fu">p_dbl</span>(<span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> <span class="fl">0.5</span>))</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(EN_pars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;ParamSet(2)&gt;
+       id    class lower upper nlevels        default  value
+   &lt;char&gt;   &lt;char&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;         &lt;list&gt; &lt;list&gt;
+1:  alpha ParamDbl     0   1.0     Inf &lt;NoDefault[0]&gt; [NULL]
+2: lambda ParamDbl     0   0.5     Inf &lt;NoDefault[0]&gt; [NULL]</code></pre>
+</div>
+</div>
+<p>To set up the tuning pipeline we need:</p>
+<ul>
+<li>Inner cross-validation resampling object.</li>
+<li>Tuning criterion (e.g.&nbsp;AUC).</li>
+<li>Tuning method (e.g.&nbsp;random or block search).</li>
+<li>Tuning terminator (When should we stop tuning? E.g. after <span class="math inline">\(n\)</span> iterations).</li>
+</ul>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>inner3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> <span class="dv">3</span>L)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">"classif.auc"</span>)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>tuner <span class="ot">=</span>  mlr3tuning<span class="sc">::</span><span class="fu">tnr</span>(<span class="st">"random_search"</span>) </span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>terminator <span class="ot">=</span> mlr3tuning<span class="sc">::</span><span class="fu">trm</span>(<span class="st">"evals"</span>, <span class="at">n_evals =</span> <span class="dv">5</span>L)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>EN <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">"classif.glmnet"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>learner_tuner <span class="ot">=</span> AutoTuner<span class="sc">$</span><span class="fu">new</span>(<span class="at">learner =</span> EN, </span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>                              <span class="at">measure =</span> measurement, </span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>                              <span class="at">tuner =</span> tuner, </span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>                              <span class="at">terminator =</span> terminator,</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>                              <span class="at">search_space =</span> EN_pars,</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>                              <span class="at">resampling =</span> inner3)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(learner_tuner)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+── &lt;AutoTuner&gt; (classif.glmnet.tuned) ──────────────────────────────────────────
+• Model: -
+• Parameters: list()
+• Packages: mlr3, mlr3tuning, mlr3learners, and glmnet
+• Predict Types: response and [prob]
+• Feature Types: logical, integer, and numeric
+• Encapsulation: none (fallback: -)
+• Properties: multiclass, offset, twoclass, and weights
+• Other settings: use_weights = 'use', predict_raw = 'FALSE'
+• Search Space:
+       id    class lower upper nlevels
+   &lt;char&gt;   &lt;char&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;
+1:  alpha ParamDbl     0   1.0     Inf
+2: lambda ParamDbl     0   0.5     Inf</code></pre>
+</div>
+</div>
+<p>Now we can wrap it normally into the 10-fold cross-validated setup as done previously:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the average AUC of the holdouts.</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>(measurement)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>classif.auc 
+  0.6767554 </code></pre>
+</div>
+</div>
+<p>Let’s create the final predictions:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># re-expose the unlabelled rows (excluded from the 'use' role for CV) before predicting</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span>row_roles<span class="sc">$</span>use <span class="ot">=</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="cf">function</span>(i) result<span class="sc">$</span>learners[[i]]<span class="sc">$</span><span class="fu">predict</span>(transformed_task,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>Hazardous)])<span class="sc">$</span>data<span class="sc">$</span>prob[, <span class="st">"1"</span>, <span class="at">drop =</span> <span class="cn">FALSE</span>])</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(pred)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">apply</span>(pred, <span class="dv">1</span>, mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="exercises" class="level2" data-number="C.2">
+<h2 data-number="C.2" class="anchored" data-anchor-id="exercises"><span class="header-section-number">C.2</span> Exercises</h2>
+<section id="tuning-regularization" class="level3" data-number="C.2.1">
+<h3 data-number="C.2.1" class="anchored" data-anchor-id="tuning-regularization"><span class="header-section-number">C.2.1</span> Tuning Regularization</h3>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Question: Hyperparameter tuning - Titanic dataset
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Tune architecture</p>
+<ul>
+<li>Tune training parameters (learning rate, batch size) and regularization</li>
+</ul>
+<p><strong>Hints</strong></p>
+<p>cito has a feature to automatically tune hyperparameters under Cross Validation!</p>
+<ul>
+<li>passing <code>tune(...)</code> to a hyperparameter will tell cito to tune this specific hyperparameter</li>
+<li>the <code>tuning = config_tuning(...)</code> let you specify the cross-validation strategy and the number of hyperparameters that should be tested (steps = number of hyperparameter combinations that should be tried)</li>
+<li>after tuning, cito will fit automatically a model with the best hyperparameters on the full data and will return this model</li>
+</ul>
+<p>Minimal example with the iris dataset:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cito)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">=</span> iris</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>df[,<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>] <span class="ot">=</span> <span class="fu">scale</span>(df[,<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>])</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>model_tuned <span class="ot">=</span> <span class="fu">dnn</span>(Species<span class="sc">~</span>., </span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">loss =</span> <span class="st">"softmax"</span>,</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> iris,</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">lambda =</span> <span class="fu">tune</span>(<span class="at">lower =</span> <span class="fl">0.0</span>, <span class="at">upper =</span> <span class="fl">0.2</span>), <span class="co"># you can pass the "tune" function to a hyerparameter</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">tuning =</span> <span class="fu">config_tuning</span>(<span class="at">CV =</span> <span class="dv">3</span>, <span class="at">steps =</span> <span class="dv">20</span>L)</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>                  )</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="co"># tuning results</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>model_tuned<span class="sc">$</span>tuning</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a><span class="co"># model_tuned is now already the best model!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(EcoData)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(missRanger)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(titanic_ml)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> titanic_ml</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> </span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">|&gt;</span> <span class="fu">select</span>(survived, sex, age, fare, pclass)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>data[,<span class="sc">-</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">missRanger</span>(data[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">verbose =</span> <span class="dv">0</span>)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>data_sub <span class="ot">=</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">|&gt;</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">age =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(age, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">fare =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(fare, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">sex =</span> <span class="fu">as.integer</span>(sex) <span class="sc">-</span> <span class="dv">1</span>L,</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">pclass =</span> <span class="fu">as.integer</span>(pclass <span class="sc">-</span> <span class="dv">1</span>L))</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>data_new <span class="ot">=</span> data_sub[<span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># for which we want to make predictions at the end</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>data_obs <span class="ot">=</span> data_sub[<span class="sc">!</span><span class="fu">is.na</span>(data_sub<span class="sc">$</span>survived),] <span class="co"># data with known response</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>data_obs<span class="sc">$</span>survived <span class="ot">=</span> <span class="fu">as.factor</span>(data_obs<span class="sc">$</span>survived)</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">dnn</span>(survived<span class="sc">~</span>., </span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>          <span class="at">hidden =</span> <span class="fu">c</span>(<span class="dv">10</span>L, <span class="dv">10</span>L), <span class="co"># change</span></span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>          <span class="at">activation =</span> <span class="fu">c</span>(<span class="st">"selu"</span>, <span class="st">"selu"</span>), <span class="co"># change</span></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>          <span class="at">loss =</span> <span class="st">"binomial"</span>, </span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>          <span class="at">lr =</span> <span class="fl">0.05</span>, <span class="co">#change</span></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>          <span class="at">validation =</span> <span class="fl">0.2</span>,</span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>          <span class="at">lambda =</span> <span class="fl">0.001</span>, <span class="co"># change</span></span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>          <span class="at">alpha =</span> <span class="fl">0.1</span>, <span class="co"># change</span></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>          <span class="at">lr_scheduler =</span> <span class="fu">config_lr_scheduler</span>(<span class="st">"reduce_on_plateau"</span>, <span class="at">patience =</span> <span class="dv">10</span>, <span class="at">factor =</span> <span class="fl">0.9</span>),</span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> data_obs, <span class="at">epochs =</span> <span class="dv">40</span>L, <span class="at">verbose =</span> <span class="cn">TRUE</span>, <span class="at">plot=</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Loss at epoch 1: training: 0.735, validation: 0.677, lr: 0.05000</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="A4-MLpipeline-mlr3_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Loss at epoch 2: training: 0.652, validation: 0.594, lr: 0.05000
+Loss at epoch 3: training: 0.610, validation: 0.552, lr: 0.05000
+Loss at epoch 4: training: 0.590, validation: 0.538, lr: 0.05000
+Loss at epoch 5: training: 0.595, validation: 0.520, lr: 0.05000
+Loss at epoch 6: training: 0.572, validation: 0.907, lr: 0.05000
+Loss at epoch 7: training: 0.569, validation: 0.563, lr: 0.05000
+Loss at epoch 8: training: 0.560, validation: 0.707, lr: 0.05000
+Loss at epoch 9: training: 0.585, validation: 0.487, lr: 0.05000
+Loss at epoch 10: training: 0.534, validation: 0.579, lr: 0.05000
+Loss at epoch 11: training: 0.539, validation: 0.543, lr: 0.05000
+Loss at epoch 12: training: 0.523, validation: 0.452, lr: 0.05000
+Loss at epoch 13: training: 0.571, validation: 0.556, lr: 0.05000
+Loss at epoch 14: training: 0.596, validation: 0.552, lr: 0.05000
+Loss at epoch 15: training: 0.575, validation: 0.561, lr: 0.05000
+Loss at epoch 16: training: 0.545, validation: 0.529, lr: 0.05000
+Loss at epoch 17: training: 0.561, validation: 0.460, lr: 0.05000
+Loss at epoch 18: training: 0.548, validation: 0.442, lr: 0.05000
+Loss at epoch 19: training: 0.486, validation: 0.419, lr: 0.05000
+Loss at epoch 20: training: 0.514, validation: 0.430, lr: 0.05000
+Loss at epoch 21: training: 0.531, validation: 0.421, lr: 0.05000
+Loss at epoch 22: training: 0.492, validation: 1.037, lr: 0.05000
+Loss at epoch 23: training: 0.526, validation: 0.605, lr: 0.05000
+Loss at epoch 24: training: 0.516, validation: 0.507, lr: 0.05000
+Loss at epoch 25: training: 0.511, validation: 0.404, lr: 0.05000
+Loss at epoch 26: training: 0.466, validation: 0.428, lr: 0.05000
+Loss at epoch 27: training: 0.466, validation: 0.431, lr: 0.05000
+Loss at epoch 28: training: 0.471, validation: 0.392, lr: 0.05000
+Loss at epoch 29: training: 0.497, validation: 0.534, lr: 0.05000
+Loss at epoch 30: training: 0.553, validation: 0.399, lr: 0.05000
+Loss at epoch 31: training: 0.492, validation: 0.556, lr: 0.05000
+Loss at epoch 32: training: 0.457, validation: 0.401, lr: 0.05000
+Loss at epoch 33: training: 0.455, validation: 0.492, lr: 0.05000
+Loss at epoch 34: training: 0.454, validation: 0.604, lr: 0.05000
+Loss at epoch 35: training: 0.469, validation: 0.503, lr: 0.05000
+Loss at epoch 36: training: 0.486, validation: 0.430, lr: 0.05000
+Loss at epoch 37: training: 0.470, validation: 0.703, lr: 0.05000
+Loss at epoch 38: training: 0.479, validation: 0.385, lr: 0.05000
+Loss at epoch 39: training: 0.451, validation: 0.485, lr: 0.05000
+Loss at epoch 40: training: 0.461, validation: 0.382, lr: 0.05000</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Predictions:</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> data_new, <span class="at">type =</span> <span class="st">"response"</span>) <span class="co"># change prediction type to response so that cito predicts probabilities</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> predictions[,<span class="dv">1</span>]), <span class="at">file =</span> <span class="st">"Max_titanic_dnn.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</div>
+<!-- ::: {.callout-warning} -->
+<!-- #### Task: Tuning $\alpha$ and $\lambda$ -->
+<!-- 1.  Extend the code from above and tune $\alpha$ and $\lambda$ (via 10xCV) -->
+<!-- 2.  Train the model with best set of hyperparameters and submit your predictions -->
+<!-- Submit your predictions (<http://132.199.73.15:8500/>), which model has a higher AUC?. -->
+<!-- **Important**: -->
+<!-- Submissions only work if your preditions are probabilities and a data.frame (which you can create via `write.csv(data.frame(y = predictions ), file = "Max_1.csv")` -->
+<!--  ) -->
+<!-- ```{r} -->
+<!-- library(EcoData) -->
+<!-- library(dplyr) -->
+<!-- library(missRanger) -->
+<!-- library(glmnet) -->
+<!-- library(glmnetUtils) -->
+<!-- data(titanic_ml) -->
+<!-- data = titanic_ml -->
+<!-- data =  -->
+<!--   data |> select(survived, sex, age, fare, pclass) -->
+<!-- # missRanger uses a random forest to impute NAs (RF is trained on the data to predict values for the NAs) -->
+<!-- data[,-1] = missRanger(data[,-1], verbose = 0) -->
+<!-- data_sub = -->
+<!--   data |> -->
+<!--     mutate(age = scales::rescale(age, c(0, 1)), -->
+<!--            fare = scales::rescale(fare, c(0, 1))) |> -->
+<!--     mutate(sex = as.integer(sex) - 1L, -->
+<!--            pclass = as.integer(pclass - 1L)) -->
+<!-- data_new = data_sub[is.na(data_sub$survived),] # for which we want to make predictions at the end -->
+<!-- data_obs = data_sub[!is.na(data_sub$survived),] # data with known response -->
+<!-- ``` -->
+<!-- Bonus: -->
+<!-- -   Try different features -->
+<!-- -   Try cito -->
+<!-- -   Try different datasets (see @sec-datasets) -->
+<!-- Code template for a simple CV (for tuning $\lambda$): -->
+<!-- - Extend the following code so that $\alpha$ is also tuned! -->
+<!-- ```{r} -->
+<!-- set.seed(42) -->
+<!-- cv = 5 -->
+<!-- hyper_lambda = runif(20,0, 0.2) -->
+<!-- tuning_results =  -->
+<!--     sapply(1:length(hyper_lambda), function(k) { -->
+<!--         auc_inner = NULL -->
+<!--         for(j in 1:cv) { -->
+<!--           inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
+<!--           train_inner = data_obs[inner_split != j, ] -->
+<!--           test_inner = data_obs[inner_split == j, ] -->
+<!--           model = glmnet(survived~.,data = train_inner, lambda = hyper_lambda[k], family = "binomial") -->
+<!--           auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response")) -->
+<!--         } -->
+<!--       return(mean(auc_inner)) -->
+<!--     }) -->
+<!-- results = data.frame(lambda = hyper_lambda, AUC = tuning_results) -->
+<!-- print(results) -->
+<!-- ``` -->
+<!-- ::: -->
+<!-- 
+<div class='webex-solution'><button>Click here to see the solution</button>
+ -->
+<!-- ```{r} -->
+<!-- set.seed(42) -->
+<!-- cv = 5 -->
+<!-- hyper_lambda = runif(20,0, 0.2) -->
+<!-- hyper_alpha = runif(20, 0, 1) -->
+<!-- tuning_results =  -->
+<!--     sapply(1:length(hyper_alpha), function(k) { -->
+<!--         auc_inner = NULL -->
+<!--         for(j in 1:cv) { -->
+<!--           inner_split = as.integer(cut(1:nrow(data_obs), breaks = cv)) -->
+<!--           train_inner = data_obs[inner_split != j, ] -->
+<!--           test_inner = data_obs[inner_split == j, ] -->
+<!--           model = glmnet(survived~.,data = train_inner, family = "binomial", alpha = hyper_alpha[k], lambda = hyper_lambda[k]) -->
+<!--           auc_inner[j]= Metrics::auc(test_inner$survived, predict(model, test_inner, type = "response")) -->
+<!--         } -->
+<!--       return(mean(auc_inner)) -->
+<!--     }) -->
+<!-- results = data.frame(lambda = hyper_lambda, alpha = hyper_alpha,  AUC = tuning_results) -->
+<!-- print(results) -->
+<!-- print(results[which.max(results$AUC),]) -->
+<!-- ``` -->
+<!-- Predictions: -->
+<!-- ```{r, results='hide', message=FALSE, warning=FALSE} -->
+<!-- model = glmnet(survived~.,data = data_obs, family = "binomial",alpha = results[which.max(results$AUC),2]) -->
+<!-- predictions = predict(model, data_new, alpha = results$alpha[i], s = results[which.max(results$AUC),1], type = "response")[,1] -->
+<!-- write.csv(data.frame(y = predictions, file = "Max_titanic_best_model.csv")) -->
+<!-- ``` -->
+<!-- 
+</div>
+ -->
+</section>
+<section id="bonus-mlr3" class="level3" data-number="C.2.2">
+<h3 data-number="C.2.2" class="anchored" data-anchor-id="bonus-mlr3"><span class="header-section-number">C.2.2</span> Bonus: mlr3</h3>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Task: Use mlr3 for the titanic dataset
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li>Use <code>mlr3</code> to tune glmnet for the titanic dataset using nested CV</li>
+<li>Submit single predictions and multiple predictions</li>
+</ol>
+<p>If you need help, take a look at the solution, go through it line by line and try to understand it.</p>
+</div>
+</div>
+<div class="webex-solution">
+<button>
+Click here to see the solution
+</button>
+<p>Prepare data</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> titanic_ml <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>name, <span class="sc">-</span>ticket, <span class="sc">-</span>name, <span class="sc">-</span>body)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>pclass <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>pclass)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>sex <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>sex)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>survived <span class="ot">=</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>survived)</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Change easy things manually:</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>embarked[data<span class="sc">$</span>embarked <span class="sc">==</span> <span class="st">""</span>] <span class="ot">=</span> <span class="st">"S"</span>  <span class="co"># Fill in "empty" values.</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>embarked <span class="ot">=</span> <span class="fu">droplevels</span>(<span class="fu">as.factor</span>(data<span class="sc">$</span>embarked)) <span class="co"># Remove unused levels ("").</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>cabin <span class="ot">=</span> (data<span class="sc">$</span>cabin <span class="sc">!=</span> <span class="st">""</span>) <span class="sc">*</span> <span class="dv">1</span> <span class="co"># Dummy code the availability of a cabin.</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>fare[<span class="fu">is.na</span>(data<span class="sc">$</span>fare)] <span class="ot">=</span> <span class="fu">mean</span>(data<span class="sc">$</span>fare, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(data<span class="sc">$</span>home.dest)[<span class="fu">levels</span>(data<span class="sc">$</span>home.dest) <span class="sc">==</span> <span class="st">""</span>] <span class="ot">=</span> <span class="st">"unknown"</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="st">"boat"</span> <span class="sc">%in%</span> <span class="fu">colnames</span>(data)) <span class="fu">levels</span>(data<span class="sc">$</span>boat)[<span class="fu">levels</span>(data<span class="sc">$</span>boat) <span class="sc">==</span> <span class="st">""</span>] <span class="ot">=</span> <span class="st">"none"</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a classification task.</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>task <span class="ot">=</span> TaskClassif<span class="sc">$</span><span class="fu">new</span>(<span class="at">id =</span> <span class="st">"titanic"</span>, <span class="at">backend =</span> data,</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>                       <span class="at">target =</span> <span class="st">"survived"</span>, <span class="at">positive =</span> <span class="st">"1"</span>)</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>task<span class="sc">$</span><span class="fu">missings</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> survived       age     cabin  embarked      fare home.dest     parch    pclass 
+      655       263         0         0         0         0         0         0 
+      sex     sibsp 
+        0         0 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Let's create the preprocessing graph.</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>preprocessing <span class="ot">=</span> <span class="fu">po</span>(<span class="st">"imputeoor"</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">"scale"</span>) <span class="sc">%&gt;&gt;%</span> <span class="fu">po</span>(<span class="st">"encode"</span>) </span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the task.</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>transformed_task <span class="ot">=</span> preprocessing<span class="sc">$</span><span class="fu">train</span>(task)[[<span class="dv">1</span>]]</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Exclude the rows with a missing target from the cross-validation by keeping</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="co"># only the labelled rows in the 'use' role (recent mlr3 removed the 'holdout' role).</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span>row_roles<span class="sc">$</span>use <span class="ot">=</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="sc">!</span><span class="fu">is.na</span>(data<span class="sc">$</span>survived)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Hyperparameter tuning:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>cv10 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> <span class="dv">10</span>L)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>inner3 <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> <span class="dv">3</span>L)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">"classif.auc"</span>)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>tuner <span class="ot">=</span>  mlr3tuning<span class="sc">::</span><span class="fu">tnr</span>(<span class="st">"random_search"</span>) </span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>terminator <span class="ot">=</span> mlr3tuning<span class="sc">::</span><span class="fu">trm</span>(<span class="st">"evals"</span>, <span class="at">n_evals =</span> <span class="dv">5</span>L)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>EN <span class="ot">=</span> <span class="fu">lrn</span>(<span class="st">"classif.glmnet"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>)</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>EN_pars <span class="ot">=</span> </span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    paradox<span class="sc">::</span><span class="fu">ps</span>(</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">alpha  =</span> paradox<span class="sc">::</span><span class="fu">p_dbl</span>(<span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> <span class="dv">1</span>),</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">lambda =</span> paradox<span class="sc">::</span><span class="fu">p_dbl</span>(<span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> <span class="fl">0.5</span>))</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>learner_tuner <span class="ot">=</span> AutoTuner<span class="sc">$</span><span class="fu">new</span>(<span class="at">learner =</span> EN, </span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>                              <span class="at">measure =</span> measurement, </span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>                              <span class="at">tuner =</span> tuner, </span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>                              <span class="at">terminator =</span> terminator,</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>                              <span class="at">search_space =</span> EN_pars,</span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>                              <span class="at">resampling =</span> inner3)</span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> mlr3<span class="sc">::</span><span class="fu">resample</span>(transformed_task, learner_tuner,</span>
+<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a>                        <span class="at">resampling =</span> cv10, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: from glmnet C++ code (error code -1); Convergence for 1th lambda value
+not reached after maxit=100000 iterations; solutions for larger lambdas
+returned</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in getcoef(fit, nvars, nx, vnames): an empty model has been returned;
+probably a convergence issue</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: from glmnet C++ code (error code -1); Convergence for 1th lambda value
+not reached after maxit=100000 iterations; solutions for larger lambdas
+returned</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in getcoef(fit, nvars, nx, vnames): an empty model has been returned;
+probably a convergence issue</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: from glmnet C++ code (error code -1); Convergence for 1th lambda value
+not reached after maxit=100000 iterations; solutions for larger lambdas
+returned</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in getcoef(fit, nvars, nx, vnames): an empty model has been returned;
+probably a convergence issue</code></pre>
+</div>
+</div>
+<p>Evaluation:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>measurement <span class="ot">=</span>  <span class="fu">msr</span>(<span class="st">"classif.auc"</span>)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>result<span class="sc">$</span><span class="fu">aggregate</span>(measurement)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>classif.auc 
+  0.8007539 </code></pre>
+</div>
+</div>
+<p>Predictions:</p>
+<p>We can extract a learner with optimized hyperparameters:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> result<span class="sc">$</span>learners[[<span class="dv">1</span>]]<span class="sc">$</span>learner<span class="sc">$</span><span class="fu">clone</span>()</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span>param_set<span class="sc">$</span>values</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$alpha
+[1] 0.008736402
+
+$lambda
+[1] 0.2601042
+
+$use_pred_offset
+[1] TRUE</code></pre>
+</div>
+</div>
+<p>And we can fit it then on the full data set:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span><span class="fu">train</span>(transformed_task)</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the unlabelled rows were dropped from the 'use' role for training/CV;</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="co"># re-expose them so we can predict on them by row id</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>transformed_task<span class="sc">$</span>row_roles<span class="sc">$</span>use <span class="ot">=</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data)</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> model<span class="sc">$</span><span class="fu">predict</span>(transformed_task, <span class="at">row_ids =</span> (<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data))[<span class="fu">is.na</span>(data<span class="sc">$</span>survived)])</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> predictions<span class="sc">$</span>prob[, <span class="st">"1"</span>]</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(predictions)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8963625 0.4198022 0.7194496 0.4146813 0.7917942 0.6547325</code></pre>
+</div>
+</div>
+<p>And submit to http://132.199.73.15:8500</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> predictions), <span class="at">file =</span> <span class="st">"glmnet.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script>
+
+/* update total correct if #webex-total_correct exists */
+update_total_correct = function() {
+  console.log("webex: update total_correct");
+
+  var t = document.getElementsByClassName("webex-total_correct");
+  for (var i = 0; i < t.length; i++) {
+    p = t[i].parentElement;
+    var correct = p.getElementsByClassName("webex-correct").length;
+    var solvemes = p.getElementsByClassName("webex-solveme").length;
+    var radiogroups = p.getElementsByClassName("webex-radiogroup").length;
+    var selects = p.getElementsByClassName("webex-select").length;
+
+    t[i].innerHTML = correct + " of " + (solvemes + radiogroups + selects) + " correct";
+  }
+}
+
+/* webex-solution button toggling function */
+b_func = function() {
+  console.log("webex: toggle hide");
+
+  var cl = this.parentElement.classList;
+  if (cl.contains('open')) {
+    cl.remove("open");
+  } else {
+    cl.add("open");
+  }
+}
+
+/* check answers */
+check_func = function() {
+  console.log("webex: check answers");
+
+  var cl = this.parentElement.classList;
+  if (cl.contains('unchecked')) {
+    cl.remove("unchecked");
+    this.innerHTML = "Hide Answers";
+  } else {
+    cl.add("unchecked");
+    this.innerHTML = "Show Answers";
+  }
+}
+
+/* function for checking solveme answers */
+solveme_func = function(e) {
+  console.log("webex: check solveme");
+
+  var real_answers = JSON.parse(this.dataset.answer);
+  var my_answer = this.value;
+  var cl = this.classList;
+  if (cl.contains("ignorecase")) {
+    my_answer = my_answer.toLowerCase();
+  }
+  if (cl.contains("nospaces")) {
+    my_answer = my_answer.replace(/ /g, "")
+  }
+
+  if (my_answer == "") {
+    cl.remove("webex-correct");
+    cl.remove("webex-incorrect");
+  } else if (real_answers.includes(my_answer)) {
+    cl.add("webex-correct");
+    cl.remove("webex-incorrect");
+  } else {
+    cl.add("webex-incorrect");
+    cl.remove("webex-correct");
+  }
+
+  // match numeric answers within a specified tolerance
+  if(this.dataset.tol > 0){
+    var tol = JSON.parse(this.dataset.tol);
+    var matches = real_answers.map(x => Math.abs(x - my_answer) < tol)
+    if (matches.reduce((a, b) => a + b, 0) > 0) {
+      cl.add("webex-correct");
+    } else {
+      cl.remove("webex-correct");
+    }
+  }
+
+  // added regex bit
+  if (cl.contains("regex")){
+    answer_regex = RegExp(real_answers.join("|"))
+    if (answer_regex.test(my_answer)) {
+      cl.add("webex-correct");
+    }
+  }
+
+  update_total_correct();
+}
+
+/* function for checking select answers */
+select_func = function(e) {
+  console.log("webex: check select");
+
+  var cl = this.classList
+
+  /* add style */
+  cl.remove("webex-incorrect");
+  cl.remove("webex-correct");
+  if (this.value == "answer") {
+    cl.add("webex-correct");
+  } else if (this.value != "blank") {
+    cl.add("webex-incorrect");
+  }
+
+  update_total_correct();
+}
+
+/* function for checking radiogroups answers */
+radiogroups_func = function(e) {
+  console.log("webex: check radiogroups");
+
+  var checked_button = document.querySelector('input[name=' + this.id + ']:checked');
+  var cl = checked_button.parentElement.classList;
+  var labels = checked_button.parentElement.parentElement.children;
+
+  /* get rid of styles */
+  for (i = 0; i < labels.length; i++) {
+    labels[i].classList.remove("webex-incorrect");
+    labels[i].classList.remove("webex-correct");
+  }
+
+  /* add style */
+  if (checked_button.value == "answer") {
+    cl.add("webex-correct");
+  } else {
+    cl.add("webex-incorrect");
+  }
+
+  update_total_correct();
+}
+
+window.onload = function() {
+  console.log("webex onload");
+  /* set up solution buttons */
+  var buttons = document.getElementsByTagName("button");
+
+  for (var i = 0; i < buttons.length; i++) {
+    if (buttons[i].parentElement.classList.contains('webex-solution')) {
+      buttons[i].onclick = b_func;
+    }
+  }
+
+  var check_sections = document.getElementsByClassName("webex-check");
+  console.log("check:", check_sections.length);
+  for (var i = 0; i < check_sections.length; i++) {
+    check_sections[i].classList.add("unchecked");
+
+    let btn = document.createElement("button");
+    btn.innerHTML = "Show Answers";
+    btn.classList.add("webex-check-button");
+    btn.onclick = check_func;
+    check_sections[i].appendChild(btn);
+
+    let spn = document.createElement("span");
+    spn.classList.add("webex-total_correct");
+    check_sections[i].appendChild(spn);
+  }
+
+  /* set up webex-solveme inputs */
+  var solveme = document.getElementsByClassName("webex-solveme");
+
+  for (var i = 0; i < solveme.length; i++) {
+    /* make sure input boxes don't auto-anything */
+    solveme[i].setAttribute("autocomplete","off");
+    solveme[i].setAttribute("autocorrect", "off");
+    solveme[i].setAttribute("autocapitalize", "off");
+    solveme[i].setAttribute("spellcheck", "false");
+    solveme[i].value = "";
+
+    /* adjust answer for ignorecase or nospaces */
+    var cl = solveme[i].classList;
+    var real_answer = solveme[i].dataset.answer;
+    if (cl.contains("ignorecase")) {
+      real_answer = real_answer.toLowerCase();
+    }
+    if (cl.contains("nospaces")) {
+      real_answer = real_answer.replace(/ /g, "");
+    }
+    solveme[i].dataset.answer = real_answer;
+
+    /* attach checking function */
+    solveme[i].onkeyup = solveme_func;
+    solveme[i].onchange = solveme_func;
+
+    solveme[i].insertAdjacentHTML("afterend", " <span class='webex-icon'></span>")
+  }
+
+  /* set up radiogroups */
+  var radiogroups = document.getElementsByClassName("webex-radiogroup");
+  for (var i = 0; i < radiogroups.length; i++) {
+    radiogroups[i].onchange = radiogroups_func;
+  }
+
+  /* set up selects */
+  var selects = document.getElementsByClassName("webex-select");
+  for (var i = 0; i < selects.length; i++) {
+    selects[i].onchange = select_func;
+    selects[i].insertAdjacentHTML("afterend", " <span class='webex-icon'></span>")
+  }
+
+  update_total_correct();
+}
+
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  const darkModeDefault = false;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/TheoreticalEcology\.github\.io\/machinelearning\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./C1-TensorFlow.html" class="pagination-link" aria-label="Introduction to TensorFlow and Keras">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Introduction to TensorFlow and Keras</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/A4-MLpipeline-mlr3.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>
