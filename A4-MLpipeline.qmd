@@ -297,6 +297,7 @@ head(data)
 ```
 :::
 
+
 ## Modelling
 
 ### Split data for final predictions
@@ -314,28 +315,28 @@ data_new = data_sub[is.na(data_sub$survived),]
 data_obs = data_sub[!is.na(data_sub$survived),]
 ```
 
-### Hyperparameter optimization
+<!-- ### Hyperparameter optimization -->
 
-We now tune our hyperparameters (see @sec-tuning for the underlying concepts). Strictly, we should run a nested CV on the training data (`data_obs`); here we treat the submission server's test data as the outer split, so a single $n$-fold cross-validation serves as our inner loop.
+<!-- We now tune our hyperparameters (see @sec-tuning for the underlying concepts). Strictly, we should run a nested CV on the training data (`data_obs`); here we treat the submission server's test data as the outer split, so a single $n$-fold cross-validation serves as our inner loop. -->
 
-::: column-margin
-A common tuning strategy is **random search**: sample random hyperparameter combinations and keep the one with the lowest validation error.
-:::
+<!-- ::: column-margin -->
+<!-- A common tuning strategy is **random search**: sample random hyperparameter combinations and keep the one with the lowest validation error. -->
+<!-- ::: -->
 
-We implement a CV manually to tune the learning rate, starting with a 3-fold CV over 10 different learning rates:
+<!-- We implement a CV manually to tune the learning rate, starting with a 3-fold CV over 10 different learning rates: -->
 
-```{r}
-library(cito)
-set.seed(42)
-data_obs$survived = as.factor(data_obs$survived)
-model = dnn(survived~.,
-            data = data_obs, 
-            loss = "binomial",
-            lr = tune(0.001, 0.1),
-            tuning = config_tuning(CV = 3, steps = 10)
-            )
-model$tuning
-```
+<!-- ```{r} -->
+<!-- library(cito) -->
+<!-- set.seed(42) -->
+<!-- data_obs$survived = as.factor(data_obs$survived) -->
+<!-- model = dnn(survived~., -->
+<!--             data = data_obs,  -->
+<!--             loss = "binomial", -->
+<!--             lr = tune(0.001, 0.1), -->
+<!--             tuning = config_tuning(CV = 3, steps = 10) -->
+<!--             ) -->
+<!-- model$tuning -->
+<!-- ``` -->
 
 <!-- ```{r} -->
 
@@ -387,20 +388,20 @@ model$tuning
 
 <!-- ``` -->
 
-## Predictions and Submission
+<!-- ## Predictions and Submission -->
 
-When we are satisfied with the performance of our model, we will create predictions for the new observations on the submission server. cito directly returns the best model so we do not have to fit the final model.
+<!-- When we are satisfied with the performance of our model, we will create predictions for the new observations on the submission server. cito directly returns the best model so we do not have to fit the final model. -->
 
-We submit our predictions to the submission server at <a href="http://132.199.73.15:8500" target="_blank" rel="noopener">http://132.199.73.15:8500</a>.
+<!-- We submit our predictions to the submission server at <a href="http://132.199.73.15:8500" target="_blank" rel="noopener">http://132.199.73.15:8500</a>. -->
 
-For the submission it is critical to change the predictions into a data.frame, select the second column (the probability to survive), and save it with the write.csv function:
+<!-- For the submission it is critical to change the predictions into a data.frame, select the second column (the probability to survive), and save it with the write.csv function: -->
 
-```{r, results='hide', warning=FALSE, message=FALSE}
+<!-- ```{r, results='hide', warning=FALSE, message=FALSE} -->
 
-data_new = data_sub[is.na(data_sub$survived),]
-predictions = predict(model, data_new, type = "response")[,1] 
-write.csv(data.frame(y = predictions), file = "Max_1.csv")
-```
+<!-- data_new = data_sub[is.na(data_sub$survived),] -->
+<!-- predictions = predict(model, data_new, type = "response")[,1]  -->
+<!-- write.csv(data.frame(y = predictions), file = "Max_1.csv") -->
+<!-- ``` -->
 
 ## Exercises
 
@@ -550,7 +551,7 @@ write.csv(data.frame(y = predictions), file = "Max_1.csv")
 
 <!-- data = titanic_ml -->
 
-<!-- data =  -->
+<!-- data = -->
 
 <!--   data |> select(survived, sex, age, fare, pclass) -->
 
@@ -640,7 +641,7 @@ write.csv(data.frame(y = predictions), file = "Max_1.csv")
 
 <!-- hyper_alpha = runif(20, 0, 1) -->
 
-<!-- tuning_results =  -->
+<!-- tuning_results = -->
 
 <!--     sapply(1:length(hyper_alpha), function(k) { -->
 
@@ -687,14 +688,13 @@ write.csv(data.frame(y = predictions), file = "Max_1.csv")
 <!-- `r unhide()` -->
 
 :::: exercise
-#### Tune random forest (Plant-pollinator)
+#### Plant-pollinator - Tune random forest
 
 | Hyperparameter | Explanation |
 |------------------|------------------------------------------------------|
-| mtry | Subset of features randomly selected in each node (from which the algorithm can select the feature that will be used to split the data). |
 | minimum node size | Minimal number of observations allowed in a node (before the branching is canceled) |
 
-Using the plant-pollinator dataset (see @sec-plantpoll), we want to optimize nodesize, max depth, and mtry in our RF using a simple CV. The task is to predict whether a plant and a pollinator interact, based on their traits.
+Using the plant-pollinator dataset (see @sec-plantpoll), we want to optimize nodesize in our RF using a simple CV. The task is to predict whether a plant and a pollinator interact, based on their traits.
 
 Prepare the data:
 
@@ -721,7 +721,7 @@ data_obs = data_sub[!is.na(data_sub$interaction),] # data with known response
 
 - adjust the '`type`' argument in the `predict(…)` method (the default is to predict classes)
 - when predicting probabilities, the randomForest will return a matrix, a column for each class, we are interested in the probability of an interaction (so the second column)
-- tune nodesize, mtry, and maxnodes
+- tune nodesize and mtry
 - use more features and do feature engineering!
 
 ::: {.callout-tip collapse="true" appearance="minimal" icon="false"}
@@ -767,7 +767,6 @@ set.seed(42)
 
 cv = 3
 hyper_minnodesize = sample(300, 20)
-hyper_mtry = sample(4, 20, replace = TRUE)
 split = sample.int(cv, nrow(data_obs), replace = TRUE)
 
 tuning_results =
@@ -778,8 +777,7 @@ tuning_results =
           train_inner = data_obs[!inner_split, ]
           test_inner = data_obs[inner_split, ]
           model = randomForest(interaction~.,data = train_inner,
-                               nodesize = hyper_minnodesize[k],
-                               mtry = hyper_mtry[k])
+                               nodesize = hyper_minnodesize[k])
           predictions = predict(model, test_inner, type="prob")[,2]
 
           auc_inner[j]= Metrics::auc(test_inner$interaction, predictions)
@@ -787,7 +785,7 @@ tuning_results =
       return(mean(auc_inner))
     })
 
-results = data.frame(minnodesize = hyper_minnodesize, mtry = hyper_mtry, AUC = tuning_results)
+results = data.frame(minnodesize = hyper_minnodesize, AUC = tuning_results)
 
 print(results)
 
@@ -800,8 +798,7 @@ Make predictions for the submission server:
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
 model = randomForest(interaction~.,data = data_obs,
-                     nodesize = best_hyper[1,1],
-                     mtry = best_hyper[1,2])
+                     nodesize = best_hyper[1,1])
 
 write.csv(data.frame(y = predict(model, newdata=data_new, type="prob")[,2]), file = "Max_plant_poll_rf.csv")
 ```
@@ -820,6 +817,7 @@ The multi-species SDM dataset requires some data tinkering. For example:
 Modelling strategies:
 
 * random forest implementations have weights arguments that can be used to put higher weights on specific levels (e.g. the rare species?)
+* tune nodesize
 
 The dataset is available for download on the submission server or [here](https://www.dropbox.com/scl/fi/2juk5nk5tb87pzzfflqo3/sdm.RData?rlkey=oicnumxp93qmvnw85mpmunrf5&st=b1azbdlk&dl=0) (for external participants)
 
