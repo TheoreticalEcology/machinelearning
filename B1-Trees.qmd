@@ -156,6 +156,8 @@ Important hyperparameters:
 
 ## Exercise - Trees
 
+The exercises come in two parts. The first three explore how complexity behaves for each method — a single regression tree, a random forest, and a boosted regression tree — by sweeping the hyperparameter that controls model complexity and watching the predictions change. The remaining exercises then tune and submit models on the titanic and plant-pollinator data.
+
 ::: exercise
 #### Understanding complexity in Regression Trees
 
@@ -182,6 +184,10 @@ Tasks:
 - The code snippet above returns NA for the RMSE, what is wrong in the snippet?
 - Read the `tree.control` documentation, what does the mincut parameter do?
 - Try different mincut values and check how the predictions (and the RMSE) change. What was wrong in the snippet above?
+
+**You should observe:** as `mincut` grows the tree gets coarser — the step function has fewer, wider steps, the training RMSE rises, and the predictions flatten out (more bias, less variance).
+
+Quick check — a very small `mincut` produces a tree that: `r webexercises::mcq(c(answer = "fits the training data closely but risks overfitting (high variance)", "is strongly regularized and underfits", "cannot be fitted at all"))`
 
 `r hide("Show solution")`
 
@@ -238,6 +244,10 @@ Tasks:
 
 - Check the documentation of the `randomForest` function and read the description of the nodesize parameter
 - Try different nodesize values and describe how the predictions change
+
+**You should observe:** larger `nodesize` forces each tree to stop splitting earlier, so the forest becomes smoother and more biased; very small `nodesize` lets the trees grow deep and fit noise.
+
+Quick check — increasing `nodesize` makes the random forest: `r webexercises::mcq(c(answer = "simpler (more bias, less variance)", "more complex (less bias, more variance)", "unaffected"))`
 
 `r hide("Show solution")`
 
@@ -326,6 +336,10 @@ Tasks:
 - Run the code above and try different **max_depth** values and describe what you see!
 
 Tip: have a look at the boosting.gif.
+
+**You should observe:** with a small `max_depth` each tree is a weak learner, so many boosting rounds are needed before the surface looks smooth; with a large `max_depth` the fit smooths out after only a few trees (but risks overfitting).
+
+Quick check — with a small `max_depth`, reaching a smooth fit requires: `r webexercises::mcq(c(answer = "more boosting rounds (trees)", "fewer boosting rounds", "a smaller learning rate only"))`
 
 `r hide("Show solution")`
 
@@ -425,7 +439,10 @@ data_obs = data_sub[!is.na(data_sub$survived),] # data with known response
 
 Tasks:
 
-- Tune eta and max depth!
+- Tune `eta` and `max_depth` via cross-validation, then submit your predictions and compare your AUC to yesterday's random forest.
+- **Interpret:** which of the two hyperparameters mattered more for your cross-validated AUC, and how does that map onto the bias-variance tradeoff?
+
+Quick check — we select hyperparameters by the cross-validated AUC rather than the training AUC because: `r webexercises::mcq(c(answer = "the training AUC keeps rising with complexity and would always pick the most complex model", "the training AUC cannot be computed for xgboost", "AUC is only defined out-of-sample"))`
 
 ::: {.callout-tip collapse="true" appearance="minimal"}
 ## Code template
@@ -528,13 +545,17 @@ write.csv(data.frame(y = predictions), file = "Max_titanic_xgboost.csv")
 ::::
 
 ::: exercise
-#### Bonus: Implement a BRT on your own!
+#### Bonus: Walk through a from-scratch BRT
 
-You can easily implement a BRT or boosted linear model using the rpart package or the lm function.
+A boosted regression tree is simpler than it looks: fit a weak model, compute the residuals, fit the next model to those residuals, and add it (down-weighted by `eta`) to the running prediction. Below is a complete, minimal implementation in base R that uses either a small `tree` or an `lm` as the weak learner. Your task here is **to read and understand it**, not to write it from scratch.
 
-`r hide("Show solution")`
+As you read, answer for yourself:
 
-Go through the code line by line and try to understand it. Ask, if you have any questions:
+- Where are the residuals computed, and which model is fit to them?
+- What does the first iteration (`i == 1`) do differently from all later iterations?
+- What role does `eta` play, and what happens to the ensemble as `eta` gets smaller?
+
+`r hide("Show the implementation")`
 
 ```{r chunk_chapter4_naivebrt_helpers, echo = TRUE}
 library(tree)
@@ -650,6 +671,10 @@ data_obs$survived = as.factor(data_obs$survived)
 
 - tune min node size (and mtry)
 - use more features
+
+**Interpret:** after tuning, where does the best minimum node size sit — at the smallest values, the largest, or somewhere in between? Relate the location of that optimum to the bias-variance tradeoff.
+
+Quick check — a larger minimum node size in the random forest tends to: `r webexercises::mcq(c(answer = "reduce variance by growing simpler trees", "reduce bias by growing deeper trees", "have no effect on complexity"))`
 
 ::: {.callout-tip collapse="true" appearance="minimal"}
 ## Code template

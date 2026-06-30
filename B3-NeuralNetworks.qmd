@@ -49,21 +49,14 @@ Variable importance can also be computed for non-tree algorithms (although it is
 
 Tasks such as regression and classification are fundamentally different; the former has continuous responses, while the latter has a discrete response. In ML algorithms, these different tasks can be represented by different loss functions (Classical ML algorithms also use loss functions but often they are automatically inferred, also neural networks are much more versatile, supporting more loss functions). Moreover, the tasks can differ even within regression or classification (e.g., in classification, we have binary classification (0 or 1) or multi-class classification (0, 1, or 2)). As a result, especially in DL, we have different specialized loss functions available for specific response types. The table below shows a list of supported loss functions in cito:
 
-+---------------------------+---------------------------------------+--------------------------------------------------+
-| Loss                      | Type                                  | Example                                          |
-+===========================+=======================================+==================================================+
-| mse (mean squared error)  | Regression                            | Numeric values                                   |
-+---------------------------+---------------------------------------+--------------------------------------------------+
-| mae (mean absolute error) | Regression                            | Numeric values, often used for skewed data       |
-+---------------------------+---------------------------------------+--------------------------------------------------+
-| cross-entropy             | Classification, multi-label           | Species                                          |
-+---------------------------+---------------------------------------+--------------------------------------------------+
-| cross-entropy             | Classification, binary or multi-class | Survived/non-survived, Multi-species/communities |
-+---------------------------+---------------------------------------+--------------------------------------------------+
-| binomial                  | Classification, binary or multi-class | Binomial likelihood                              |
-+---------------------------+---------------------------------------+--------------------------------------------------+
-| poisson                   | Regression                            | Count data                                       |
-+---------------------------+---------------------------------------+--------------------------------------------------+
+| Loss | Type | Example |
+|----|----|----|
+| mse (mean squared error) | Regression | Numeric values |
+| mae (mean absolute error) | Regression | Numeric values, often used for skewed data |
+| cross-entropy | Classification, multi-label | Species |
+| cross-entropy | Classification, binary or multi-class | Survived/non-survived, Multi-species/communities |
+| binomial | Classification, binary or multi-class | Binomial likelihood |
+| poisson | Regression | Count data |
 
 In the iris data, we model `Species` which has 3 response levels, so this is was what we call multilabel and it requires a cross-entropy link and a cross-entropy loss function, in cito we specify that by using the cross-entropy loss:
 
@@ -239,13 +232,18 @@ model_tuned$tuning
 ::: exercise
 #### Tune a DNN — Titanic dataset
 
-Tune architecture
+**Goal:** tune a deep neural network on the titanic data and submit your predictions.
 
-- Tune training parameters (learning rate, batch size) and regularization (lambda and alpha)
+**Tasks**
+
+- Tune the learning rate (`lr`) and the regularization (`lambda` and `alpha`).
+- **Interpret:** the learning rate is the parameter that most often breaks DNN training. From the loss curve, how can you tell that your learning rate is too high or too low?
+
+Quick check — if the training loss is very wiggly or jumps around instead of decreasing smoothly, the learning rate is most likely: `r webexercises::mcq(c(answer = "too high", "too low", "exactly right"))`
 
 **Hints**
 
-cito can automatically tune hyperparameters under Cross Validation!
+In the tree chapter you wrote the cross-validation loop by hand. cito can do the same thing automatically — it tunes hyperparameters under cross-validation for you:
 
 - passing `tune(...)` to a hyperparameter will tell cito to tune this specific hyperparameter
 - the `tuning = config_tuning(...)` let you specify the cross-validation strategy and the number of hyperparameters that should be tested (steps = number of hyperparameter combinations that should be tried)
@@ -380,94 +378,23 @@ write.csv(data.frame(y = predictions), file = "my_submission.csv")
 
 ```
 
-<!-- ```{r} -->
+#### A note on class imbalance
 
-<!-- library(EcoData) -->
+Before tuning, look at the response:
 
-<!-- library(missRanger) -->
+```{r chunk_nn_plantpoll_imbalance}
+table(data_obs$interaction)
+```
 
-<!-- library(dplyr) -->
-
-<!-- data(plantPollinator_df) -->
-
-<!-- plant_poll = plantPollinator_df -->
-
-<!-- plant_poll_imputed = plant_poll |> select(diameter, -->
-
-<!--                                            corolla, -->
-
-<!--                                            tongue, -->
-
-<!--                                            body, -->
-
-<!--                                            interaction, -->
-
-<!--                                            colour,  -->
-
-<!--                                            nectar, -->
-
-<!--                                            feeding, -->
-
-<!--                                            season) -->
-
-<!-- # Remove response variable interaction -->
-
-<!-- plant_poll_imputed = missRanger::missRanger(data = plant_poll_imputed |> -->
-
-<!--                                               select(-interaction), verbose = 0) -->
-
-<!-- # scale numeric variables -->
-
-<!-- plant_poll_imputed[,sapply(plant_poll_imputed, is.numeric)] = scale(plant_poll_imputed[,sapply(plant_poll_imputed, is.numeric)]) -->
-
-<!-- # Add response back to the dataset after the imputation -->
-
-<!-- plant_poll_imputed$interaction = plant_poll$interaction -->
-
-<!-- plant_poll_imputed$colour = as.factor(plant_poll_imputed$colour) -->
-
-<!-- plant_poll_imputed$nectar = as.factor(plant_poll_imputed$nectar) -->
-
-<!-- plant_poll_imputed$feeding = as.factor(plant_poll_imputed$feeding) -->
-
-<!-- plant_poll_imputed$season = as.factor(plant_poll_imputed$season) -->
-
-<!-- data_new = plant_poll_imputed[is.na(plant_poll_imputed$interaction), ] # for which we want to make predictions at the end -->
-
-<!-- data_obs = plant_poll_imputed[!is.na(plant_poll_imputed$interaction), ]# data with known response -->
-
-<!-- dim(data_obs) -->
-
-<!-- ``` -->
-
-<!-- The dataset is large! More than 10,000 observations. For now, let's switch to a simple holdout strategy for validating our model (e.g. use 80% of the data to train the model and 20% of the data to validate your model. -->
-
-<!-- Moreover: -->
-
-<!-- ```{r} -->
-
-<!-- table(data_obs$interaction) -->
-
-<!-- ``` -->
-
-<!-- The data is strongly imbalanced, i.e. many 0s but only a few 1. There are different strategies how to deal with that, for example oversampling the 1s or undersampling the 0s. -->
-
-<!-- Undersampling the 0s: -->
-
-<!-- ```{r} -->
-
-<!-- data_obs = data_obs[c(sample(which(data_obs$interaction == 0), 1000), which(data_obs$interaction == 1)),] -->
-
-<!-- table(data_obs$interaction) -->
-
-<!-- data_obs$interaction = as.integer(data_obs$interaction)-1 -->
-
-<!-- ``` -->
+The data are **strongly imbalanced** — there are far more non-interactions (0) than interactions (1). This matters for two reasons. First, a model can reach high *accuracy* simply by predicting "no interaction" every time, so accuracy is a misleading score here; we use the **AUC** instead, which measures how well the model ranks true interactions above non-interactions regardless of the class sizes. Second, you can optionally rebalance the training data — for example by **undersampling** the 0s or **oversampling** the 1s — so the network sees a less skewed mix. Both the loss choice and any rebalancing are modelling decisions worth experimenting with.
 
 Your Tasks:
 
-- Use cito to tune learning parameters and the regularization
-- Submit your predictions to <http://132.199.73.15:8500/>
+- Use cito to tune the learning parameters and the regularization (`lr`, `lambda`, `alpha`).
+- Submit your predictions to <http://132.199.73.15:8500/>.
+- **Interpret:** the data are imbalanced. Why do we score this task with the AUC rather than the accuracy, and would balancing the classes change which metric you should trust?
+
+Quick check — on a strongly imbalanced data set, a classifier that always predicts the majority class will have: `r webexercises::mcq(c(answer = "high accuracy but a poor (near-0.5) AUC", "low accuracy and a high AUC", "high accuracy and a high AUC"))`
 
 `r hide("Show solution")`
 
@@ -505,4 +432,16 @@ write.csv(data.frame(y = predictions), file = "Max_plant_.csv")
 ```
 
 `r unhide()`
+:::
+
+::: exercise
+#### Synthesis: compare the model families
+
+Over the tree and neural-network chapters you have fit a random forest, a boosted regression tree, and a deep neural network to the **same** titanic data. Collect the cross-validated AUCs you obtained for each method and put them side by side.
+
+- Which model family performed best on this data set, and by how much?
+- Was the difference large enough to matter, or are the methods roughly comparable here?
+- Titanic is a small, low-dimensional, tabular data set. Which of these methods would you expect to benefit most from much larger or higher-dimensional data?
+
+There is no single correct answer here — the point is to connect the methods you have learned and to build a sense of when each one is worth reaching for.
 :::

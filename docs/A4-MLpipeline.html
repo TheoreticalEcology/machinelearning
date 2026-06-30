@@ -870,16 +870,16 @@ Fitting final model...</code></pre>
 <pre><code># A tibble: 10 × 5
    steps  test train models     lr
    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;   &lt;dbl&gt;
- 1     1  321.     0 NA     0.0146
- 2     2  312.     0 NA     0.0284
- 3     3  318.     0 NA     0.0358
- 4     4  311.     0 NA     0.0815
- 5     5  318.     0 NA     0.0180
- 6     6  315.     0 NA     0.0526
- 7     7  354.     0 NA     0.0767
- 8     8  318.     0 NA     0.0296
- 9     9  312.     0 NA     0.0442
-10    10  311.     0 NA     0.0673</code></pre>
+ 1     1  319.     0 NA     0.0146
+ 2     2  317.     0 NA     0.0284
+ 3     3  312.     0 NA     0.0358
+ 4     4  307.     0 NA     0.0815
+ 5     5  317.     0 NA     0.0180
+ 6     6  312.     0 NA     0.0526
+ 7     7  329.     0 NA     0.0767
+ 8     8  314.     0 NA     0.0296
+ 9     9  313.     0 NA     0.0442
+10    10  319.     0 NA     0.0673</code></pre>
 </div>
 </div>
 <!-- ```{r} -->
@@ -1069,7 +1069,6 @@ Fitting final model...</code></pre>
  -->
 <section id="tune-a-random-forest-plant-pollinator" class="level4 exercise" data-number="4.4.0.1">
 <h4 data-number="4.4.0.1" class="anchored" data-anchor-id="tune-a-random-forest-plant-pollinator"><span class="header-section-number">4.4.0.1</span> Tune a random forest (Plant-pollinator)</h4>
-<p><span class="exercise-meta"><strong>Level:</strong> Intermediate · <strong>Time:</strong> ~40 min</span></p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 25%">
@@ -1141,27 +1140,28 @@ Code template
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
 <span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
-<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>hyper_minnodesize <span class="ot">=</span> ... <span class="co"># </span></span>
-<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>tuning_results <span class="ot">=</span></span>
-<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
-<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>        auc_inner <span class="ot">=</span> <span class="cn">NULL</span></span>
-<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
-<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>          inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
-<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">!=</span> j, ]</span>
-<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">==</span> j, ]</span>
-<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">randomForest</span>(interaction<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">nodesize =</span> hyper_minnodesize[k])</span>
-<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>          predictions <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata=</span>test_inner, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
-<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>interaction, predictions)</span>
-<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb48-21"><a href="#cb48-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
-<span id="cb48-22"><a href="#cb48-22" aria-hidden="true" tabindex="-1"></a>    })</span>
-<span id="cb48-23"><a href="#cb48-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-24"><a href="#cb48-24" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">minnodesize =</span> hyper_minnodesize, <span class="at">AUC =</span> tuning_results)</span>
-<span id="cb48-25"><a href="#cb48-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-26"><a href="#cb48-26" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>hyper_minnodesize <span class="ot">=</span> ... <span class="co">#</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>split <span class="ot">=</span> <span class="fu">sample.int</span>(cv, <span class="fu">nrow</span>(data_obs), <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>tuning_results <span class="ot">=</span></span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>        auc_inner <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>          inner_split <span class="ot">=</span> split <span class="sc">==</span> j</span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[<span class="sc">!</span>inner_split, ]</span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split, ]</span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">randomForest</span>(interaction<span class="sc">~</span>.,<span class="at">data =</span> train_inner, <span class="at">nodesize =</span> hyper_minnodesize[k])</span>
+<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a>          predictions <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata=</span>test_inner, <span class="at">type =</span> <span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
+<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>interaction, predictions)</span>
+<span id="cb48-21"><a href="#cb48-21" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb48-22"><a href="#cb48-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
+<span id="cb48-23"><a href="#cb48-23" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb48-24"><a href="#cb48-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-25"><a href="#cb48-25" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">minnodesize =</span> hyper_minnodesize, <span class="at">AUC =</span> tuning_results)</span>
+<span id="cb48-26"><a href="#cb48-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-27"><a href="#cb48-27" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -1198,56 +1198,57 @@ Attaching package: 'randomForest'</code></pre>
 <span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>cv <span class="ot">=</span> <span class="dv">3</span></span>
 <span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>hyper_minnodesize <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">300</span>, <span class="dv">20</span>)</span>
 <span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>hyper_mtry <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">4</span>, <span class="dv">20</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>tuning_results <span class="ot">=</span></span>
-<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
-<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>        auc_inner <span class="ot">=</span> <span class="cn">NULL</span></span>
-<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
-<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a>          inner_split <span class="ot">=</span> <span class="fu">as.integer</span>(<span class="fu">cut</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data_obs), <span class="at">breaks =</span> cv))</span>
-<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">!=</span> j, ]</span>
-<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split <span class="sc">==</span> j, ]</span>
-<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">randomForest</span>(interaction<span class="sc">~</span>.,<span class="at">data =</span> train_inner,</span>
-<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a>                               <span class="at">nodesize =</span> hyper_minnodesize[k],</span>
-<span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a>                               <span class="at">mtry =</span> hyper_mtry[k])</span>
-<span id="cb55-18"><a href="#cb55-18" aria-hidden="true" tabindex="-1"></a>          predictions <span class="ot">=</span> <span class="fu">predict</span>(model, test_inner, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
-<span id="cb55-19"><a href="#cb55-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-20"><a href="#cb55-20" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>interaction, predictions)</span>
-<span id="cb55-21"><a href="#cb55-21" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb55-22"><a href="#cb55-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
-<span id="cb55-23"><a href="#cb55-23" aria-hidden="true" tabindex="-1"></a>    })</span>
-<span id="cb55-24"><a href="#cb55-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-25"><a href="#cb55-25" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">minnodesize =</span> hyper_minnodesize, <span class="at">mtry =</span> hyper_mtry, <span class="at">AUC =</span> tuning_results)</span>
-<span id="cb55-26"><a href="#cb55-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-27"><a href="#cb55-27" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>split <span class="ot">=</span> <span class="fu">sample.int</span>(cv, <span class="fu">nrow</span>(data_obs), <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>tuning_results <span class="ot">=</span></span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>        auc_inner <span class="ot">=</span> <span class="cn">NULL</span></span>
+<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
+<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>          inner_split <span class="ot">=</span> split <span class="sc">==</span> j</span>
+<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[<span class="sc">!</span>inner_split, ]</span>
+<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split, ]</span>
+<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a>          model <span class="ot">=</span> <span class="fu">randomForest</span>(interaction<span class="sc">~</span>.,<span class="at">data =</span> train_inner,</span>
+<span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a>                               <span class="at">nodesize =</span> hyper_minnodesize[k],</span>
+<span id="cb55-18"><a href="#cb55-18" aria-hidden="true" tabindex="-1"></a>                               <span class="at">mtry =</span> hyper_mtry[k])</span>
+<span id="cb55-19"><a href="#cb55-19" aria-hidden="true" tabindex="-1"></a>          predictions <span class="ot">=</span> <span class="fu">predict</span>(model, test_inner, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
+<span id="cb55-20"><a href="#cb55-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-21"><a href="#cb55-21" aria-hidden="true" tabindex="-1"></a>          auc_inner[j]<span class="ot">=</span> Metrics<span class="sc">::</span><span class="fu">auc</span>(test_inner<span class="sc">$</span>interaction, predictions)</span>
+<span id="cb55-22"><a href="#cb55-22" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb55-23"><a href="#cb55-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">mean</span>(auc_inner))</span>
+<span id="cb55-24"><a href="#cb55-24" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb55-25"><a href="#cb55-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-26"><a href="#cb55-26" aria-hidden="true" tabindex="-1"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">minnodesize =</span> hyper_minnodesize, <span class="at">mtry =</span> hyper_mtry, <span class="at">AUC =</span> tuning_results)</span>
+<span id="cb55-27"><a href="#cb55-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-28"><a href="#cb55-28" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   minnodesize mtry       AUC
-1           49    2 0.5835193
-2          153    3 0.5714731
-3           74    3 0.5721217
-4          228    2 0.5566654
-5          146    2 0.5760548
-6          122    4 0.5712892
-7          300    4 0.5729671
-8          128    4 0.5787068
-9           24    2 0.5874661
-10          89    2 0.5768594
-11         165    1 0.5706318
-12         110    4 0.5826862
-13          20    1 0.5939613
-14         291    4 0.5671993
-15         283    2 0.5671889
-16         109    4 0.5753962
-17           5    2 0.5772464
-18         212    3 0.5783617
-19         259    4 0.5716520
-20         292    3 0.5612958</code></pre>
+1           49    2 0.6348316
+2          153    3 0.6061738
+3           74    3 0.6250314
+4          228    2 0.6054738
+5          146    2 0.6077705
+6          122    4 0.6191214
+7          300    4 0.5859413
+8          128    4 0.6127125
+9           24    2 0.6441290
+10          89    2 0.6219537
+11         165    1 0.6033750
+12         110    4 0.6225638
+13          20    1 0.6348779
+14         291    4 0.5835519
+15         283    2 0.5952524
+16         109    4 0.6263237
+17           5    2 0.6429440
+18         212    3 0.6068912
+19         259    4 0.5905256
+20         292    3 0.5938222</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co"># highest AUC / best hyperparameters</span></span>
 <span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>best_hyper <span class="ot">=</span> results[<span class="fu">which.max</span>(results<span class="sc">$</span>AUC),]</span>
 <span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(best_hyper)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>   minnodesize mtry       AUC
-13          20    1 0.5939613</code></pre>
+<pre><code>  minnodesize mtry      AUC
+9          24    2 0.644129</code></pre>
 </div>
 </div>
 <p>Make predictions for the submission server:</p>

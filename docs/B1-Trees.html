@@ -658,6 +658,7 @@ Day          15155.45</code></pre>
 </section>
 <section id="exercise---trees" class="level2" data-number="5.4">
 <h2 data-number="5.4" class="anchored" data-anchor-id="exercise---trees"><span class="header-section-number">5.4</span> Exercise - Trees</h2>
+<p>The exercises come in two parts. The first three explore how complexity behaves for each method — a single regression tree, a random forest, and a boosted regression tree — by sweeping the hyperparameter that controls model complexity and watching the predictions change. The remaining exercises then tune and submit models on the titanic and plant-pollinator data.</p>
 <section id="understanding-complexity-in-regression-trees" class="level4 exercise" data-number="5.4.0.1">
 <h4 data-number="5.4.0.1" class="anchored" data-anchor-id="understanding-complexity-in-regression-trees"><span class="header-section-number">5.4.0.1</span> Understanding complexity in Regression Trees</h4>
 <p>The goal of this exercise is to understand how the hyperparameter mincut (minsplit) affects the complexity of regression trees.</p>
@@ -682,6 +683,8 @@ Day          15155.45</code></pre>
 <li>Read the <code>tree.control</code> documentation, what does the mincut parameter do?</li>
 <li>Try different mincut values and check how the predictions (and the RMSE) change. What was wrong in the snippet above?</li>
 </ul>
+<p><strong>You should observe:</strong> as <code>mincut</code> grows the tree gets coarser — the step function has fewer, wider steps, the training RMSE rises, and the predictions flatten out (more bias, less variance).</p>
+<p>Quick check — a very small <code>mincut</code> produces a tree that: <select class="webex-select"><option value="blank"></option><option value="answer">fits the training data closely but risks overfitting (high variance)</option><option value="">is strongly regularized and underfits</option><option value="">cannot be fitted at all</option></select></p>
 <div class="webex-solution">
 <button>
 Show solution
@@ -850,6 +853,8 @@ Day          15155.45</code></pre>
 <li>Check the documentation of the <code>randomForest</code> function and read the description of the nodesize parameter</li>
 <li>Try different nodesize values and describe how the predictions change</li>
 </ul>
+<p><strong>You should observe:</strong> larger <code>nodesize</code> forces each tree to stop splitting earlier, so the forest becomes smoother and more biased; very small <code>nodesize</code> lets the trees grow deep and fit noise.</p>
+<p>Quick check — increasing <code>nodesize</code> makes the random forest: <select class="webex-select"><option value="blank"></option><option value="answer">simpler (more bias, less variance)</option><option value="">more complex (less bias, more variance)</option><option value="">unaffected</option></select></p>
 <div class="webex-solution">
 <button>
 Show solution
@@ -863,12 +868,12 @@ Show solution
 <span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(nodesize <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">15</span>, <span class="dv">50</span>, <span class="dv">100</span>)){</span>
 <span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(mtry <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">5</span>)){</span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>    rf <span class="ot">=</span> <span class="fu">randomForest</span>(Ozone<span class="sc">~</span>., <span class="at">data =</span> data, <span class="at">nodesize =</span> nodesize)</span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>    rf <span class="ot">=</span> <span class="fu">randomForest</span>(Ozone<span class="sc">~</span>., <span class="at">data =</span> data, <span class="at">nodesize =</span> nodesize, <span class="at">mtry =</span> mtry)</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>    pred <span class="ot">=</span> <span class="fu">predict</span>(rf, data)</span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot</span>(data<span class="sc">$</span>Temp, data<span class="sc">$</span>Ozone, <span class="at">main =</span> <span class="fu">paste0</span>(</span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">"    nodesize: "</span>, nodesize,</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">"    nodesize: "</span>, nodesize, <span class="st">"    mtry: "</span>, mtry,</span>
 <span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">"</span><span class="sc">\n</span><span class="st">RMSE: "</span>, <span class="fu">round</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((data<span class="sc">$</span>Ozone <span class="sc">-</span> pred)<span class="sc">^</span><span class="dv">2</span>)), <span class="dv">2</span>)</span>
 <span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>      )</span>
 <span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>    )</span>
@@ -1012,6 +1017,8 @@ Show solution
 <li>Run the code above and try different <strong>max_depth</strong> values and describe what you see!</li>
 </ul>
 <p>Tip: have a look at the boosting.gif.</p>
+<p><strong>You should observe:</strong> with a small <code>max_depth</code> each tree is a weak learner, so many boosting rounds are needed before the surface looks smooth; with a large <code>max_depth</code> the fit smooths out after only a few trees (but risks overfitting).</p>
+<p>Quick check — with a small <code>max_depth</code>, reaching a smooth fit requires: <select class="webex-select"><option value="blank"></option><option value="answer">more boosting rounds (trees)</option><option value="">fewer boosting rounds</option><option value="">a smaller learning rate only</option></select></p>
 <div class="webex-solution">
 <button>
 Show solution
@@ -1043,20 +1050,19 @@ Show solution
 <span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a>        pred <span class="ot">=</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> <span class="fu">as.matrix</span>(x),</span>
 <span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a>                       <span class="at">iteration_range =</span> <span class="fu">c</span>(<span class="dv">1</span>, i))</span>
 <span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a>        <span class="fu">image</span>(<span class="fu">matrix</span>(pred, <span class="dv">100</span>, <span class="dv">100</span>),</span>
-<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a>              <span class="at">main =</span> <span class="fu">paste0</span>(<span class="st">"eta: "</span>, eta,</span>
-<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a>                            <span class="st">"    max_depth: "</span>, max_depth,</span>
-<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a>                            <span class="st">"    Trees: "</span>, i),</span>
-<span id="cb30-30"><a href="#cb30-30" aria-hidden="true" tabindex="-1"></a>              <span class="at">axes =</span> <span class="cn">FALSE</span>, <span class="at">las =</span> <span class="dv">2</span>)</span>
-<span id="cb30-31"><a href="#cb30-31" aria-hidden="true" tabindex="-1"></a>        <span class="fu">axis</span>(<span class="dv">1</span>, <span class="at">at =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>),</span>
-<span id="cb30-32"><a href="#cb30-32" aria-hidden="true" tabindex="-1"></a>             <span class="at">labels =</span> <span class="fu">round</span>(<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="dv">1</span>))</span>
-<span id="cb30-33"><a href="#cb30-33" aria-hidden="true" tabindex="-1"></a>        <span class="fu">axis</span>(<span class="dv">2</span>, <span class="at">at =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>),</span>
-<span id="cb30-34"><a href="#cb30-34" aria-hidden="true" tabindex="-1"></a>             <span class="at">labels =</span> <span class="fu">round</span>(<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="dv">1</span>), <span class="at">las =</span> <span class="dv">2</span>)</span>
-<span id="cb30-35"><a href="#cb30-35" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb30-36"><a href="#cb30-36" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb30-37"><a href="#cb30-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">movie.name =</span> <span class="fu">paste0</span>(<span class="st">"boosting_"</span>, max_depth, <span class="st">"_"</span>, eta, <span class="st">".gif"</span>),</span>
-<span id="cb30-38"><a href="#cb30-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">autobrowse =</span> <span class="cn">FALSE</span></span>
-<span id="cb30-39"><a href="#cb30-39" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb30-40"><a href="#cb30-40" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a>              <span class="at">main =</span> <span class="fu">paste0</span>(<span class="st">"max_depth: "</span>, max_depth,</span>
+<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a>                            <span class="st">"    Trees: "</span>, i),</span>
+<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a>              <span class="at">axes =</span> <span class="cn">FALSE</span>, <span class="at">las =</span> <span class="dv">2</span>)</span>
+<span id="cb30-30"><a href="#cb30-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">axis</span>(<span class="dv">1</span>, <span class="at">at =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>),</span>
+<span id="cb30-31"><a href="#cb30-31" aria-hidden="true" tabindex="-1"></a>             <span class="at">labels =</span> <span class="fu">round</span>(<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="dv">1</span>))</span>
+<span id="cb30-32"><a href="#cb30-32" aria-hidden="true" tabindex="-1"></a>        <span class="fu">axis</span>(<span class="dv">2</span>, <span class="at">at =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>),</span>
+<span id="cb30-33"><a href="#cb30-33" aria-hidden="true" tabindex="-1"></a>             <span class="at">labels =</span> <span class="fu">round</span>(<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="at">length.out =</span> <span class="dv">10</span>), <span class="dv">1</span>), <span class="at">las =</span> <span class="dv">2</span>)</span>
+<span id="cb30-34"><a href="#cb30-34" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb30-35"><a href="#cb30-35" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb30-36"><a href="#cb30-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">movie.name =</span> <span class="fu">paste0</span>(<span class="st">"boosting_"</span>, max_depth, <span class="st">".gif"</span>),</span>
+<span id="cb30-37"><a href="#cb30-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">autobrowse =</span> <span class="cn">FALSE</span></span>
+<span id="cb30-38"><a href="#cb30-38" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb30-39"><a href="#cb30-39" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We see that for high values of max_depth, the predictions “smooth out” faster. On the other hand, with a low max_depth (low complexity of the individual trees), more trees are required in the ensemble to achieve a smooth prediction surface.</p>
 <div class="cell" data-layout-align="center">
@@ -1149,8 +1155,10 @@ Attaching package: 'dplyr'</code></pre>
 </div>
 <p>Tasks:</p>
 <ul>
-<li>Tune eta and max depth!</li>
+<li>Tune <code>eta</code> and <code>max_depth</code> via cross-validation, then submit your predictions and compare your AUC to yesterday’s random forest.</li>
+<li><strong>Interpret:</strong> which of the two hyperparameters mattered more for your cross-validated AUC, and how does that map onto the bias-variance tradeoff?</li>
 </ul>
+<p>Quick check — we select hyperparameters by the cross-validated AUC rather than the training AUC because: <select class="webex-select"><option value="blank"></option><option value="answer">the training AUC keeps rising with complexity and would always pick the most complex model</option><option value="">the training AUC cannot be computed for xgboost</option><option value="">AUC is only defined out-of-sample</option></select></p>
 <div class="callout callout-style-simple callout-tip no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -1171,18 +1179,18 @@ Code template
 <span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>split <span class="ot">=</span> <span class="fu">sample.int</span>(cv, <span class="fu">nrow</span>(data_obs), <span class="at">replace =</span> T)</span>
 <span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="co"># sample minnodesize values (must be integers)</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="co"># sample max_depth and eta values</span></span>
 <span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>hyper_depth <span class="ot">=</span> ...</span>
 <span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>hyper_eta <span class="ot">=</span> ...</span>
 <span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>tuning_results <span class="ot">=</span></span>
-<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_minnodesize), <span class="cf">function</span>(k) {</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(hyper_depth), <span class="cf">function</span>(k) {</span>
 <span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>        auc_inner <span class="ot">=</span> <span class="cn">NULL</span></span>
 <span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>cv) {</span>
-<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>          split <span class="ot">=</span> outer_split <span class="sc">==</span> j</span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>          inner_split <span class="ot">=</span> split <span class="sc">==</span> j</span>
 <span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>          train_inner <span class="ot">=</span> data_obs[<span class="sc">!</span>inner_split, ]</span>
 <span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>          test_inner <span class="ot">=</span> data_obs[inner_split, ]</span>
-<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>          X <span class="ot">=</span> <span class="fu">as.matrix</span>(train_inner[,<span class="sc">-</span><span class="dv">1</span>])</span>
 <span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a>          Y <span class="ot">=</span> train_inner<span class="sc">$</span>survived</span>
 <span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a>          </span>
@@ -1214,7 +1222,7 @@ Show solution
 <span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>split <span class="ot">=</span> <span class="fu">sample.int</span>(cv, <span class="fu">nrow</span>(data_obs), <span class="at">replace =</span> T)</span>
 <span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="co"># sample minnodesize values (must be integers)</span></span>
-<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>hyper_depth <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">200</span>, <span class="dv">20</span>)</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>hyper_depth <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">10</span>, <span class="dv">20</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>hyper_eta <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">20</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
 <span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a></span>
@@ -1246,26 +1254,26 @@ Show solution
 <span id="cb39-38"><a href="#cb39-38" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   depth        eta       AUC
-1     63 0.81336270 0.8088256
-2    190 0.87043248 0.8201780
-3     19 0.01916128 0.8112944
-4     21 0.82474818 0.8137307
-5    107 0.40126850 0.8217586
-6    191 0.67205829 0.8121808
-7     98 0.11867222 0.8237562
-8    116 0.47642434 0.8174708
-9    135 0.92533996 0.8124207
-10   177 0.57483934 0.8209580
-11    68 0.91275158 0.8159786
-12   173 0.75530192 0.8225130
-13   115 0.63099992 0.8178626
-14    65 0.79442065 0.8199347
-15    92 0.92354646 0.8119721
-16    81 0.16446881 0.8225268
-17   164 0.19288394 0.8193275
-18   162 0.09764267 0.8192394
-19   155 0.82910940 0.8155969
-20   154 0.80586396 0.8138524</code></pre>
+1      4 0.92533996 0.8202916
+2      6 0.57483934 0.8049049
+3      2 0.91275158 0.8361786
+4      3 0.75530192 0.8326217
+5      5 0.63099992 0.8263257
+6      8 0.79442065 0.8118904
+7      2 0.92354646 0.8360385
+8      5 0.16446881 0.8170554
+9      4 0.19288394 0.8181299
+10     2 0.09764267 0.8166034
+11     2 0.82910940 0.8341741
+12     5 0.80586396 0.8238113
+13    10 0.27926999 0.8145355
+14     3 0.44902958 0.8318698
+15    10 0.62587871 0.8099457
+16     6 0.37092142 0.8212375
+17     9 0.38231895 0.8147488
+18     4 0.91448088 0.8315798
+19     3 0.39029775 0.8380767
+20     8 0.07029376 0.8100687</code></pre>
 </div>
 </div>
 <p>Make predictions:</p>
@@ -1281,14 +1289,19 @@ Show solution
 </div>
 </div>
 </section>
-<section id="bonus-implement-a-brt-on-your-own" class="level4 exercise" data-number="5.4.0.5">
-<h4 data-number="5.4.0.5" class="anchored" data-anchor-id="bonus-implement-a-brt-on-your-own"><span class="header-section-number">5.4.0.5</span> Bonus: Implement a BRT on your own!</h4>
-<p>You can easily implement a BRT or boosted linear model using the rpart package or the lm function.</p>
+<section id="bonus-walk-through-a-from-scratch-brt" class="level4 exercise" data-number="5.4.0.5">
+<h4 data-number="5.4.0.5" class="anchored" data-anchor-id="bonus-walk-through-a-from-scratch-brt"><span class="header-section-number">5.4.0.5</span> Bonus: Walk through a from-scratch BRT</h4>
+<p>A boosted regression tree is simpler than it looks: fit a weak model, compute the residuals, fit the next model to those residuals, and add it (down-weighted by <code>eta</code>) to the running prediction. Below is a complete, minimal implementation in base R that uses either a small <code>tree</code> or an <code>lm</code> as the weak learner. Your task here is <strong>to read and understand it</strong>, not to write it from scratch.</p>
+<p>As you read, answer for yourself:</p>
+<ul>
+<li>Where are the residuals computed, and which model is fit to them?</li>
+<li>What does the first iteration (<code>i == 1</code>) do differently from all later iterations?</li>
+<li>What role does <code>eta</code> play, and what happens to the ensemble as <code>eta</code> gets smaller?</li>
+</ul>
 <div class="webex-solution">
 <button>
-Show solution
+Show the implementation
 </button>
-<p>Go through the code line by line and try to understand it. Ask, if you have any questions:</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tree)</span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="do">#### Helper function for single tree fit.</span></span>
@@ -1423,6 +1436,8 @@ Show solution
 <li>tune min node size (and mtry)</li>
 <li>use more features</li>
 </ul>
+<p><strong>Interpret:</strong> after tuning, where does the best minimum node size sit — at the smallest values, the largest, or somewhere in between? Relate the location of that optimum to the bias-variance tradeoff.</p>
+<p>Quick check — a larger minimum node size in the random forest tends to: <select class="webex-select"><option value="blank"></option><option value="answer">reduce variance by growing simpler trees</option><option value="">reduce bias by growing deeper trees</option><option value="">have no effect on complexity</option></select></p>
 <div class="callout callout-style-simple callout-tip no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
