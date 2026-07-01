@@ -886,9 +886,7 @@ Minimal example
 
 ```{r chunk_sdm_reshape22, eval=FALSE}
 load("sdm.RData")
-
 library(cito)
-
 
 trainX = sdm_env$train
 testX = sdm_env$test
@@ -896,15 +894,25 @@ testX = sdm_env$test
 trainX = missRanger::missRanger(trainX, num.trees = 50L)
 testX = missRanger::missRanger(testX, num.trees = 50L)
 
-trainXs = scale(trainX)[, 1:10]
-testXs = scale(testX)[, 1:10]
+human_footprint = rowSums(trainX[,44:65])
+landcover = rowSums(trainX[,31:43])
+trainX = trainX[,2:30]
+trainX$human_footprint = human_footprint
+trainX$landcover = landcover
+human_footprint = rowSums(testX[,44:65])
+landcover = rowSums(testX[,31:43])
+testX = testX[,2:30]
+testX$human_footprint = human_footprint
+testX$landcover = landcover
+
+
+trainXs = scale(trainX)
+testXs = scale(testX)
 
 colnames(trainXs) = stringr::str_remove(colnames(trainXs), "-")
 colnames(trainXs) = stringr::str_remove(colnames(trainXs), "-")
 colnames(testXs) = colnames(trainXs)
 
-trainXs = trainXs[, - c(1)]
-testXs = testXs[, - c(1)]
 ```
 
 
@@ -912,7 +920,8 @@ Fit the model
 
 ```{r chunk_sdm_model3, eval=FALSE}
 library(cito)
-m = dnn(X = as.data.frame(trainXs), Y = Y_train, loss = "bernoulli", ce = FALSE, lr = 0.1, epochs = 200L )
+m = dnn(X = as.data.frame(trainXs), Y = Y_train, loss = "bernoulli", ce = FALSE, lr = 0.02, epochs = 2000L,dropout = 0.3,
+        optimizer = config_optimizer("ignite_adam", weigth_decay = 0.001), hidden = c(100L, 100L, 100L))
 
 probs = predict(m, newdata = testXs, type = "response") 
 

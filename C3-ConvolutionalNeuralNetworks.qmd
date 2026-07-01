@@ -7,13 +7,12 @@ fig-cap-location: margin
 
 # Convolutional Neural Networks (CNN)
 
-```{r}
+```{r chunk_c3_setup}
 #| include: false
 knitr::opts_chunk$set(fig.align = "center")
 ```
 
-
-```{r}
+```{r chunk_c3_init}
 #| echo: false
 #| include: false
 #| results: false
@@ -99,13 +98,13 @@ summary(model)
 plot(model)
 ```
 
-
 ## cito
 
 We are currently working on providing a userfriendly interface to CNN in cito:
 
 Configure architecture:
-```{r}
+
+```{r chunk_c3_mnist_cito_arch}
 library(cito)
 architecture = create_architecture(
   conv(n_kernels = 16L, kernel_size = 2L, activation = "relu"),
@@ -115,7 +114,6 @@ architecture = create_architecture(
   linear(100L, activation = "relu")
   )
 ```
-
 
 ## Torch
 
@@ -171,8 +169,8 @@ conv1 = nn_conv2d(1, 16L, 2L, stride = 1L)
 
 Output: batch_size = 32, number of feature maps = 16, dimensions of each feature map = $(27 , 27)$ Wit a kernel size of two and stride = 1 we will lose one pixel in each dimension... Questions:
 
--   What happens if we increase the stride?
--   What happens if we increase the kernel size?
+- What happens if we increase the stride?
+- What happens if we increase the kernel size?
 
 **Pooling layer summarizes each feature map**
 
@@ -296,10 +294,10 @@ model |>
 
 Fit model:
 
-```{r}
+```{r chunk_c3_mnist_cito_fit}
 # Note: cito wants the channels on the second position!
 model.cito = cnn(X = aperm(train_x, c(1, 4, 2, 3)), 
-                 Y = apply(train_y, 1, which.max), 
+                 Y = as.factor(apply(train_y, 1, which.max)), 
                  loss = "softmax", 
                  architecture = architecture, 
                  batchsize = 128L,
@@ -310,17 +308,16 @@ model.cito = cnn(X = aperm(train_x, c(1, 4, 2, 3)),
 
 Visualize model:
 
-```{r}
+```{r chunk_c3_mnist_cito_plot}
 plot(model.cito)
 ```
 
 Evaluation:
 
-```{r}
+```{r chunk_c3_mnist_cito_eval}
 pred = predict(model.cito, newdata = aperm(test_x, c(1, 4, 2, 3)), type = "response")
 mean(apply(test_y, 1, which.max) == apply(pred, 1, which.max))
 ```
-
 
 ## Torch
 
@@ -382,12 +379,11 @@ test_accuracy
 CIFAR10 is another famous image classification dataset. It consists of ten classes with colored images (see https://www.cs.toronto.edu/\~kriz/cifar.html).
 
 ::: panel-tabset
-
-
-## Keras 
+## Keras
 
 Prepare data, now with 3 channels (colored images):
-```{r}
+
+```{r chunk_c3_cifar_keras_data}
 library(keras3)
 data = keras3::dataset_cifar10()
 train = data$train
@@ -395,11 +391,10 @@ test = data$test
 image = train$x[1,,,]
 image |>  
  image_to_array() |>
- `/`(., 255) |>
+  (\(x) x / 255)() |> 
  as.raster() |>
  plot()
 ```
-
 
 ```{r chunk_chapter5_24_cifar, eval=FALSE}
 ## normalize pixel to 0-1
@@ -436,10 +431,9 @@ model |> fit(
 )
 ```
 
-
 ## torch
 
-```{r}
+```{r chunk_c3_cifar_torch_data}
 train_ds = cifar10_dataset(
   ".",
   download = TRUE,
@@ -464,7 +458,7 @@ df$x$size()
 
 Model:
 
-```{r}
+```{r chunk_c3_cifar_torch_model}
 net = nn_module(
   "mnist",
   initialize = function(dropout_rate = 0.3){
@@ -496,7 +490,8 @@ net = nn_module(
 ```
 
 Train model:
-```{r,eval=FALSE}
+
+```{r chunk_c3_cifar_torch_train, eval=FALSE}
 model_torch = net()
 opt = optim_adam(params = model_torch$parameters, lr = 0.01)
 
@@ -516,10 +511,9 @@ for(e in 1:3){
 }
 ```
 
-
 ## cito
 
-```{r}
+```{r chunk_c3_cifar_cito_fit}
 train_x = array(train$x/255, c(dim(train$x)))
 test_x = array(test$x/255, c(dim(test$x)))
 train_y = keras3::to_categorical(train$y)
@@ -537,7 +531,7 @@ architecture = create_architecture(
   )
 
 model.cito = cnn(X = train_x, 
-                 Y = apply(train_y, 1, which.max), 
+                 Y = as.factor(apply(train_y, 1, which.max)), 
                  loss = "softmax", 
                  architecture = architecture, 
                  batchsize = 128L,
@@ -549,13 +543,13 @@ model.cito = cnn(X = train_x,
 
 Architecture:
 
-```{r}
+```{r chunk_c3_cifar_cito_plot}
 plot(model.cito)
 ```
 
 Explainable AI:
 
-```{r}
+```{r chunk_c3_cifar_cito_xai}
 library(torch)
 observation = 19
 Xt = torch::torch_tensor(train_x[1:20,,,], requires_grad = TRUE)
@@ -568,21 +562,17 @@ for(i in 1:3) fields::image.plot(as.array(grads[[1]]) [observation,i,,])
 image = aperm(train_x[observation,,,]*255., c(2, 3, 1))
 image |>  
  image_to_array() |>
- `/`(., 255) |>
+  (\(x) x / 255)() |> 
  as.raster() |>
  plot()
 
 par(old_par)
 ```
-
-
-
-
 :::
 
 ## Exercise
 
-::: {.callout-caution icon="false"}
+::: exercise
 #### Task: CNN for flower dataset
 
 The next exercise is based on the flower dataset in the Ecodata package.
@@ -593,12 +583,12 @@ Finally, submit your predictions to the submission server. If you have extra tim
 
 Tasks:
 
--   If you are unsure how do it, take a look at the solution and try to make the model more complex (e.g. add convolutional layers, regularization, etc.)
--   Take a look at this [notebook from kaggle](https://www.kaggle.com/code/rajmehra03/flower-recognition-cnn-keras) , try to copy their architecture (it is the same dataset but upsized (i.e. more pixels, the only difference is the input dimension))
+- If you are unsure how do it, take a look at the solution and try to make the model more complex (e.g. add convolutional layers, regularization, etc.)
+- Take a look at this [notebook from kaggle](https://www.kaggle.com/code/rajmehra03/flower-recognition-cnn-keras) , try to copy their architecture (it is the same dataset but upsized (i.e. more pixels, the only difference is the input dimension))
 
 Prepare data:
 
-```{r}
+```{r chunk_c3_flower_data}
 library(tensorflow)
 library(keras3)
 
@@ -614,7 +604,7 @@ test_torch = aperm(test, c(1, 4, 2, 3))
 
 Plot flower:
 
-```{r}
+```{r chunk_c3_flower_plot}
 train[100,,,] |>
   image_to_array() |>
   as.raster() |>
@@ -623,13 +613,11 @@ train[100,,,] |>
 
 **Tip:** Take a look at the dataset chapter.
 
-:::
-
 `r hide("Click here to see the solution for a minimal Torch example")`
 
 Build model:
 
-```{r}
+```{r chunk_c3_flower_torch_model}
 net = nn_module(
   "flower",
   initialize = function(dropout_rate = 0.3){
@@ -674,7 +662,7 @@ for(e in 1:3){
 
 Predictions:
 
-```{r}
+```{r chunk_c3_flower_torch_predict}
 # Prediction on training data:
 model_torch$eval()
 predictions = model_torch(torch_tensor(train_torch))
@@ -698,7 +686,7 @@ write.csv(data.frame(y = pred), file = "cnn.csv")
 
 Build model:
 
-```{r}
+```{r chunk_c3_flower_keras_model}
 model = keras_model_sequential(shape(80L, 80L, 3L))
 model |> 
   layer_conv_2d(filters = 4L, kernel_size = 2L) |> 
@@ -718,7 +706,7 @@ model |>
 
 Predictions:
 
-```{r}
+```{r chunk_c3_flower_keras_predict}
 # Prediction on training data:
 pred = apply(model |> predict(train), 1, which.max)
 Metrics::accuracy(pred - 1L, labels)
@@ -733,7 +721,7 @@ table(pred)
 
 `r hide("Click here to see the solution for a minimal cito example")`
 
-```{r}
+```{r chunk_c3_flower_cito_model}
 architecture = create_architecture(
   conv(n_kernels = 8L, kernel_size = 2L, activation = "relu"),
   maxPool(),
@@ -741,7 +729,7 @@ architecture = create_architecture(
   )
 
 model.cito = cnn(X = aperm(train, c(1, 4, 2, 3)) , 
-                 Y = labels+1L, 
+                 Y = as.factor(labels+1L), 
                  loss = "softmax", 
                  architecture = architecture, 
                  batchsize = 128L,
@@ -753,17 +741,14 @@ model.cito = cnn(X = aperm(train, c(1, 4, 2, 3)) ,
 pred = predict(model.cito, newdata = aperm(test, c(1, 4, 2, 3)), type = "response") |> apply(1, which.max) - 1L
 ```
 
-
-
 Submission:
 
-```{r}
+```{r chunk_c3_flower_cito_submission}
 write.csv(data.frame(y = pred), file = "cnn.csv")
 ```
 
-
 `r unhide()`
-
+:::
 
 ## Advanced Training Techniques
 
@@ -841,7 +826,6 @@ model |> fit(train_ds, epochs = 2L)
 ```
 
 Using data augmentation we can artificially increase the number of images.
-
 
 ## Torch
 
@@ -936,7 +920,7 @@ rm(data)
 image = train$x[5,,,]
 image |>
   image_to_array() |> 
-  `/`(., 255) |>
+  (\(x) x / 255)() |> 
   as.raster() |>
   plot()
 
@@ -999,10 +983,9 @@ model |>
   )
 ```
 
-
 ## cito
 
-```{r, eval=FALSE}
+```{r chunk_c3_transfer_cito, eval=FALSE}
 train_x = array(train$x/255, c(dim(train$x)))
 test_x = array(test$x/255, c(dim(test$x)))
 train_y =train$y
@@ -1016,8 +999,6 @@ resnet <- cnn(train_x, train_y+1, transfer_architecture, loss = "softmax",
               optimizer = "adam",
               epochs = 1, validation = 0.1, lr = 0.001)
 ```
-
-
 
 ## Torch
 
@@ -1091,7 +1072,6 @@ print(test_accuracy)
 Let's do that with our flower data set:
 
 ::: panel-tabset
-
 ## Keras
 
 ```{r chunk_chapter5_33, eval=FALSE}
@@ -1151,10 +1131,9 @@ model |>
   fit(train_ds, epochs = 5L)
 ```
 
-
 ## cito
 
-```{r,eval=FALSE}
+```{r chunk_c3_transfer_flower_cito, eval=FALSE}
 data = EcoData::dataset_flower()
 train = data$train/255
 train = aperm(train, c(1, 4, 2, 3))
@@ -1167,10 +1146,9 @@ resnet <- cnn(train, labels+1, transfer_architecture, loss = "softmax",
 
 ```
 
-
 ## torch
 
-```{r}
+```{r chunk_c3_transfer_flower_torch_model}
 library(keras3)
 library(tensorflow)
 
@@ -1218,8 +1196,7 @@ net_pretrained = nn_module(
 
 ```
 
-
-```{r}
+```{r chunk_c3_transfer_flower_torch_data}
 # dataloaders
 train_indices = sample.int(dim(train)[1], 2500)
 Xtorch = train[train_indices,,,] |> torch_tensor()
@@ -1239,8 +1216,7 @@ train_dl = torch::dataloader(dataset_train, batch_size = 150L, shuffle = TRUE)
 val_dl = torch::dataloader(dataset_val, batch_size = 150L, shuffle = FALSE)
 ```
 
-
-```{r}
+```{r chunk_c3_transfer_flower_torch_train}
 model = net_pretrained()
 
 # l2 regularization
@@ -1285,9 +1261,7 @@ for(e in 1:epochs) {
 
 ```
 
-```{r}
+```{r chunk_c3_transfer_flower_torch_plot}
 matplot(cbind(overall_train_loss, overall_val_loss), type = "l", lty = 1, col = c("#2262AA", "#F82211"), xlab = "epoch", ylab = "Loss")
 ```
-
-
 :::
