@@ -475,8 +475,10 @@ testX = sdm_env$test
 trainX = missRanger::missRanger(trainX, num.trees = 50L)
 testX = missRanger::missRanger(testX, num.trees = 50L)
 
-trainXs = scale(trainX)[, 1:10]
-testXs = scale(testX)[, 1:10]
+cols_sel = sapply(trainX, sd) > 0.001
+
+trainXs = scale(trainX)[, cols_sel]
+testXs = scale(testX)[, cols_sel]
 
 colnames(trainXs) = stringr::str_remove(colnames(trainXs), "-")
 colnames(trainXs) = stringr::str_remove(colnames(trainXs), "-")
@@ -484,16 +486,20 @@ colnames(testXs) = colnames(trainXs)
 
 trainXs = trainXs[, - c(1)]
 testXs = testXs[, - c(1)]
+testXs[is.na(testXs)] = 0.0
+
 ```
+
 
 
 Fit the model
 
 ```{r chunk_sdm_modeldwa, eval=FALSE}
 library(cito)
-m = dnn(X = as.data.frame(trainXs), Y = Y_train, loss = "bernoulli", ce = FALSE, lr = 0.1, epochs = 200L )
+m = dnn(X = as.data.frame(trainXs), Y = Y_train, loss = "bernoulli", ce = FALSE, hidden = c(100, 100, 100), lr = 0.01, epochs = 70L,dropout = 0.3, optimizer = config_optimizer("adam", weight_decay = 0.001 ))
 
-probs = predict(m, newdata = testXs, type = "response") 
+probs = predict(m, newdata = (testXs), type = "response") 
+
 
 ```
 
@@ -505,5 +511,9 @@ write.csv(data.frame(y = as.vector(probs)),
 ```
 
 
+
 ::::
+
+
+
 

@@ -12,7 +12,6 @@ fig-cap-location: margin
 knitr::opts_chunk$set(fig.align = "center")
 ```
 
-
 ```{r}
 #| echo: false
 #| include: false
@@ -25,11 +24,10 @@ tf
 tf$abs(3.)
 ```
 
-The goal of explainable AI (xAI, aka interpretable machine learning) is to explain **why** a fitted machine learning model makes certain predictions. A typical example is to understand how important different variables are for predictions. The incentives for doing so range from a better technical understanding of the models over understanding which data is important for improving predictions to questions of fairness and discrimination (e.g. to understand if an algorithm uses skin color to make a decision).
+The goal of explainable AI (xAI, aka interpretable machine learning) is to explain **why** a fitted machine learning model makes certain predictions. A typical example is to understand how important different variables are for predictions. The incentives for doing so range from a better technical understanding of the models, through understanding which data is important for improving predictions, to questions of fairness and discrimination (e.g. to understand if an algorithm uses skin color to make a decision).
 
 ## A Practical Example
 
-In this lecture we will work with an African Elephant occurrence dataset.
 
 We will fit a random forest and use the iml package for xAI, see <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>.
 
@@ -40,11 +38,11 @@ library(EcoData)
 library(cito)
 set.seed(123)
 
+load("sdm.RData")
 
-data = EcoData::elephant$occurenceData
-head(data)
-?EcoData::elephant
-
+X = scale(sdm_env$train[,2:20])
+Y = Y_train[,4] # we analyze the fourth species
+df = data.frame(Presence = Y, X)
 ```
 
 Meaning of the bioclim variables:
@@ -72,30 +70,30 @@ Meaning of the bioclim variables:
 | bio19 | Precipitation of Coldest Quarter |
 
 ```{r, eval=FALSE}
-rf = ranger(as.factor(Presence) ~ ., data = data, probability = TRUE)
+rf = ranger(as.factor(Presence) ~ ., data = df, probability = TRUE)
 ```
 
-::: callout-note
-## ranger Package
+<!-- ::: callout-note -->
+<!-- ## ranger Package -->
 
-The ranger package provides an alternative implementation of the random forest algorithm. The implementation in the ranger package is one of the fastest available, which is especially important for explainable AI. Most xAI tools require hundreds of predictions (e.g. feature importance permutes each feature n times to calculate the performance drop), so a fast implementation of the ML algorithm is crucial.
+<!-- The ranger package provides an alternative implementation of the random forest algorithm. The implementation in the ranger package is one of the fastest available, which is especially important for explainable AI. Most xAI tools require hundreds of predictions (e.g. feature importance permutes each feature n times to calculate the performance drop), so a fast implementation of the ML algorithm is crucial. -->
 
-**Important**:
+<!-- **Important**: -->
 
-For binary classification tasks, it is critical to change the response variable to a factor before fitting ranger! Otherwise, ranger will use the first value in the response variable as "Class 1"!
-:::
+<!-- For binary classification tasks, it is critical to change the response variable to a factor before fitting ranger! Otherwise, ranger will use the first value in the response variable as "Class 1"! -->
+<!-- ::: -->
 
-The cito package has quite extensive xAI functionalities. However, ranger, as most other machine learning packages, has no extensive xAI functionalities. Thus, to do xAI with ranger, we have to use a generic xAI package that can handle almost all machine learning models.
+The cito package has quite extensive xAI functionalities. However, ranger, like most other machine learning packages, has no extensive xAI functionalities. Thus, to do xAI with ranger, we have to use a generic xAI package that can handle almost all machine learning models.
 
-When we want to use such a generic package, we first have to create a predictor object, that holds the model and the data. The `iml` package uses R6 classes, that means new objects can be created by calling `Predictor$new()`. (Do not worry if you do not know what R6 classes are, just use the command.)
+When we want to use such a generic package, we first have to create a predictor object that holds the model and the data. The `iml` package uses R6 classes, which means new objects can be created by calling `Predictor$new()`. (Do not worry if you do not know what R6 classes are, just use the command.)
 
-To make the xAI tools available to many different packages/algorithms, the `iml` package expects that the ML algorithm specific predict method to be wrapped in a generic predict function in the form of `function(model, newdata) predict(model, newdata)` and the function wrapper should return a vector of predictions:
+To make the xAI tools available to many different packages/algorithms, the `iml` package expects the ML-algorithm-specific predict method to be wrapped in a generic predict function in the form of `function(model, newdata) predict(model, newdata)`, and the function wrapper should return a vector of predictions:
 
 ```{r chunk_chapter6_1, eval=FALSE}
 
 predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions[,2]
 
-predictor = Predictor$new(rf, data = data[,-1], y = data[,1], predict.function = predict_wrapper)
+predictor = Predictor$new(rf, data = df[,-1], y = df[,1], predict.function = predict_wrapper)
 predictor$task = "classif" # set task to classification
 # "Predictor" is an object generator.
 ```
@@ -109,26 +107,26 @@ imp = FeatureImp$new(predictor, loss = "ce")
 plot(imp)
 ```
 
-bio9 (Precipitation of the wettest Quarter) is the most important variable.
+bio9 (Mean Temperature of Driest Quarter) is the most important variable.
 
 ## Partial Dependencies
 
 Partial dependencies are similar to `allEffects` plots for normal regressions. The idea is to visualize "marginal effects" of predictors (with the "feature" argument we specify the variable we want to visualize):
 
 ```{r chunk_chapter6_3, eval=FALSE}
-eff = FeatureEffect$new(predictor, feature = "bio9", method = "pdp",
-                        grid.size = 30)
+eff = FeatureEffect$new(predictor, feature = "Bio14", method = "pdp",
+                        grid.size = 10)
 plot(eff)
 ```
 
-One disadvantage of partial dependencies is that they are sensitive to correlated predictors. Accumulated local effects can be used for accounting for correlation of predictors.
+One disadvantage of partial dependencies is that they are sensitive to correlated predictors. Accumulated local effects can be used to account for correlation between predictors.
 
 ## Accumulated Local Effects
 
-Accumulated local effects (ALE) are basically partial dependencies plots but try to correct for correlations between predictors.
+Accumulated local effects (ALE) are basically partial dependence plots but try to correct for correlations between predictors.
 
 ```{r chunk_chapter6_5, eval=FALSE}
-ale = FeatureEffect$new(predictor, feature = "bio9", method = "ale")
+ale = FeatureEffect$new(predictor, feature = "Bio14", method = "ale")
 ale$plot()
 ```
 
@@ -136,16 +134,16 @@ If there is no collinearity, you shouldn't see much difference between partial d
 
 ## Friedman's H-statistic
 
-The H-statistic can be used to find interactions between predictors. However, again, keep in mind that the H-statistic is sensible to correlation between predictors:
+The H-statistic can be used to find interactions between predictors. However, again, keep in mind that the H-statistic is sensitive to correlation between predictors:
 
 ```{r chunk_chapter6_6, message=FALSE, warning=FALSE, eval=FALSE}
-interact = Interaction$new(predictor, "bio9",grid.size = 5L)
+interact = Interaction$new(predictor, "Bio14",grid.size = 5L)
 plot(interact)
 ```
 
 ## Global Explainer - Simplifying the Machine Learning Model
 
-Another idea is simplifying the machine learning model with another simpler model such as a decision tree. We create predictions with the machine learning model for a lot of different input values and then we fit a decision tree on these predictions. We can then interpret the easier model.
+Another idea is to simplify the machine learning model with a simpler model such as a decision tree. We create predictions with the machine learning model for a lot of different input values and then we fit a decision tree on these predictions. We can then interpret the simpler model.
 
 ```{r chunk_chapter6_7, results='hide', message=FALSE, warning=FALSE, eval=FALSE}
 library(partykit)
@@ -156,39 +154,39 @@ plot(tree$tree)
 
 ## Local Explainer - LIME Explaining Single Instances (observations)
 
-The global approach is to simplify the entire machine learning-black-box model via a simpler model, which is then interpretable.
+The global approach is to simplify the entire machine-learning black-box model via a simpler model, which is then interpretable.
 
-However, sometimes we are only interested in understanding how single predictions are generated. The LIME (Local interpretable model-agnostic explanations) approach explores the feature space around one observation and based on this locally fits a simpler model (e.g. a linear model):
+However, sometimes we are only interested in understanding how single predictions are generated. The LIME (Local Interpretable Model-agnostic Explanations) approach explores the feature space around one observation and, based on this, fits a simpler model locally (e.g. a linear model):
 
 ```{r chunk_chapter6_8, message=FALSE, warning=FALSE, eval=FALSE}
-lime.explain = LocalModel$new(predictor, x.interest = data[1,-1])
+lime.explain = LocalModel$new(predictor, x.interest = df[1,-1])
 lime.explain$results
 plot(lime.explain)
 ```
 
 ## Local Explainer - Shapley
 
-The Shapley method computes the so called Shapley value, feature contributions for single predictions, and is based on an approach from cooperative game theory. The idea is that each feature value of the instance is a "player" in a game, where the prediction is the reward. The Shapley value tells us how to fairly distribute the reward among the features.
+The Shapley method computes the so-called Shapley value, feature contributions for single predictions, and is based on an approach from cooperative game theory. The idea is that each feature value of the instance is a "player" in a game, where the prediction is the reward. The Shapley value tells us how to fairly distribute the reward among the features.
 
 ```{r chunk_chapter6_9, eval=FALSE}
-shapley = Shapley$new(predictor, x.interest = data[1,-1])
+shapley = Shapley$new(predictor, x.interest = df[1,-1])
 shapley$plot()
 ```
 
 ## Uncertainties - the bootstrap
 
-Standard xAI method do not provide reliable uncertainties on the fitted curves. If you want uncertainties or p-values, the most common method is the bootstrap.
+Standard xAI methods do not provide reliable uncertainties on the fitted curves. If you want uncertainties or p-values, the most common method is the bootstrap.
 
-In a bootstrap, instead of splitting up the data in test / validation, we sample from the data with replacement and fit the models repeatedly. The idea is to get an estimate about the variability we would expect if we created another dataset of the same size.
+In a bootstrap, instead of splitting up the data into test / validation, we sample from the data with replacement and fit the models repeatedly. The idea is to get an estimate of the variability we would expect if we created another dataset of the same size.
 
 ```{r, eval=FALSE}
 k = 10 # bootstrap samples
-n = nrow(data)
+n = nrow(df)
 error = rep(NA, k)
 
 for(i in 1:k){
   bootSample = sample.int(n, n, replace = TRUE)
-  rf = ranger(as.factor(Presence) ~ ., data = data[bootSample,], probability = TRUE)
+  rf = ranger(as.factor(Presence) ~ ., data = df[bootSample,], probability = TRUE)
   error[i] = rf$prediction.error
 }
 
@@ -197,12 +195,12 @@ hist(error, main = "uncertainty of in-sample error")
 
 Note that the distinction between bootstrap and validation / cross-validation is as follows:
 
--   Validation / cross-validation estimates out-of-sample predictive error
--   Bootstrap estimates uncertainty / confidence interval on all model outputs (could be prediction and inference).
+- Validation / cross-validation estimates out-of-sample predictive error
+- Bootstrap estimates uncertainty / confidence interval on all model outputs (could be prediction and inference).
 
 ## Exercises
 
-:::: exercise
+::: exercise
 #### xAI in cito
 
 Data preparation
@@ -211,15 +209,13 @@ Data preparation
 library(iml)
 library(cito)
 library(EcoData)
-library(cito)
 
-
-data = EcoData::elephant$occurenceData
-head(data)
-?EcoData::elephant
-
+load("sdm.RData")
+X = scale(sdm_env$train[,2:20])
+Y = Y_train[,4] # we analyze the fourth species
+df = data.frame(Presence = as.factor(Y), X)
 # we will subsample data (absences) to reduce runtime
-data_sub = data[sample.int(nrow(data), 500),]
+data_sub = df[sample.int(nrow(df), 500),]
 
 ```
 
@@ -231,9 +227,9 @@ model = dnn(Presence~., data = data_sub, batchsize = 200L,loss = "binomial", ver
 
 Try the following commands:
 
--   `summary(dnn, n_permute = 10)`
--   `PDP(dnn)`
--   `ALE(dnn)`
+- `summary(model, n_permute = 10)`
+- `PDP(model)`
+- `ALE(model)`
 
 Moreover, try to refit the model with the option `bootstrap = 5`. This may take a short while. Observe how the xAI options change.
 
@@ -253,152 +249,171 @@ ALE(model)
 ```
 
 `r unhide()`
-::::
-
-:::: exercise
-#### Interpret a fitted model (Titanic)
-
-Use the Titanic_ml dataset and fit a random forest, dnn or a BRT using xgboost. Explore / interpret the fitted model using `iml` (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>).
-
-Tip:
-
-If you use iml, you need to provide a proper prediction function wrapper:
-
-```{r, eval=FALSE}
-# random Forest (ranger), regression:
-predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions
-
-# random Forest (ranger), classification:
-predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions[,2]
-
-# xgboost:
-predict_wrapper = function(model, newdata) predict(model, as.matrix(newdata))
-```
-
-Prepare the data
-
-```{r, eval=FALSE}
-library(EcoData)
-library(dplyr)
-library(missRanger) # for imputation
+:::
 
 
-data = titanic_ml
+::: exercise
+#### Interpret your models
 
-# feature selection
-data = data |> select(survived, sex, age, fare, pclass)# play around with the features
+Use the iml package to interpret the models you built for the challenges, and calculate:
 
-# imputation - remove response variable!
-head(data)
-data_imputed = data
-data_imputed[,-1] = missRanger(data_imputed[,-1])
-summary(data_imputed)
+* Feature importance
+* Accumulated local effect plots
+* Partial dependency plots
 
-data_imputed = data_imputed |> 
-  mutate(age = (age - mean(age))/sd(age), fare = (fare - mean(fare))/sd(fare),
-         sex = as.integer(sex), pclass = as.integer(pclass))
-
-data_obs = data_imputed[!is.na(data_imputed$survived), ]
-data_new = data_imputed[is.na(data_imputed$survived), ]
-```
-
-`r hide("Show solution — RF")`
-
-```{r , message=FALSE, warning=FALSE, eval=FALSE}
-library(ranger)
-library("iml")
-set.seed(1234)
-data_obs$survived = as.factor(data_obs$survived)
-
-rf = ranger(survived ~ ., data = data_obs, importance = "impurity", probability = TRUE)
-
-# For submission:
-#write.csv(data.frame(y=predict(rf, data_new)$predictions[,2]), file = "wine_RF.csv")
-
-# Standard depiction of importance:
-ranger::importance(rf)
-
-# Setup wrapper
-predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions[,2]
-
-
-# IML:
-predictor = Predictor$new(
-    rf, data = data_obs[,which(names(data_obs) != "survived")], y = as.integer(data_obs$survived)-1,
-    predict.function = predict_wrapper
-    )
-
-# Mind: This is stochastical!
-importance = FeatureImp$new(predictor, loss = "logLoss")
-
-plot(importance)
-
-# Comparison between standard importance and IML importance:
-importanceRf = names(rf$variable.importance)[order(rf$variable.importance, decreasing = TRUE)]
-importanceIML = importance$results[1]
-comparison = cbind(importanceIML, importanceRf)
-colnames(comparison) = c("IML", "RF")
-as.matrix(comparison)
-```
-
-Mind that feature importance, and the random forest's variable importance are related but not equal! Variable importance is a measure for determining importance while creating the forest (i.e. for fitting). Feature importance is a measure for how important a variable is for prediction.
-
-Maybe you want to see other explanation methods as well. Surely you can use the other techniques of this section on your own.
-
-`r unhide()`
-
-`r hide("Show solution — xgboost")`
-
-```{r chunk_chapter6_task_00, message=FALSE, warning=FALSE, eval=FALSE}
-library(xgboost)
-library("iml")
-set.seed(1234)
-
-
-data_xg = xgb.DMatrix(
-  data = as.matrix(data_obs[,which(names(data_obs) != "survived")]),
-  label = as.integer(data_obs$survived)-1
-)
-brt = xgboost(data_xg, nrounds = 24, objective = "reg:logistic")
-
-
-# For submission:
-#write.csv(round(predict(brt, data_new)), file = "wine_RF.csv")
-
-# Standard depiction of importance:
-xgboost::xgb.importance(model = brt)
-
-# Setup wrapper
-predict_wrapper = function(model, newdata) predict(model, as.matrix(newdata))
-
-
-# IML:
-predictor = Predictor$new(
-    brt, data = data_obs[,which(names(data_obs) != "survived")], y = as.integer(data_obs$survived)-1,
-    predict.function = predict_wrapper
-    )
-
-# Mind: This is stochastical!
-importance = FeatureImp$new(predictor, loss = "logLoss")
-
-plot(importance)
+Here is a predict_wrapper for the ranger package
+```{r}
+predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions[,2] 
 
 ```
 
-`r unhide()`
 
-`r hide("Show solution — cito")`
+::: 
 
-```{r chunk_chapter6_task_0, message=FALSE, warning=FALSE, eval=FALSE}
-library(cito)
-data_obs$survived = as.integer(data_obs$survived) - 1
-nn = dnn(survived~., data = data_obs, loss = "binomial", lr= 0.03, epochs = 300)
+<!-- ::: exercise -->
+<!-- #### Interpret a fitted model (Titanic) -->
 
-summary(nn)
-```
+<!-- Use the Titanic_ml dataset and fit a random forest, dnn or a BRT using xgboost. Explore / interpret the fitted model using `iml` (see also the book: <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank" rel="noopener">https://christophm.github.io/interpretable-ml-book/</a>). -->
 
-`r unhide()`
-::::
+<!-- Tip: -->
+
+<!-- If you use iml, you need to provide a proper prediction function wrapper: -->
+
+<!-- ```{r, eval=FALSE} -->
+<!-- # random Forest (ranger), regression: -->
+<!-- predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions -->
+
+<!-- # random Forest (ranger), classification: -->
+<!-- predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions[,2] -->
+
+<!-- # xgboost: -->
+<!-- predict_wrapper = function(model, newdata) predict(model, as.matrix(newdata)) -->
+<!-- ``` -->
+
+<!-- Prepare the data -->
+
+<!-- ```{r, eval=FALSE} -->
+<!-- library(EcoData) -->
+<!-- library(dplyr) -->
+<!-- library(missRanger) # for imputation -->
+
+
+<!-- data = titanic_ml -->
+
+<!-- # feature selection -->
+<!-- data = data |> select(survived, sex, age, fare, pclass)# play around with the features -->
+
+<!-- # imputation - remove response variable! -->
+<!-- head(data) -->
+<!-- data_imputed = data -->
+<!-- data_imputed[,-1] = missRanger(data_imputed[,-1]) -->
+<!-- summary(data_imputed) -->
+
+<!-- data_imputed = data_imputed |>  -->
+<!--   mutate(age = (age - mean(age))/sd(age), fare = (fare - mean(fare))/sd(fare), -->
+<!--          sex = as.integer(sex), pclass = as.integer(pclass)) -->
+
+<!-- data_obs = data_imputed[!is.na(data_imputed$survived), ] -->
+<!-- data_new = data_imputed[is.na(data_imputed$survived), ] -->
+<!-- ``` -->
+
+<!-- `r hide("Show solution — RF")` -->
+
+<!-- ```{r , message=FALSE, warning=FALSE, eval=FALSE} -->
+<!-- library(ranger) -->
+<!-- library("iml") -->
+<!-- set.seed(1234) -->
+<!-- data_obs$survived = as.factor(data_obs$survived) -->
+
+<!-- rf = ranger(survived ~ ., data = data_obs, importance = "impurity", probability = TRUE) -->
+
+<!-- # For submission: -->
+<!-- #write.csv(data.frame(y=predict(rf, data_new)$predictions[,2]), file = "wine_RF.csv") -->
+
+<!-- # Standard depiction of importance: -->
+<!-- ranger::importance(rf) -->
+
+<!-- # Setup wrapper -->
+<!-- predict_wrapper = function(model, newdata) predict(model, data=newdata)$predictions[,2] -->
+
+
+<!-- # IML: -->
+<!-- predictor = Predictor$new( -->
+<!--     rf, data = data_obs[,which(names(data_obs) != "survived")], y = as.integer(data_obs$survived)-1, -->
+<!--     predict.function = predict_wrapper -->
+<!--     ) -->
+
+<!-- # Mind: This is stochastical! -->
+<!-- importance = FeatureImp$new(predictor, loss = "logLoss") -->
+
+<!-- plot(importance) -->
+
+<!-- # Comparison between standard importance and IML importance: -->
+<!-- importanceRf = names(rf$variable.importance)[order(rf$variable.importance, decreasing = TRUE)] -->
+<!-- importanceIML = importance$results[1] -->
+<!-- comparison = cbind(importanceIML, importanceRf) -->
+<!-- colnames(comparison) = c("IML", "RF") -->
+<!-- as.matrix(comparison) -->
+<!-- ``` -->
+
+<!-- Mind that feature importance, and the random forest's variable importance are related but not equal! Variable importance is a measure for determining importance while creating the forest (i.e. for fitting). Feature importance is a measure for how important a variable is for prediction. -->
+
+<!-- Maybe you want to see other explanation methods as well. Surely you can use the other techniques of this section on your own. -->
+
+<!-- `r unhide()` -->
+
+<!-- `r hide("Show solution — xgboost")` -->
+
+<!-- ```{r chunk_chapter6_task_00, message=FALSE, warning=FALSE, eval=FALSE} -->
+<!-- library(xgboost) -->
+<!-- library("iml") -->
+<!-- set.seed(1234) -->
+
+
+<!-- data_xg = xgb.DMatrix( -->
+<!--   data = as.matrix(data_obs[,which(names(data_obs) != "survived")]), -->
+<!--   label = as.integer(data_obs$survived)-1 -->
+<!-- ) -->
+<!-- brt = xgboost(data_xg, nrounds = 24, objective = "reg:logistic") -->
+
+
+<!-- # For submission: -->
+<!-- #write.csv(round(predict(brt, data_new)), file = "wine_RF.csv") -->
+
+<!-- # Standard depiction of importance: -->
+<!-- xgboost::xgb.importance(model = brt) -->
+
+<!-- # Setup wrapper -->
+<!-- predict_wrapper = function(model, newdata) predict(model, as.matrix(newdata)) -->
+
+
+<!-- # IML: -->
+<!-- predictor = Predictor$new( -->
+<!--     brt, data = data_obs[,which(names(data_obs) != "survived")], y = as.integer(data_obs$survived)-1, -->
+<!--     predict.function = predict_wrapper -->
+<!--     ) -->
+
+<!-- # Mind: This is stochastical! -->
+<!-- importance = FeatureImp$new(predictor, loss = "logLoss") -->
+
+<!-- plot(importance) -->
+
+<!-- ``` -->
+
+<!-- `r unhide()` -->
+
+<!-- `r hide("Show solution — cito")` -->
+
+<!-- ```{r chunk_chapter6_task_0, message=FALSE, warning=FALSE, eval=FALSE} -->
+<!-- library(cito) -->
+<!-- data_obs$survived = as.integer(data_obs$survived) - 1 -->
+<!-- nn = dnn(survived~., data = data_obs, loss = "binomial", lr= 0.03, epochs = 300) -->
+
+<!-- summary(nn) -->
+<!-- ``` -->
+
+<!-- `r unhide()` -->
+<!-- ::: -->
 
 <!-- ::: callout-warning -->
 

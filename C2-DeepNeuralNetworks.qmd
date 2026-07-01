@@ -12,7 +12,6 @@ fig-cap-location: margin
 knitr::opts_chunk$set(fig.align = "center")
 ```
 
-
 ```{r}
 #| echo: false
 #| include: false
@@ -106,15 +105,19 @@ The Torch syntax is very similar, we will give a list of layers to the "nn_seque
 model_torch = 
   nn_sequential(
     nn_linear(4L, 20L),
+    nn_relu(),
     nn_linear(20L, 20L),
+    nn_relu(),
     nn_linear(20L, 20L),
+    nn_relu(),
     nn_linear(20L, 3L),
     nn_softmax(2)
   )
+
 ```
 :::
 
--   softmax scales a potential multidimensional vector to the interval $(0, 1]$ for each component. The sum of all components equals 1. This might be very useful for example for handling probabilities. **Ensure ther the labels start at 0! Otherwise the softmax function does not work well!**
+- softmax scales a potential multidimensional vector to the interval $(0, 1]$ for each component. The sum of all components equals 1. This might be very useful for example for handling probabilities. **Ensure ther the labels start at 0! Otherwise the softmax function does not work well!**
 
 **3. Compile the model with a loss function (here: cross entropy) and an optimizer (here: Adamax).**
 
@@ -276,7 +279,6 @@ mean(preds_torch == as.integer(iris$Species))
 oldpar = par()
 ```
 
-
 ```{r chunk_chapter3_79, cache=TRUE, eval=TRUE}
 par(mfrow = c(1, 2))
 plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species,
@@ -289,19 +291,18 @@ plot(iris$Sepal.Length, iris$Petal.Length, col = preds,
 par(oldpar)   # Reset par.
 ```
 
-
 So you see, building a neural network is very easy with Keras or Torch and you can already do it on your own.
 
 ## Exercise
 
-:::: callout-warning
+:::: exercise
 #### Task: Regression with keras
 
 We now build a regression for the airquality data set with Keras/Torch. We want to predict the variable "Ozone" (continuous).
 
 Tasks:
 
--   **Fill in the missing steps**
+- **Fill in the missing steps**
 
 ::: panel-tabset
 ## Keras
@@ -361,8 +362,8 @@ model |>
   layer_dense(units = 1L, activation = "linear")
 ```
 
--   Why do we use 5L as input shape?
--   Why only one output node and "linear" activation layer?
+- Why do we use 5L as input shape?
+- Why only one output node and "linear" activation layer?
 
 `r hide("Solution")`
 
@@ -475,8 +476,8 @@ model_torch =
   )
 ```
 
--   Why do we use 5L as input shape?
--   Why only one output node and no activation layer?
+- Why do we use 5L as input shape?
+- Why only one output node and no activation layer?
 
 `r hide("Solution")`
 
@@ -587,9 +588,9 @@ for(i in 1:steps){
 
 Tips:
 
--   Number of training \$ steps = Number of rows / batchsize \* Epochs \$
--   Search torch::nnf\_... for the correct loss function (mse...)
--   Make sure that X_torch and Y_torch have the same data type! (you can set the dtype via torch_tensor(..., dtype = ...)) \_ Check the dimension of Y_torch, we need a matrix!
+- Number of training \$ steps = Number of rows / batchsize \* Epochs \$
+- Search torch::nnf\_... for the correct loss function (mse...)
+- Make sure that X_torch and Y_torch have the same data type! (you can set the dtype via torch_tensor(..., dtype = ...)) \_ Check the dimension of Y_torch, we need a matrix!
 
 6.  **Plot training history.**
 
@@ -625,13 +626,13 @@ print(rmse_torch)
 :::
 ::::
 
-::: callout-warning
+::: exercise
 #### Task: Titanic dataset
 
 Build a Keras DNN for the titanic dataset
-:::
 
 `r hide("Solution Torch")`
+
 ```{r}
 library(EcoData)
 library(dplyr)
@@ -660,6 +661,7 @@ Xtest = data_new[,-1] |> as.matrix() |> torch_tensor()
 ```
 
 Dataset:
+
 ```{r}
 train_indices = 1:400
 val_indices = 401:nrow(Xtorch)
@@ -676,7 +678,6 @@ df[[1]] |> head()
 df[[2]] |> head()
 
 ```
-
 
 Model:
 
@@ -778,18 +779,17 @@ matplot(cbind(overall_train_loss, overall_val_loss), type = "l", lty = 1, col = 
 ```
 
 Predictions
+
 ```{r}
 model$eval()
 predictions = model(Xtest)
 predictions = as.numeric(predictions)
 ```
 
-
-
 `r unhide()`
+:::
 
-
-::::: callout-warning
+::::: exercise
 #### Bonus Task: More details on the inner working of Keras
 
 The next task differs for Torch and Keras users. Keras users will learn more about the inner working of training while Torch users will learn how to simplify and generalize the training loop.
@@ -1072,9 +1072,9 @@ for(epoch in 1:epochs){
 
 Remarks:
 
--   Mind the different input and output layer numbers.
--   The loss function increases randomly, because different subsets of the data were drawn. This is a downside of stochastic gradient descent.
--   A positive thing about stochastic gradient descent is, that local valleys or hills may be left and global ones can be found instead.
+- Mind the different input and output layer numbers.
+- The loss function increases randomly, because different subsets of the data were drawn. This is a downside of stochastic gradient descent.
+- A positive thing about stochastic gradient descent is, that local valleys or hills may be left and global ones can be found instead.
 :::::
 
 ## Underlying mathematical concepts - optional {#basicMath}
@@ -1083,17 +1083,17 @@ If are not yet familiar with the underlying concepts of neural networks and want
 
 ***This might be useful to understand the further concepts in more depth.***
 
--   (<a href="https://en.wikipedia.org/wiki/Newton%27s_method#Description" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Newton%27s_method#Description</a> (Especially the animated graphic is interesting).)
+- (<a href="https://en.wikipedia.org/wiki/Newton%27s_method#Description" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Newton%27s_method#Description</a> (Especially the animated graphic is interesting).)
 
--   <a href="https://en.wikipedia.org/wiki/Gradient_descent#Description" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Gradient_descent#Description</a>
+- <a href="https://en.wikipedia.org/wiki/Gradient_descent#Description" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Gradient_descent#Description</a>
 
--   <a href="https://mlfromscratch.com/neural-networks-explained/#/" target="_blank" rel="noopener">Neural networks (Backpropagation, etc.)</a>.
+- <a href="https://mlfromscratch.com/neural-networks-explained/#/" target="_blank" rel="noopener">Neural networks (Backpropagation, etc.)</a>.
 
--   <a href="https://mlfromscratch.com/activation-functions-explained/#/" target="_blank" rel="noopener">Activation functions in detail</a> (requires the above as prerequisite).
+- <a href="https://mlfromscratch.com/activation-functions-explained/#/" target="_blank" rel="noopener">Activation functions in detail</a> (requires the above as prerequisite).
 
 ***Videos about the topic***:
 
--   **Gradient descent explained**
+- **Gradient descent explained**
 
 ```{r chunk_chapter3_35, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -1105,7 +1105,7 @@ cat(
 )
 ```
 
--   (Stochastic gradient descent explained)
+- (Stochastic gradient descent explained)
 
 ```{r chunk_chapter3_36, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -1117,7 +1117,7 @@ cat(
 )
 ```
 
--   (Entropy explained)
+- (Entropy explained)
 
 ```{r chunk_chapter3_37, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -1129,7 +1129,7 @@ cat(
 )
 ```
 
--   **Short explanation of entropy, cross entropy and Kullback--Leibler divergence**
+- **Short explanation of entropy, cross entropy and Kullback--Leibler divergence**
 
 ```{r chunk_chapter3_38, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -1141,7 +1141,7 @@ cat(
 )
 ```
 
--   **Deep Learning (chapter 1)**
+- **Deep Learning (chapter 1)**
 
 ```{r chunk_chapter3_39, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -1153,7 +1153,7 @@ cat(
 )
 ```
 
--   **How neural networks learn - Deep Learning (chapter 2)**
+- **How neural networks learn - Deep Learning (chapter 2)**
 
 ```{r chunk_chapter3_40, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -1165,7 +1165,7 @@ cat(
 )
 ```
 
--   **Backpropagation - Deep Learning (chapter 3)**
+- **Backpropagation - Deep Learning (chapter 3)**
 
 ```{r chunk_chapter3_41, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
@@ -1177,7 +1177,7 @@ cat(
 )
 ```
 
--   **Another video about backpropagation (extends the previous one) - Deep Learning (chapter 4)**
+- **Another video about backpropagation (extends the previous one) - Deep Learning (chapter 4)**
 
 ```{r chunk_chapter3_42, eval=knitr::is_html_output(excludes = "epub"), results = 'asis', echo = F}
 cat(
