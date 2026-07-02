@@ -623,7 +623,7 @@ net = nn_module(
   initialize = function(dropout_rate = 0.3){
     self$conv1 = nn_conv2d(3, 8L, 4L) # 8, 77, 77 -> 8, 19, 19
     self$dropout1 = nn_dropout2d(p = dropout_rate)
-    self$fc1 = nn_linear(2888, 10L)
+    self$fc1 = nn_linear(2888, 5L)
   },
   forward = function(x){
     x |>
@@ -701,7 +701,7 @@ model |>
           optimizer = optimizer_adamax(learning_rate = 0.01))
 
 model |> 
-  fit(x = train, y = keras::k_one_hot(labels, 5L))
+  fit(x = train, y = keras3::to_categorical(labels, 5L))
 ```
 
 Predictions:
@@ -1018,6 +1018,25 @@ library(torch)
 torch_manual_seed(321L)
 set.seed(123)
 
+net = nn_module(
+  "flower",
+  initialize = function(dropout_rate = 0.3){
+    self$conv1 = nn_conv2d(3, 8L, 4L) # 8, 77, 77 -> 8, 19, 19
+    self$dropout1 = nn_dropout2d(p = dropout_rate)
+    self$fc1 = nn_linear(2888, 5L)
+  },
+  forward = function(x){
+    x |>
+      self$conv1() |> 
+      nnf_relu() |>
+      self$dropout1() |> 
+      nnf_max_pool2d(4) |> 
+      torch_flatten(start_dim = 2) |> 
+      self$fc1()
+  }
+)
+
+
 train_transforms = function(img){
   img |>
     transform_to_tensor() |>
@@ -1198,15 +1217,31 @@ test_ds = cifar10_dataset(".", download = TRUE, train = FALSE,
 train_dl = dataloader(train_ds, batch_size = 100L, shuffle = TRUE)
 test_dl = dataloader(test_ds, batch_size = 100L)
 
-model_torch = model_resnet18(pretrained = TRUE)
 
-# We will set all model parameters to constant values:
-model_torch$parameters |>
-  purrr::walk(function(param) param$requires_grad_(FALSE))
 
-# Let's replace the last layer (last layer is named 'fc') with our own layer:
-inFeat = model_torch$fc$in_features
-model_torch$fc = nn_linear(inFeat, out_features = 10L)
+net = nn_module(
+  "flower",
+  initialize = function(dropout_rate = 0.3, freeze = TRUE){
+    model_torch = model_resnet18(pretrained = TRUE)
+    
+    self$dropout1 = nn_dropout(dropout_rate)
+    # We will set all model parameters to constant values:
+    model_torch$parameters |>
+        purrr::walk(function(param) param$requires_grad_(FALSE))
+    self$model_torch = model_torch
+    self$fc1 = nn_linear(1000L, 10L)
+  },
+  forward = function(x){
+    x |>
+      self$model_torch() |> 
+      nnf_relu() |>
+      self$dropout1() |> 
+      self$fc1()
+  }
+)
+
+
+model_torch = net()
 
 opt = optim_adam(params = model_torch$parameters, lr = 0.01)
 
@@ -1349,32 +1384,29 @@ train_transforms = function(img){
 
 ## model 
 
-model_torch = model_resnet18(pretrained = TRUE)
-
-# We will set all model parameters to constant values:
-model_torch$parameters |>
-  purrr::walk(function(param) param$requires_grad_(FALSE))
-
-# Let's replace the last layer (last layer is named 'fc') with our own layer:
-inFeat = model_torch$fc$in_features
-model_torch$fc = nn_linear(inFeat, out_features = 10L)
-
-
-net_pretrained = nn_module(
-  initialize = function(rate = 0.5, freeze_weights = TRUE) {
-    pretrained_model = model_resnet18(pretrained = TRUE)
-    if(freeze_weights) {
-      pretrained_model$parameters |>
-          purrr::walk(function(param) param$requires_grad_(FALSE))
-    }
-    self$pretrained_model = pretrained_model
-    self$dropout = nn_dropout(rate)
-    self$output_layer = nn_linear(pretrained_model$fc$out_features, 5L)
+net = nn_module(
+  "flower",
+  initialize = function(dropout_rate = 0.3, freeze = TRUE){
+    model_torch = model_resnet18(pretrained = TRUE)
+    
+    self$dropout1 = nn_dropout(dropout_rate)
+    # We will set all model parameters to constant values:
+    model_torch$parameters |>
+        purrr::walk(function(param) param$requires_grad_(FALSE))
+    self$model_torch = model_torch
+    self$fc1 = nn_linear(1000L, 5L)
   },
-  forward = function(x) {
-    x |> self$pretrained_model() |> self$dropout() |> self$output_layer() 
+  forward = function(x){
+    x |>
+      self$model_torch() |> 
+      nnf_relu() |>
+      self$dropout1() |> 
+      self$fc1() |> 
+      torch::nnf_sigmoid()
   }
 )
+
+
 
 ```
 
@@ -1399,7 +1431,7 @@ val_dl = torch::dataloader(dataset_val, batch_size = 150L, shuffle = FALSE)
 ```
 
 ```{r chunk_c3_transfer_flower_torch_train}
-model = net_pretrained()
+model = net()
 
 # l2 regularization
 opt = optim_adam(params = model$parameters, lr = 0.01, weight_decay = 0.001)
@@ -1623,7 +1655,7 @@ model.cito = mmn(labels~
                  loss = "bernoulli", 
                  batchsize = 128L,
                  epochs = 5L,
-                 validation = 0.2,
+                 validation = 0.0,
                  optimizer = "adam",
                  lr = 0.001)
 
