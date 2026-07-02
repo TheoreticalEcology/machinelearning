@@ -377,6 +377,7 @@ window.Quarto = {
   <li><a href="#sec-transfer" id="toc-sec-transfer" class="nav-link" data-scroll-target="#sec-transfer"><span class="header-section-number">10.4.2</span> Transfer Learning</a></li>
   <li><a href="#example-flower-dataset" id="toc-example-flower-dataset" class="nav-link" data-scroll-target="#example-flower-dataset"><span class="header-section-number">10.4.3</span> Example: Flower dataset</a></li>
   </ul></li>
+  <li><a href="#multi-modal-neural-network" id="toc-multi-modal-neural-network" class="nav-link" data-scroll-target="#multi-modal-neural-network"><span class="header-section-number">10.5</span> Multi-modal Neural Network</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/TheoreticalEcology/machinelearning/edit/master/C3-ConvolutionalNeuralNetworks.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
@@ -1231,7 +1232,7 @@ Click here to see the solution for a minimal Keras example
   r_to_py.R6ClassGenerator             keras3</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>95/95 - 0s - 3ms/step - loss: 2.9273</code></pre>
+<pre><code>95/95 - 0s - 4ms/step - loss: 1.8768</code></pre>
 </div>
 </div>
 <p>Predictions:</p>
@@ -1239,28 +1240,28 @@ Click here to see the solution for a minimal Keras example
 <div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prediction on training data:</span></span>
 <span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">apply</span>(model <span class="sc">|&gt;</span> <span class="fu">predict</span>(train), <span class="dv">1</span>, which.max)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>95/95 - 0s - 905us/step</code></pre>
+<pre><code>95/95 - 0s - 957us/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>Metrics<span class="sc">::</span><span class="fu">accuracy</span>(pred <span class="sc">-</span> <span class="dv">1</span>L, labels)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.5071121</code></pre>
+<pre><code>[1] 0.5537545</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb87"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>pred
   1   2   3   4   5 
-550 469 518 540 946 </code></pre>
+536 782 299 667 739 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb89"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prediction for the submission server:</span></span>
 <span id="cb89-2"><a href="#cb89-2" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> model <span class="sc">|&gt;</span> <span class="fu">predict</span>(test) <span class="sc">|&gt;</span> <span class="fu">apply</span>(<span class="dv">1</span>, which.max) <span class="sc">-</span> <span class="dv">1</span>L</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>41/41 - 0s - 835us/step</code></pre>
+<pre><code>41/41 - 0s - 971us/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(pred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>pred
   0   1   2   3   4 
-214 179 248 230 429 </code></pre>
+198 323 133 301 345 </code></pre>
 </div>
 </div>
 </div>
@@ -1442,7 +1443,7 @@ Click here to see the solution for a minimal Keras example
 <span id="cb106-14"><a href="#cb106-14" aria-hidden="true" tabindex="-1"></a>model <span class="sc">|&gt;</span> </span>
 <span id="cb106-15"><a href="#cb106-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit</span>(<span class="at">x =</span> train, <span class="at">y =</span> labels)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 1s - 3ms/step - loss: 0.1303</code></pre>
+<pre><code>313/313 - 1s - 4ms/step - loss: 0.1286</code></pre>
 </div>
 </div>
 <p>Predictions:</p>
@@ -1450,12 +1451,12 @@ Click here to see the solution for a minimal Keras example
 <div class="sourceCode cell-code" id="cb108"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb108-1"><a href="#cb108-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prediction on training data:</span></span>
 <span id="cb108-2"><a href="#cb108-2" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> model <span class="sc">|&gt;</span> <span class="fu">predict</span>(train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 0s - 959us/step</code></pre>
+<pre><code>313/313 - 0s - 1ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb110"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb110-1"><a href="#cb110-1" aria-hidden="true" tabindex="-1"></a>aucs <span class="ot">=</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">ncol</span>(Y_train), <span class="cf">function</span>(i) Metrics<span class="sc">::</span><span class="fu">auc</span>(Y_train[,i], predictions[,i]))</span>
 <span id="cb110-2"><a href="#cb110-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(aucs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.6484566</code></pre>
+<pre><code>[1] 0.6320697</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb112"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb112-1"><a href="#cb112-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prediction for the submission server:</span></span>
 <span id="cb112-2"><a href="#cb112-2" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> model <span class="sc">|&gt;</span> <span class="fu">predict</span>(test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1620,9 +1621,9 @@ Attaching package: 'tfdatasets'</code></pre>
 <span id="cb128-15"><a href="#cb128-15" aria-hidden="true" tabindex="-1"></a>model <span class="sc">|&gt;</span> <span class="fu">fit</span>(train_ds, <span class="at">epochs =</span> <span class="dv">2</span>L)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Epoch 1/2
-48/48 - 1s - 19ms/step - loss: 28.3864
+48/48 - 1s - 20ms/step - loss: 10.2581
 Epoch 2/2
-48/48 - 1s - 15ms/step - loss: 32.4925</code></pre>
+48/48 - 1s - 16ms/step - loss: 24.1883</code></pre>
 </div>
 </div>
 <p>Using data augmentation we can artificially increase the number of images.</p>
@@ -2074,9 +2075,390 @@ Loss at epoch: 5 train: 3.886502 eval: 37.806167</code></pre>
 </div>
 </div>
 </div>
-
-
 </section>
+</section>
+<section id="multi-modal-neural-network" class="level2" data-number="10.5">
+<h2 data-number="10.5" class="anchored" data-anchor-id="multi-modal-neural-network"><span class="header-section-number">10.5</span> Multi-modal Neural Network</h2>
+<section id="task-cnn-for-the-sdm-dataset-1" class="level4 exercise" data-number="10.5.0.1">
+<h4 data-number="10.5.0.1" class="anchored" data-anchor-id="task-cnn-for-the-sdm-dataset-1"><span class="header-section-number">10.5.0.1</span> Task: CNN for the SDM dataset</h4>
+<p>The next exercise is based on the SDM dataset</p>
+<p>Follow the steps above and build your own convolutional neural network.</p>
+<p>Finally, submit your predictions to the submission server. If you have extra time, take a look at kaggle and find the SDM dataset challenge for specific architectures tailored for this dataset.</p>
+<p><strong>Hint:</strong> Take a look at the loss_binary_focal_crossentropy function from the keras package!</p>
+<p>Prepare data:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb150"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb150-1"><a href="#cb150-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"sdm.RData"</span>)</span>
+<span id="cb150-2"><a href="#cb150-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb150-3"><a href="#cb150-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Preparation of images</span></span>
+<span id="cb150-4"><a href="#cb150-4" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> sdm_img<span class="sc">$</span>train<span class="sc">/</span><span class="fu">max</span>(sdm_img<span class="sc">$</span>train, sdm_img<span class="sc">$</span>test, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb150-5"><a href="#cb150-5" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> sdm_img<span class="sc">$</span>test<span class="sc">/</span><span class="fu">max</span>(sdm_img<span class="sc">$</span>test, sdm_img<span class="sc">$</span>test, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb150-6"><a href="#cb150-6" aria-hidden="true" tabindex="-1"></a>train[<span class="fu">is.na</span>(train)] <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb150-7"><a href="#cb150-7" aria-hidden="true" tabindex="-1"></a>test[<span class="fu">is.na</span>(test)] <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb150-8"><a href="#cb150-8" aria-hidden="true" tabindex="-1"></a>train <span class="ot">=</span> <span class="fu">aperm</span>(train, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>))</span>
+<span id="cb150-9"><a href="#cb150-9" aria-hidden="true" tabindex="-1"></a>test <span class="ot">=</span> <span class="fu">aperm</span>(test, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>))</span>
+<span id="cb150-10"><a href="#cb150-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb150-11"><a href="#cb150-11" aria-hidden="true" tabindex="-1"></a>labels <span class="ot">=</span> Y_train</span>
+<span id="cb150-12"><a href="#cb150-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb150-13"><a href="#cb150-13" aria-hidden="true" tabindex="-1"></a><span class="co"># torch / cito -&gt; channels must be at the second dim</span></span>
+<span id="cb150-14"><a href="#cb150-14" aria-hidden="true" tabindex="-1"></a>train_torch <span class="ot">=</span> <span class="fu">aperm</span>(train, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">3</span>))</span>
+<span id="cb150-15"><a href="#cb150-15" aria-hidden="true" tabindex="-1"></a>test_torch <span class="ot">=</span> <span class="fu">aperm</span>(test, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">3</span>))</span>
+<span id="cb150-16"><a href="#cb150-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb150-17"><a href="#cb150-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb150-18"><a href="#cb150-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Preparation of env data</span></span>
+<span id="cb150-19"><a href="#cb150-19" aria-hidden="true" tabindex="-1"></a>trainX <span class="ot">=</span> sdm_env<span class="sc">$</span>train</span>
+<span id="cb150-20"><a href="#cb150-20" aria-hidden="true" tabindex="-1"></a>testX <span class="ot">=</span> sdm_env<span class="sc">$</span>test</span>
+<span id="cb150-21"><a href="#cb150-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb150-22"><a href="#cb150-22" aria-hidden="true" tabindex="-1"></a>trainX <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(trainX, <span class="at">num.trees =</span> <span class="dv">50</span>L)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Missing value imputation by random forests</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Skip constant features for imputation:  HumanFootprint-greenhouse, HumanFootprint-harbour, HumanFootprint-dump-site
+Variables to impute:        Elevation, Soilgrid-cec, Soilgrid-cfvo, Soilgrid-clay, Soilgrid-nitrogen, Soilgrid-phh2o, Soilgrid-sand, Soilgrid-silt, Soilgrid-bdod, Soilgrid-soc
+Variables used to impute:   surveyId, Bio1, Bio2, Bio3, Bio4, Bio5, Bio6, Bio7, Bio8, Bio9, Bio10, Bio11, Bio12, Bio13, Bio14, Bio15, Bio16, Bio17, Bio18, Bio19, Soilgrid-bdod, Soilgrid-cec, Soilgrid-cfvo, Soilgrid-clay, Soilgrid-nitrogen, Soilgrid-phh2o, Soilgrid-sand, Soilgrid-silt, Soilgrid-soc, Elevation, LandCover-1, LandCover-2, LandCover-3, LandCover-4, LandCover-5, LandCover-6, LandCover-7, LandCover-8, LandCover-9, LandCover-10, LandCover-11, LandCover-12, LandCover-13, HumanFootprint-cemetery, HumanFootprint-reservoir, HumanFootprint-farmland, HumanFootprint-building-copernicus, HumanFootprint-forest, HumanFootprint-building-residential, HumanFootprint-building-commercial, HumanFootprint-grass, HumanFootprint-quarry, HumanFootprint-road, HumanFootprint-salt, HumanFootprint-building-industrial, HumanFootprint-vineyard, HumanFootprint-military, HumanFootprint-construction-site, HumanFootprint-orchard, HumanFootprint-meadow, HumanFootprint-farmyard, HumanFootprint-railway, community
+
+iter 1 
+
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |=======                                                               |  10%
+  |                                                                            
+  |==============                                                        |  20%
+  |                                                                            
+  |=====================                                                 |  30%
+  |                                                                            
+  |============================                                          |  40%
+  |                                                                            
+  |===================================                                   |  50%
+  |                                                                            
+  |==========================================                            |  60%
+  |                                                                            
+  |=================================================                     |  70%
+  |                                                                            
+  |========================================================              |  80%
+  |                                                                            
+  |===============================================================       |  90%
+  |                                                                            
+  |======================================================================| 100%
+iter 2 
+
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |=======                                                               |  10%
+  |                                                                            
+  |==============                                                        |  20%
+  |                                                                            
+  |=====================                                                 |  30%
+  |                                                                            
+  |============================                                          |  40%
+  |                                                                            
+  |===================================                                   |  50%
+  |                                                                            
+  |==========================================                            |  60%
+  |                                                                            
+  |=================================================                     |  70%
+  |                                                                            
+  |========================================================              |  80%
+  |                                                                            
+  |===============================================================       |  90%
+  |                                                                            
+  |======================================================================| 100%
+iter 3 
+
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |=======                                                               |  10%
+  |                                                                            
+  |==============                                                        |  20%
+  |                                                                            
+  |=====================                                                 |  30%
+  |                                                                            
+  |============================                                          |  40%
+  |                                                                            
+  |===================================                                   |  50%
+  |                                                                            
+  |==========================================                            |  60%
+  |                                                                            
+  |=================================================                     |  70%
+  |                                                                            
+  |========================================================              |  80%
+  |                                                                            
+  |===============================================================       |  90%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb153"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb153-1"><a href="#cb153-1" aria-hidden="true" tabindex="-1"></a>testX <span class="ot">=</span> missRanger<span class="sc">::</span><span class="fu">missRanger</span>(testX, <span class="at">num.trees =</span> <span class="dv">50</span>L)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Missing value imputation by random forests</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Skip constant features for imputation:  HumanFootprint-greenhouse, HumanFootprint-harbour, HumanFootprint-salt, HumanFootprint-military, HumanFootprint-dump-site
+Variables to impute:        Soilgrid-bdod, Soilgrid-soc, Soilgrid-cec, Soilgrid-cfvo, Soilgrid-clay, Soilgrid-nitrogen, Soilgrid-phh2o, Soilgrid-sand, Soilgrid-silt
+Variables used to impute:   surveyId, Bio1, Bio2, Bio3, Bio4, Bio5, Bio6, Bio7, Bio8, Bio9, Bio10, Bio11, Bio12, Bio13, Bio14, Bio15, Bio16, Bio17, Bio18, Bio19, Soilgrid-bdod, Soilgrid-cec, Soilgrid-cfvo, Soilgrid-clay, Soilgrid-nitrogen, Soilgrid-phh2o, Soilgrid-sand, Soilgrid-silt, Soilgrid-soc, Elevation, LandCover-1, LandCover-2, LandCover-3, LandCover-4, LandCover-5, LandCover-6, LandCover-7, LandCover-8, LandCover-9, LandCover-10, LandCover-11, LandCover-12, LandCover-13, HumanFootprint-cemetery, HumanFootprint-reservoir, HumanFootprint-farmland, HumanFootprint-building-copernicus, HumanFootprint-forest, HumanFootprint-building-residential, HumanFootprint-building-commercial, HumanFootprint-grass, HumanFootprint-quarry, HumanFootprint-road, HumanFootprint-building-industrial, HumanFootprint-vineyard, HumanFootprint-construction-site, HumanFootprint-orchard, HumanFootprint-meadow, HumanFootprint-farmyard, HumanFootprint-railway, community
+
+iter 1 
+
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |========                                                              |  11%
+  |                                                                            
+  |================                                                      |  22%
+  |                                                                            
+  |=======================                                               |  33%
+  |                                                                            
+  |===============================                                       |  44%
+  |                                                                            
+  |=======================================                               |  56%
+  |                                                                            
+  |===============================================                       |  67%
+  |                                                                            
+  |======================================================                |  78%
+  |                                                                            
+  |==============================================================        |  89%
+  |                                                                            
+  |======================================================================| 100%
+iter 2 
+
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |========                                                              |  11%
+  |                                                                            
+  |================                                                      |  22%
+  |                                                                            
+  |=======================                                               |  33%
+  |                                                                            
+  |===============================                                       |  44%
+  |                                                                            
+  |=======================================                               |  56%
+  |                                                                            
+  |===============================================                       |  67%
+  |                                                                            
+  |======================================================                |  78%
+  |                                                                            
+  |==============================================================        |  89%
+  |                                                                            
+  |======================================================================| 100%
+iter 3 
+
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |========                                                              |  11%
+  |                                                                            
+  |================                                                      |  22%
+  |                                                                            
+  |=======================                                               |  33%
+  |                                                                            
+  |===============================                                       |  44%
+  |                                                                            
+  |=======================================                               |  56%
+  |                                                                            
+  |===============================================                       |  67%
+  |                                                                            
+  |======================================================                |  78%
+  |                                                                            
+  |==============================================================        |  89%
+  |                                                                            
+  |======================================================================| 100%
+iter 4 
+
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |========                                                              |  11%
+  |                                                                            
+  |================                                                      |  22%
+  |                                                                            
+  |=======================                                               |  33%
+  |                                                                            
+  |===============================                                       |  44%
+  |                                                                            
+  |=======================================                               |  56%
+  |                                                                            
+  |===============================================                       |  67%
+  |                                                                            
+  |======================================================                |  78%
+  |                                                                            
+  |==============================================================        |  89%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb156"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb156-1"><a href="#cb156-1" aria-hidden="true" tabindex="-1"></a>human_footprint <span class="ot">=</span> <span class="fu">rowSums</span>(trainX[,<span class="dv">44</span><span class="sc">:</span><span class="dv">65</span>])</span>
+<span id="cb156-2"><a href="#cb156-2" aria-hidden="true" tabindex="-1"></a>landcover <span class="ot">=</span> <span class="fu">rowSums</span>(trainX[,<span class="dv">31</span><span class="sc">:</span><span class="dv">43</span>])</span>
+<span id="cb156-3"><a href="#cb156-3" aria-hidden="true" tabindex="-1"></a>trainX <span class="ot">=</span> trainX[,<span class="dv">2</span><span class="sc">:</span><span class="dv">30</span>]</span>
+<span id="cb156-4"><a href="#cb156-4" aria-hidden="true" tabindex="-1"></a>trainX<span class="sc">$</span>human_footprint <span class="ot">=</span> human_footprint</span>
+<span id="cb156-5"><a href="#cb156-5" aria-hidden="true" tabindex="-1"></a>trainX<span class="sc">$</span>landcover <span class="ot">=</span> landcover</span>
+<span id="cb156-6"><a href="#cb156-6" aria-hidden="true" tabindex="-1"></a>human_footprint <span class="ot">=</span> <span class="fu">rowSums</span>(testX[,<span class="dv">44</span><span class="sc">:</span><span class="dv">65</span>])</span>
+<span id="cb156-7"><a href="#cb156-7" aria-hidden="true" tabindex="-1"></a>landcover <span class="ot">=</span> <span class="fu">rowSums</span>(testX[,<span class="dv">31</span><span class="sc">:</span><span class="dv">43</span>])</span>
+<span id="cb156-8"><a href="#cb156-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb156-9"><a href="#cb156-9" aria-hidden="true" tabindex="-1"></a>testX <span class="ot">=</span> testX[,<span class="dv">2</span><span class="sc">:</span><span class="dv">30</span>]</span>
+<span id="cb156-10"><a href="#cb156-10" aria-hidden="true" tabindex="-1"></a>testX<span class="sc">$</span>human_footprint <span class="ot">=</span> human_footprint</span>
+<span id="cb156-11"><a href="#cb156-11" aria-hidden="true" tabindex="-1"></a>testX<span class="sc">$</span>landcover <span class="ot">=</span> landcover</span>
+<span id="cb156-12"><a href="#cb156-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb156-13"><a href="#cb156-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb156-14"><a href="#cb156-14" aria-hidden="true" tabindex="-1"></a>trainXs <span class="ot">=</span> <span class="fu">scale</span>(trainX)</span>
+<span id="cb156-15"><a href="#cb156-15" aria-hidden="true" tabindex="-1"></a>testXs <span class="ot">=</span> <span class="fu">scale</span>(testX)</span>
+<span id="cb156-16"><a href="#cb156-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb156-17"><a href="#cb156-17" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(trainXs) <span class="ot">=</span> stringr<span class="sc">::</span><span class="fu">str_remove</span>(<span class="fu">colnames</span>(trainXs), <span class="st">"-"</span>)</span>
+<span id="cb156-18"><a href="#cb156-18" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(trainXs) <span class="ot">=</span> stringr<span class="sc">::</span><span class="fu">str_remove</span>(<span class="fu">colnames</span>(trainXs), <span class="st">"-"</span>)</span>
+<span id="cb156-19"><a href="#cb156-19" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(testXs) <span class="ot">=</span> <span class="fu">colnames</span>(trainXs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Tip:</strong> Take a look at the dataset chapter.</p>
+<div class="webex-solution">
+<button>
+Click here to see the solution for a minimal Torch example
+</button>
+<p>Build model:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb157"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb157-1"><a href="#cb157-1" aria-hidden="true" tabindex="-1"></a>net <span class="ot">=</span> <span class="fu">nn_module</span>(</span>
+<span id="cb157-2"><a href="#cb157-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mmn"</span>,</span>
+<span id="cb157-3"><a href="#cb157-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(<span class="at">dropout_rate =</span> <span class="fl">0.3</span>){</span>
+<span id="cb157-4"><a href="#cb157-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb157-5"><a href="#cb157-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># CNN</span></span>
+<span id="cb157-6"><a href="#cb157-6" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>conv1 <span class="ot">=</span> <span class="fu">nn_conv2d</span>(<span class="dv">4</span>, <span class="dv">8</span>L, <span class="dv">4</span>L) </span>
+<span id="cb157-7"><a href="#cb157-7" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>dropout1 <span class="ot">=</span> <span class="fu">nn_dropout2d</span>(<span class="at">p =</span> dropout_rate)</span>
+<span id="cb157-8"><a href="#cb157-8" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>fc1 <span class="ot">=</span> <span class="fu">nn_linear</span>(<span class="dv">1800</span>, <span class="dv">50</span>L)</span>
+<span id="cb157-9"><a href="#cb157-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb157-10"><a href="#cb157-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Env dnn</span></span>
+<span id="cb157-11"><a href="#cb157-11" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>h1 <span class="ot">=</span> <span class="fu">nn_linear</span>(<span class="fu">ncol</span>(trainXs), <span class="dv">50</span>L)</span>
+<span id="cb157-12"><a href="#cb157-12" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>h2 <span class="ot">=</span> <span class="fu">nn_linear</span>(<span class="dv">50</span>L, <span class="dv">50</span>L)</span>
+<span id="cb157-13"><a href="#cb157-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb157-14"><a href="#cb157-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># fusion network</span></span>
+<span id="cb157-15"><a href="#cb157-15" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>f1 <span class="ot">=</span> <span class="fu">nn_linear</span>(<span class="dv">100</span>L, <span class="dv">50</span>L)</span>
+<span id="cb157-16"><a href="#cb157-16" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>f2 <span class="ot">=</span> <span class="fu">nn_linear</span>(<span class="dv">50</span>L, <span class="fu">ncol</span>(labels))</span>
+<span id="cb157-17"><a href="#cb157-17" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb157-18"><a href="#cb157-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">forward =</span> <span class="cf">function</span>(img, env){</span>
+<span id="cb157-19"><a href="#cb157-19" aria-hidden="true" tabindex="-1"></a>    path_img <span class="ot">=</span> </span>
+<span id="cb157-20"><a href="#cb157-20" aria-hidden="true" tabindex="-1"></a>      img <span class="sc">|&gt;</span></span>
+<span id="cb157-21"><a href="#cb157-21" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span><span class="fu">conv1</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb157-22"><a href="#cb157-22" aria-hidden="true" tabindex="-1"></a>        <span class="fu">nnf_relu</span>() <span class="sc">|&gt;</span></span>
+<span id="cb157-23"><a href="#cb157-23" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span><span class="fu">dropout1</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb157-24"><a href="#cb157-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">nnf_max_pool2d</span>(<span class="dv">4</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb157-25"><a href="#cb157-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">torch_flatten</span>(<span class="at">start_dim =</span> <span class="dv">2</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb157-26"><a href="#cb157-26" aria-hidden="true" tabindex="-1"></a>        self<span class="sc">$</span><span class="fu">fc1</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb157-27"><a href="#cb157-27" aria-hidden="true" tabindex="-1"></a>        <span class="fu">nnf_relu</span>()</span>
+<span id="cb157-28"><a href="#cb157-28" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb157-29"><a href="#cb157-29" aria-hidden="true" tabindex="-1"></a>    path_env <span class="ot">=</span> </span>
+<span id="cb157-30"><a href="#cb157-30" aria-hidden="true" tabindex="-1"></a>      env <span class="sc">|&gt;</span> </span>
+<span id="cb157-31"><a href="#cb157-31" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">h1</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb157-32"><a href="#cb157-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nnf_relu</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb157-33"><a href="#cb157-33" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">h2</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb157-34"><a href="#cb157-34" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nnf_relu</span>()</span>
+<span id="cb157-35"><a href="#cb157-35" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb157-36"><a href="#cb157-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># combine</span></span>
+<span id="cb157-37"><a href="#cb157-37" aria-hidden="true" tabindex="-1"></a>    comb <span class="ot">=</span> <span class="fu">torch_cat</span>(<span class="fu">list</span>(path_img, path_env), <span class="at">dim =</span> <span class="dv">2</span>L)</span>
+<span id="cb157-38"><a href="#cb157-38" aria-hidden="true" tabindex="-1"></a>    comb <span class="sc">|&gt;</span> </span>
+<span id="cb157-39"><a href="#cb157-39" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">f1</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb157-40"><a href="#cb157-40" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nnf_relu</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb157-41"><a href="#cb157-41" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">f2</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb157-42"><a href="#cb157-42" aria-hidden="true" tabindex="-1"></a>      <span class="fu">nnf_sigmoid</span>()</span>
+<span id="cb157-43"><a href="#cb157-43" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb157-44"><a href="#cb157-44" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb157-45"><a href="#cb157-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb157-46"><a href="#cb157-46" aria-hidden="true" tabindex="-1"></a>model_torch <span class="ot">=</span> <span class="fu">net</span>()</span>
+<span id="cb157-47"><a href="#cb157-47" aria-hidden="true" tabindex="-1"></a>opt <span class="ot">=</span> <span class="fu">optim_adam</span>(<span class="at">params =</span> model_torch<span class="sc">$</span>parameters, <span class="at">lr =</span> <span class="fl">0.01</span>)</span>
+<span id="cb157-48"><a href="#cb157-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb157-49"><a href="#cb157-49" aria-hidden="true" tabindex="-1"></a>dataset <span class="ot">=</span> <span class="fu">tensor_dataset</span>(<span class="fu">torch_tensor</span>(train_torch),</span>
+<span id="cb157-50"><a href="#cb157-50" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">torch_tensor</span>(trainXs),</span>
+<span id="cb157-51"><a href="#cb157-51" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">torch_tensor</span>(labels, <span class="at">dtype =</span> <span class="fu">torch_float</span>())</span>
+<span id="cb157-52"><a href="#cb157-52" aria-hidden="true" tabindex="-1"></a>                         )</span>
+<span id="cb157-53"><a href="#cb157-53" aria-hidden="true" tabindex="-1"></a>train_dl <span class="ot">=</span> torch<span class="sc">::</span><span class="fu">dataloader</span>(dataset, <span class="at">batch_size =</span> <span class="dv">50</span>L, <span class="at">shuffle =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb157-54"><a href="#cb157-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb157-55"><a href="#cb157-55" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(e <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>){</span>
+<span id="cb157-56"><a href="#cb157-56" aria-hidden="true" tabindex="-1"></a>  losses <span class="ot">=</span> <span class="fu">c</span>()</span>
+<span id="cb157-57"><a href="#cb157-57" aria-hidden="true" tabindex="-1"></a>  coro<span class="sc">::</span><span class="fu">loop</span>(</span>
+<span id="cb157-58"><a href="#cb157-58" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(batch <span class="cf">in</span> train_dl){</span>
+<span id="cb157-59"><a href="#cb157-59" aria-hidden="true" tabindex="-1"></a>      opt<span class="sc">$</span><span class="fu">zero_grad</span>()</span>
+<span id="cb157-60"><a href="#cb157-60" aria-hidden="true" tabindex="-1"></a>      pred <span class="ot">=</span> <span class="fu">model_torch</span>(batch[[<span class="dv">1</span>]], batch[[<span class="dv">2</span>]])</span>
+<span id="cb157-61"><a href="#cb157-61" aria-hidden="true" tabindex="-1"></a>      loss <span class="ot">=</span> <span class="fu">nnf_binary_cross_entropy</span>(pred, batch[[<span class="dv">3</span>]], <span class="at">reduction =</span> <span class="st">"mean"</span>)</span>
+<span id="cb157-62"><a href="#cb157-62" aria-hidden="true" tabindex="-1"></a>      loss<span class="sc">$</span><span class="fu">backward</span>()</span>
+<span id="cb157-63"><a href="#cb157-63" aria-hidden="true" tabindex="-1"></a>      opt<span class="sc">$</span><span class="fu">step</span>()</span>
+<span id="cb157-64"><a href="#cb157-64" aria-hidden="true" tabindex="-1"></a>      losses <span class="ot">=</span> <span class="fu">c</span>(losses, loss<span class="sc">$</span><span class="fu">item</span>())</span>
+<span id="cb157-65"><a href="#cb157-65" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb157-66"><a href="#cb157-66" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb157-67"><a href="#cb157-67" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"Loss at epoch %d: %3f</span><span class="sc">\n</span><span class="st">"</span>, e, <span class="fu">mean</span>(losses)))</span>
+<span id="cb157-68"><a href="#cb157-68" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Loss at epoch 1: 0.125970
+Loss at epoch 2: 0.099949
+Loss at epoch 3: 0.096527</code></pre>
+</div>
+</div>
+<p>Predictions:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb159"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb159-1"><a href="#cb159-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prediction on training data:</span></span>
+<span id="cb159-2"><a href="#cb159-2" aria-hidden="true" tabindex="-1"></a>model_torch<span class="sc">$</span><span class="fu">eval</span>()</span>
+<span id="cb159-3"><a href="#cb159-3" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">model_torch</span>(<span class="fu">torch_tensor</span>(train_torch), <span class="fu">torch_tensor</span>(trainXs))  <span class="sc">|&gt;</span> <span class="fu">as_array</span>() </span>
+<span id="cb159-4"><a href="#cb159-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb159-5"><a href="#cb159-5" aria-hidden="true" tabindex="-1"></a>aucs <span class="ot">=</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">ncol</span>(Y_train), <span class="cf">function</span>(i) Metrics<span class="sc">::</span><span class="fu">auc</span>(Y_train[,i], predictions[,i]))</span>
+<span id="cb159-6"><a href="#cb159-6" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(aucs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8699675</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb161"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb161-1"><a href="#cb161-1" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> <span class="fu">model_torch</span>(<span class="fu">torch_tensor</span>(test_torch), <span class="fu">torch_tensor</span>(testXs))  <span class="sc">|&gt;</span> <span class="fu">as_array</span>() </span>
+<span id="cb161-2"><a href="#cb161-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">as.vector</span>(predictions)), <span class="at">file =</span> <span class="st">"cnn.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+<div class="webex-solution">
+<button>
+Click here to see the solution for a minimal cito example
+</button>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb162"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb162-1"><a href="#cb162-1" aria-hidden="true" tabindex="-1"></a>architecture <span class="ot">=</span> <span class="fu">create_architecture</span>(</span>
+<span id="cb162-2"><a href="#cb162-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">conv</span>(<span class="at">n_kernels =</span> <span class="dv">8</span>L, <span class="at">kernel_size =</span> <span class="dv">2</span>L, <span class="at">activation =</span> <span class="st">"relu"</span>),</span>
+<span id="cb162-3"><a href="#cb162-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">maxPool</span>(),</span>
+<span id="cb162-4"><a href="#cb162-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">default_dropout =</span> <span class="fl">0.2</span></span>
+<span id="cb162-5"><a href="#cb162-5" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb162-6"><a href="#cb162-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb162-7"><a href="#cb162-7" aria-hidden="true" tabindex="-1"></a>model.cito <span class="ot">=</span> <span class="fu">mmn</span>(labels<span class="sc">~</span> </span>
+<span id="cb162-8"><a href="#cb162-8" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">cnn</span>(<span class="at">X=</span>cnn_data, <span class="at">architecture =</span> architecture) <span class="sc">+</span> </span>
+<span id="cb162-9"><a href="#cb162-9" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">dnn</span>(<span class="sc">~</span>., <span class="at">data =</span> dnn_data), </span>
+<span id="cb162-10"><a href="#cb162-10" aria-hidden="true" tabindex="-1"></a>                 <span class="at">dataList =</span> <span class="fu">list</span>(<span class="at">labels =</span> labels, <span class="at">cnn_data=</span>train_torch, <span class="at">dnn_data=</span>trainXs),</span>
+<span id="cb162-11"><a href="#cb162-11" aria-hidden="true" tabindex="-1"></a>                 <span class="at">loss =</span> <span class="st">"bernoulli"</span>, </span>
+<span id="cb162-12"><a href="#cb162-12" aria-hidden="true" tabindex="-1"></a>                 <span class="at">batchsize =</span> <span class="dv">128</span>L,</span>
+<span id="cb162-13"><a href="#cb162-13" aria-hidden="true" tabindex="-1"></a>                 <span class="at">epochs =</span> <span class="dv">5</span>L,</span>
+<span id="cb162-14"><a href="#cb162-14" aria-hidden="true" tabindex="-1"></a>                 <span class="at">validation =</span> <span class="fl">0.2</span>,</span>
+<span id="cb162-15"><a href="#cb162-15" aria-hidden="true" tabindex="-1"></a>                 <span class="at">optimizer =</span> <span class="st">"adam"</span>,</span>
+<span id="cb162-16"><a href="#cb162-16" aria-hidden="true" tabindex="-1"></a>                 <span class="at">lr =</span> <span class="fl">0.001</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Loss at epoch 1: training: 0.294, validation: 0.124, lr: 0.00100</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="C3-ConvolutionalNeuralNetworks_files/figure-html/chunk_c3_mmn_cito_model-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Loss at epoch 2: training: 0.127, validation: 0.120, lr: 0.00100
+Loss at epoch 3: training: 0.117, validation: 0.112, lr: 0.00100
+Loss at epoch 4: training: 0.111, validation: 0.110, lr: 0.00100
+Loss at epoch 5: training: 0.109, validation: 0.108, lr: 0.00100</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb165"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb165-1"><a href="#cb165-1" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> model.cito <span class="sc">|&gt;</span> <span class="fu">predict</span>(<span class="at">newdata =</span> <span class="fu">list</span>(<span class="at">cnn_data=</span>train_torch, <span class="at">dnn_data=</span>trainXs))</span>
+<span id="cb165-2"><a href="#cb165-2" aria-hidden="true" tabindex="-1"></a>aucs <span class="ot">=</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">ncol</span>(Y_train), <span class="cf">function</span>(i) Metrics<span class="sc">::</span><span class="fu">auc</span>(Y_train[,i], predictions[,i]))</span>
+<span id="cb165-3"><a href="#cb165-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(aucs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.7583378</code></pre>
+</div>
+</div>
+<p>Submission:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb167"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb167-1"><a href="#cb167-1" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">=</span> model.cito <span class="sc">|&gt;</span> <span class="fu">predict</span>(<span class="at">newdata =</span> <span class="fu">list</span>(<span class="at">cnn_data=</span>test_torch, <span class="at">dnn_data=</span>testXs))</span>
+<span id="cb167-2"><a href="#cb167-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">as.vector</span>(predictions)), <span class="at">file =</span> <span class="st">"cnn.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</section>
+
+
 </section>
 
 </main> <!-- /main -->

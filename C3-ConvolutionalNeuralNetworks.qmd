@@ -1447,3 +1447,199 @@ for(e in 1:epochs) {
 matplot(cbind(overall_train_loss, overall_val_loss), type = "l", lty = 1, col = c("#2262AA", "#F82211"), xlab = "epoch", ylab = "Loss")
 ```
 :::
+
+
+
+
+## Multi-modal Neural Network
+
+
+::: exercise
+#### Task: CNN for the SDM dataset
+
+The next exercise is based on the SDM dataset
+
+Follow the steps above and build your own convolutional neural network.
+
+Finally, submit your predictions to the submission server. If you have extra time, take a look at kaggle and find the SDM dataset challenge for specific architectures tailored for this dataset.
+
+**Hint:** Take a look at the loss_binary_focal_crossentropy function from the keras package!
+
+Prepare data:
+
+```{r chunk_c3_mmn_data}
+load("sdm.RData")
+
+# Preparation of images
+train = sdm_img$train/max(sdm_img$train, sdm_img$test, na.rm = TRUE)
+test = sdm_img$test/max(sdm_img$test, sdm_img$test, na.rm = TRUE)
+train[is.na(train)] = 0
+test[is.na(test)] = 0
+train = aperm(train, c(1, 3, 4, 2))
+test = aperm(test, c(1, 3, 4, 2))
+
+labels = Y_train
+
+# torch / cito -> channels must be at the second dim
+train_torch = aperm(train, c(1, 4, 2, 3))
+test_torch = aperm(test, c(1, 4, 2, 3))
+
+
+# Preparation of env data
+trainX = sdm_env$train
+testX = sdm_env$test
+
+trainX = missRanger::missRanger(trainX, num.trees = 50L)
+testX = missRanger::missRanger(testX, num.trees = 50L)
+
+human_footprint = rowSums(trainX[,44:65])
+landcover = rowSums(trainX[,31:43])
+trainX = trainX[,2:30]
+trainX$human_footprint = human_footprint
+trainX$landcover = landcover
+human_footprint = rowSums(testX[,44:65])
+landcover = rowSums(testX[,31:43])
+
+testX = testX[,2:30]
+testX$human_footprint = human_footprint
+testX$landcover = landcover
+
+
+trainXs = scale(trainX)
+testXs = scale(testX)
+
+colnames(trainXs) = stringr::str_remove(colnames(trainXs), "-")
+colnames(trainXs) = stringr::str_remove(colnames(trainXs), "-")
+colnames(testXs) = colnames(trainXs)
+
+```
+
+**Tip:** Take a look at the dataset chapter.
+
+`r hide("Click here to see the solution for a minimal Torch example")`
+
+Build model:
+
+```{r chunk_c3_mmn_torch_model}
+net = nn_module(
+  "mmn",
+  initialize = function(dropout_rate = 0.3){
+    
+    # CNN
+    self$conv1 = nn_conv2d(4, 8L, 4L) 
+    self$dropout1 = nn_dropout2d(p = dropout_rate)
+    self$fc1 = nn_linear(1800, 50L)
+    
+    # Env dnn
+    self$h1 = nn_linear(ncol(trainXs), 50L)
+    self$h2 = nn_linear(50L, 50L)
+    
+    # fusion network
+    self$f1 = nn_linear(100L, 50L)
+    self$f2 = nn_linear(50L, ncol(labels))
+  },
+  forward = function(img, env){
+    path_img = 
+      img |>
+        self$conv1() |> 
+        nnf_relu() |>
+        self$dropout1() |> 
+        nnf_max_pool2d(4) |> 
+        torch_flatten(start_dim = 2) |> 
+        self$fc1() |> 
+        nnf_relu()
+    
+    path_env = 
+      env |> 
+      self$h1() |> 
+      nnf_relu() |> 
+      self$h2() |> 
+      nnf_relu()
+    
+    # combine
+    comb = torch_cat(list(path_img, path_env), dim = 2L)
+    comb |> 
+      self$f1() |> 
+      nnf_relu() |> 
+      self$f2() |> 
+      nnf_sigmoid()
+  }
+)
+
+model_torch = net()
+opt = optim_adam(params = model_torch$parameters, lr = 0.01)
+
+dataset = tensor_dataset(torch_tensor(train_torch),
+                         torch_tensor(trainXs),
+                         torch_tensor(labels, dtype = torch_float())
+                         )
+train_dl = torch::dataloader(dataset, batch_size = 50L, shuffle = TRUE)
+
+for(e in 1:3){
+  losses = c()
+  coro::loop(
+    for(batch in train_dl){
+      opt$zero_grad()
+      pred = model_torch(batch[[1]], batch[[2]])
+      loss = nnf_binary_cross_entropy(pred, batch[[3]], reduction = "mean")
+      loss$backward()
+      opt$step()
+      losses = c(losses, loss$item())
+    }
+  )
+  cat(sprintf("Loss at epoch %d: %3f\n", e, mean(losses)))
+}
+```
+
+Predictions:
+
+```{r chunk_c3_mmn_torch_predict}
+# Prediction on training data:
+model_torch$eval()
+predictions = model_torch(torch_tensor(train_torch), torch_tensor(trainXs))  |> as_array() 
+
+aucs = sapply(1:ncol(Y_train), function(i) Metrics::auc(Y_train[,i], predictions[,i]))
+mean(aucs)
+
+predictions = model_torch(torch_tensor(test_torch), torch_tensor(testXs))  |> as_array() 
+write.csv(data.frame(y = as.vector(predictions)), file = "cnn.csv")
+```
+
+`r unhide()`
+
+`r hide("Click here to see the solution for a minimal cito example")`
+
+```{r chunk_c3_mmn_cito_model}
+architecture = create_architecture(
+  conv(n_kernels = 8L, kernel_size = 2L, activation = "relu"),
+  maxPool(),
+  default_dropout = 0.2
+  )
+
+model.cito = mmn(labels~ 
+                   cnn(X=cnn_data, architecture = architecture) + 
+                   dnn(~., data = dnn_data), 
+                 dataList = list(labels = labels, cnn_data=train_torch, dnn_data=trainXs),
+                 loss = "bernoulli", 
+                 batchsize = 128L,
+                 epochs = 5L,
+                 validation = 0.2,
+                 optimizer = "adam",
+                 lr = 0.001)
+
+predictions = model.cito |> predict(newdata = list(cnn_data=train_torch, dnn_data=trainXs))
+aucs = sapply(1:ncol(Y_train), function(i) Metrics::auc(Y_train[,i], predictions[,i]))
+mean(aucs)
+```
+
+Submission:
+
+```{r chunk_c3_mmn_cito_submission}
+predictions = model.cito |> predict(newdata = list(cnn_data=test_torch, dnn_data=testXs))
+write.csv(data.frame(y = as.vector(predictions)), file = "cnn.csv")
+```
+
+`r unhide()`
+
+
+:::
