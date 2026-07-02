@@ -750,6 +750,188 @@ write.csv(data.frame(y = pred), file = "cnn.csv")
 `r unhide()`
 :::
 
+
+
+
+::: exercise
+#### Task: CNN for the SDM dataset
+
+The next exercise is based on the SDM dataset
+
+Follow the steps above and build your own convolutional neural network.
+
+Finally, submit your predictions to the submission server. If you have extra time, take a look at kaggle and find the SDM dataset challenge for specific architectures tailored for this dataset.
+
+**Hint:** Take a look at the loss_binary_focal_crossentropy function from the keras package!
+
+Prepare data:
+
+```{r chunk_c3_sdm_data}
+load("sdm.RData")
+
+# keras
+train = sdm_img$train/max(sdm_img$train, sdm_img$test, na.rm = TRUE)
+test = sdm_img$test/max(sdm_img$test, sdm_img$test, na.rm = TRUE)
+train[is.na(train)] = 0
+test[is.na(test)] = 0
+train = aperm(train, c(1, 3, 4, 2))
+test = aperm(test, c(1, 3, 4, 2))
+
+labels = Y_train
+
+# torch / cito -> channels must be at the second dim
+train_torch = aperm(train, c(1, 4, 2, 3))
+test_torch = aperm(test, c(1, 4, 2, 3))
+```
+
+Plot flower:
+
+```{r chunk_c3_sdm_plot}
+train[102,,,] |>
+  image_to_array() |>
+  as.raster() |>
+  plot()
+```
+
+**Tip:** Take a look at the dataset chapter.
+
+`r hide("Click here to see the solution for a minimal Torch example")`
+
+Build model:
+
+```{r chunk_c3_sdmtorch_model}
+net = nn_module(
+  "sdm",
+  initialize = function(dropout_rate = 0.3){
+    self$conv1 = nn_conv2d(4, 8L, 4L) # 8, 77, 77 -> 8, 19, 19
+    self$dropout1 = nn_dropout2d(p = dropout_rate)
+    self$fc1 = nn_linear(1800, ncol(Y_train))
+  },
+  forward = function(x){
+    x |>
+      self$conv1() |> 
+      nnf_relu() |>
+      self$dropout1() |> 
+      nnf_max_pool2d(4) |> 
+      torch_flatten(start_dim = 2) |> 
+      self$fc1() |> 
+      torch_sigmoid()
+  }
+)
+
+model_torch = net()
+opt = optim_adam(params = model_torch$parameters, lr = 0.01)
+
+dataset = tensor_dataset(torch_tensor(train_torch), 
+                         torch_tensor(labels, dtype = torch_float())
+                         )
+train_dl = torch::dataloader(dataset, batch_size = 50L, shuffle = TRUE)
+
+for(e in 1:3){
+  losses = c()
+  coro::loop(
+    for(batch in train_dl){
+      opt$zero_grad()
+      pred = model_torch(batch[[1]])
+      loss = nnf_binary_cross_entropy(pred, batch[[2]], reduction = "mean")
+      loss$backward()
+      opt$step()
+      losses = c(losses, loss$item())
+    }
+  )
+  cat(sprintf("Loss at epoch %d: %3f\n", e, mean(losses)))
+}
+```
+
+Predictions:
+
+```{r chunk_c3_sdm_torch_predict}
+# Prediction on training data:
+model_torch$eval()
+predictions = model_torch(torch_tensor(train_torch))  |> as_array() 
+
+aucs = sapply(1:ncol(Y_train), function(i) Metrics::auc(Y_train[,i], predictions[,i]))
+mean(aucs)
+
+predictions = model_torch(torch_tensor(test_torch))  |> as_array() 
+write.csv(data.frame(y = as.vector(predictions)), file = "cnn.csv")
+```
+
+`r unhide()`
+
+`r hide("Click here to see the solution for a minimal Keras example")`
+
+Build model:
+
+```{r chunk_c3_sdm_keras_model}
+model = keras_model_sequential(shape(64, 64, 4L))
+model |> 
+  layer_conv_2d(filters = 4L, kernel_size = 2L) |> 
+  layer_max_pooling_2d() |> 
+  layer_flatten() |> 
+  layer_dense(units = ncol(Y_train), activation = "sigmoid")
+
+### Model fitting ###
+
+model |> 
+  compile(loss = loss_binary_crossentropy, # check out the loss_binary_focal_crossentropy!!! 
+          optimizer = optimizer_adamax(learning_rate = 0.01))
+
+model |> 
+  fit(x = train, y = labels)
+```
+
+Predictions:
+
+```{r chunk_c3_sdm_keras_predict}
+# Prediction on training data:
+predictions = model |> predict(train)
+aucs = sapply(1:ncol(Y_train), function(i) Metrics::auc(Y_train[,i], predictions[,i]))
+mean(aucs)
+
+
+# Prediction for the submission server:
+predictions = model |> predict(test)
+write.csv(data.frame(y = as.vector(predictions)), file = "cnn.csv")
+```
+
+`r unhide()`
+
+`r hide("Click here to see the solution for a minimal cito example")`
+
+```{r chunk_c3_sdm_cito_model}
+architecture = create_architecture(
+  conv(n_kernels = 8L, kernel_size = 2L, activation = "relu"),
+  maxPool(),
+  default_dropout = 0.2
+  )
+
+model.cito = cnn(X = train_torch , 
+                 Y = labels, 
+                 loss = "bernoulli", 
+                 architecture = architecture, 
+                 batchsize = 128L,
+                 epochs = 5L,
+                 validation = 0.2,
+                 optimizer = "adam",
+                 lr = 0.001)
+
+predictions = model.cito |> predict(train_torch)
+aucs = sapply(1:ncol(Y_train), function(i) Metrics::auc(Y_train[,i], predictions[,i]))
+mean(aucs)
+```
+
+Submission:
+
+```{r chunk_c3_sdm_cito_submission}
+predictions = model.cito |> predict(test_torch)
+write.csv(data.frame(y = as.vector(predictions)), file = "cnn.csv")
+```
+
+`r unhide()`
+:::
+
+
 ## Advanced Training Techniques
 
 ### Data Augmentation
@@ -959,7 +1141,7 @@ In the next step we want to freeze all layers except for our own last layer. Fre
 
 ```{r chunk_chapter5_30, eval=TRUE}
 model |> keras3::freeze_weights(from = 1, to = length(model$layers) - 2)
-summary(model)
+# summary(model)
 ```
 
 And then the usual training:
